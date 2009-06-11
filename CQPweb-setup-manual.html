@@ -1,0 +1,625 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Win32)">
+	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
+	<META NAME="CREATED" CONTENT="20090607;11102800">
+	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
+	<META NAME="CHANGED" CONTENT="20090607;12213100">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Some very quick notes on how to set up CQPweb v 2.02</H1>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>What
+you will need</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P>You'll need a machine with a Unix-style operating system (it has
+been tested, so far, on . Other software you need: 
+</P>
+<UL TYPE=DISC>
+	<LI><P>Apache or some other webserver (note: <I>internal
+	username/password functions assume you are using Apache, if not you
+	will have to manage your own passwords</I>) (I run it with Apache 2
+	but Apache 1 would prob work as well&hellip;) 
+	</P>
+</UL>
+<UL TYPE=DISC>
+	<LI><P>MySQL (v5.0 or higher) 
+	</P>
+</UL>
+<UL TYPE=DISC>
+	<LI><P>PHP (v5 or higher) 
+	</P>
+</UL>
+<UL TYPE=DISC>
+	<LI><P>Perl (v5.8 or higher) 
+	</P>
+</UL>
+<UL TYPE=DISC>
+	<LI><P>And of course CWB (the version distributed alongside BNCweb,
+	see below) 
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Setting
+up the Perl elements</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P>You will need to install the following Perl modules.</P>
+<P>From CPAN:</P>
+<UL TYPE=DISC>
+	<LI><P>DBI 
+	</P>
+	<LI><P>DBD::mysql 
+	</P>
+	<LI><P>HTML::Entities 
+	</P>
+	<LI><P>Parse::RecDescent 
+	</P>
+</UL>
+<P>[<I>NOTE: These are the modules needed for BNCweb and/or the old
+version of CEQL, I'm not sure to what extent they are required for
+the new version of CEQL! But if you are running CQPweb on the same
+server as BNCweb you will be OK</I>.]</P>
+<P><BR><BR>
+</P>
+<P>From the CWB Perl distribution:</P>
+<UL TYPE=DISC>
+	<LI><P>The CWB.pm module and the CEQL.pm module. (Use accompanying
+	copy to make sure you have the right version). You may also need
+	CQP.pm &ndash; I&rsquo;m not sure about that. 
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P>&hellip; and restart Apache after installing the modules so they
+load into Apache.</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Setting
+up MySQL</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P>You will need to create a new user and a new database for CQPweb
+to use.</P>
+<P>Make a note of the username / password of this new user and of the
+new database.</P>
+<P>The new user needs to have <FONT FACE="Courier New, monospace">GRANT
+ALL</FONT> on the new database. The new user also needs <FONT FACE="Courier New, monospace">GRANT
+FILE ON *.*</FONT></P>
+<P>Also make a note of the servername needed to access the MySQL
+server by a webscript. Unless your MySQL is on a separate server,
+this will probably be <FONT FACE="Courier New, monospace">localhost</FONT>.</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Setting
+up directories</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P>CQPweb needs the following directories to be created on the
+server.</P>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=882 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=556>
+	<COL WIDTH=309>
+	<TR VALIGN=TOP>
+		<TD WIDTH=556 BGCOLOR="#c0c0c0">
+			<P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B><SPAN STYLE="text-decoration: none">Create
+			a directory for&hellip;</SPAN></B></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=309 BGCOLOR="#c0c0c0">
+			<P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B><SPAN STYLE="text-decoration: none">Where
+			it should be</SPAN></B></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=556>
+			<OL>
+				<LI><P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">The
+				actual web scripts<BR>(NB the URL of this directory will become
+				the base URL for your CQPweb system) </SPAN></FONT></FONT></FONT>
+				</P>
+			</OL>
+		</TD>
+		<TD WIDTH=309>
+			<P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">Somewhere
+			in the web-docs directory of the server</SPAN></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=556>
+			<OL START=2>
+				<LI><P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">CQPweb&rsquo;s
+				web usernames and passwords </SPAN></FONT></FONT></FONT>
+				</P>
+			</OL>
+		</TD>
+		<TD WIDTH=309>
+			<P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">Somewhere
+			outside the web directory</SPAN></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=556>
+			<OL START=3>
+				<LI><P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">Temporary
+				files (inc the cache) </SPAN></FONT></FONT></FONT>
+				</P>
+			</OL>
+		</TD>
+		<TD WIDTH=309>
+			<P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">Somewhere
+			outside the web directory</SPAN></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=556>
+			<OL START=4>
+				<LI><P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">Indexed
+				corpora </SPAN></FONT></FONT></FONT>
+				</P>
+			</OL>
+		</TD>
+		<TD WIDTH=309>
+			<P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">Somewhere
+			outside the web directory</SPAN></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=556>
+			<OL START=5>
+				<LI><P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">Registry
+				files for indexed corpora </SPAN></FONT></FONT></FONT>
+				</P>
+			</OL>
+		</TD>
+		<TD WIDTH=309>
+			<P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">Somewhere
+			outside the web directory</SPAN></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=556>
+			<OL START=6>
+				<LI><P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">Upload
+				area for files put onto the server via HTTP </SPAN></FONT></FONT></FONT>
+				</P>
+			</OL>
+		</TD>
+		<TD WIDTH=309>
+			<P ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="text-decoration: none">Somewhere
+			outside the web directory</SPAN></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>&hellip; make a note of the path of each one. 
+</P>
+<P>Note that the data / registry locations do not need to be the same
+as the ones you normally use for CWB.</P>
+<P>The username of the webserver (usually something like <B>www</B>
+or <B>www-data</B>) need to have read-write-execute access to all
+these directories.</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
+up the web scripts</B></FONT></FONT></P>
+<P>Copy the contents of the CQPweb <B>.tar.gz</B> distribution file
+to the web directory you created above (such that the directories
+<B>lib</B>, <B>adm</B> etc. appear directly within your
+web-directory). Don&rsquo;t change the folder hierarchy. Make sure
+the www user has rwx access to all the files you&rsquo;ve just put in
+here.</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Creating
+a config file: automatically</B></FONT></FONT></P>
+<P>There is now an auto-config script &ndash; it is somewhat
+primitive but it will save you fiddling with PHP code for
+configuration variables. To use it, change directory to the web
+directory, and run</P>
+<P><FONT FACE="Courier New, monospace">php cqpweb-autoconfig.php</FONT></P>
+<P>&hellip; and follow the instructions to enter the paths and other
+info that you made a note of above.</P>
+<P>When you are asked to specify admin usernames 
+</P>
+<P>Note that the script's last action is to gzip itself to avoid
+accidentally running again. Before you take the system live, you
+should <B>delete this script</B><SPAN STYLE="font-weight: normal"> &ndash;
+as it could compromise the seciruty of the system. (When you use the
+&ldquo;restore default system security&rdquo; option, one of the
+various things it does is check that this script is gone &ndash; in
+both its gzipped and non-gzipped forms &ndash; and delete it if not.)</SPAN></P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Creating
+a config file: manually</B></FONT></FONT></P>
+<P>If you configure CQPweb manually, you need to actually edit the
+code file that contains the config variables. Do this as follows: 
+</P>
+<P><BR><BR>
+</P>
+<P>Find the file called &ldquo;template.config.inc.php&rdquo; and
+edit it. It looks like this:</P>
+<P><BR><BR>
+</P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2><SPAN LANG="en-US">&lt;?php</SPAN></FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
+SYSTEM CONFIG SETTINGS : the same for every corpus, and CANNOT be
+overridden */<BR>/* these settings should never be alterable from
+within CQPweb (would risk transmitting them as plaintext) */</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
+adminstrators' usernames, separated by | (as in BNCweb) */</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$superuser_username
+= 'bob|jeff';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><BR><BR>
+</P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
+mySQL username and password */</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_webuser
+= '';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_webpass
+= '';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_schema
+ = '';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_server
+ = '';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><BR><BR>
+</P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
+---------------------- */<BR>/* server directory paths */<BR>/*
+---------------------- */</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_cwb
+= '';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_apache_utils
+= '';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_perl
+= '';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><BR><BR>
+</P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqp_tempdir
+= '3';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqpweb_accessdir
+= '2';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqpweb_uploaddir
+= '6';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_tempdir
+= '3';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cwb_datadir
+= '4';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cwb_registry
+= '5';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><BR><BR>
+</P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2><SPAN LANG="en-US">/*
+if mySQL returns ???? instead of proper UTF-8 symbols, change this
+setting true -&gt; false or false -&gt; true */</SPAN></FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2><SPAN LANG="en-US">$utf8_set_required
+= true;</SPAN></FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>?&gt;</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P>The <FONT FACE="Courier New, monospace">$superuser_username</FONT>
+variable is a string that should contain the usernames who are to be
+administrators, separated by the pipe <FONT FACE="Courier New, monospace">|</FONT>.
+You can have as many superusers as you like, but you must have at
+least one.</P>
+<P>The <FONT FACE="Courier New, monospace">$mysql_</FONT> settings
+are the things you noted when creating the mysql user.</P>
+<P>The last six settings are the directories you created (<I><B>numbers
+shown in the example correspond to the table above</B></I>).</P>
+<P>The <FONT FACE="Courier New, monospace">$path_to</FONT> settings
+specify where the perl, cwb and apache utilities binaries are to be
+found. Give them in the following format (example paths from a linux
+server):</P>
+<P><BR><BR>
+</P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_cwb
+= 'usr/local/bin';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_apache_utils
+= 'usr/local/bin';</FONT></FONT></P>
+<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_perl
+= 'usr/bin';</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P>Note in particular: there IS NOT a slash at the beginning or end
+of any of these three paths.</P>
+<P><BR><BR>
+</P>
+<P>You are recommended to start with <FONT FACE="Courier New"><FONT SIZE=2><SPAN LANG="en-US">$utf8_set_required
+= true;</SPAN></FONT></FONT> and see if it causes a problem &ndash;
+and change it if so.</P>
+<P><BR><BR>
+</P>
+<P>There are two settings that can be set manually, but not
+automatically. They are</P>
+<UL>
+	<LI><P><FONT FACE="Courier New, monospace">$use_corpus_categories_on_homepage</FONT>
+	&ndash; this defaults to <B>false,</B> if you set it to <B>true</B><SPAN STYLE="font-weight: normal">
+	then the main menu of corpora will be given as a set of lists
+	according to the corpus category, rather than as a single long list
+	of corpora.</SPAN></P>
+	<LI><P><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">$create_password_function</SPAN></FONT><SPAN STYLE="font-weight: normal">
+	&ndash; CQPweb uses &ldquo;suggest password&rdquo; functions to ease
+	the creation of user accounts. The default function
+	(</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">password_insert_internal</SPAN></FONT><SPAN STYLE="font-weight: normal">)
+	produces passwords of the form </SPAN><B>aaaaddaaaa</B><SPAN STYLE="font-weight: normal">
+	where </SPAN><B>a</B><SPAN STYLE="font-weight: normal"> is a
+	lowercase letter and </SPAN><B>d</B><SPAN STYLE="font-weight: normal">
+	is a digit. You can optionally use Lancaster University's random
+	password generator to get nicer, more-wordlike passwords: to do
+	this, set the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">$create_password_function</SPAN></FONT><SPAN STYLE="font-weight: normal">
+	to the quoted string </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">'password_insert_internal'</SPAN></FONT><SPAN STYLE="font-weight: normal">.
+	</SPAN>
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P>Save the edited file as &ldquo;config.inc.php&rdquo; and put it
+into the &ldquo;lib&rdquo; subdirectory of the web directory.</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Setting
+up administrator users</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P><I><U>If you have used the autoconfig, then this is done
+automatically for you.</U></I> Otherwise...</P>
+<P>Using a text editor, create a file called&nbsp; <B>.htgroup</B> in
+directory (2) as described above. It should look like this:</P>
+<P ALIGN=LEFT><B><FONT FACE="Courier New">superusers: bob jeff</FONT></B></P>
+<P>but with the usernames changed. Once CQPweb is up and running, use
+the &ldquo;create user / reset password&rdquo; function to actually
+create the accounts</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Getting
+it up and running</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P>You are now ready to go. Open a web browser and navigate to 
+</P>
+<P><FONT FACE="Courier New, monospace"><B>http://your-server.net/path/to/cqpweb/web/directory/adm</B></FONT></P>
+<P>(the &ldquo;adm&rdquo; is short for Admin).</P>
+<P>&nbsp;</P>
+<P>You should see an admin menu. 
+</P>
+<P><BR><BR>
+</P>
+<UL TYPE=DISC>
+	<LI><P>Click on &ldquo;manage users&rdquo;. Create usernames for AT
+	LEAST the superusers (<I><B>if you used the autoconfig script, this
+	has been done for you already</B></I>). You can add other user
+	accounts later. 
+	</P>
+	<LI><P>Click on &ldquo;Reset MySQL Database&rdquo; &ndash; and do it
+		</P>
+</UL>
+<UL TYPE=DISC>
+	<LI><P>Click on &ldquo;System security&rdquo; &ndash; and restore
+	default security. (Only do this if you are using Apache) 
+	</P>
+</UL>
+<UL TYPE=DISC>
+	<LI><P>Click on &ldquo;Skins and colours&rdquo; &ndash; and
+	&ldquo;Regenerate colour schemes&rdquo; 
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Creating
+usernames</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<UL TYPE=DISC>
+	<LI><P>Use &ldquo;manage users&rdquo; for this.</P>
+	<LI><P>CQPweb gives access to corpora to groups of users, not
+	individual usernames. This is done through the &ldquo;manage access&rdquo;
+	link for each corpus: find this on the &ldquo;show corpora&rdquo;
+	item of the admin menu.</P>
+	<LI><P>A user can be assigned to as many groups as you like. Use
+	&ldquo;Manage groups&rdquo; for this. 
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P>CQPweb passwords are transmitted in plaintext via HTTP. <B>User
+accounts are thus not secure</B>, the security is all based on the
+fact that even if someone manages to hack in, they can&rsquo;t do
+anything other than break CQPweb itself.) For this reason, I usually
+select passwords for my users, to make sure that they don&rsquo;t
+re-use on CQPweb the secure passwords that they use for other
+purposes.</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Installing
+a corpus</FONT></FONT></P>
+<P><BR><BR>
+</P>
+<P>Corpora must follow all the usual rules for CWB corpora and in
+addition there is the following requirement:</P>
+<P><BR><BR>
+</P>
+<P>Every text in the corpus must begin with</P>
+<P><FONT FACE="Courier New, monospace">&lt;text id=&quot;XXX&quot;&gt;</FONT></P>
+<P><FONT FACE="Courier New, monospace">...</FONT></P>
+<P>and end with</P>
+<P><FONT FACE="Courier New, monospace">&lt;/text&gt;</FONT></P>
+<P><BR><BR>
+</P>
+<P>and there must be at least one of these &ldquo;text&rdquo;
+elements (ie if the whole corpus is one text you still need these XML
+bits at the start and finish).</P>
+<P><BR><BR>
+</P>
+<P>The XXX id-codes must be C / unix words &ndash; ie made up only of
+the letters A to Z, a to z, the numbers 0 to 9, and the underscore
+(with an underscore or letter in the first position). This is because
+they are used as &ldquo;handles&rdquo; by the system to refer to
+different texts. So no spaces or punctuation (except underscore) are
+allowed.</P>
+<P><BR><BR>
+</P>
+<P>To install a corpus, you need:</P>
+<P><BR><BR>
+</P>
+<UL TYPE=DISC>
+	<LI><P>A file or files containing the corpus text, as above 
+	</P>
+	<LI><P>A file of corpus metadata. 
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P>The metadata file should be a tab-delimited database. The first
+column should be the text id-codes, with a line for each text. You
+can then have as many columns of metadata as you need.</P>
+<P><BR><BR>
+</P>
+<P>Metadata is of two sort &ndash; classifications and free text</P>
+<P><BR><BR>
+</P>
+<UL TYPE=DISC>
+	<LI><P>Free text &ndash; for items where the metadata can vary
+	across every single text (e.g. text title) 
+	</P>
+</UL>
+<UL TYPE=DISC>
+	<LI><P>Classifications &ndash; for items where each text falls into
+	one of a limited number of categories (e.g. written vs spoken) In
+	this case the field values must be handles (Unix words as described
+	above), NOT multi-word explanations 
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P>All files must be either ASCII or UTF-8. If they are UTF-8, the
+file must <U><B>not</B></U> have a leading byte-order mark.
+Linebreaks should be \n , not \r or \r\n .</P>
+<P><BR><BR>
+</P>
+<UL TYPE=DISC>
+	<LI><P>Upload all your files (text + metadata) to the upload area
+	(directory 6). Then go to &ldquo;Install new corpus&rdquo; in the
+	web admin interface. This form is pretty self-explanatory if you
+	know CWB, but note the following: 
+	</P>
+	<LI><P>There is a bug in CQPweb just now that creates problems if
+	the MySQL name and the CWB name are not the same. Again, these are
+	handles, so use Unix words. 
+	</P>
+</UL>
+<UL TYPE=DISC>
+	<LI><P>CQPweb&rsquo;s default P-attribute setup assumes texts have
+	Lancaster University's default annotation set, encoded like the BNC
+	(a future version of this documentation will contain more details
+	and examples). But you can use any number or kind of tags, or none.
+	If you have annotations you need to set one as primary &ndash; this
+	would usually be POS tag. 
+	</P>
+</UL>
+<UL TYPE=DISC>
+	<LI><P>Again each annotation column must have a Unix word as its
+	handle. 
+	</P>
+	<LI><P>When your corpus is installed, you will need to set up the
+	interaction with 
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P>When you have installed your corpus, you will need to fill in a
+form describing the metadata table, which is then loaded.</P>
+<P><BR><BR>
+</P>
+<P>Each field must have a handle, and you must specify whether it is
+a classification or not.</P>
+<P><BR><BR>
+</P>
+<P>Once the metadata table is loaded, you will be on a page called
+&ldquo;<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="font-style: normal"><B>Admin
+tools for managing corpus metadata</B></SPAN></FONT></FONT></FONT><FONT FACE="Times New Roman, serif">
+</FONT>&rdquo;. Click each of the buttons on this page, working from
+the bottom up (and press &ldquo;back&rdquo; once the operation has
+completed to press the next button). <I>On corpora which are just one
+long text, &ldquo;Create CWB frequency table&rdquo; is unnecessary
+and, indeed, may not work</I>.</P>
+<P><BR><BR>
+</P>
+<P>The next (optional) step is to set up the interaction of your
+annotation with the CEQL Simple Query Parser. Click on &ldquo;Manage
+Annotation&rdquo; for this. The primary annotation will already be
+set up &ndash; it is accessed by putting the tag you want to search
+for after an underscore in Simple Query (like POS tags in BNCweb).
+But if you want to use CEQL to access other p-attributes, you need to
+set this up here.</P>
+<UL TYPE=DISC>
+	<LI><P>The <B>secondary</B> annotation is just another column like
+	the primary annotation, accessed in CEQL by putting what you want to
+	search for in {braces}. Typically you'd but a &ldquo;headword&rdquo;
+	i.e. lemma here.</P>
+	<LI><P>The <B>tertiary</B> annotation is a bit different. It
+	accesses a third field, via _{braces-with-leading-underscore}, but
+	i<U>t also requires a mapping table</U> as it is possible to set up
+	multiple aliases for a single tag. This is meant to support
+	&ldquo;simplified&rdquo; POS tags like the Oxford Simplified Tagset
+	used in the BNC. For example, the tag SUBST is used for nouns in the
+	OST; but the aliases N and NOUN are set up for this tag in the
+	mapping table &ndash; the idea being to make access to the simper
+	tagsets more intuitive. Currently, mapping tables are built into the
+	CQPweb code (in <FONT FACE="Courier New, monospace">ceql.inc.php</FONT>
+	if you want to do some hacking).</P>
+	<LI><P>The <B>combination</B> annotation is for a type of
+	accelerated query. Due to the way CQP works, it is quicker to query
+	one p-attribute than two, especially in very big corpora. So, to
+	make the querying of lemma-plus-pos quicker, in BNC-style index
+	formats an extra p-attribute is added, consisting of the headword
+	(hw) and simple POS (class) attributes joined by an underscore. This
+	combined p-attribute is called &ldquo;lemma&rdquo; in the
+	terminology of BNC annotation.<BR><BR>If you have a combination
+	attribute in your corpus like this, then identifying it here will
+	allow you to access it via searches of the type {.../...}. If you
+	<I>don't</I> have a combination annotation, then searches of this
+	type will convert automatically to search the secondary and tertiary
+	annotations at the same time: i.e. {aaa/bbb} becomes the same as
+	{aaa}_{bbb} &ndash; <I>but note this back-up behaviour is currently
+	buggy in the CQPweb implementation of CEQL</I>.<BR><BR>The second
+	half of the combination annotation uses the same mapping table as
+	the tertiary annotation.</P>
+	<LI><P>Annotations that are not accessible via CEQL can still be
+	accessed using the full CQP syntax.</P>
+</UL>
+<P><BR><BR>
+</P>
+<P>You are now ready to go &ndash; point your browser at  
+<B>http://your-server.net/path/to/cqpweb/web/directory</B> and you&rsquo;re
+off.</P>
+<HR>
+<P><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
+v2.02 &copy; 2008-2009 &ndash; documentation by Andrew Hardie,
+<A HREF="mailto:andrewhardie@sourceforge.net">andrewhardie@sourceforge.net</A>
+</SPAN></SPAN></FONT></FONT></FONT> 
+</P>
+</BODY>
+</HTML>

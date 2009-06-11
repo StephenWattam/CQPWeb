@@ -1,0 +1,69 @@
+<?php
+/**
+ * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
+ * Copyright (C) 2008-9 Andrew Hardie
+ *
+ * See http://www.ling.lancs.ac.uk/activities/713/
+ *
+ * This file is part of CQPweb.
+ * 
+ * CQPweb is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * CQPweb is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+
+
+
+
+/* include defaults and settings */
+require('settings.inc.php');
+require('../lib/defaults.inc.php');
+
+
+/* library files */
+require('../lib/user-settings.inc.php');
+require('../lib/exiterror.inc.php');
+require('../lib/library.inc.php');
+
+
+$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
+
+if (! $mysql_link)
+{
+	?>
+	<p class="errormessage">
+		mySQL did not connect - please try again later!
+	</p></body></html> 
+	<?php
+	exit(1);
+}
+
+mysql_select_db($mysql_schema, $mysql_link);
+
+
+/* utf-8 setting is dependent on a variable defined in settings.inc.php */
+if ($utf8_set_required)
+	mysql_query("SET NAMES utf8", $mysql_link);
+
+
+
+
+$new_settings = parse_get_user_settings();
+update_multiple_user_settings($username, $new_settings);
+
+disconnect_all();
+header('Location: ' . url_absolutify('index.php?thisQ=search&uT=y'));
+exit(0);
+
+?>
