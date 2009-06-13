@@ -659,12 +659,19 @@ function printquery_showcorpora()
 
 
 
+function printquery_installcorpus_indexed()
+{
+	printquery_installcorpus(true);
+}
 
 
+function printquery_installcorpus_unindexed()
+{
+	printquery_installcorpus(false);
+}
 
 
-
-function printquery_installcorpus()
+function printquery_installcorpus($indexed = false)
 {
 	global $cqpweb_uploaddir;
 	
