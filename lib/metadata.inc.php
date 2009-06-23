@@ -75,6 +75,7 @@ function get_corpus_metadata($field)
 	case 'external_url':
 	case 'public_freqlist_desc':
 	case 'corpus_cat':
+	case 'cwb_external':
 		$query = "select $field from corpus_metadata_fixed where corpus = '$corpus_sql_name'";
 		break;
 	default:
@@ -220,7 +221,6 @@ function corpus_annotation_taglist($field)
 }
 
 
-
 function metadata_expand_attribute($field, $value)
 {
 	global $mysql_link;
@@ -301,7 +301,6 @@ function metadata_expand_field($field)
 			$exp_field = $field;
 	}
 
-	
 	return $exp_field;
 }
 

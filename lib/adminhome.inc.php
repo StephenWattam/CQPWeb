@@ -120,6 +120,19 @@ if ($utf8_set_required)
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>CQPweb Sysadmin Control Panel</title>
 <link rel="stylesheet" type="text/css" href="<?php echo $css_path_for_adminpage;?>" />
+<!-- nonstandard header includes javascript for corpus highlight function! -->
+<script type="text/javascript">
+<!--
+function corpus_box_highlight_on(corpus)
+{
+	document.getElementById("corpusCell_"+corpus).className = "concorderror";
+}
+function corpus_box_highlight_off(corpus)
+{
+	document.getElementById("corpusCell_"+corpus).className = "concordgeneral";
+}
+//-->
+</script>
 </head>
 <body>
 
@@ -162,7 +175,7 @@ else
 echo "Show corpora</a></td></tr>";
 
 echo "<tr><td class=\"";
-if ($thisF != "installCorpus")
+if ($thisF != "installCorpus" && $thisF != 'installCorpusIndexed')
 	echo "concordgeneral\"><a class=\"menuItem\" 
 		href=\"index.php?thisF=installCorpus&uT=y\">";
 else 
@@ -388,7 +401,11 @@ case 'showCorpora':
 	break;
 	
 case 'installCorpus':
-	printquery_installcorpus();
+	printquery_installcorpus_unindexed();
+	break;
+
+case 'installCorpusIndexed':
+	printquery_installcorpus_indexed();
 	break;
 
 case 'installCorpusDone':
@@ -543,7 +560,6 @@ function printquery_showcorpora()
 			<th class="concordtable" colspan="2">Visibility</th>
 			<!--
 			<th class="concordtable">Primary classification</th>
-			<th class="concordtable">Primary annotation</th>
 			<th class="concordtable">External URL</th>
 			-->
 			<th class="concordtable" colspan="4">Manage...</th>
@@ -571,22 +587,17 @@ function printquery_showcorpora()
 			$class_options .= ($class['handle'] === $r['primary_classification_field'] ? 'selected="selected"' : '');
 			$class_options .= '>' . $class['description'] . '</option>';
 		}
-		
-		$annotations = get_corpus_annotations();
-		$annot_options = '';
-		
-		foreach ($annotations as $handle => &$desc)
-		{
-			$annot_options .= "<option value=\"$handle\"";
-			$annot_options .= ($handle === $r['primary_annotation'] ? 'selected="selected"' : '');
-			$annot_options .= ">$desc</option>";
-		}
-		
+				
 		*/
+		
+		$javalinks = ' onmouseover="corpus_box_highlight_on(\'' . $r['corpus'] 
+			. '\')" onmouseout="corpus_box_highlight_off(\'' . $r['corpus'] 
+			. '\')" ';
+		
 		?>
 		<tr>
 			<form action="index.php" method="get">
-				<td class="concordgeneral">
+				<td class="concordgeneral" <?php echo "id=\"corpusCell_{$r['corpus']}\""; ?>>
 					<a class="menuItem" href="../<?php echo $r['corpus']; ?>">
 						<strong><?php echo $r['corpus']; ?></strong>
 					</a>
@@ -601,13 +612,6 @@ function printquery_showcorpora()
 					<select name="updatePrimaryClassification"><?php /*echo $class_options; */?></select>
 				</td>
 								
-				<td align="center" class="concordgeneral">
-					<select name="updatePrimaryAnnotation"><?php /*echo $annot_options; */?></select>
-				</td>
-				
-				<td align="center" class="concordgeneral">
-					<input type="text" maxlength="200" name="updateURL" value="<?php /*echo $r['external_url']; */?>"/>
-				</td>
 				-->
 				
 				<td align="center" class="concordgeneral"><input type="submit" value="Update!"></td>
@@ -618,25 +622,29 @@ function printquery_showcorpora()
 			</form>
 
 			<td class="concordgeneral" align="center">
-				<a class="menuItem" href="../<?php echo $r['corpus']?>/index.php?thisQ=corpusSettings&uT=y">
+				<a class="menuItem" 
+				<?php echo $javalinks . ' href="../' . $r['corpus']?>/index.php?thisQ=corpusSettings&uT=y">
 					[Settings]
 				</a>
 			</td>
 			
 			<td class="concordgeneral" align="center">
-				<a class="menuItem" href="../<?php echo $r['corpus']?>/index.php?thisQ=userAccess&uT=y">
+				<a class="menuItem" 
+				<?php echo $javalinks . ' href="../' . $r['corpus']?>/index.php?thisQ=userAccess&uT=y">
 					[Access]
 				</a>
 			</td>
 			
 			<td class="concordgeneral" align="center">
-				<a class="menuItem" href="../<?php echo $r['corpus']?>/index.php?thisQ=manageMetadata&uT=y">
+				<a class="menuItem" 
+				<?php echo $javalinks . ' href="../' . $r['corpus']?>/index.php?thisQ=manageMetadata&uT=y">
 					[Metadata]
 				</a>
 			</td>
 
 			<td class="concordgeneral" align="center">
-				<a class="menuItem" href="../<?php echo $r['corpus']?>/index.php?thisQ=manageAnnotation&uT=y">
+				<a class="menuItem" 
+				<?php echo $javalinks . ' href="../' . $r['corpus']?>/index.php?thisQ=manageAnnotation&uT=y">
 					[Annotation]
 				</a>
 			</td>
@@ -661,17 +669,102 @@ function printquery_showcorpora()
 
 function printquery_installcorpus_indexed()
 {
-	printquery_installcorpus(true);
+	global $cwb_registry;
+	
+	
+	?>
+	<form action="index.php" method="GET">
+		<table class="concordtable" width="100%">
+			<tr>
+				<th colspan="2" class="concordtable">
+					Install a corpus pre-indexed in CWB
+				</th>
+			</tr>
+			<tr>
+				<td colspan="2" class="concordgrey">
+					&nbsp;<br/>
+					<a href="index.php?thisF=installCorpus&uT=y">
+						Click here to install a completely new corpus from files in the upload area.
+					</a>
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">Specify a MySQL name for this corpus</td>
+				<td class="concordgeneral">
+					<input type="text" name="corpus_mysql_name" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">Enter the full name of the corpus</td>
+				<td class="concordgeneral">
+					<input type="text" name="corpus_description" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">Specify the CWB name (lowercase format)</td>
+				<td class="concordgeneral">
+					<input type="text" name="corpus_cwb_name" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" rowspan="2">Where is the registry file?</td>
+				<td class="concordgeneral">
+					<input type="radio" name="corpus_useDefaultRegistry" value="1" checked="checked" />
+					In the default CQPweb registry directory 
+					<a class="menuItem" onmouseover="return escape('/<?php echo $cwb_registry; ?>/')">
+						[?]
+					</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					<input type="radio" name="corpus_useDefaultRegistry" value="0" />
+					In the directory specified here:
+					<br/>
+					<input type="text" name="corpus_cwb_registry_folder" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">Tick here if the main script in the corpus is right-to-left</td>
+				<td class="concordgeneral">
+					<input type="checkbox" name="corpus_scriptIsR2L" value="1"/>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="concordgrey">
+					&nbsp;<br/>
+					P-attributes (annotation) are read automatically from the registry file.
+					Use "Manage annotation" to add descriptions, tagset names/links, etc. 
+					<br/>&nbsp;
+				</td>
+			</tr>
+		<?php printquery_installcorpus_stylesheetrows(); ?>
+		</table>
+				
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">Install corpus</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Install corpus with settings above" />
+					<br/>&nbsp;<br/>
+					<input type="reset" value="Clear this form" />
+				</td>
+			</tr>
+		</table>
+		
+		<input type="hidden" name="admFunction" value="installCorpusIndexed" />
+		<input type="hidden" name="uT" value="y" />
+	</form>
+	
+	<?php
+	
 }
 
 
 function printquery_installcorpus_unindexed()
-{
-	printquery_installcorpus(false);
-}
-
-
-function printquery_installcorpus($indexed = false)
 {
 	global $cqpweb_uploaddir;
 	
@@ -683,6 +776,14 @@ function printquery_installcorpus($indexed = false)
 				<th colspan="2" class="concordtable">
 					Install new corpus
 				</th>
+			</tr>
+			<tr>
+				<td colspan="2" class="concordgrey">
+					&nbsp;<br/>
+					<a href="index.php?thisF=installCorpusIndexed&uT=y">
+						Click here to install a corpus you have already indexed in CWB.</a>
+					<br/>&nbsp;
+				</td>
 			</tr>
 			<tr>
 				<td class="concordgeneral">Specify the MySQL name of the corpus you wish to create</td>
@@ -840,38 +941,7 @@ function printquery_installcorpus($indexed = false)
 		</table>
 		
 		<table class="concordtable" width="100%">
-			<tr>
-				<th colspan="2" class="concordtable">Select a stylesheet</th>
-			</tr>
-			<tr>
-				<td class="concordgeneral" align="left">
-					<input type="radio" name="cssCustom" value="0" checked="checked"/>
-					Choose a built in stylesheet:
-				</td>
-				<td class="concordgeneral" align="left">
-					<select name="cssBuiltIn">
-						<?php
-							$list = scandir('../css');
-							foreach($list as &$l)
-							{
-								if (substr($l, -4) !== '.css')
-									continue;
-								else
-									echo "<option>$l</option>";
-							}
-						?>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<td class="concordgeneral" align="left">
-					<input type="radio" name="cssCustom" value="1" />
-					Use the stylesheet at this URL:
-				</td>
-				<td class="concordgeneral" align="left">
-					<input type="text" maxlength="255" name="cssCustomUrl" />
-				</td>
-			</tr>
+		<?php printquery_installcorpus_stylesheetrows(); ?>
 		</table>
 				
 		<table class="concordtable" width="100%">
@@ -936,6 +1006,46 @@ function printquery_installcorpusdone()
 	</table>
 	<?php
 }
+
+function printquery_installcorpus_stylesheetrows()
+{
+	?>
+	
+			<tr>
+				<th colspan="2" class="concordtable">Select a stylesheet</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral" align="left">
+					<input type="radio" name="cssCustom" value="0" checked="checked"/>
+					Choose a built in stylesheet:
+				</td>
+				<td class="concordgeneral" align="left">
+					<select name="cssBuiltIn">
+						<?php
+							$list = scandir('../css');
+							foreach($list as &$l)
+							{
+								if (substr($l, -4) !== '.css')
+									continue;
+								else
+									echo "<option>$l</option>";
+							}
+						?>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" align="left">
+					<input type="radio" name="cssCustom" value="1" />
+					Use the stylesheet at this URL:
+				</td>
+				<td class="concordgeneral" align="left">
+					<input type="text" maxlength="255" name="cssCustomUrl" />
+				</td>
+			</tr>
+	<?php
+}
+
 
 
 function printquery_deletecorpus()
@@ -1141,8 +1251,8 @@ function printquery_useradmin()
 				<td class="concordgeneral">
 					<input type="text" name="newUsername" tabindex="1" width="30" />
 				</td>
-				<td class="concordgeneral" rowspan="2">
-					<input type="submit" value="Create user account" tabindex="4" />
+				<td class="concordgeneral" rowspan="3">
+					<input type="submit" value="Create user account" tabindex="5" />
 				</td>
 			</tr>
 			<tr>
@@ -1155,6 +1265,14 @@ function printquery_useradmin()
 						onmouseover="return escape('Suggest a password')" onclick="insertPassword()">
 						[+]
 					</a>
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Enter the user's email address (optional):
+				</td>
+				<td class="concordgeneral">
+					<input type="text" name="newEmail" tabindex="4" width="30" />
 				</td>
 			</tr>
 			<input type="hidden" name="admFunction" value="newUser"/>

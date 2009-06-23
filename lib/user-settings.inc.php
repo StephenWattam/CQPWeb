@@ -235,6 +235,7 @@ function parse_get_user_settings()
 			
 			/* string settings */
 			case 'realname':
+			case 'email':
 				$settings[$m[1]] = mysql_real_escape_string($v);
 				break;
 			

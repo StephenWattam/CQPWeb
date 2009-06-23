@@ -201,7 +201,12 @@ function printquery_usersettings()
 				<input name="newSetting_realname" type="text" width="64" value="<?php echo $settings->realname; ?>"/>
 			</td>
 		</tr>
-
+		<tr>
+			<td class="concordgeneral">Email address (system admin may use this if s/he needs to contact you!)</td>
+			<td class="concordgeneral">
+				<input name="newSetting_email" type="text" width="64" value="<?php echo $settings->email; ?>"/>
+			</td>
+		</tr>
 		<tr>
 			<td class="concordgrey" align="right">
 				<input type="submit" value="Update settings" />
@@ -519,6 +524,10 @@ function printquery_latest()
 	<p>&nbsp;</p>
 	
 	<ul>
+		<li>
+		<b>Version 2.03</b>, 2009-06-18<br/>&nbsp;<br/>
+		Added interface to install pre-indexed CWB corpus and made further tweaks to admin functions.
+		<br/>&nbsp;</li>
 		<li>
 		<b>Version 2.02</b>, 2009-06-06<br/>&nbsp;<br/>
 		Fixed some minor bugs, added categorised corpus display to main page, 

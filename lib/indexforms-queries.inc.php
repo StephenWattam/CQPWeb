@@ -389,6 +389,13 @@ function printquery_build_restriction_block($checkarray, $thing_to_produce)
 	$block .= '<input type="hidden" name="del" size="-1" value="end" />
 	<input type="hidden" name="uT" value="y"/></form></tr>
 	';
+	
+	if (empty($classifications))
+		$block .= '<tr><td colspan="3" class="concordgrey" align="center">
+			&nbsp;<br/>
+			There are no text classification schemes set up for this corpus.
+			<br/>&nbsp;
+			</td></tr>';
 
 	return $block;
 }

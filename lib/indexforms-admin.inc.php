@@ -30,7 +30,42 @@
 function printquery_corpusoptions()
 {
 	global $corpus_sql_name;
+	global $mysql_link;
 	
+	if (isset($_GET['settingsUpdateURL']))
+	{
+		$sql_query = "update corpus_metadata_fixed set external_url = '"
+			. mysql_real_escape_string($_GET['settingsUpdateURL']) 
+			. "' where corpus = '$corpus_sql_name'";
+		$result = mysql_query($sql_query, $mysql_link);
+		if ($result == false) 
+			exiterror_mysqlquery(mysql_errno($mysql_link), 
+				mysql_error($mysql_link), __FILE__, __LINE__);		
+	}
+	if (isset($_GET['settingsUpdatePrimaryClassification']))
+	{
+		$sql_query = "update corpus_metadata_fixed set primary_classification_field = '"
+			. mysql_real_escape_string($_GET['settingsUpdatePrimaryClassification']) 
+			. "' where corpus = '$corpus_sql_name'";
+		$result = mysql_query($sql_query, $mysql_link);
+		if ($result == false) 
+			exiterror_mysqlquery(mysql_errno($mysql_link), 
+				mysql_error($mysql_link), __FILE__, __LINE__);		
+	}
+
+	$classifications = metadata_list_classifications();
+	$class_options = '';
+	
+	$primary = get_corpus_metadata('primary_classification_field');
+	
+	foreach ($classifications as &$class)
+	{
+		$class_options .= "<option value=\"{$class['handle']}\"";
+		$class_options .= ($class['handle'] === $primary ? 'selected="selected"' : '');
+		$class_options .= '>' . $class['description'] . '</option>';
+	}
+
+
 //	show_var($c = get_corpus_matadata('corpus_cat'));
 	?>
 	<table class="concordtable" width="100%">
@@ -41,7 +76,7 @@ function printquery_corpusoptions()
 	
 	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable" colspan="3">Corpus category</th>
+			<th class="concordtable" colspan="3">General options</th>
 		</tr>
 		<form action="execute.php" method="get">
 			<tr>
@@ -59,6 +94,40 @@ function printquery_corpusoptions()
 			<input type="hidden" name="function" value="update_corpus_category" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
+		<form action="index.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					The external URL (for documentation/help links) is:
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="text" name="settingsUpdateURL" maxlength="200" value="<?php 
+						echo get_corpus_metadata('external_url'); 
+					?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="thisQ" value="corpusSettings" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+		<form action="index.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					The primary text categorisation scheme is currently:
+				</td>
+				<td class="concordgeneral" align="center">
+					<select name="settingsUpdatePrimaryClassification">
+						<?php echo $class_options; ?>
+					</select>
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="thisQ" value="corpusSettings" />
+			<input type="hidden" name="uT" value="y" />
+		</form>			
 	</table>
 	<?php
 }
@@ -463,7 +532,7 @@ function printquery_managemeta()
 							?>
 							<tr>
 								<td class="basicbox" align="center" colspan="2">
-									<input type="submit" value="Update catgory dexcriptions" />
+									<input type="submit" value="Update category descriptions" />
 								</td>
 							</tr>
 						</table>
@@ -484,6 +553,10 @@ function printquery_managemeta()
 			</tr>
 		
 			<?php	
+			//TODO show the current status of each button
+			//TODO some of the buttons may be better off elsewhere
+			// eg..... public, freq tables, CWB freq table.
+			// the other two are probably OK here.
 			if ( get_corpus_metadata('public_freqlist_desc' ) != NULL) /* corpus is public on the system */
 			/* nb NULL in mySQL comes back as NULL */
 			{
@@ -686,9 +759,9 @@ function printquery_manageannotation()
 	global $corpus_sql_name;
 	global $mysql_link;
 	
-	if ($_GET['updateMe'] === 'yesplease')
+	if ($_GET['updateMe'] === 'CEQL')
 	{
-		/* we have incoming values to update */
+		/* we have incoming values from the CEQL table to update */
 		$new_primary = mysql_real_escape_string($_GET['setPrimaryAnnotation']);
 		$new_primary = ($new_primary == '__UNSET__' ? 'NULL' : "'$new_primary'");
 		$new_secondary = mysql_real_escape_string($_GET['setSecondaryAnnotation']);
@@ -707,6 +780,29 @@ function printquery_manageannotation()
 			combo_annotation = $new_combo,
 			tertiary_annotation_tablehandle = $new_maptable
 			where corpus = '$corpus_sql_name'";
+		$result = mysql_query($sql_query, $mysql_link);
+		if ($result == false) 
+			exiterror_mysqlquery(mysql_errno($mysql_link), 
+				mysql_error($mysql_link), __FILE__, __LINE__);
+	}
+	else if ($_GET['updateMe'] === 'annotation_metadata')
+	{
+		/* we have incoming annotation metadata to update */
+		if (! check_is_real_corpus_annotation($handle_to_change=mysql_real_escape_string($_GET['annotationHandle'])))
+			exiterror_general("Couldn't update $handle_to_change - not a real annotation!",
+				__FILE__, __LINE__);
+		$new_desc = ( empty($_GET['annotationDescription']) ? 'NULL'
+						: '\''.mysql_real_escape_string($_GET['annotationDescription']).'\'');
+		$new_tagset = ( empty($_GET['annotationTagset']) ? 'NULL' 
+						: '\''.mysql_real_escape_string($_GET['annotationTagset']).'\'');
+		$new_url = ( empty($_GET['annotationURL']) ? 'NULL'
+						: '\''.mysql_real_escape_string($_GET['annotationURL']).'\'');
+
+		$sql_query = "update annotation_metadata set
+			description = $new_desc,
+			tagset = $new_tagset,
+			external_url = $new_url
+			where corpus = '$corpus_sql_name' and handle = '$handle_to_change'";
 		$result = mysql_query($sql_query, $mysql_link);
 		if ($result == false) 
 			exiterror_mysqlquery(mysql_errno($mysql_link), 
@@ -783,6 +879,13 @@ function printquery_manageannotation()
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
+			<th class="concordtable">
+				Manage annotation
+			</th>
+		</tr>
+	</table>
+	<table class="concordtable" width="100%">
+		<tr>
 			<th colspan="2" class="concordtable">
 				Annotation setup for CEQL queries for <?php echo $corpus_sql_name;?>
 			</th>
@@ -835,11 +938,75 @@ function printquery_manageannotation()
 					<input type="submit" value="Update annotation settings"/>
 					<br/>&nbsp;
 				</td>
-			<input type="hidden" name="updateMe" value="yesplease"/>
+			<input type="hidden" name="updateMe" value="CEQL"/>
 			<input type="hidden" name="thisQ" value="manageAnnotation"/>
 			<input type="hidden" name="uT" value="y"/>
 		</form>
 	</table>
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th colspan="5" class="concordtable">
+				Annotation metadata
+			</th>
+		</tr>
+		<tr>
+			<th class="concordtable">Handle</th>
+			<th class="concordtable">Description</th>
+			<th class="concordtable">Tagset name</th>
+			<th class="concordtable">External URL</th>
+			<th class="concordtable">Update?</th>
+		</tr>
+		
+		<?php
+		
+		$sql_query = "select * from annotation_metadata where corpus='$corpus_sql_name'"; 
+		$result = mysql_query($sql_query, $mysql_link);
+		if ($result == false) 
+			exiterror_mysqlquery(mysql_errno($mysql_link), 
+				mysql_error($mysql_link), __FILE__, __LINE__);
+		if (mysql_num_rows($result) < 1)
+			echo '<tr><td colspan="5" class="concordgrey" align="center">&nbsp;<br/>
+				This corpus has no annotation.<br/>&nbsp;</td></tr>';
+		
+		while( ($tag = mysql_fetch_object($result)) !== false)
+		{
+			echo '<form action="index.php" method= "get"><tr>';
+			
+			echo '<td class="concordgrey"><strong>' . $tag->handle . '</strong></td>'; 
+			echo '<td class="concordgeneral" align="center">
+				<input name="annotationDescription" maxlength="230" type="text" value="'
+				. $tag->description	. '"/></td>
+				'; 
+			echo '<td class="concordgeneral" align="center">
+				<input name="annotationTagset" maxlength="230" type="text" value="'
+				. $tag->tagset	. '"/></td>
+				'; 
+			echo '<td class="concordgeneral" align="center">
+				<input name="annotationURL" maxlength="230" type="text" value="'
+				. $tag->external_url	. '"/></td>
+				';
+			?>
+					<td class="concordgeneral" align="center">
+						<input type="submit" value="Go!" />			
+					</td>
+				</tr>
+				<input type="hidden" name="annotationHandle" value="<?php echo $tag->handle; ?>" />
+				<input type="hidden" name="updateMe" value="annotation_metadata" />
+				<input type="hidden" name="thisQ" value="manageAnnotation" />
+				<input type="hidden" name="uT" value="y" />
+			</form>
+			
+			<?php
+		}
+	
+		?>
+		<tr>
+			<td colspan="5" class="concordgeneral">&nbsp;<br/>&nbsp;</td>
+		</tr> 
+	</table>
+	
+	
 	<?php
 
 }

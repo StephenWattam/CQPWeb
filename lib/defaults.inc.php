@@ -81,6 +81,12 @@ if (!isset($default_max_context))
 	$default_max_context = 1100;
 
 
+/* this allows settings.inc.php to override config.inc.php */
+if (isset($this_corpus_directory_override['reg_dir']))
+	$cwb_registry = $this_corpus_directory_override['reg_dir'];
+if (isset($this_corpus_directory_override['data_dir']))
+	$cwb_datadir = $this_corpus_directory_override['data_dir'];
+
 	
 /* collocation defaults */
 if (!isset($default_colloc_range))
@@ -105,7 +111,7 @@ if (!isset($default_words_in_download_context))
 
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '2.02');
+define('CQPWEB_VERSION', '2.03');
 	
 
 

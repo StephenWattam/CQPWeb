@@ -30,6 +30,10 @@ class corpus_install_info
 	public $corpus_mysql_name;
 	public $corpus_cwb_name;
 	
+	public $already_cwb_indexed;
+	
+	public $directory_override;
+	
 	public $script_is_r2l;
 
 	public $corpus_metadata_fixed_mysql_insert;
@@ -47,6 +51,10 @@ class corpus_install_info
 	/* constructor is sole public function */
 	function __construct()
 	{
+		/* first thing: establish which mode we are dealing with */
+		$this->already_cwb_indexed = ($_GET['admFunction'] === 'installCorpusIndexed'); 
+		
+		
 		/* get each thing from GET */
 		/***************************/
 		
@@ -64,32 +72,144 @@ class corpus_install_info
 		
 		/*********************/
 		
-		global $cqpweb_uploaddir;
-		
-		preg_match_all('/includeFile=([^&]*)&/', $_SERVER['QUERY_STRING'], $m, PREG_PATTERN_ORDER);
-		
-		$this->file_list = array();
-		
-		foreach($m[1] as $file)
+		if ($this->already_cwb_indexed)
 		{
-			$path = "/$cqpweb_uploaddir/$file";
-			if (is_file($path))
-				$this->file_list[] = $path;
+			/* check that the corpus registry file exists, that the corpus datadir exists */
+			/* in the process, getting the "override" directories, if they exist */
+			
+			$use_normal_regdir = (bool)$_GET['corpus_useDefaultRegistry'];
+			
+			if ($use_normal_regdir)
+			{
+				global $cwb_registry;
+				$registry_file = "/$cwb_registry/{$this->corpus_cwb_name}";
+			}
 			else
-				exiterror_fullpage("One of the files you selected seems to have been deleted.",
+			{
+				$this->directory_override['reg_dir'] = trim(trim($_GET['corpus_cwb_registry_folder']), '/');
+				$registry_file = '/' . $this->directory_override . '/' . $this->corpus_cwb_name;
+			}
+			if (!is_file($registry_file))
+				exiterror_fullpage("The specified CWB corpus does not seem to exist in that location.",
+					__FILE__, __LINE__);		
+			
+			$regdata = file_get_contents($registry_file);
+			
+			preg_match("/HOME\s+\/([^\n]+)\n/", $regdata, $m);
+			global $cwb_datadir;
+			if ($m[1] == $cwb_datadir)
+				$test_datadir = '/' . $cwb_datadir;
+			else
+			{
+				$this->directory_override['data_dir'] = $m[1];
+				$test_datadir = '/' . $this->directory_override;
+			}
+			
+			if (!is_dir($test_datadir))
+				exiterror_fullpage("The specified data directory could not be found.",
+					__FILE__, __LINE__);
+			
+			/* check that <text> and <text_id> are s-attributes */
+			if (preg_match('/\bSTRUCTURE text\b/', $regdata) < 1 
+				|| preg_match('/\bSTRUCTURE text_id\b/', $regdata) < 1)
+				exiterror_fullpage("Pre-indexed corpora require s-attributes text and text_id!!",
 					__FILE__, __LINE__);
 		}
-		
-		if (empty($this->file_list))
-			exiterror_fullpage("You must specify at least one file to include in the corpus!",
-				__FILE__, __LINE__);		
-
+		else /* ie if this is NOT an already indexed corpus */
+		{
+			global $cqpweb_uploaddir;
+			
+			preg_match_all('/includeFile=([^&]*)&/', $_SERVER['QUERY_STRING'], $m, PREG_PATTERN_ORDER);
+			
+			$this->file_list = array();
+			
+			foreach($m[1] as $file)
+			{
+				$path = "/$cqpweb_uploaddir/$file";
+				if (is_file($path))
+					$this->file_list[] = $path;
+				else
+					exiterror_fullpage("One of the files you selected seems to have been deleted.",
+						__FILE__, __LINE__);
+			}
+			
+			if (empty($this->file_list))
+				exiterror_fullpage("You must specify at least one file to include in the corpus!",
+					__FILE__, __LINE__);		
+		}
 
 		
 
 		/*********************/
 		
 		/* p-attributes */
+		if ($this->already_cwb_indexed)
+		{
+			preg_match_all("/ATTRIBUTE\s+(\w+)\n/", $regdata, $m, PREG_PATTERN_ORDER);
+			foreach($m[1] as $p)
+			{
+				if ($p == 'word')
+					continue;
+				$this->p_attributes[] = $p;
+				$this->p_attributes_mysql_insert[] = $this->get_p_att_mysql_insert($p, '', '', '');
+			}
+		}
+		else
+			$this->load_p_atts_based_on_get();
+
+		/*********************/
+
+		
+		/* s-attributes */
+		/* have to have this one! */
+		$this->s_attributes[] = 'text:0+id';
+		
+		if ($_GET['withDefaultSs'] === '1')
+		{
+			$this->s_attributes[] = 's';
+		}
+		else
+		{
+			foreach(array(1,2,3,4,5,6) as $q)
+			{
+				if (preg_match('/^\w+:0\+[^+]+(\+[^+]+)*$/', $_GET["customS$q"]) > 0)
+					$cand = $_GET["customS$q"];
+				else
+					$cand = preg_replace('/\W/', '', $_GET["customS$q"]);
+				if ($cand === '')
+					continue;
+				else
+					$this->s_attributes[] = $cand;
+			}
+		}
+
+		
+		/*********************/
+
+		if ($_GET['cssCustom'] == 1)
+		{
+			// I am no longer certain if this will work properly??? haven't tried yet, should do so
+			if (get_magic_quotes_gpc() == 0)
+				$_GET['cssCustomUrl'] = addcslashes($_GET['cssCustomUrl'], "'");
+			$this->css_url = addcslashes($_GET['cssCustomUrl'], "'");
+		}
+		else
+		{
+			$this->css_url = "../css/{$_GET['cssBuiltIn']}";
+			if (! is_file($this->css_url))
+				$this->css_url = '';
+		}
+		
+		/*********************/
+		
+		
+		
+		
+	} /* end constructor */
+	
+	
+	private function load_p_atts_based_on_get()
+	{
 		if ($_GET['withDefaultPs'] === '1')
 		{
 			$this->p_attributes[] = 'pos';
@@ -156,57 +276,10 @@ class corpus_install_info
 					"insert into corpus_metadata_fixed (corpus, primary_annotation) 
 					values ('{$this->corpus_mysql_name}', NULL)";
 		}
-		
-
-		/*********************/
-
-		
-		/* s-attributes */
-		/* have to have this one! */
-		$this->s_attributes[] = 'text:0+id';
-		
-		if ($_GET['withDefaultSs'] === '1')
-		{
-			$this->s_attributes[] = 's';
-		}
-		else
-		{
-			foreach(array(1,2,3,4,5,6) as $q)
-			{
-				if (preg_match('/^\w+:0\+[^+]+(\+[^+]+)*$/', $_GET["customS$q"]) > 0)
-					$cand = $_GET["customS$q"];
-				else
-					$cand = preg_replace('/\W/', '', $_GET["customS$q"]);
-				if ($cand === '')
-					continue;
-				else
-					$this->s_attributes[] = $cand;
-			}	
-		}
-
-		
-		/*********************/
-
-		if ($_GET['cssCustom'] == 1)
-		{
-			if (get_magic_quotes_gpc() == 0)
-				$_GET['cssCustomUrl'] = addcslashes($_GET['cssCustomUrl'], "'");
-			$this->css_url = addcslashes($_GET['cssCustomUrl'], "'");
-		}
-		else
-		{
-			$this->css_url = "../css/{$_GET['cssBuiltIn']}";
-			if (! is_file($this->css_url))
-				$this->css_url = '';
-		}
-		
-		/*********************/
-		
-		
-		
-		
-	} /* end constructor */
 	
+	} /* end of function */
+
+
 	
 	private function get_p_att_mysql_insert($tag_handle, $description, $tagset, $url)
 	{
@@ -241,7 +314,7 @@ function install_new_corpus()
 	$corpus = $info->corpus_cwb_name;
 	$CORPUS = strtoupper($corpus);
 
-	
+
 	/* mysql table inserts */	
 	/* these come first because if corpus already exists, they will cause an abort */
 	if (! empty($info->p_attributes_mysql_insert))
@@ -260,57 +333,58 @@ function install_new_corpus()
 			mysql_error($mysql_link), __FILE__, __LINE__);
 
 
+	if ($info->already_cwb_indexed)
+		;
+	else
+	{
+		/* cwb-create the file */
+		$datadir = "/$cwb_datadir/$corpus";
 	
-	$datadir = "/$cwb_datadir/$corpus";
-
-	if (is_dir($datadir))
-		recursive_delete_directory($datadir);
-	mkdir($datadir, 0775);
-
-
-	/* run the commands one by one */
-
-	$encode_output_file = "/$cqp_tempdir/{$corpus}__php-cwb-encode.txt";
-
-	$encode_command =  "/$path_to_cwb/cwb-encode -xsB -d $datadir -f " 
-		. implode(' -f ', $info->file_list)
-		. " -R /$cwb_registry/$corpus "
-		. $at_least_one_P
-		. (empty($info->p_attributes) ? '' : implode(' -P ', $info->p_attributes))
-		. ' -S ' . implode(' -S ', $info->s_attributes)
-		. " > $encode_output_file";
-
-	exec($encode_command);
+		if (is_dir($datadir))
+			recursive_delete_directory($datadir);
+		mkdir($datadir, 0775);
 	
-	chmod("/$cwb_registry/$corpus", 0664);
-
-	//echo "The command was:\n\n$encode_command\n\n\n";
-
-
-	$make_output_file = "/$cqp_tempdir/{$corpus}__php-cwb-make.txt";
 	
-	exec("/$path_to_cwb/cwb-makeall -r /$cwb_registry -V $CORPUS > $make_output_file");
-
-
-	$huffcode_output_file = "/$cqp_tempdir/{$corpus}__php-cwb-huffcode.txt";
+		/* run the commands one by one */
 	
-	exec("/$path_to_cwb/cwb-huffcode -A $CORPUS > $huffcode_output_file");
-	exec("/$path_to_cwb/cwb-compress-rdx -A $CORPUS >> $huffcode_output_file" );
-
-
-	$huffblob = file_get_contents($huffcode_output_file);
+		$encode_output_file = "/$cqp_tempdir/{$corpus}__php-cwb-encode.txt";
 	
-	preg_match_all('/!! You can delete the file <(.*)> now/', $huffblob, $matches, PREG_PATTERN_ORDER );
-
-	foreach($matches[1] as $del)
-		unlink($del);
-
-	/* clear the trash */
-
-	unlink($encode_output_file);
-	unlink($make_output_file);
-	unlink($huffcode_output_file);
-
+		$encode_command =  "/$path_to_cwb/cwb-encode -xsB -d $datadir -f " 
+			. implode(' -f ', $info->file_list)
+			. " -R /$cwb_registry/$corpus "
+			. $at_least_one_P
+			. (empty($info->p_attributes) ? '' : implode(' -P ', $info->p_attributes))
+			. ' -S ' . implode(' -S ', $info->s_attributes)
+			. " > $encode_output_file";
+	
+		exec($encode_command);
+		
+		chmod("/$cwb_registry/$corpus", 0664);
+	
+		$make_output_file = "/$cqp_tempdir/{$corpus}__php-cwb-make.txt";
+		
+		exec("/$path_to_cwb/cwb-makeall -r /$cwb_registry -V $CORPUS > $make_output_file");
+	
+	
+		$huffcode_output_file = "/$cqp_tempdir/{$corpus}__php-cwb-huffcode.txt";
+		
+		exec("/$path_to_cwb/cwb-huffcode -A $CORPUS > $huffcode_output_file");
+		exec("/$path_to_cwb/cwb-compress-rdx -A $CORPUS >> $huffcode_output_file" );
+	
+	
+		$huffblob = file_get_contents($huffcode_output_file);
+		
+		preg_match_all('/!! You can delete the file <(.*)> now/', $huffblob, $matches, PREG_PATTERN_ORDER );
+	
+		foreach($matches[1] as $del)
+			unlink($del);
+	
+		/* clear the trash */
+	
+		unlink($encode_output_file);
+		unlink($make_output_file);
+		unlink($huffcode_output_file);
+	}
 
 		
 	
@@ -350,15 +424,7 @@ function install_new_corpus()
 	}
 	
 	/* write a settings.inc.php file */
-	$data = "<?php\n\n"
-		. "\$corpus_title = '{$info->description}';\n"
-		. "\$corpus_sql_name = '{$info->corpus_mysql_name}';\n"
-		. "\$corpus_cqp_name = '$CORPUS';\n"
-		. "\$css_path = '{$info->css_url}';\n"
-		. ($info->script_is_r2l ? "\$corpus_main_script_is_r2l = true;\n" : '')
-		. '?>';
-	file_put_contents("$newdir/settings.inc.php", $data);
-	chmod("$newdir/settings.inc.php", 0775);
+	install_create_settings_file("$newdir/settings.inc.php", $info);
 
 	
 	/* make sure execute.php takes us to a nice results screen */
@@ -366,6 +432,27 @@ function install_new_corpus()
 		= "index.php?thisF=installCorpusDone&newlyInstalledCorpus={$info->corpus_mysql_name}&uT=y";
 
 }
+
+
+function install_create_settings_file($filepath, $info)
+{
+	$data = "<?php\n\n"
+		. "\$corpus_title = '{$info->description}';\n"
+		. "\$corpus_sql_name = '{$info->corpus_mysql_name}';\n"
+		. "\$corpus_cqp_name = '$CORPUS';\n"
+		. "\$css_path = '{$info->css_url}';\n"
+		. ($info->script_is_r2l ? "\$corpus_main_script_is_r2l = true;\n" : '')
+		. (empty($info->directory_override['reg_dir']) ? '' : 
+			"\$this_corpus_directory_override['reg_dir'] = {$info->directory_override['reg_dir']};\n")
+		. (empty($info->directory_override['data_dir']) ? '' : 
+			"\$this_corpus_directory_override['data_dir'] = {$info->directory_override['data_dir']};\n"
+			)
+		. '?>';
+	file_put_contents($filepath, $data);
+	chmod($filepath, 0775);
+	
+}
+
 
 
 function delete_corpus_from_cqpweb($corpus)
@@ -377,18 +464,27 @@ function delete_corpus_from_cqpweb($corpus)
 	$corpus = mysql_real_escape_string($corpus);
 
 	/* get the cwb name of the corpus, etc. */
-	include("../$corpus/settings.inc.php");	
+	include("../$corpus/settings.inc.php");
+	if (isset($this_corpus_directory_override['reg_dir']))
+		$cwb_registry = $this_corpus_directory_override['reg_dir'];
+	if (isset($this_corpus_directory_override['data_dir']))
+		$cwb_datadir = $this_corpus_directory_override['data_dir'];	
 	
 	$corpus_cwb_lower = strtolower($corpus_cqp_name);
 	
 	/* check the corpus is actually there to delete */
-	$sql_query = "select corpus from corpus_metadata_fixed where corpus = '$corpus'";
+	$sql_query = "select corpus, cwb_external from corpus_metadata_fixed where corpus = '$corpus'";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 
 			mysql_error($mysql_link), __FILE__, __LINE__);
 	if (mysql_num_rows($result) < 1)
 		return;
+	
+	/* do we also want to delete the CWB data? */
+	list($junk, $cwb_external) = mysql_fetch_row($result);
+	$also_delete_cwb = !( (bool)$cwb_external);
+	
 
 	/* delete all saved queries, subcorpus frequency tables, and dbs associated with this corpus */
 	$sql_query = "select query_name from saved_queries where corpus = '$corpus'";
@@ -444,15 +540,18 @@ function delete_corpus_from_cqpweb($corpus)
 	/* delete the web directory */
 	recursive_delete_directory("../$corpus");
 	
-	/* delete the CWB registry and data */
-	unlink("/$cwb_registry/$corpus_cwb_lower");
-	recursive_delete_directory("/$cwb_datadir/$corpus_cwb_lower");
-	
-	/* if they exist, delete the CWB registry and data for its __freq */
-	if (file_exists("/$cwb_registry/{$corpus_cwb_lower}__freq"))
+	if ($also_delete_cwb)
 	{
-		unlink("/$cwb_registry/{$corpus_cwb_lower}__freq");
-		recursive_delete_directory("/$cwb_datadir/{$corpus_cwb_lower}__freq");
+		/* delete the CWB registry and data */
+		unlink("/$cwb_registry/$corpus_cwb_lower");
+		recursive_delete_directory("/$cwb_datadir/$corpus_cwb_lower");
+		
+		/* if they exist, delete the CWB registry and data for its __freq */
+		if (file_exists("/$cwb_registry/{$corpus_cwb_lower}__freq"))
+		{
+			unlink("/$cwb_registry/{$corpus_cwb_lower}__freq");
+			recursive_delete_directory("/$cwb_datadir/{$corpus_cwb_lower}__freq");
+		}
 	}
 }
 
@@ -463,7 +562,7 @@ function delete_corpus_from_cqpweb($corpus)
 // TODO: move this to a different file, so I can put it in user scripts too
 function upload_file_to_upload_area($original_name, $file_type, $file_size, $temp_path, $error_code)
 {
-	/*
+	/**
 	 * CQPweb assumes the following settings in php.ini
 	 * 
 	 * upload_max_file_size = 20M
@@ -693,7 +792,7 @@ function restore_system_security()
 }
 
 
-function add_new_user($username, $password)
+function add_new_user($username, $password, $email = NULL)
 {
 	$apache = get_apache_object('nopath');
 	
@@ -705,6 +804,12 @@ function add_new_user($username, $password)
 			__FILE__, __LINE__);
 	
 	$apache->new_user($username, $password);
+	
+	if (isset($email))
+	{
+		create_user_record($username);
+		update_user_setting($username, 'email', mysql_real_escape_string($email));
+	}
 }
 
 function add_batch_of_users($username_root, $number_in_batch, $password, $autogroup, $different_passwords = false)
@@ -1315,6 +1420,7 @@ function cqpweb_mysql_recreate_tables()
 		"CREATE TABLE `user_settings` (
 			`username` varchar(20) NOT NULL default '',
 			`realname` varchar(50) default NULL,
+			`email` varchar(50) default NULL,
 			`conc_kwicview` tinyint(1),
 			`conc_corpus_order` tinyint(1),
 			`cqp_syntax` tinyint(1),
@@ -1377,6 +1483,7 @@ function cqpweb_mysql_recreate_tables()
 			`external_url` varchar(255) default NULL,
 			`public_freqlist_desc` varchar(150) default NULL,
 			`corpus_cat` varchar(256) default 'Uncategorised',
+			`cwb_external` tinyint(1) NOT NULL default 0,
 			PRIMARY KEY (corpus)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 

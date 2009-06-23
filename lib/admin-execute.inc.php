@@ -96,12 +96,17 @@ switch($_GET['admFunction'])
 		exit();
 
 	case 'installCorpus':
+	case 'installCorpusIndexed':
 		$_GET['function'] = 'install_new_corpus';
 		/* in this case there is no point sending parameters;      */
 		/* the function is better off just getting them from $_get */
 		$_GET['locationAfter'] = 'XX'; //the function itself sets this 
 		require('../lib/execute.inc.php');
 		exit();
+
+
+		/* as with previous, the function gets its "parameters" from _GET */
+
 	
 	case 'deleteCorpus':
 		if ($_GET['sureyouwantto'] !== 'yes')
@@ -134,15 +139,15 @@ switch($_GET['admFunction'])
 		
 	case 'newUser':
 		$_GET['function'] = 'add_new_user';
-		$_GET['args'] = $_GET['newUsername'] . '#' . $_GET['newPassword'];
+		$_GET['args'] = trim($_GET['newUsername']) .'#'. trim($_GET['newPassword']) .'#'. trim($_GET['newEmail']) ;
 		$_GET['locationAfter'] = 'index.php?thisF=userAdmin&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
 		
 	case 'newBatchOfUsers':
 		$_GET['function'] = 'add_batch_of_users';
-		$_GET['args'] = $_GET['newUsername'] . '#' . $_GET['sizeOfBatch'] . '#' . $_GET['newPassword'] 
-			. '#' . $_GET['batchAutogroup'];
+		$_GET['args'] = trim($_GET['newUsername']) .'#'. $_GET['sizeOfBatch'] . '#' . trim($_GET['newPassword']) 
+			. '#' . trim($_GET['batchAutogroup']);
 		$_GET['args'] .= ($_GET['newPasswordUseRandom'] == '1' ? '#true' : '');
 		$_GET['locationAfter'] = 'index.php?thisF=userAdmin&uT=y';
 		require('../lib/execute.inc.php');
@@ -218,7 +223,6 @@ switch($_GET['admFunction'])
 	
 	case 'updateCorpusMetadata':
 		$update_corpus_metadata_info['corpus'] = $_GET['corpus'];
-//		$update_corpus_metadata_info['activated'] = $_GET['updateActivated'];
 		$update_corpus_metadata_info['visible'] = $_GET['updateVisible'];
 		$update_corpus_metadata_info['primary_classification_field'] = $_GET['updatePrimaryClassification'];
 		$update_corpus_metadata_info['primary_annotation'] = $_GET['updatePrimaryAnnotation'];
@@ -237,7 +241,6 @@ switch($_GET['admFunction'])
 		$create_text_metadata_for_info['fields'] = array();
 		$create_text_metadata_for_info['field_count'] = (int)$_GET['fieldCount'];
 		for ($i = 1; $i <= $create_text_metadata_for_info['field_count']; $i++)
-//		foreach(array(1,2,3,4,5,6,7,8) as $i)
 		{
 			if ($_GET["fieldHandle$i"] == '')
 				continue;
