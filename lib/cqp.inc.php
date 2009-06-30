@@ -30,6 +30,7 @@
 /* depends on create_pipe_handle_constants() having previously been called */
 
 
+//TODO update to php 5 object-style
 
 class CQP
 {
