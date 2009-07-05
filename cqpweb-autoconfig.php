@@ -80,8 +80,8 @@ $path_to_cwb = get_variable_path("the path to the directory containing the cwb e
 $path_to_apache_utils = get_variable_path("the path to the directory containing the apache passwd utilities");
 $path_to_perl = get_variable_path("the path to the directory containing the perl executable");
 
-$cwb_datadir = get_variable_path("the path to the directory you wish to use for the CWB registry");
-$cwb_registry = get_variable_path("the path to the directory you wish to use for CWB datafiles");
+$cwb_datadir = get_variable_path("the path to the directory you wish to use for the CWB datafiles");
+$cwb_registry = get_variable_path("the path to the directory you wish to use for CWB registry");
 
 $cqp_tempdir = get_variable_path("the path to the directory you wish to use for the CQP cache");
 $mysql_tempdir = get_variable_path("the path to the directory you wish to use for MySQL temp files");
@@ -207,6 +207,22 @@ foreach (explode(' ', $x) as $username)
 }
 
 
+
+
+/* create a .htaccess file for ./adm */
+
+$adm_htaccess = str_replace("\r\n", "\n", 
+"AuthUserFile /$cqpweb_accessdir/.htpasswd
+AuthGroupFile /$cqpweb_accessdir/.htgroup
+AuthName CQPweb
+AuthType Basic
+deny from all
+require group superusers
+satisfy any
+");
+
+file_put_contents("adm/.htaccess", $adm_htaccess)
+chmod("adm/.htaccess", 0664);
 
 
 

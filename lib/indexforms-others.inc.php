@@ -525,6 +525,10 @@ function printquery_latest()
 	
 	<ul>
 		<li>
+		<b>Version 2.04</b>, 2009-07-05<br/>&nbsp;<br/>
+		Bug fixes plus improvements to CQP interface object model.
+		<br/>&nbsp;</li>
+		<li>
 		<b>Version 2.03</b>, 2009-06-18<br/>&nbsp;<br/>
 		Added interface to install pre-indexed CWB corpus and made further tweaks to admin functions.
 		<br/>&nbsp;</li>

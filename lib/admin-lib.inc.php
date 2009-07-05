@@ -439,7 +439,7 @@ function install_create_settings_file($filepath, $info)
 	$data = "<?php\n\n"
 		. "\$corpus_title = '{$info->description}';\n"
 		. "\$corpus_sql_name = '{$info->corpus_mysql_name}';\n"
-		. "\$corpus_cqp_name = '$CORPUS';\n"
+		. "\$corpus_cqp_name = '" . strtoupper($info->corpus_cwb_name) . "';\n"
 		. "\$css_path = '{$info->css_url}';\n"
 		. ($info->script_is_r2l ? "\$corpus_main_script_is_r2l = true;\n" : '')
 		. (empty($info->directory_override['reg_dir']) ? '' : 
@@ -1371,7 +1371,7 @@ function cqpweb_mysql_recreate_tables()
 			KEY `user` (`user`),
 			KEY `corpus` (`corpus`),
 			KEY `cqp_query` (`cqp_query`(256))
-		)";
+		) CHARACTER SET utf8";
 
 	
 	$create_statements['saved_queries'] =
@@ -1380,7 +1380,7 @@ function cqpweb_mysql_recreate_tables()
 			`user` varchar(20) default NULL,
 			`corpus` varchar(20) NOT NULL,
 			`query_mode` varchar(12) default NULL,
-			`simple_query` text default NULL
+			`simple_query` text default NULL,
 			`cqp_query` text NOT NULL,
 			`restrictions` text default NULL,
 			`subcorpus` varchar(200) default NULL,
@@ -1512,7 +1512,7 @@ function cqpweb_mysql_recreate_tables()
 			`colloc_range` int default '0',
 			`sort_position` int default '0',
 			`db_size` bigint UNSIGNED default NULL,
-			`saved` tinyint(1) NOT NULL default 0
+			`saved` tinyint(1) NOT NULL default 0,
 			key (`dbname`),
 			key (`user`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";

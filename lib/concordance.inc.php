@@ -113,7 +113,7 @@ $cqp->set_error_handler("exiterror_cqp");
 $cqp->execute("set DataDirectory '/$cqp_tempdir'");
 
 /* select corpus */
-$cqp->execute("$corpus_cqp_name;");
+$cqp->execute("$corpus_cqp_name");
 /* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
 
 

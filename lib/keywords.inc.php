@@ -167,10 +167,11 @@ else
 	switch ($_GET['kwStatistic'])
 	{
 		case 'LL': 	$statistic = 'LL';	$statistic_display = 'LL';			break;
+//TODO: add the other statistics
 //		case 'X2': 	$statistic = 'X2';	$statistic_display = 'Chi-square';	break;
 //		case 'MI': 	$statistic = 'MI';	$statistic_display = 'MI';			break;
 		default:
-			exiterror_fullpage("An invalid statistic ($statistic) was specified!", __FILE__, __LINE__);
+			exiterror_fullpage("An invalid statistic ({$_GET['kwStatistic']}) was specified!", __FILE__, __LINE__);
 	}
 
 /* override statistic if we are not in keyword mode */

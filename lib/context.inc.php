@@ -172,7 +172,7 @@ $cqp->set_error_handler("cqp_error_handler");
 $cqp->execute("set DataDirectory '/$cqp_tempdir'");
 
 /* select corpus */
-$cqp->execute("$corpus_cqp_name;");
+$cqp->execute("$corpus_cqp_name");
 /* note that corpus must be RESELECTED after calling "set DataDirectory" */
 
 $primary_tag_handle = get_corpus_metadata('primary_annotation');

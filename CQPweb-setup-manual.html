@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20090630;15390600">
+	<META NAME="CHANGED" CONTENT="20090705;16014500">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Some very quick notes on how to set up CQPweb v 2.03</H1>
@@ -81,10 +81,6 @@ server as BNCweb you will be OK</I>.]</P>
 	that. </I>
 	</P>
 </UL>
-<P><BR><BR>
-</P>
-<P>&hellip; and restart Apache after installing the modules so they
-load into Apache.</P>
 <P><BR><BR>
 </P>
 <P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Setting
@@ -400,6 +396,14 @@ directory (2) as described above. It should look like this:</P>
 <P>but with the usernames changed. Once CQPweb is up and running, use
 the &ldquo;create user / reset password&rdquo; function to actually
 create the accounts (see below).</P>
+<P>You'll also need to create a .htaccess file for the ./adm
+directory. It should look like this:</P>
+<P ALIGN=LEFT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>AuthUserFile
+/$cqpweb_accessdir/.htpasswd<BR>AuthGroupFile
+/$cqpweb_accessdir/.htgroup<BR>AuthName CQPweb<BR>AuthType Basic<BR>deny
+from all<BR>require group superusers<BR>satisfy any</B></FONT></FONT></FONT></P>
+<P>&hellip; but with the appropriate directories substituted, as in
+the configuration file.</P>
 <P><BR><BR>
 </P>
 <P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Getting

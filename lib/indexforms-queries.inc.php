@@ -537,20 +537,19 @@ function printquery_lookup()
 function printquery_keywords()
 {
 	global $corpus_title;
-//	global $mysql_link;
 	global $corpus_sql_name;
 	
 	/* create the options for frequency lists to compare */
 	
 	/* subcorpora belonging to this user that have freqlists compiled (list of names returned) */
 	$subcorpora = list_freqtabled_subcorpora();
-//show_var($subcorpora);
+
 	/* public freqlists - corpora */
 	$public_corpora = list_public_whole_corpus_freqtables();
-//show_var($public_corpora);
+
 	/* public freqlists - subcorpora	(function returns associative array) */
 	$public_subcorpora = list_public_freqtables();
-//show_var($public_subcorpora);
+
 	
 	$list_options = "<option value=\"__entire_corpus\">Whole of $corpus_title</option>\n";
 	
@@ -679,7 +678,7 @@ function printquery_keywords()
 			<td class="concordgeneral">
 				<select name="kwStatistic">
 					<option value="LL" selected="selected">Log-likelihood</option>
-					<option value="X2">Chi-square</option>
+					<!-- <option value="X2">Chi-square</option> -->
 				</select>
 			</td>
 			<td class="concordgeneral">Significance threshold:</td>

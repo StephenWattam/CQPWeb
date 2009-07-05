@@ -27,41 +27,42 @@
 /* this file contains the CQP class, which calls CQP as a child process */
 /* and handles all interaction with that excellent program */
 
-/* depends on create_pipe_handle_constants() having previously been called */
-
-
-//TODO update to php 5 object-style
 
 class CQP
 {
 	/* MEMBERS */
-	/* for backwards compatability, var is used, not public/private etc. */
+	/* for backwards compatability, all are public (as they were "var" in PHP 4.x) */
+	/* but note that many should probably be private. */
 	
 	/* handle for the process */
-	var $process;
+	public $process;
 
 	/* array for the input/output handles themselves to go in */
-	var $handle;
+	public $handle;
 	
 	/* version numbers */
-	var $major_version;
-	var $minor_version;
-	var $beta_version;
-	var $compile_date;
+	public $major_version;
+	public $minor_version;
+	public $beta_version;
+	private $beta_version_flagged; /* indicates whether the beta version number was flagged by a "b" */
+	public $compile_date;
 
 	/* error handling */
-	var $error_handler;	/* set to name of user-defined error handler */
-					/* or to false if there isn't one */
-	var $status;	 	/* status of last executed command ('ok' or 'error') */
-	var $error_message;	/* array containing string(s) produced by last error */
+	public $error_handler;	/* set to name of user-defined error handler */
+							/* or to false if there isn't one */
+	public $status;	 		/* status of last executed command ('ok' or 'error') */
+	public $error_message;	/* array containing string(s) produced by last error */
 
 	/* progress bar handling */
 	/* set progress_handler to name of user-defined progressbar handler */
 	/* or to false if there isn't one */
-	var $progress_handler;
+	public $progress_handler;
 
 	/* debug */
-	var $debug_mode;
+	public $debug_mode;
+	
+	
+	private $has_been_disconnected;
 
 
 
@@ -69,22 +70,21 @@ class CQP
 	/* METHODS */
 	
 	/* constructor function ("new") */
-	/* note, this is a PHP 4.x-style constructor */
-	//TODO update whole of this class to new-style object
 	
-	function CQP()
+	function __construct()
 	{
 		/* create handles for CQP and leave CQP running in background */
 		
 		global $path_to_cwb;
 		global $cwb_registry;
+		// TODO !!
 		/* ugh the things above should almost certainly be parameters to __construct */
 	
 		/* array of settings for the three pipe-handles */
 		$io_settings = array(
-			IN  => array("pipe", "r"), /* pipe allocated to child's stdin  */
-			OUT => array("pipe", "w"), /* pipe allocated to child's stdout */
-			ERR => array("pipe", "w")  /* pipe allocated to child's stderr */
+			0 => array("pipe", "r"), /* pipe allocated to child's stdin  */
+			1 => array("pipe", "w"), /* pipe allocated to child's stdout */
+			2 => array("pipe", "w")  /* pipe allocated to child's stderr */
 			);
 
 		/* start the child process */
@@ -103,22 +103,22 @@ class CQP
 		   0 => writeable handle connected to child stdin  (IN)
 		   1 => readable  handle connected to child stdout (OUT)
 		   2 => readable  handle connected to child stderr (ERR)
-	        now that this has been done, fwrite to handle[0] passes input to  
+	       now that this has been done, fwrite to handle[0] passes input to  
 		   the program we called; and reading from handle[1] accesses the   
 		   output from the program.
 	
-		   (EG) fwrite($handle[IN], 'string to be sent to CQP');
-		   (EG) fgets($handle[OUT]);
+		   (EG) fwrite($handle[0], 'string to be sent to CQP');
+		   (EG) fread($handle[2]);
 			   -- latter will produce, 'whatever CQP sent back'
 		*/
 	
 		/* process and assign version numbers */
 		/* "cqp -c" should print version on startup */
-		$version_string = fgets($this->handle[OUT]);
+		$version_string = fgets($this->handle[1]);
 		$version_string = rtrim($version_string, "\r\n");
 
 		$version_pattern = 
-		'/^CQP\s+(?:\w+\s+)*([0-9]+)\.([0-9]+)(?:\.b([0-9]+))?(?:\s+(.*))?$/';
+		'/^CQP\s+(?:\w+\s+)*([0-9]+)\.([0-9]+)(?:\.(b?[0-9]+))?(?:\s+(.*))?$/';
 
 
 		if (preg_match($version_pattern, $version_string, $matches) == 0)
@@ -127,13 +127,26 @@ class CQP
 		{
 			$this->major_version = $matches[1];
 			$this->minor_version = $matches[2];
-			$this->beta_version  = $matches[3];
-			$this->compile_date  = $matches[4];
+			$this->beta_version_flagged = false;
+			$this->beta_version = 0;
+			if (isset($matches[3]))
+			{
+				if ($matches[3][0] == 'b')
+				{
+					$this->beta_version_flagged = true;
+					$this->beta_version  = substr($matches[3], 1);
+				}
+				else
+				{
+					$this->beta_version = $matches[3];
+				}
+			}
+			$this->compile_date  = (isset($matches[4]) ? $matches[4] : NULL);
 			
 			/* we need cqp-2.2.b94 or newer */	
 			if (!( ($this->major_version >= 3)
 				|| ($this->major_version == 2 && $this->minor_version == 2 
-					&& $this->beta_version >= 94)
+					&& $this->beta_version_flagged && $this->beta_version >= 94)
 				) )
 				exit("ERROR: CQP version too old ($version_string).\n");
     		}
@@ -146,6 +159,7 @@ class CQP
 		$this->error_message = array('');
 		$this->progress_handler = false;
 		$this->debug_mode = false;
+		$this->has_been_disconnected = false;
 
 		/* pretty-printing should be turned off for non-interactive use */
 		$this->execute("set PrettyPrint off"); 
@@ -156,28 +170,36 @@ class CQP
 	/* end of constructor method CQP() */
 
 
+	function __destruct()
+	{
+		$this->disconnect();
+	}
+
 	
 	function disconnect()
 	{
-		/* php4 doesn't support destructors, so this is a "fake" destructor */
-
 		/* the PHP manual says "It is important that you close any pipes */
 		/* before calling proc_close in order to avoid a deadlock" */
 		/* well, OK then! */
 		
-		if (isset($this->handle[IN]))
-		{
-			fwrite($this->handle[IN], "exit\n");
-			fclose($this->handle[IN]);
-		}
-		if (isset($this->handle[OUT]))
-			fclose($this->handle[OUT]);
-		if (isset($this->handle[ERR]))
-			fclose($this->handle[ERR]);
+		if ($this->has_been_disconnected)
+			return;
 		
-		/* and finally shut down the child process so webpage doesn't hang*/
+		if (isset($this->handle[0]))
+		{
+			fwrite($this->handle[0], "exit\n");
+			fclose($this->handle[0]);
+		}
+		if (isset($this->handle[1]))
+			fclose($this->handle[1]);
+		if (isset($this->handle[2]))
+			fclose($this->handle[2]);
+		
+		/* and finally shut down the child process so script doesn't hang*/
 		if (isset($this->process))
 			proc_close($this->process);
+			
+		$this->has_been_disconnected = true;
 	}
 	/* end of method disconnect() */
 
@@ -220,14 +242,14 @@ class CQP
 		preg_replace('/\n/', '/;\s*$/', $command);
 		
 		if ($this->debug_mode == true)
-			echo "CQP << $cmd;\n";
+			echo "CQP << $command;\n";
 
 		/* send the command to CQP's stdin */			
-		fwrite($this->handle[IN], "$command;\n .EOL.;\n");
+		fwrite($this->handle[0], "$command;\n .EOL.;\n");
 		/* that executes the command */
 
 		/* then, get lines one by one from [OUT] */
-		while (strlen($line = fgets($this->handle[OUT])) > 0 )
+		while (strlen($line = fgets($this->handle[1])) > 0 )
 		{
 			/* delete carriage returns from the line */
 			$line = trim($line, "\r\n");
@@ -552,18 +574,18 @@ class CQP
 		$error_strings = array();
 
 		/* is there anything on the child STDERR? */
-		$ready = stream_select($r=array($this->handle[ERR]), $w, $e, 0);
+		$ready = stream_select($r=array($this->handle[2]), $w, $e, 0);
 
 		while ($ready > 0)
 		{
 			/* read all available lines from CQP's stderr stream */
-			$this_error_string = fgets($this->handle[ERR]);
+			$this_error_string = fgets($this->handle[2]);
 			
 			$this_error_string = rtrim($this_error_string, "\r\n");
 			array_push($error_strings, $this_error_string);
 
 			/* check stream again before reiterating */
-			$ready = stream_select($r=array($this->handle[ERR]), $w, $e, 0);
+			$ready = stream_select($r=array($this->handle[2]), $w, $e, 0);
 		}
 
 		if (count($error_strings) > 0)
