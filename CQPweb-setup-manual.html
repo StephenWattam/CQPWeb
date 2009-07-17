@@ -7,10 +7,10 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20090705;16014500">
+	<META NAME="CHANGED" CONTENT="20090705;21543400">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1>Some very quick notes on how to set up CQPweb v 2.03</H1>
+<H1>Some very quick notes on how to set up CQPweb v 2.03 or higher</H1>
 <P><BR><BR>
 </P>
 <P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>What
@@ -91,6 +91,10 @@ up MySQL</FONT></FONT></P>
 to use.</P>
 <P>Make a note of the username / password of this new user and of the
 new database.</P>
+<P>The new database should have <B>default charset</B> set to <B>utf8.</B>
+<SPAN STYLE="font-weight: normal">This addresses a bug which affects
+some (but not all!) versions of the MySQL server software &ndash; see
+<A HREF="http://bugs.mysql.com/bug.php?id=10195">http://bugs.mysql.com/bug.php?id=10195</A></SPAN></P>
 <P>The new user needs to have <FONT FACE="Courier New, monospace">GRANT
 ALL</FONT> on the new database. The new user also needs <FONT FACE="Courier New, monospace">GRANT
 FILE ON *.*</FONT></P>
@@ -267,60 +271,67 @@ code file that contains the config variables. Do this as follows:
 edit it. It looks like this:</P>
 <P><BR><BR>
 </P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>&lt;?php</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
-SYSTEM CONFIG SETTINGS : the same for every corpus, and CANNOT be
-overridden */<BR>/* these settings should never be alterable from
-within CQPweb (would risk transmitting them as plaintext) */</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
-adminstrators' usernames, separated by | (as in BNCweb) */</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$superuser_username
-= 'bob|jeff';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><BR><BR>
-</P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
-mySQL username and password */</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_webuser
-= '';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_webpass
-= '';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_schema
-= '';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_server
-= '';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><BR><BR>
-</P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
----------------------- */<BR>/* server directory paths */<BR>/*
----------------------- */</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_cwb
-= '';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_apache_utils
-= '';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_perl
-= '';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><BR><BR>
-</P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqp_tempdir
-= '3';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqpweb_accessdir
-= '2';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqpweb_uploaddir
-= '6';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_tempdir
-= '3';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$cwb_datadir
-= '4';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$cwb_registry
-= '5';</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><BR><BR>
-</P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
-if mySQL returns ???? instead of proper UTF-8 symbols, change this
-setting true -&gt; false or false -&gt; true */</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>$utf8_set_required
-= true;</FONT></FONT></P>
-<P STYLE="border: 1px solid #000000; padding: 0.05cm"><FONT FACE="Courier New"><FONT SIZE=2>?&gt;</FONT></FONT></P>
+<TABLE WIDTH=1012 BORDER=1 CELLPADDING=4 CELLSPACING=3>
+	<COL WIDTH=996>
+	<TR>
+		<TD WIDTH=996 VALIGN=TOP>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>&lt;?php</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
+			SYSTEM CONFIG SETTINGS : the same for every corpus, and CANNOT be
+			overridden */<BR>/* these settings should never be alterable from
+			within CQPweb (would risk transmitting them as plaintext) */</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
+			adminstrators' usernames, separated by | (as in BNCweb) */</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$superuser_username
+			= 'bob|jeff';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><BR><BR>
+			</P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
+			mySQL username and password */</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_webuser
+			= '';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_webpass
+			= '';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_schema
+			= '';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_server
+			= '';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><BR><BR>
+			</P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
+			---------------------- */<BR>/* server directory paths */<BR>/*
+			---------------------- */</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_cwb
+			= '';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_apache_utils
+			= '';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_perl
+			= '';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><BR><BR>
+			</P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqp_tempdir
+			= '3';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqpweb_accessdir
+			= '2';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqpweb_uploaddir
+			= '6';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_tempdir
+			= '3';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cwb_datadir
+			= '4';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cwb_registry
+			= '5';</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><BR><BR>
+			</P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
+			if mySQL returns ???? instead of proper UTF-8 symbols, change this
+			setting true -&gt; false or false -&gt; true */</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$utf8_set_required
+			= true;</FONT></FONT></P>
+			<P STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>?&gt;</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
 <P><BR><BR>
 </P>
 <P>The <FONT FACE="Courier New, monospace">$superuser_username</FONT>
@@ -374,7 +385,7 @@ automatically. They are</P>
 	generator to get nicer, more-wordlike passwords: to do this, set the
 	</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">$create_password_function</SPAN></FONT>
 	<SPAN STYLE="font-weight: normal">to the quoted string
-	</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">'password_insert_internal'</SPAN></FONT><SPAN STYLE="font-weight: normal">.
+	</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">'password_insert_lancaster'</SPAN></FONT><SPAN STYLE="font-weight: normal">.
 	</SPAN>
 	</P>
 </UL>
@@ -393,15 +404,17 @@ automatically for you.</U></I> Otherwise...</P>
 <P>Using a text editor, create a file called&nbsp; <B>.htgroup</B> in
 directory (2) as described above. It should look like this:</P>
 <P ALIGN=LEFT><FONT FACE="Courier New"><B>superusers: bob jeff</B></FONT></P>
-<P>but with the usernames changed. Once CQPweb is up and running, use
-the &ldquo;create user / reset password&rdquo; function to actually
-create the accounts (see below).</P>
-<P>You'll also need to create a .htaccess file for the ./adm
+<P>but with the usernames changed to match the ones in your
+configuration file. Once CQPweb is up and running, use the &ldquo;create
+user / reset password&rdquo; function to actually create the accounts
+(see below).</P>
+<P>You'll also need to create a <B>.htaccess</B> file for the <B>./adm</B>
 directory. It should look like this:</P>
 <P ALIGN=LEFT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>AuthUserFile
-/$cqpweb_accessdir/.htpasswd<BR>AuthGroupFile
-/$cqpweb_accessdir/.htgroup<BR>AuthName CQPweb<BR>AuthType Basic<BR>deny
-from all<BR>require group superusers<BR>satisfy any</B></FONT></FONT></FONT></P>
+/<FONT COLOR="#800000">$cqpweb_accessdir</FONT>/.htpasswd<BR>AuthGroupFile
+/<FONT COLOR="#800000">$cqpweb_accessdir</FONT>/.htgroup<BR>AuthName
+CQPweb<BR>AuthType Basic<BR>deny from all<BR>require group
+superusers<BR>satisfy any</B></FONT></FONT></FONT></P>
 <P>&hellip; but with the appropriate directories substituted, as in
 the configuration file.</P>
 <P><BR><BR>

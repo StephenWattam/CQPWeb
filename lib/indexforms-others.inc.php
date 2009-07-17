@@ -526,7 +526,8 @@ function printquery_latest()
 	<ul>
 		<li>
 		<b>Version 2.04</b>, 2009-07-05<br/>&nbsp;<br/>
-		Bug fixes plus improvements to CQP interface object model.
+		Bug fixes (thanks to Rob Malouf for spotting the bugs in question!) plus improvements to CQP interface
+		object model.
 		<br/>&nbsp;</li>
 		<li>
 		<b>Version 2.03</b>, 2009-06-18<br/>&nbsp;<br/>

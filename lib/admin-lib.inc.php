@@ -412,7 +412,7 @@ function install_new_corpus()
 	
 	
 	 
-	/* copy the script files to that folder */
+	/* create the script files in that folder * /
 	$files_to_copy = scandir('../lib/template');
 	foreach($files_to_copy as &$c)
 	{
@@ -421,6 +421,15 @@ function install_new_corpus()
 			copy("../lib/template/$c", "$newdir/$c");
 			chmod("$newdir/$c", 0775);
 		}
+	}*/
+	foreach (array( 'collocation', 'concordance', 'context',
+					'distribution', 'execute', 'freqlist',
+					'freqtable-compile', 'help', 'index',
+					'keywords', 'redirect', 'subcorpus-admin',
+					'textmeta') as $c)
+	{
+		file_put_contents("$newdir/$c", "<?php require('../lib/$c.inc.php'); ?>");
+		chmod("$newdir/$c", 0775);
 	}
 	
 	/* write a settings.inc.php file */
@@ -995,7 +1004,7 @@ function update_text_metadata_values_descriptions()
 	}
 }
 
-
+// NB there's a function in metadata.inc.php that seems to do something very similar to this ??
 function update_corpus_metadata_fixed()
 {
 	global $update_corpus_metadata_info;

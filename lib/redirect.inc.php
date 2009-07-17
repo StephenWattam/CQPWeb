@@ -244,6 +244,14 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 
 
 
+	/* from corpus settings page */
+	
+	case 'adminResetCWBDir':
+		$_GET['args'] = $_GET['arg1'] . $_GET['arg2'];
+		require('../lib/execute.inc.php');
+		break;
+
+
 	/* special case */
 	case 'comingSoon':
 		require("../lib/library.inc.php");

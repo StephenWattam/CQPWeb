@@ -104,6 +104,45 @@ function update_corpus_category($newcat)
 	update_corpus_metadata('corpus_cat', $newcat);
 }
 
+function update_corpus_title($newtitle)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$settings->set_corpus_title($newtitle);
+	$settings->save();
+}
+
+function update_css_path($newpath)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$settings->set_css_path($newpath);
+	$settings->save();
+}
+
+function update_corpus_main_script_is_r2l($newval)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$settings->set_r2l($newval);
+	$settings->save();
+}
+
+function update_corpus_directory_override($type, $newdir)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	if ($type == 'reg' || $type == 'reg_dir' || $type == 'regdir')
+		$settings->set_directory_override_reg($newdir);
+	if ($type == 'data' || $type == 'data_dir' || $type == 'datadir')
+		$settings->set_directory_override_data($newdir);
+	$settings->save();	
+}
+
 function update_corpus_metadata($field, $value)
 {
 	global $mysql_link;

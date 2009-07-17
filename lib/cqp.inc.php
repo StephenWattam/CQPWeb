@@ -146,12 +146,12 @@ class CQP
 			/* we need cqp-2.2.b94 or newer */	
 			if (!( ($this->major_version >= 3)
 				|| ($this->major_version == 2 && $this->minor_version == 2 
-					&& $this->beta_version_flagged && $this->beta_version >= 94)
+					&& $this->beta_version >= 94)
 				) )
 				exit("ERROR: CQP version too old ($version_string).\n");
     		}
 
-    		
+
 
 		/* set other members */
 		$this->error_handler = false;
@@ -175,15 +175,16 @@ class CQP
 		$this->disconnect();
 	}
 
-	
+	/* this was originally the "fake distructor" function when this class was written for PHP 4.x  */
+	/* the shutdown code has been kept here rather than in __destruct() to avoid breaking old code */ 
 	function disconnect()
 	{
+		if ($this->has_been_disconnected)
+			return;
+		
 		/* the PHP manual says "It is important that you close any pipes */
 		/* before calling proc_close in order to avoid a deadlock" */
 		/* well, OK then! */
-		
-		if ($this->has_been_disconnected)
-			return;
 		
 		if (isset($this->handle[0]))
 		{

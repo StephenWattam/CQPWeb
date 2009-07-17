@@ -64,15 +64,128 @@ function printquery_corpusoptions()
 		$class_options .= ($class['handle'] === $primary ? 'selected="selected"' : '');
 		$class_options .= '>' . $class['description'] . '</option>';
 	}
+	
+	/* object containig the core settings */
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$r2l = $settings->get_r2l();
 
+	$datadir = $settings->get_directory_override_data();
+	if ($datadir === NULL)
+		$datadir = '';
+	$regdir = $settings->get_directory_override_reg();
+	if ($regdir === NULL)
+		$regdir = '';
 
-//	show_var($c = get_corpus_matadata('corpus_cat'));
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
 			<th class="concordtable">Corpus options</th>
 		</tr>
 	</table>
+	
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="3">Core corpus settings</th>
+		</tr>
+		<form action="execute.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					Corpus title:
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="text" name="args" value="<?php echo $settings->get_corpus_title(); ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
+			<input type="hidden" name="function" value="update_corpus_title" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+		<form action="execute.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					Stylesheet address
+					(<a href="<?php echo $settings->get_css_path(); ?>">click here to view</a>):
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="text" name="args" value="<?php echo $settings->get_css_path(); ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
+			<input type="hidden" name="function" value="update_css_path" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+		<form action="execute.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					Directionality of main corpus script:
+				</td>
+				<td class="concordgeneral" align="center">
+					<select name="args">
+						<!-- note, false = left-to-right -->
+						<option value="0" <?php echo ($r2l ? '' : 'selected="selected"'); ?>>Left-to-right</option>
+						<option value="1" <?php echo ($r2l ? 'selected="selected"' : ''); ?>>Right-to-left</option>
+					</select>
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
+			<input type="hidden" name="function" value="update_corpus_main_script_is_r2l" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+		<form action="redirect.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					Location of CWB registry directory for this corpus:
+					<br/>
+					(NB. Empty string = use default directory)
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="text" name="arg2" value="<?php echo $regdir; ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="redirect" value="adminResetCWBDir" />
+			<input type="hidden" name="arg1" value="reg#" />
+			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
+			<input type="hidden" name="function" value="update_corpus_directory_override" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+
+		<form action="redirect.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					Location of CWB corpus data directory for this corpus:
+					<br/>
+					(NB. Empty string = use default directory)
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="text" name="arg2" value="<?php echo $datadir; ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="redirect" value="adminResetCWBDir" />
+			<input type="hidden" name="arg1" value="data#" />
+			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
+			<input type="hidden" name="function" value="update_corpus_directory_override" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+
+	</table>
+
+		
 	
 	<table class="concordtable" width="100%">
 		<tr>

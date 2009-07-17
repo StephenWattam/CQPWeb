@@ -72,6 +72,7 @@ if (user_is_superuser($username))
 {
 	require_once('../lib/apache.inc.php');
 	require_once('../lib/admin-lib.inc.php');
+	require_once('../lib/corpus-settings.inc.php');
 }
 
 

@@ -75,6 +75,8 @@ include('../lib/indexforms-others.inc.php');
 include('../lib/indexforms-subcorpus.inc.php');
 include('../lib/exiterror.inc.php');
 include('../lib/user-settings.inc.php');
+include('../lib/rface.inc.php');
+include('../lib/corpus-settings.inc.php');
 create_pipe_handle_constants();
 include('../lib/cwb.inc.php');
 include('../lib/cqp.inc.php');
