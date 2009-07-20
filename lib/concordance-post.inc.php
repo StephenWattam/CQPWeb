@@ -45,6 +45,8 @@
 	rand	... randomise order
 	unrand  ... usually (but not always) a pseudo-value, it really means take out rand
 	cat		... a particular "categorisation" has been applied
+	item	... a particular item was selected on the "frequency distribution" page aka "item thinning"
+	
 	
 	Some of these have parameters. These are in the format:
 	~~XXXX[A~B~C]~~
@@ -83,6 +85,10 @@
 		category=the label of the category to which the solutions in this query were manually assigned
 		Note: this postprocess is always done by categorise-admin.inc.php, never here (so, no functions 
 		or cases for it); all this library needs ot do is render it properly
+	
+	item[form~tag]
+		EITHER of these can be an empty string.
+		
 		
 	
 	Postprocesses are listed in the order they were applied.
@@ -95,55 +101,65 @@
 
 
 /* class for descriptor object for a new postprocess operation */
-//TODO update to PHP-5 object
 class POSTPROCESS {
+	
+	/* all variables are public for backward compatability -- this was originally a PHP4 object */
+	/* but many SHOULD be private */
+	
 	/* this variable contains one of the 4-letter abbreviations of the different postprocess types */
-	var $postprocess_type;
+	public $postprocess_type;
 	
 	/* boolean: true if the $_GET was parsed OK, false if not */
-	var $i_parsed_ok;
+	public $i_parsed_ok;
 	
 	/* this stops the function "add to postprocess string" running more than once */
 	/* unless its "override" is true */
-	var $stored_postprocess_string;
+	public $stored_postprocess_string;
 	
-	var $run_function_name;
+	public $run_function_name;
 
 	/* variables for collocation */
-	var $colloc_db;
-	var $colloc_dist_from;
-	var $colloc_dist_to;
-	var $colloc_att;
-	var $colloc_target;
+	public $colloc_db;
+	public $colloc_dist_from;
+	public $colloc_dist_to;
+	public $colloc_att;
+	public $colloc_target;
 	
 	/* variables for thin */
-	var $thin_target_hit_count;
-	var $thin_genuinely_random;
+	public $thin_target_hit_count;
+	public $thin_genuinely_random;
 	
 	/* variables for sort */
-	var $sort_position;
-	var $sort_thin_tag;
-	var $sort_thin_tag_inv;
-	var $sort_thin_str;
-	var $sort_thin_str_inv;
-	var $sort_remove_prev_sort;
-	var $sort_pp_string_of_query_to_be_sorted;
-	var $sort_db;
-	var $sort_sort_thinning_sql_where;
+	public $sort_position;
+	public $sort_thin_tag;
+	public $sort_thin_tag_inv;
+	public $sort_thin_str;
+	public $sort_thin_str_inv;
+	public $sort_remove_prev_sort;
+	public $sort_pp_string_of_query_to_be_sorted;
+	public $sort_db;
+	public $sort_sort_thinning_sql_where;
+	
+	/* variables for item-thinning */
+	public $item_form;
+	public $item_tag;
+	
 	
 	/* string - name of the function to use when the postprocess is being run */
 	/* use postprocess_type as key */
-	var $function_names = array(
+	public $function_names = array(
 		'coll' => 'run_postprocess_collocation',
 		'thin' => 'run_postprocess_thin',
 		'rand' => 'run_postprocess_randomise',
 		'unrand' => 'run_postprocess_unrandomise',
-		'sort' => 'run_postprocess_sort'
+		'sort' => 'run_postprocess_sort',
+		'item' => 'run_postprocess_item'
 		);
 	
 	
 	/* constructor - this reads things in from get (and gets rid of them) */
-	function POSTPROCESS()
+//	function POSTPROCESS()
+	function __construct()
 	{
 		/* unless disproven below */
 		$this->i_parsed_ok = true;
@@ -225,12 +241,27 @@ class POSTPROCESS {
 			{
 				$this->thin_target_hit_count = (int)$_GET['newPostP_thinTo'];
 			}
-// add a check here for thinning to "more hits than we originally had"			
+// TODO add a check here for thinning to "more hits than we originally had"			
 			$this->thin_genuinely_random = ($_GET['newPostP_thinReallyRandom'] == 1) ? true : false;
 			
 			break;
+
+			
+		case 'item':
+			$this->postprocess_type = 'item';
+			/* we only need one out of form and tag */
+			if ( empty( $_GET['newPostP_itemForm'] ) && empty($_GET['newPostP_itemTag']))
+			{
+				$this->i_parsed_ok = false;
+				return;
+			}
 			
 			
+			$this->item_form = (isset($_GET['newPostP_itemForm']) ? mysql_real_escape_string($_GET['newPostP_itemForm']) : '');
+			$this->item_tag = (isset($_GET['newPostP_itemTag']) ? mysql_real_escape_string($_GET['newPostP_itemTag']) : '');
+	
+			break;
+
 			
 			
 		case 'dist':
@@ -243,8 +274,6 @@ class POSTPROCESS {
 			$this->postprocess_type = 'unrand';
 			break;
 		
-	
-
 		default:
 			$this->i_parsed_ok = false;
 			break;
@@ -523,8 +552,20 @@ class POSTPROCESS {
 				'sort_thin_str_inv' 	=> $this->sort_thin_str_inv
 				);
 	}
+	
+	
+	
+	function item_sql_for_queryfile()
+	{
+		//TODO: this function	
+		
+	}
 
-
+	function item_sql_count_remaining_hits()
+	{
+		//TODO: this function
+		
+	}
 
 } /* end of class POSTPROCESS */
 
@@ -812,6 +853,94 @@ function run_postprocess_thin($cache_record, &$descriptor)
 
 
 
+// note this currently contains code copied from "sort", whihc it most resembles (uses the same db of course) 
+// TODO amend and make it a proper, independent postprocess.
+function run_postprocess_item($cache_record, &$descriptor)
+{
+	global $instance_name;
+	global $cqp;
+	global $mysql_link;
+	global $username;
+
+	$old_qname = $cache_record['query_name'];	
+
+	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
+	$cache_record['user'] = $username;
+	
+	
+	/* actually do it ! */
+// TODO check that somewhere along the line, a sort db is created from the orig qname if does not exist 
+//(like in the sort postporcess)
+	/* first, write a "dumpfile" to temporary storage */
+	$tempfile  = "/$cqp_tempdir/temp_sort_$new_qname.tbl";
+	$tempfile2 = "/$cqp_tempdir/temp_sort_$new_qname.undump";
+
+// TODO need new line here to get $sql_query -- add a method to the descriptor class?
+//	$sql_query = $descriptor->sort_sql_for_queryfile($tempfile, $orig_cache_record);
+
+	$result = mysql_query($sql_query, $mysql_link);
+	if ($result == false) 
+		exiterror_mysqlquery(mysql_errno($mysql_link), 
+			mysql_error($mysql_link), __FILE__, __LINE__);
+	unset($result);
+
+	/* now, work out how many hits were in it */
+	// TODO need new line here to get $sql_query -- add a method to the descriptor class?
+//	$sql_query = $descriptor->sort_sql_count_remaining_hits($tempfile);
+
+	$result = mysql_query($sql_query, $mysql_link);
+	if ($result == false) 
+		exiterror_mysqlquery(mysql_errno($mysql_link), 
+			mysql_error($mysql_link), __FILE__, __LINE__);
+
+	list($solutions_remaining) = mysql_fetch_row($result);
+
+	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
+	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
+
+	unset($result);
+
+	if ($solutions_remaining > 0)
+	{
+		/* prepend number of hits to output file */
+		exec("echo $solutions_remaining | cat - '$tempfile' > '$tempfile2'");
+		unlink($tempfile);
+
+		/* load to CQP as a new query, and save */
+		$cqp->execute("undump $new_qname < '$tempfile2'");
+		$cqp->execute("save $new_qname");
+		
+		/* get the size of the new query */
+		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
+
+		unlink($tempfile2);
+
+		/* put this newly-created query in the cache */
+
+		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
+
+		$insert_result = mysql_query($insert, $mysql_link);
+		if ($insert_result == false) 
+			exiterror_mysqlquery(mysql_errno($mysql_link), 
+				mysql_error($mysql_link), __FILE__, __LINE__);
+		unset($insert_result);
+
+		update_cached_query($cache_record);
+	
+	}
+	else
+		say_sorry_postprocess();
+		/* which exits the program */
+
+
+	return $cache_record;
+}
+
+
+
+
+
+
 
 ////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 /// very important note -- this won't work as well as bncWeb in the (sole) case where randomisation is applied *after* collocation thinning
@@ -1002,6 +1131,19 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 			case 'cat':
 				$description.= "manually categorised as &ldquo;{$args[0]}&rdquo; ("
 					. make_thousands($hit_array[$i]) . " hits)";
+				$i++;
+				break;
+			
+			case 'item':
+			// TODO not tested yet!
+				$description .= "reduced with frequency list to  ";
+				if (empty ($args[0]))
+					$description .= 'tag: <em>' . $args[1] . '</em> ';
+				else if (empty($args[1]))
+					$description .= 'word: <em>' . $args[0] . '</em> ';
+				else
+					$description .= 'word-tag combination: <em>' . $args[0] . '_' . $args[1] . '</em> ';
+				$description .= '(' . make_thousands($hit_array[$i]) . ' hits)';
 				$i++;
 				break;
 				

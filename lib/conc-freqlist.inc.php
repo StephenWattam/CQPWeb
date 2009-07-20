@@ -357,7 +357,8 @@ else
 			{
 				$percent = round(($r->sum / $db_tokens_total)*100, 2);
 		
-		// need a link to a postprocess on col 2		
+		// TODO need a link to a postprocess on col 2 (the "item" postprocess)
+		// the fields to include in the link: newPostP_itemTag, newPostP_itemTag
 				echo "<tr>\n";
 				echo "<td class=\"concordgrey\">$i</td>\n";
 				echo "<td class=\"concordgeneral\">{$r->n}</td>\n";

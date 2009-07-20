@@ -58,13 +58,13 @@ class CQP
 	/* or to false if there isn't one */
 	public $progress_handler;
 
-	/* debug */
-	public $debug_mode;
-	
-	
 	private $has_been_disconnected;
 
 
+	/* debug */
+	private $debug_mode;
+	
+	
 
 
 	/* METHODS */
@@ -100,15 +100,15 @@ class CQP
 
 
 		/* $handle now looks like this:
-		   0 => writeable handle connected to child stdin  (IN)
-		   1 => readable  handle connected to child stdout (OUT)
-		   2 => readable  handle connected to child stderr (ERR)
+		   0 => writeable handle connected to child stdin
+		   1 => readable  handle connected to child stdout
+		   2 => readable  handle connected to child stderr
 	       now that this has been done, fwrite to handle[0] passes input to  
 		   the program we called; and reading from handle[1] accesses the   
 		   output from the program.
 	
 		   (EG) fwrite($handle[0], 'string to be sent to CQP');
-		   (EG) fread($handle[2]);
+		   (EG) fread($handle[1]);
 			   -- latter will produce, 'whatever CQP sent back'
 		*/
 	
@@ -249,7 +249,7 @@ class CQP
 		fwrite($this->handle[0], "$command;\n .EOL.;\n");
 		/* that executes the command */
 
-		/* then, get lines one by one from [OUT] */
+		/* then, get lines one by one from child stdout */
 		while (strlen($line = fgets($this->handle[1])) > 0 )
 		{
 			/* delete carriage returns from the line */

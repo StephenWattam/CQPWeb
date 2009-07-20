@@ -183,11 +183,12 @@ function printquery_corpusoptions()
 			<input type="hidden" name="uT" value="y" />
 		</form>
 
-	</table>
 
-		
-	
-	<table class="concordtable" width="100%">
+
+		<!-- ***************************************************************************** -->
+
+
+
 		<tr>
 			<th class="concordtable" colspan="3">General options</th>
 		</tr>
