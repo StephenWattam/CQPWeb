@@ -525,6 +525,10 @@ function printquery_latest()
 	
 	<ul>
 		<li>
+		<b>Version 2.05</b>, 2009-07-26<br/>&nbsp;<br/>
+		Added frequency-list-thin postprocessing function.
+		<br/>&nbsp;</li>
+		<li>
 		<b>Version 2.04</b>, 2009-07-05<br/>&nbsp;<br/>
 		Bug fixes (thanks to Rob Malouf for spotting the bugs in question!) plus improvements to CQP interface
 		object model.

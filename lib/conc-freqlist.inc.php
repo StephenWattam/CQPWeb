@@ -356,12 +356,28 @@ else
 			for ( $i = (($page_no-1)*$per_page)+1 ; ($r=mysql_fetch_object($result)) !== false; $i++)
 			{
 				$percent = round(($r->sum / $db_tokens_total)*100, 2);
-		
-		// TODO need a link to a postprocess on col 2 (the "item" postprocess)
-		// the fields to include in the link: newPostP_itemTag, newPostP_itemTag
+				
+				switch($breakdown_of)
+				{
+				case 'words':
+					$iF = $r->n;
+					$iT = '';
+					break;
+				case 'annot':
+					$iF = '';
+					$iT = $r->n;
+					break;
+				case 'both':
+					preg_match('/\A(.*)_([^_]+)\z/', $r->n, $m);
+					$iF = $m[1];
+					$iT = $m[2];
+					break;
+				}
+				$link = "concordance.php?qname=$qname&newPostP=item&newPostP_itemForm=$iF&newPostP_itemTag=$iT&uT=y";
+				
 				echo "<tr>\n";
 				echo "<td class=\"concordgrey\">$i</td>\n";
-				echo "<td class=\"concordgeneral\">{$r->n}</td>\n";
+				echo "<td class=\"concordgeneral\"><a href=\"$link\">{$r->n}</a></td>\n";
 				echo "<td class=\"concordgeneral\" align=\"center\">{$r->sum}</td>\n";
 				echo "<td class=\"concordgeneral\" align=\"center\">$percent%</td>\n";
 				echo "</tr>\n";

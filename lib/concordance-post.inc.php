@@ -250,12 +250,11 @@ class POSTPROCESS {
 		case 'item':
 			$this->postprocess_type = 'item';
 			/* we only need one out of form and tag */
-			if ( empty( $_GET['newPostP_itemForm'] ) && empty($_GET['newPostP_itemTag']))
+			if ( empty($_GET['newPostP_itemForm']) && empty($_GET['newPostP_itemTag']))
 			{
 				$this->i_parsed_ok = false;
 				return;
 			}
-			
 			
 			$this->item_form = (isset($_GET['newPostP_itemForm']) ? mysql_real_escape_string($_GET['newPostP_itemForm']) : '');
 			$this->item_tag = (isset($_GET['newPostP_itemTag']) ? mysql_real_escape_string($_GET['newPostP_itemTag']) : '');
@@ -356,6 +355,10 @@ class POSTPROCESS {
 			$string_to_work_on .= "~~sort[$this->sort_position~$this->sort_thin_tag~$mybool1~$this->sort_thin_str~$mybool2]";
 			break;
 
+		case 'item':
+			$string_to_work_on .= "~~item[$this->item_form~$this->item_tag]";
+			break;
+			
 		
 		default:
 			return false;
@@ -433,7 +436,7 @@ class POSTPROCESS {
 						$this->sort_pp_string_of_query_to_be_sorted);
 		/* note, instead of the postprocess string from the query record (which is the postprocesss  */
 		/* string we are WORKING TOWARDS) we use the postprocess string of the query we need to work */
-		/* from which was recorded in this object when we ran add_to_postprocess_string */
+		/* from -- which was recorded in this object when we ran add_to_postprocess_string */
 
 
 		if ($db_record === false)
@@ -465,7 +468,6 @@ class POSTPROCESS {
 			$sort_position_sql = 'before' . (-1 * $this->sort_position);
 			for ($i = (-1 * $this->sort_position) ; $i < 6 ; $i++)
 				$extra_sort_pos_sql .= ", before$i";
-//if ($sortpos == 5)$reverseOrderType = "after1" ;
 		}
 		else if ($this->sort_position == 0)
 		{
@@ -477,11 +479,9 @@ class POSTPROCESS {
 			$sort_position_sql .= 'after' . $this->sort_position;
 			for ($i = $this->sort_position ; $i < 6 ; $i++)
 				$extra_sort_pos_sql .= ", after$i";
-//$reverseOrderType = "before1" if ($sortpos == 5);
 		}
 			
 
-		
 		
 		/* first, what are we actually sorting on? */
 
@@ -519,21 +519,24 @@ class POSTPROCESS {
 		if (!$this->sort_sql_capable())
 			return false;
 		if (! isset($this->sort_thinning_sql_where))
-			$this->sort_sql_for_queryfile;
+			return false;
 
 		return "select count(*)
 			from {$this->sort_db}
 			$this->sort_thinning_sql_where";
 	}
+	
 
 
 	function sort_sql_capable()
 	{
-//	show_var($this->stored_postprocess_string);
+		/* the debug version: 
+		show_var($this->stored_postprocess_string);
 		$d = array($this->sort_position, $this->sort_thin_tag, $this->sort_thin_tag_inv, 
 				$this->sort_thin_str, $this->sort_thin_str_inv, $this->sort_remove_prev_sort, 
 				$this->sort_db, $this->sort_pp_string_of_query_to_be_sorted);
-//		show_var($d);		
+		show_var($d);
+		*/
 		return ( isset($this->sort_position, $this->sort_thin_tag, $this->sort_thin_tag_inv, 
 			$this->sort_thin_str, $this->sort_thin_str_inv, $this->sort_remove_prev_sort, 
 			$this->sort_db, $this->sort_pp_string_of_query_to_be_sorted) );
@@ -555,15 +558,42 @@ class POSTPROCESS {
 	
 	
 	
-	function item_sql_for_queryfile()
+	/* "item" functions ; note the "item" postprocess re-uses some of the sort methods too */ 
+	
+	function item_sql_for_queryfile($file, $orig_query_record)
 	{
-		//TODO: this function	
+		$this->sort_set_dbname($orig_query_record);
 		
+		$this->sort_thinning_sql_where = '';
+		
+		if (! empty($this->item_form))
+			$this->sort_thinning_sql_where .= "where node = '$this->item_form' " ;
+		
+		if (! empty($this->item_tag))
+		{
+			if ( $this->sort_thinning_sql_where == '')
+				$this->sort_thinning_sql_where .= 'where';
+			else
+				$this->sort_thinning_sql_where .= 'and';
+			$this->sort_thinning_sql_where .= " tagnode = '$this->item_tag' ";
+		}
+
+		return "select beginPosition, endPosition
+			into outfile '$file' 
+			from {$this->sort_db}
+			$this->sort_thinning_sql_where
+			order by beginPosition  ";
+
 	}
 
 	function item_sql_count_remaining_hits()
 	{
-		//TODO: this function
+		if (! isset($this->sort_thinning_sql_where))
+			return false;
+
+		return "select count(*)
+			from {$this->sort_db}
+			$this->sort_thinning_sql_where";
 		
 	}
 
@@ -853,30 +883,32 @@ function run_postprocess_thin($cache_record, &$descriptor)
 
 
 
-// note this currently contains code copied from "sort", whihc it most resembles (uses the same db of course) 
-// TODO amend and make it a proper, independent postprocess.
+// TODO check this works!
 function run_postprocess_item($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
+	global $cqp_tempdir;
 	global $mysql_link;
 	global $username;
 
 	$old_qname = $cache_record['query_name'];	
+	$orig_cache_record = $cache_record;
+
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
 	
 	
 	/* actually do it ! */
-// TODO check that somewhere along the line, a sort db is created from the orig qname if does not exist 
-//(like in the sort postporcess)
+
 	/* first, write a "dumpfile" to temporary storage */
 	$tempfile  = "/$cqp_tempdir/temp_sort_$new_qname.tbl";
 	$tempfile2 = "/$cqp_tempdir/temp_sort_$new_qname.undump";
 
-// TODO need new line here to get $sql_query -- add a method to the descriptor class?
-//	$sql_query = $descriptor->sort_sql_for_queryfile($tempfile, $orig_cache_record);
+
+	/* this method call creates the DB if it doesn't already exist */
+	$sql_query = $descriptor->item_sql_for_queryfile($tempfile, $orig_cache_record);
 
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
@@ -885,8 +917,7 @@ function run_postprocess_item($cache_record, &$descriptor)
 	unset($result);
 
 	/* now, work out how many hits were in it */
-	// TODO need new line here to get $sql_query -- add a method to the descriptor class?
-//	$sql_query = $descriptor->sort_sql_count_remaining_hits($tempfile);
+	$sql_query = $descriptor->item_sql_count_remaining_hits($tempfile);
 
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
@@ -1077,80 +1108,80 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 		
 		switch ($this_process)
 		{
-			case 'sort':
+		case 'sort':
+		
+			$description .= 'sorted on <em>'
+				. ($args[0] == 0 ?  "node word"
+					: ($args[0] > 0 ? "position +{$args[0]}" 
+						: "position {$args[0]}") )
+				.  '</em> ';	
 			
-				$description .= 'sorted on <em>'
-					. ($args[0] == 0 ?  "node word"
-						: ($args[0] > 0 ? "position +{$args[0]}" 
-							: "position {$args[0]}") )
-					.  '</em> ';	
-				
-				if ($args[3] != '.*')
-				{
-					$description .= ($args[4] == 1 ? 'not ' : '')
-						. 'starting with <em>'
-						. $args[3]
-						. '-</em> ';
-				}
+			if ($args[3] != '.*')
+			{
+				$description .= ($args[4] == 1 ? 'not ' : '')
+					. 'starting with <em>'
+					. $args[3]
+					. '-</em> ';
+			}
 
-				if ($args[1] != '.*')
-				{
-					$description .= 'with tag-restriction <em>'
-						. ($args[2] == 1 ? 'exclude ' : '')
-						. $args[1]
-						. '</em> ';
-				}
-				
-				$description .= $bdo_tag1 . '(' . make_thousands($hit_array[$i]) . ' hits)' . $bdo_tag2;
-				$i++;
-				
-				break;
-				
-			case 'coll':
-				$att_id = ($args[1] == 'word' ? '' : $annotations[$args[1]]);
-				$description .= "collocating with $att_id <em>{$args[2]}</em> $bdo_tag1("
-					. make_thousands($hit_array[$i]) . ' hits)'. $bdo_tag2;
-				$i++;
-				break;
-				
-			case 'rand':
-				$description .= 'ordered randomly';
-				break;
-				
-			case 'unrand':
-				$description .= 'sorted into corpus order';
-				break;
-				
-			case 'thin':
-				$method = ($args[1] == 'n' ? 'random selection (non-reproducible)' : 'random selection');
-				$count = make_thousands($hit_array[$i]);
-				$description .= "thinned with method <em>$method</em> to $count hits";
-				$i++;
-				break;
+			if ($args[1] != '.*')
+			{
+				$description .= 'with tag-restriction <em>'
+					. ($args[2] == 1 ? 'exclude ' : '')
+					. $args[1]
+					. '</em> ';
+			}
 			
-			case 'cat':
-				$description.= "manually categorised as &ldquo;{$args[0]}&rdquo; ("
-					. make_thousands($hit_array[$i]) . " hits)";
-				$i++;
-				break;
+			$description .= $bdo_tag1 . '(' . make_thousands($hit_array[$i]) . ' hits)' . $bdo_tag2;
+			$i++;
 			
-			case 'item':
-			// TODO not tested yet!
-				$description .= "reduced with frequency list to  ";
-				if (empty ($args[0]))
-					$description .= 'tag: <em>' . $args[1] . '</em> ';
-				else if (empty($args[1]))
-					$description .= 'word: <em>' . $args[0] . '</em> ';
-				else
-					$description .= 'word-tag combination: <em>' . $args[0] . '_' . $args[1] . '</em> ';
-				$description .= '(' . make_thousands($hit_array[$i]) . ' hits)';
-				$i++;
-				break;
-				
-			default:
-				/* malformed postprocess string; so add an error to the return */
-				$description .= '????';
-				break;
+			break;
+			
+		case 'coll':
+			$att_id = ($args[1] == 'word' ? '' : $annotations[$args[1]]);
+			$description .= "collocating with $att_id <em>{$args[2]}</em> $bdo_tag1("
+				. make_thousands($hit_array[$i]) . ' hits)'. $bdo_tag2;
+			$i++;
+			break;
+			
+		case 'rand':
+			$description .= 'ordered randomly';
+			break;
+			
+		case 'unrand':
+			$description .= 'sorted into corpus order';
+			break;
+			
+		case 'thin':
+			$method = ($args[1] == 'n' ? 'random selection (non-reproducible)' : 'random selection');
+			$count = make_thousands($hit_array[$i]);
+			$description .= "thinned with method <em>$method</em> to $count hits";
+			$i++;
+			break;
+		
+		case 'cat':
+			$description.= "manually categorised as &ldquo;{$args[0]}&rdquo; ("
+				. make_thousands($hit_array[$i]) . " hits)";
+			$i++;
+			break;
+		
+		case 'item':
+		// TODO not tested yet!
+			$description .= "reduced with frequency list to  ";
+			if (empty ($args[0]))
+				$description .= 'tag: <em>' . $args[1] . '</em> ';
+			else if (empty($args[1]))
+				$description .= 'word: <em>' . $args[0] . '</em> ';
+			else
+				$description .= 'word-tag combination: <em>' . $args[0] . '_' . $args[1] . '</em> ';
+			$description .= '(' . make_thousands($hit_array[$i]) . ' hits)';
+			$i++;
+			break;
+			
+		default:
+			/* malformed postprocess string; so add an error to the return */
+			$description .= '????';
+			break;
 		}
 	}
 
