@@ -111,7 +111,7 @@ if (!isset($default_words_in_download_context))
 
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '2.05');
+define('CQPWEB_VERSION', '2.06');
 	
 
 

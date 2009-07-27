@@ -41,7 +41,8 @@
 	coll	... collocating with
 	sort	... a sort implemented using the "sort" program (can also thin)
 	thin	... thinned using the "thin" function
-	dist	... a reduction from the distribution page
+	dist	... a reduction from the distribution page to a class of texts
+	text	... a reduction from the distribution page to a specified text
 	rand	... randomise order
 	unrand  ... usually (but not always) a pseudo-value, it really means take out rand
 	cat		... a particular "categorisation" has been applied
@@ -71,9 +72,12 @@
 		count=the number of queries REMAINING after it has been thinned
 		method=r|n : r for "random reproducible", n for "random nonreproducible"
 	
-	dist[dbname~categorisation~class]
+	dist[categorisation~class]
 		categorisation=handle of the field that the distribution is being done over
 		class=the handle that occurs in that field for the texts we want
+		
+	text[target_text_id]
+		target_text_id -- what it says on the tin!
 	
 	rand
 		no parameters
@@ -107,10 +111,10 @@ class POSTPROCESS {
 	/* but many SHOULD be private */
 	
 	/* this variable contains one of the 4-letter abbreviations of the different postprocess types */
-	public $postprocess_type;
+	private $postprocess_type;
 	
 	/* boolean: true if the $_GET was parsed OK, false if not */
-	public $i_parsed_ok;
+	private $i_parsed_ok;
 	
 	/* this stops the function "add to postprocess string" running more than once */
 	/* unless its "override" is true */
@@ -138,27 +142,36 @@ class POSTPROCESS {
 	public $sort_remove_prev_sort;
 	public $sort_pp_string_of_query_to_be_sorted;
 	public $sort_db;
-	public $sort_sort_thinning_sql_where;
+	public $sort_thinning_sql_where;
 	
 	/* variables for item-thinning */
 	public $item_form;
 	public $item_tag;
 	
+	/* variables for distribution-thinning */
+	public $dist_db;
+	public $dist_categorisation_handle;
+	public $dist_class_handle;
+	
+	/* variables for text-distribution-thinning */
+	public $text_target_id;
+	
 	
 	/* string - name of the function to use when the postprocess is being run */
 	/* use postprocess_type as key */
-	public $function_names = array(
+	private $function_names = array(
 		'coll' => 'run_postprocess_collocation',
 		'thin' => 'run_postprocess_thin',
 		'rand' => 'run_postprocess_randomise',
 		'unrand' => 'run_postprocess_unrandomise',
 		'sort' => 'run_postprocess_sort',
-		'item' => 'run_postprocess_item'
+		'item' => 'run_postprocess_item',
+		'dist' => 'run_postprocess_dist',
+		'text' => 'run_postprocess_text'
 		);
 	
 	
-	/* constructor - this reads things in from get (and gets rid of them) */
-//	function POSTPROCESS()
+	/* constructor - this reads things in from GET (and gets rid of them) */
 	function __construct()
 	{
 		/* unless disproven below */
@@ -265,7 +278,28 @@ class POSTPROCESS {
 			
 		case 'dist':
 			$this->postprocess_type = 'dist';
+
+			if ( empty($_GET['newPostP_distCateg']) || empty($_GET['newPostP_distClass']))
+			{
+				$this->i_parsed_ok = false;
+				return;
+			}
+			
+			$this->dist_categorisation_handle = mysql_real_escape_string($_GET['newPostP_distCateg']);
+			$this->dist_class_handle = mysql_real_escape_string($_GET['newPostP_distClass']);
+			
 			break;
+			
+		case 'text':
+			$this->postprocess_type = 'text';
+			if ( empty($_GET['newPostP_textTargetId']) )
+			{
+				$this->i_parsed_ok = false;
+				return;
+			}
+			$this->text_target_id = mysql_real_escape_string($_GET['newPostP_textTargetId']);
+			break;	
+		
 		case 'rand':
 			$this->postprocess_type = 'rand';
 			break;
@@ -358,7 +392,14 @@ class POSTPROCESS {
 		case 'item':
 			$string_to_work_on .= "~~item[$this->item_form~$this->item_tag]";
 			break;
-			
+		
+		case 'dist':
+			$string_to_work_on .= "~~dist[$this->dist_categorisation_handle~$this->dist_class_handle]";
+			break;
+		
+		case 'text':
+			$string_to_work_on .= "~~text[$this->text_target_id]";
+			break;
 		
 		default:
 			return false;
@@ -434,8 +475,8 @@ class POSTPROCESS {
 		$db_record = check_dblist_parameters('sort', $orig_query_record['cqp_query'],
 						$orig_query_record['restrictions'], $orig_query_record['subcorpus'],
 						$this->sort_pp_string_of_query_to_be_sorted);
-		/* note, instead of the postprocess string from the query record (which is the postprocesss  */
-		/* string we are WORKING TOWARDS) we use the postprocess string of the query we need to work */
+		/* note, instead of the postprocess string from the query record (which has not been edited by the */
+		/* add_to_postprocess_string function) we use the postprocess string of the query we need to work */
 		/* from -- which was recorded in this object when we ran add_to_postprocess_string */
 
 
@@ -596,6 +637,75 @@ class POSTPROCESS {
 			$this->sort_thinning_sql_where";
 		
 	}
+	
+	function dist_set_dbname($orig_query_record)
+	{
+		/* search the db list for a db whose parameters match those of the query we are working with  */
+		/* if it doesn't exist, we need to create one */
+		$db_record = check_dblist_parameters('dist', $orig_query_record['cqp_query'],
+						$orig_query_record['restrictions'], $orig_query_record['subcorpus'],
+						$orig_query_record['postprocess']);
+
+
+		if ($db_record === false)
+		{
+			$this->dist_db = create_db('dist', $orig_query_record['query_name'], 
+						$orig_query_record['cqp_query'], $orig_query_record['restrictions'], 
+						$orig_query_record['subcorpus'], $orig_query_record['postprocess']);
+		}
+		else
+		{
+			touch_db($db_record['dbname']);
+			$this->dist_db = $db_record['dbname'];
+		}
+			
+	}
+	
+	function dist_sql_for_queryfile($file, $orig_query_record)
+	{
+		global $corpus_sql_name;
+		
+		$this->dist_set_dbname($orig_query_record);
+		
+		return "select beginPosition, endPosition
+			into outfile '$file' 
+			from {$this->dist_db} 
+			inner join text_metadata_for_$corpus_sql_name 
+			on {$this->dist_db}.text_id = text_metadata_for_$corpus_sql_name.text_id 
+			where text_metadata_for_$corpus_sql_name.{$this->dist_categorisation_handle}
+				= '{$this->dist_class_handle}' ";
+	}
+	
+	function dist_sql_count_remaining_hits()
+	{
+		global $corpus_sql_name;
+		
+		return "select count(*)
+			from {$this->dist_db}
+			inner join text_metadata_for_$corpus_sql_name 
+			on {$this->dist_db}.text_id = text_metadata_for_$corpus_sql_name.text_id 
+			where text_metadata_for_$corpus_sql_name.{$this->dist_categorisation_handle}
+				= '{$this->dist_class_handle}'";
+	}
+	
+	function text_sql_for_queryfile($file, $orig_query_record)
+	{
+		/* IMPORTANT NB!! uses the same dbname-finding function as "dist" */
+		$this->dist_set_dbname($orig_query_record);	
+		
+		return "select beginPosition, endPosition
+			into outfile '$file' 
+			from {$this->dist_db}
+			where text_id = '{$this->text_target_id}'";
+	}
+	
+	function text_sql_count_remaining_hits()
+	{
+		return "select count(*)
+			from {$this->dist_db}
+			where text_id = '{$this->text_target_id}'";
+	}
+
 
 } /* end of class POSTPROCESS */
 
@@ -883,7 +993,7 @@ function run_postprocess_thin($cache_record, &$descriptor)
 
 
 
-// TODO check this works!
+
 function run_postprocess_item($cache_record, &$descriptor)
 {
 	global $instance_name;
@@ -903,8 +1013,8 @@ function run_postprocess_item($cache_record, &$descriptor)
 	/* actually do it ! */
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqp_tempdir/temp_sort_$new_qname.tbl";
-	$tempfile2 = "/$cqp_tempdir/temp_sort_$new_qname.undump";
+	$tempfile  = "/$cqp_tempdir/temp_item_$new_qname.tbl";
+	$tempfile2 = "/$cqp_tempdir/temp_item_$new_qname.undump";
 
 
 	/* this method call creates the DB if it doesn't already exist */
@@ -969,6 +1079,177 @@ function run_postprocess_item($cache_record, &$descriptor)
 
 
 
+// NB this was copied from "item" (and thus, from "sort") with minor changes.
+// TODO optimise sort, item, dist, text to re-use the code, since so much of it is the same
+// rather than repeating it
+function run_postprocess_dist($cache_record, &$descriptor)
+{
+	global $instance_name;
+	global $cqp;
+	global $cqp_tempdir;
+	global $mysql_link;
+	global $username;
+
+	$old_qname = $cache_record['query_name'];	
+	$orig_cache_record = $cache_record;
+
+
+
+	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
+	$cache_record['user'] = $username;
+	
+	/* actually do it ! */
+
+	/* first, write a "dumpfile" to temporary storage */
+	$tempfile  = "/$cqp_tempdir/temp_dist_$new_qname.tbl";
+	$tempfile2 = "/$cqp_tempdir/temp_dist_$new_qname.undump";
+
+
+	/* this method call creates the DB if it doesn't already exist */
+	$sql_query = $descriptor->dist_sql_for_queryfile($tempfile, $orig_cache_record);
+
+	$result = mysql_query($sql_query, $mysql_link);
+	if ($result == false) 
+		exiterror_mysqlquery(mysql_errno($mysql_link), 
+			mysql_error($mysql_link), __FILE__, __LINE__);
+	unset($result);
+
+	/* now, work out how many hits were in it */
+	$sql_query = $descriptor->dist_sql_count_remaining_hits($tempfile);
+
+	$result = mysql_query($sql_query, $mysql_link);
+	if ($result == false) 
+		exiterror_mysqlquery(mysql_errno($mysql_link), 
+			mysql_error($mysql_link), __FILE__, __LINE__);
+
+	list($solutions_remaining) = mysql_fetch_row($result);
+
+	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
+	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
+
+	unset($result);
+
+	if ($solutions_remaining > 0)
+	{
+		/* prepend number of hits to output file */
+		exec("echo $solutions_remaining | cat - '$tempfile' > '$tempfile2'");
+		unlink($tempfile);
+
+		/* load to CQP as a new query, and save */
+		$cqp->execute("undump $new_qname < '$tempfile2'");
+		$cqp->execute("save $new_qname");
+		
+		/* get the size of the new query */
+		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
+
+		unlink($tempfile2);
+
+		/* put this newly-created query in the cache */
+
+		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
+
+		$insert_result = mysql_query($insert, $mysql_link);
+		if ($insert_result == false) 
+			exiterror_mysqlquery(mysql_errno($mysql_link), 
+				mysql_error($mysql_link), __FILE__, __LINE__);
+		unset($insert_result);
+
+		update_cached_query($cache_record);
+	
+	}
+	else
+		say_sorry_postprocess();
+		/* which exits the program */
+
+
+	return $cache_record;
+	
+}
+
+
+// another copy from the same family as preceding two functions
+function run_postprocess_text($cache_record, &$descriptor)
+{
+	global $instance_name;
+	global $cqp;
+	global $cqp_tempdir;
+	global $mysql_link;
+	global $username;
+
+	$old_qname = $cache_record['query_name'];	
+	$orig_cache_record = $cache_record;
+
+
+
+	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
+	$cache_record['user'] = $username;
+	
+	/* actually do it ! */
+
+	/* first, write a "dumpfile" to temporary storage */
+	$tempfile  = "/$cqp_tempdir/temp_text_$new_qname.tbl";
+	$tempfile2 = "/$cqp_tempdir/temp_text_$new_qname.undump";
+
+
+	/* this method call creates the DB if it doesn't already exist */
+	$sql_query = $descriptor->text_sql_for_queryfile($tempfile, $orig_cache_record);
+
+	$result = mysql_query($sql_query, $mysql_link);
+	if ($result == false) 
+		exiterror_mysqlquery(mysql_errno($mysql_link), 
+			mysql_error($mysql_link), __FILE__, __LINE__);
+	unset($result);
+
+	/* now, work out how many hits were in it */
+	$sql_query = $descriptor->text_sql_count_remaining_hits($tempfile);
+
+	$result = mysql_query($sql_query, $mysql_link);
+	if ($result == false) 
+		exiterror_mysqlquery(mysql_errno($mysql_link), 
+			mysql_error($mysql_link), __FILE__, __LINE__);
+
+	list($solutions_remaining) = mysql_fetch_row($result);
+
+	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
+	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
+
+	unset($result);
+
+	if ($solutions_remaining > 0)
+	{
+		/* prepend number of hits to output file */
+		exec("echo $solutions_remaining | cat - '$tempfile' > '$tempfile2'");
+		unlink($tempfile);
+
+		/* load to CQP as a new query, and save */
+		$cqp->execute("undump $new_qname < '$tempfile2'");
+		$cqp->execute("save $new_qname");
+		
+		/* get the size of the new query */
+		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
+
+		unlink($tempfile2);
+
+		/* put this newly-created query in the cache */
+
+		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
+
+		$insert_result = mysql_query($insert, $mysql_link);
+		if ($insert_result == false) 
+			exiterror_mysqlquery(mysql_errno($mysql_link), 
+				mysql_error($mysql_link), __FILE__, __LINE__);
+		unset($insert_result);
+
+		update_cached_query($cache_record);
+	
+	}
+	else
+		say_sorry_postprocess();
+		/* which exits the program */
+
+
+	return $cache_record;
+}
 
 
 
@@ -1085,7 +1366,7 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 	$bdo_tag2 = ($corpus_main_script_is_r2l ? '</bdo>' : '');
 
 	$description = '';
-	
+
 	$process = explode('~~', $postprocess_string);
 	
 	$hit_array = explode('~', $hits_string);
@@ -1166,7 +1447,6 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 			break;
 		
 		case 'item':
-		// TODO not tested yet!
 			$description .= "reduced with frequency list to  ";
 			if (empty ($args[0]))
 				$description .= 'tag: <em>' . $args[1] . '</em> ';
@@ -1177,6 +1457,20 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 			$description .= '(' . make_thousands($hit_array[$i]) . ' hits)';
 			$i++;
 			break;
+		
+		case 'dist':
+			$labels = metadata_expand_attribute($args[0], $args[1]);
+			$description .= "distribution over <em>{$labels['field']} : {$labels['value']}</em> ";
+			$description .= '(' . make_thousands($hit_array[$i]) . ' hits)';
+			$i++;
+			break;
+		
+		case 'text':
+			$description .= "occurrences in text <em>{$args[0]}</em> ";
+			$description .= '(' . make_thousands($hit_array[$i]) . ' hits)';
+			$i++;
+			break;
+			
 			
 		default:
 			/* malformed postprocess string; so add an error to the return */

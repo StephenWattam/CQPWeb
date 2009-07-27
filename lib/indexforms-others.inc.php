@@ -525,6 +525,10 @@ function printquery_latest()
 	
 	<ul>
 		<li>
+		<b>Version 2.06</b>, 2009-07-27<br/>&nbsp;<br/>
+		Added distribution-thin postprocessing function.
+		<br/>&nbsp;</li>
+		<li>
 		<b>Version 2.05</b>, 2009-07-26<br/>&nbsp;<br/>
 		Added frequency-list-thin postprocessing function.
 		<br/>&nbsp;</li>

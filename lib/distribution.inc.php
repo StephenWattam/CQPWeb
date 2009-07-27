@@ -43,25 +43,25 @@ header('Content-Type: text/html; charset=utf-8');
 
 /* initialise variables from settings files  */
 
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
+require_once("settings.inc.php");
+require_once("../lib/defaults.inc.php");
 
 
 /* include function library files */
-require ("../lib/library.inc.php");
-require ("../lib/concordance-lib.inc.php");
-require ("../lib/concordance-post.inc.php");
-require ("../lib/exiterror.inc.php");
-require ("../lib/user-settings.inc.php");
-require ("../lib/metadata.inc.php");
-require ("../lib/subcorpus.inc.php");
-require ("../lib/cache.inc.php");
-require ("../lib/db.inc.php");
+require_once ("../lib/library.inc.php");
+require_once ("../lib/concordance-lib.inc.php");
+require_once ("../lib/concordance-post.inc.php");
+require_once ("../lib/exiterror.inc.php");
+require_once ("../lib/user-settings.inc.php");
+require_once ("../lib/metadata.inc.php");
+require_once ("../lib/subcorpus.inc.php");
+require_once ("../lib/cache.inc.php");
+require_once ("../lib/db.inc.php");
 
 /* and because I'm using the next two modules I need to... */
 create_pipe_handle_constants();
-require ("../lib/cwb.inc.php");
-require ("../lib/cqp.inc.php");
+require_once ("../lib/cwb.inc.php");
+require_once ("../lib/cqp.inc.php");
 
 
 
@@ -346,16 +346,16 @@ if ($class_scheme_for_crosstabs == '__none')
 	case '__all':
 		/* show all schemes, one after another */
 		foreach ($class_scheme_list as $c)
-			$print_function($c['handle'], $c['description']);
+			$print_function($c['handle'], $c['description'], $qname);
 		break;
 	
 	case '__filefreqs':
-		print_distribution_filefreqs();
+		print_distribution_filefreqs($qname);
 		break;
 		
 	default:
 		/* print lower table - one classification has been specified */
-		$print_function($class_scheme_to_show, $class_desc_to_pass);
+		$print_function($class_scheme_to_show, $class_desc_to_pass, $qname);
 	}
 
 }
@@ -363,7 +363,7 @@ else
 {
 	/* do crosstabs */
 	print_distribution_crosstabs($class_scheme_to_show, $class_desc_to_pass, 
-		$class_scheme_for_crosstabs, $class_desc_to_pass_for_crosstabs);
+		$class_scheme_for_crosstabs, $class_desc_to_pass_for_crosstabs, $qname);
 }
 
 
@@ -405,7 +405,7 @@ function file_freq_comp_desc($a, $b)
 
 
 
-function print_distribution_filefreqs()
+function print_distribution_filefreqs($qname_for_link)
 {
 	global $mysql_link;
 	global $corpus_sql_name;
@@ -457,6 +457,7 @@ function print_distribution_filefreqs()
 	
 	for ( $i = 0 ; $i < $dist_num_files_to_list && isset($master_array[$i]) ; $i++ )
 	{
+		$textlink = "concordance.php?qname=$qname_for_link&newPostP=text&newPostP_textTargetId={$master_array[$i]['text_id']}&uT=y";
 		?>
 		<tr>
 			<td align="center" class="concordgeneral">
@@ -465,14 +466,16 @@ function print_distribution_filefreqs()
 				</a>
 			</td>
 			<td align="center" class="concordgeneral">
-					<?php echo make_thousands($master_array[$i]['words']); ?>
+				<?php echo make_thousands($master_array[$i]['words']); ?>
 			</td>
 			<!-- note - link to restricted query (to just that text) needed here -->
 			<td align="center" class="concordgeneral">
+				<a href="<?php echo $textlink; ?>">
 					<?php echo make_thousands($master_array[$i]['hits']); ?>
+				</a>
 			</td>
 			<td align="center" class="concordgeneral">
-					<?php echo $master_array[$i]['per_mill']; ?>
+				<?php echo $master_array[$i]['per_mill']; ?>
 			</td>
 		</tr>
 		<?php
@@ -498,6 +501,7 @@ function print_distribution_filefreqs()
 	
 	for ( $i = 0 ; $i < $dist_num_files_to_list && isset($master_array[$i]) ; $i++ )
 	{
+		$textlink = "concordance.php?qname=$qname_for_link&newPostP=text&newPostP_textTargetId={$master_array[$i]['text_id']}&uT=y";
 		?>
 		<tr>
 			<td align="center" class="concordgeneral">
@@ -506,14 +510,16 @@ function print_distribution_filefreqs()
 				</a>
 			</td>
 			<td align="center" class="concordgeneral">
-					<?php echo make_thousands($master_array[$i]['words']); ?>
+				<?php echo make_thousands($master_array[$i]['words']); ?>
 			</td>
 			<!-- note - link to restricted query (to just that text) needed here -->
 			<td align="center" class="concordgeneral">
+				<a href="<?php echo $textlink; ?>">
 					<?php echo make_thousands($master_array[$i]['hits']); ?>
+				</a>
 			</td>
 			<td align="center" class="concordgeneral">
-					<?php echo $master_array[$i]['per_mill']; ?>
+				<?php echo $master_array[$i]['per_mill']; ?>
 			</td>
 		</tr>
 		<?php
@@ -525,7 +531,7 @@ function print_distribution_filefreqs()
 
 
 
-function print_distribution_graph($classification_handle, $classification_desc)
+function print_distribution_graph($classification_handle, $classification_desc, $qname_for_link)
 {
 	global $mysql_link;
 	global $corpus_sql_name;
@@ -696,7 +702,7 @@ function print_distribution_graph($classification_handle, $classification_desc)
 
 
 
-function print_distribution_table($classification_handle, $classification_desc)
+function print_distribution_table($classification_handle, $classification_desc, $qname_for_link)
 {
 	global $mysql_link;
 	global $corpus_sql_name;
@@ -755,31 +761,34 @@ function print_distribution_table($classification_handle, $classification_desc)
 		$hits_in_cat = $c['hits'];
 		$hit_files_in_cat = $c['files'];
 		list ($words_in_cat, $files_in_cat) = metadata_size_of_cat($classification_handle, $c['handle']);
-
+		
+		$link = "concordance.php?qname=$qname_for_link&newPostP=dist&newPostP_distCateg=$classification_handle&newPostP_distClass={$c['handle']}&uT=y";
 
 		/* print a data row */
 		?>
 		<tr>
 			<td class="concordgeneral">
 				<?php 
-					if ($desclist[$c['handle']] == "")
+					if ($desclist[$c['handle']] == '')
 						echo $c['handle'];
 					else
 						echo $desclist[$c['handle']];
 				?>
 			</td>
-			<td class="concordgeneral"><center>
+			<td class="concordgeneral" align="center">
 				<?php echo $words_in_cat;?>
-			</center></td>
-			<td class="concordgeneral"><center>
-				<?php /* need at some point a link here to distribution postprocess */ echo $hits_in_cat; ?>
-			</center></td>
-			<td class="concordgeneral"><center>
+			</td>
+			<td class="concordgeneral" align="center">
+				<a href="<?php echo $link; ?>">
+					<?php echo $hits_in_cat; ?>
+				</a>
+			</td>
+			<td class="concordgeneral" align="center">
 				<?php echo "$hit_files_in_cat out of $files_in_cat"; ?>
-			</center></td>
-			<td class="concordgeneral"><center>
-				<?php echo round(($hits_in_cat / $words_in_cat) * 1000000, 2);?>
-			</center></td>
+			</td>
+			<td class="concordgeneral" align="center">
+				<?php echo round(($hits_in_cat / $words_in_cat) * 1000000, 2); ?>
+			</td>
 		</tr>
 		<?php
 		
@@ -798,17 +807,17 @@ function print_distribution_table($classification_handle, $classification_desc)
 			<td class="concordgrey">
 				Total:
 			</td>
-			<td class="concordgrey"><center>
+			<td class="concordgrey" align="center">
 				<?php echo $total_words_in_all_cats; ?>
-			</center></td>
-			<td class="concordgrey"><center>
+			</td>
+			<td class="concordgrey" align="center">
 				<?php echo $total_hits_in_all_cats; ?>
-			</center></td>
-			<td class="concordgrey"><center>
+			</td>
+			<td class="concordgrey" align="center">
 				<?php echo $total_hit_files_in_all_cats; ?> out of <?php echo $total_files_in_all_cats; ?>
-			</center></td>
-			<td class="concordgrey"><center>
-				<?php echo round(($total_hits_in_all_cats / $total_words_in_all_cats) * 1000000, 2);?>
+			</td>
+			<td class="concordgrey" align="center">
+				<?php echo round(($total_hits_in_all_cats / $total_words_in_all_cats) * 1000000, 2); ?>
 			</td>
 		</tr>
 	<?php
@@ -820,7 +829,7 @@ function print_distribution_table($classification_handle, $classification_desc)
 
 
 function print_distribution_crosstabs($class_scheme_to_show, $class_desc_to_pass, 
-	$class_scheme_for_crosstabs, $class_desc_to_pass_for_crosstabs)
+	$class_scheme_for_crosstabs, $class_desc_to_pass_for_crosstabs, $qname_for_link)
 {
 
 	/* get a list of categories for the category sopecified in %class_scheme_to_show */
@@ -836,7 +845,7 @@ function print_distribution_crosstabs($class_scheme_to_show, $class_desc_to_pass
 			where <i>$class_desc_to_pass</i> is <i>$d</i>";
 	
 		print_distribution_crosstabs_once($class_scheme_for_crosstabs, $table_heading,
-			$class_scheme_to_show, $h);
+			$class_scheme_to_show, $h, $qname_for_link);
 	}
 }
 
@@ -845,7 +854,7 @@ function print_distribution_crosstabs($class_scheme_to_show, $class_desc_to_pass
 
 /* big waste of code having all this twice - but it does no harm, and there ARE small changes */
 function print_distribution_crosstabs_once($classification_handle, $table_heading,
-	$condition_classification, $condition_category)
+	$condition_classification, $condition_category, $qname_for_link)
 {
 	global $mysql_link;
 	global $corpus_sql_name;
@@ -916,7 +925,7 @@ function print_distribution_crosstabs_once($classification_handle, $table_headin
 		<tr>
 			<td class="concordgeneral">
 				<?php 
-					if ($desclist[$c['handle']] == "")
+					if ($desclist[$c['handle']] == '')
 						echo $c['handle'];
 					else
 						echo $desclist[$c['handle']];
@@ -926,7 +935,7 @@ function print_distribution_crosstabs_once($classification_handle, $table_headin
 				<?php echo $words_in_cat;?>
 			</center></td>
 			<td class="concordgeneral"><center>
-				<?php /* need at some point a link here to a restricted query */ echo $hits_in_cat; ?>
+				<?php /* TODO copy link code form other function */ echo $hits_in_cat; ?>
 			</center></td>
 			<td class="concordgeneral"><center>
 				<?php echo "$hit_files_in_cat out of $files_in_cat"; ?>
