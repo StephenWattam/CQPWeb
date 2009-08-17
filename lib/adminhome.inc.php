@@ -67,14 +67,8 @@ require("../lib/defaults.inc.php");
 require ("../lib/library.inc.php");
 require ("../lib/apache.inc.php");
 require ("../lib/admin-lib.inc.php");
-//require ("../lib/user-settings.inc.php");
 require ("../lib/exiterror.inc.php");
-//require ("../lib/cache.inc.php");
-//require ("../lib/subcorpus.inc.php");
-//require ("../lib/db.inc.php");
-//require ("../lib/freqtable.inc.php");
 require ("../lib/metadata.inc.php");
-//require ("../lib/concordance-lib.inc.php");
 
 
 if (!user_is_superuser($username))
@@ -576,6 +570,7 @@ function printquery_showcorpora()
 			$visible_options = '<option value="1">Visible</option>
 				<option value="0" selected="selected">Invisible</option>';
 
+		// NO LONGER DONE BY THIS FORM
 		/* note the use of the setting usually set by "settings" * /
 		$corpus_sql_name = $r['corpus'];
 		$classifications = metadata_list_classifications();

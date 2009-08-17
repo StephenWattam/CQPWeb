@@ -224,9 +224,10 @@ switch($_GET['admFunction'])
 	case 'updateCorpusMetadata':
 		$update_corpus_metadata_info['corpus'] = $_GET['corpus'];
 		$update_corpus_metadata_info['visible'] = $_GET['updateVisible'];
-		$update_corpus_metadata_info['primary_classification_field'] = $_GET['updatePrimaryClassification'];
-		$update_corpus_metadata_info['primary_annotation'] = $_GET['updatePrimaryAnnotation'];
-		$update_corpus_metadata_info['external_url'] = $_GET['updateURL'];
+		// These 3 variables no longer set from this form
+		//$update_corpus_metadata_info['primary_classification_field'] = $_GET['updatePrimaryClassification'];
+		//$update_corpus_metadata_info['primary_annotation'] = $_GET['updatePrimaryAnnotation'];
+		//$update_corpus_metadata_info['external_url'] = $_GET['updateURL'];
 		$_GET['function'] = 'update_corpus_metadata_fixed';
 		$_GET['locationAfter'] = 'index.php?thisF=showCorpora&uT=y';
 		require('../lib/execute.inc.php');

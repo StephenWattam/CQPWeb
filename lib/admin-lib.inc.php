@@ -412,24 +412,15 @@ function install_new_corpus()
 	
 	
 	 
-	/* create the script files in that folder * /
-	$files_to_copy = scandir('../lib/template');
-	foreach($files_to_copy as &$c)
-	{
-		if (is_file("../lib/template/$c"))
-		{
-			copy("../lib/template/$c", "$newdir/$c");
-			chmod("$newdir/$c", 0775);
-		}
-	}*/
+	/* create the script files in that folder */
 	foreach (array( 'collocation', 'concordance', 'context',
 					'distribution', 'execute', 'freqlist',
 					'freqtable-compile', 'help', 'index',
 					'keywords', 'redirect', 'subcorpus-admin',
 					'textmeta') as $c)
 	{
-		file_put_contents("$newdir/$c", "<?php require('../lib/$c.inc.php'); ?>");
-		chmod("$newdir/$c", 0775);
+		file_put_contents("$newdir/$c.php", "<?php require('../lib/$c.inc.php'); ?>");
+		chmod("$newdir/$c.php", 0775);
 	}
 	
 	/* write a settings.inc.php file */
@@ -454,12 +445,10 @@ function install_create_settings_file($filepath, $info)
 		. (empty($info->directory_override['reg_dir']) ? '' : 
 			"\$this_corpus_directory_override['reg_dir'] = {$info->directory_override['reg_dir']};\n")
 		. (empty($info->directory_override['data_dir']) ? '' : 
-			"\$this_corpus_directory_override['data_dir'] = {$info->directory_override['data_dir']};\n"
-			)
+			"\$this_corpus_directory_override['data_dir'] = {$info->directory_override['data_dir']};\n")
 		. '?>';
 	file_put_contents($filepath, $data);
 	chmod($filepath, 0775);
-	
 }
 
 
@@ -568,7 +557,7 @@ function delete_corpus_from_cqpweb($corpus)
 
 
 
-// TODO: move this to a different file, so I can put it in user scripts too
+// TODO: move this to a different file, so I can put it in user scripts too (e.g. for uploading an annotated query
 function upload_file_to_upload_area($original_name, $file_type, $file_size, $temp_path, $error_code)
 {
 	/**
@@ -1004,7 +993,8 @@ function update_text_metadata_values_descriptions()
 	}
 }
 
-// NB there's a function in metadata.inc.php that seems to do something very similar to this ??
+/* NB there's a function in metadata.inc.php that does something very similar to this */
+/* but this one takes its input from a global variable so that it can be called by admin-execute */
 function update_corpus_metadata_fixed()
 {
 	global $update_corpus_metadata_info;
@@ -1163,7 +1153,7 @@ function create_text_metadata_for()
 	
 // what the hell does this do?
 // it doesn't seem to do anything.
-// cut it out, see if it still works?
+// cut it out, see if it still works???
 	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus'";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false)

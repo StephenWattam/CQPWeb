@@ -525,6 +525,11 @@ function printquery_latest()
 	
 	<ul>
 		<li>
+		<b>Version 2.07</b>, 2009-08-07<br/>&nbsp;<br/>
+		Enabled frequency-list comparison; fixed a bug in the sort function and another in the corpus 
+		setup procedure.
+		<br/>&nbsp;</li>
+		<li>
 		<b>Version 2.06</b>, 2009-07-27<br/>&nbsp;<br/>
 		Added distribution-thin postprocessing function.
 		<br/>&nbsp;</li>
@@ -708,6 +713,9 @@ function printquery_latest()
 			popup boxes appear fine. This seems to be something to do with Windows/IE security 
 			settings blocking the JavaScript that creates the infoboxes. IE doesn't block the script
 			over Intranet; nor, apparently, over HTTPS.
+			<br/>&nbsp;<br/>
+			Update: in Google Chrome, the flyby boxes appear intermittently for some corpora (haven't yet checked on 
+			other browsers).
 			<br/>&nbsp;
 		</li>
 	</ul>
@@ -730,52 +738,52 @@ function printquery_bugs()
 		<th class="concordtable">Bugs in CQPweb</th>
 	</tr>
 
-	<tr><td class="concordgeneral">
+	<tr>
+		<td class="concordgeneral">
+		
+		<p class="spacer">&nbsp;</p>
+		
+		<h3>Send email about bugs to Andrew Hardie:</h3>
+		
+		<!-- form start -->
+		<form action="http://www.lancs.ac.uk/mailto/" method=POST>
+			<input name="MSG_FIELDS" type=hidden value="name,email,subject">
+			<input name="NONBLANK_FIELDS" type=hidden value="name,email,subject">
+			<input name="MSG_BODY" type=hidden value="message">
+			<input name="ID" type=hidden value="andrewhardie">
+			<table>
+			  <tr>
+			    <td align="right">Your Name:</td>
+			    <td><input name="name" size=40 value=""></td>
+			  </tr>
+			  <tr>
+			    <td align="right">Your email address:</td>
+			    <td><input name="email" size=40 value=""></td>
+			  </tr>
+			  <tr>
+			    <td align="right">Subject:</td>
+			    <td><input name="subject" size=40 value=""></td>
+			  </tr>
+			  <tr>
+			    <td align="right" valign="top">Message:</td>
+			    <td>
+					<textarea name="message" cols="60" rows="10"></textarea>
+					<br/>
+					(Describe in as much detail as possible 
+					<br/>
+					what you were trying to do and what happened)
+				</td>
+			  </tr>
+			  <tr>
+			    <td></td><td><input type=submit value="Send"></td>
+			  </tr>
+			</table>
+		</form>
+		<!-- form end -->
+		<p class="spacer">&nbsp;</p>
 	
-	<p class="spacer">&nbsp;</p>
-	
-	<!-- before letting anyone else get their hands on it, make this re-settable -->
-	
-	<h3>Send email about bugs to Andrew Hardie:</h3>
-	
-	<!-- form start -->
-	<form action="http://www.lancs.ac.uk/mailto/" method=POST>
-	<input name="MSG_FIELDS" type=hidden value="name,email,subject">
-	<input name="NONBLANK_FIELDS" type=hidden value="name,email,subject">
-	<input name="MSG_BODY" type=hidden value="message">
-	<input name="ID" type=hidden value="andrewhardie">
-	<table>
-	  <tr>
-	    <td align="right">Your Name:</td>
-	    <td><input name="name" size=40 value=""></td>
-	  </tr>
-	  <tr>
-	    <td align="right">Your email address:</td>
-	    <td><input name="email" size=40 value=""></td>
-	  </tr>
-	  <tr>
-	    <td align="right">Subject:</td>
-	    <td><input name="subject" size=40 value=""></td>
-	  </tr>
-	  <tr>
-	    <td align="right" valign="top">Message:</td>
-	    <td>
-			<textarea name="message" cols="60" rows="10"></textarea>
-			<br/>
-			(Describe in as much detail as possible 
-			<br/>
-			what you were trying to do and what happened)
 		</td>
-	  </tr>
-	  <tr>
-	    <td></td><td><input type=submit value="Send"></td>
-	  </tr>
-	</table>
-	</form>
-	<!-- form end -->
-	<p class="spacer">&nbsp;</p>
-
-	</td></tr>
+	</tr>
 </table>
 <?php
 }

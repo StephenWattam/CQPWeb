@@ -33,6 +33,8 @@
 /* inputs for forms that access this script:
 
    thisQ - specify the type of query you want to pop up
+   
+   other inputs vary depdning on function
 
 */
 

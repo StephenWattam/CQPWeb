@@ -32,19 +32,21 @@
 /* BEGIN SCRIPT */
 /* ------------ */
 
+// TODO: potential bug -- the left join for "comp" function may be quite slow -- 
+// it is worth doing a time-test on the db
 
 
 /* initialise variables from settings files  */
 
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
+require_once("settings.inc.php");
+require_once("../lib/defaults.inc.php");
 
 
 /* include function library files */
-require("../lib/library.inc.php");
-require("../lib/exiterror.inc.php");
-require("../lib/metadata.inc.php");
-require("../lib/user-settings.inc.php");
+require_once("../lib/library.inc.php");
+require_once("../lib/exiterror.inc.php");
+require_once("../lib/metadata.inc.php");
+require_once("../lib/user-settings.inc.php");
 
 // debug
 ob_implicit_flush(true);
@@ -101,14 +103,7 @@ if (isset($_GET['kwMethod']) && $_GET['kwMethod'] == 'Compare lists!' )
 else
 	$mode = 'key';
 
-// temporary failsafe 
-if ($mode != 'key')
-{
-	coming_soon_finish_page();
-	exit();
-}
-// the code for compare tables *works* : I have tested it on POS./
-// but for words, the left join is achingly slow on juilland.
+
 
 
 /* do we want a nice HTML table or a downloadable table? */
@@ -318,7 +313,7 @@ foreach (array(1, 2) as $i)
 
 
 /* in compare  mode, we also need ... */
-$empty == 'f2';
+$empty = 'f2';
 if ($_GET['kwEmpty'] === 'f1')
 	$empty = 'f1';
 $title_bar_index = (int)substr($empty, 1, 1);
@@ -376,14 +371,14 @@ switch ($statistic)
 		/* we are in compare mode, not keyword mode */
 		if ($empty == "f2")
 		{
-			$a = 1;		$b = 2;
+			$a = 2;		$b = 1;
 		}
 		else
 		{
-			$b = 1;		$a = 2;
+			$b = 2;		$a = 1;
 		}
 
-		$sql_query = "SELECT {$table_name[$a]}.item, {$table_name[$a]}.freq as freq1, 0 as freq2 
+		$sql_query = "SELECT {$table_name[$a]}.item, {$table_name[$a]}.freq as freq$a, 0 as freq$b 
 			FROM  {$table_name[$a]} left join {$table_name[$b]} on {$table_name[$a]}.item = {$table_name[$b]}.item 
 			where {$table_name[$b]}.freq is NULL 
 			order by {$table_name[$a]}.freq desc 
@@ -573,7 +568,7 @@ function print_keyword_line($data, $line_number, $att_for_comp, $restricts)
 	
 	$string .= "<td class=\"concordgrey\" align=\"right\"><b>$line_number</b></td>";
 	$string .= "<td class=\"$leftstyle\"><b>{$data->item}</b></td>";
-	$string .= "<td class=\"$leftstyle\"  align=\"center\"><a $link[1]>" 
+	$string .= "<td class=\"$leftstyle\"  align=\"center\"><a $link[1]>"
 		. make_thousands($data->freq1) . '</a></td>';
 	$string .= "<td class=\"$rightstyle\" align=\"center\"><a $link[2]>" 
 		. make_thousands($data->freq2) . '</a></td>';

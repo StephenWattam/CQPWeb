@@ -500,7 +500,7 @@ class POSTPROCESS {
 		$this->sort_set_dbname($orig_query_record);
 		if (!$this->sort_sql_capable())
 			return false;
-		
+
 		/* use the sort settings to create the where and order by clause */
 		
 		/* the variable "sort_position_sql" is beforeX, afterX, or node */
@@ -526,6 +526,7 @@ class POSTPROCESS {
 		
 		/* first, what are we actually sorting on? */
 
+		$this->sort_thinning_sql_where = '';
 		
 		/* do we have a tag restriction? */
 		if ($this->sort_thin_tag != '.*')
@@ -557,6 +558,7 @@ class POSTPROCESS {
 	
 	function sort_sql_count_remaining_hits()
 	{
+
 		if (!$this->sort_sql_capable())
 			return false;
 		if (! isset($this->sort_thinning_sql_where))
