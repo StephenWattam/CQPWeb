@@ -453,6 +453,7 @@ function install_create_settings_file($filepath, $info)
 
 
 
+// TODO -- check this against cwb_uncreate_corpus and prevent duplication of functionality
 function delete_corpus_from_cqpweb($corpus)
 {
 	global $mysql_link;

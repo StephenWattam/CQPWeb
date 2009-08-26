@@ -95,24 +95,15 @@ function cwb_uncreate_corpus($corpus_name)
 	$dir_to_delete = "/$cwb_datadir/$corpus_name";
 	$reg_to_delete = "/$cwb_registry/$corpus_name";
 	
-	/* delete all files in the directory */
-	//php5: $file_list = scandir($dir_to_delete);
-	$dh = opendir($dir_to_delete);
-	while (false !== ($filename = readdir($dh)))
-		if (is_file($filename))
-			unlink($filename);
-	closedir($dh);
-	
-	/* delete the directory */
+	/* delete all files in the directory and the directory itself */
 	if (is_dir($dir_to_delete))
-		rmdir($dir_to_delete);
-	
+		recursive_delete_directory($dir_to_delete);	
 	
 	/* delete the registry file */
 	if (is_file($reg_to_delete))
 		unlink($reg_to_delete);
 		
-	/* is there a text indextable derived from this cwb freq "corpus"? if so, unlink */
+	/* is there a text indextable derived from this cwb freq "corpus"? if so, delete */
 	/* nb there will only be one *IF* this is a __freq corpus */
 	
 	$freq_text_index = "freq_text_index_$corpus_name";

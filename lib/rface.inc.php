@@ -57,6 +57,15 @@
  * 
  * Other methods (TODO) wrap-around ->execute() to provide a friendlier API for various uses of R 
  * 
+ * some functions:
+ * 
+ * load array to vector
+ * load multi-d array to data table
+ * get list of current objects as an array
+ * get info about a named object (size, type etc)
+ * save workspace as specified filename
+ * check argument array 
+ * 
  */
 class RFace 
 {
@@ -106,7 +115,7 @@ class RFace
 			2 => array("pipe", "w")  /* pipe allocated to child's stderr */
 			);
 	
-		$command = "$path_to_r/R";
+		$command = "$path_to_r/R --slave";
 		
 		$this->process = proc_open($command, $io_settings, $this->handle);
 		
@@ -122,7 +131,7 @@ class RFace
 	{
 		if (isset($this->handle[0]))
 		{
-			fwrite($this->handle[0], 'q()\n');
+			fwrite($this->handle[0], 'q()\n');		//TODO check whether the \n is needed; I imagine it is
 			fclose($this->handle[0]);
 		}
 		if (isset($this->handle[1]))

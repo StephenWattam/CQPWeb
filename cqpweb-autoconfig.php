@@ -111,8 +111,8 @@ $mysql_server = 'localhost';
 
 
 
-$config_file = "
-<?php
+$config_file = 
+"<?php
 
 /* SYSTEM CONFIG SETTINGS : the same for every corpus, and CANNOT be overridden */
 
@@ -221,7 +221,7 @@ require group superusers
 satisfy any
 ");
 
-file_put_contents("adm/.htaccess", $adm_htaccess)
+file_put_contents("adm/.htaccess", $adm_htaccess);
 chmod("adm/.htaccess", 0664);
 
 

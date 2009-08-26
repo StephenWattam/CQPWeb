@@ -1171,7 +1171,7 @@ function printquery_uploadarea()
 				<a class="menuItem" href="index.php?admFunction=<?php 
 					if ($file_is_compressed)
 					{
-						echo 'fileDecompress&filename=' .urlencode($f) . '&uT=y';
+						echo 'fileDecompress&filename=' .urlencode($f);
 						$compress_label = '[Decompress]';
 					}
 					else

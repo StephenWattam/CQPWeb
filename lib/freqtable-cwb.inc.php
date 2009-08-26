@@ -97,7 +97,7 @@ function make_cwb_freq_index()
 		$p_att_line_no_word .= "-P $a ";
 	}
 
-	/* names of the created corpus an various paths for commands */
+	/* names of the created corpus and various paths for commands */
 	$freq_corpus_sql_name = $corpus_sql_name . '__freq';
 	$freq_corpus_cqp_name = strtoupper($freq_corpus_sql_name);
 	
@@ -111,7 +111,7 @@ function make_cwb_freq_index()
 		chmod($datadir, 0777);
 	}
 	else
-		cwb_uncreate_corpus($freq_corpus_cqp_name);
+		cwb_uncreate_corpus($freq_corpus_sql_name);
 
 
 	/* open a pipe **from** cwb-decode and another **to** cwb-encode */
@@ -154,11 +154,6 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 				fputs($dest, "$l\t$c\n");
 			fputs($dest, "</text>\n");
 			unset($current_id, $F);
-/* abort after one text */
-//pclose($source);
-//pclose($dest);
-//disconnect_all();
-//exit();
 		}
 		else
 		{
@@ -183,24 +178,18 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 	/* close the pipes */
 	pclose($source);
 	pclose($dest);
-//disconnect_all();
-//exit();	
+	
 	/* system commands for everything else that needs to be done to make it a good corpus */
 	$cmd_makeall  = "/$path_to_cwb/cwb-makeall      -r /$cwb_registry -V $freq_corpus_cqp_name ";
 	$cmd_huffcode = "/$path_to_cwb/cwb-huffcode     -r /$cwb_registry -A $freq_corpus_cqp_name ";
 	$cmd_pressrdx = "/$path_to_cwb/cwb-compress-rdx -r /$cwb_registry -A $freq_corpus_cqp_name ";
 
-//echo $cmd_makeall;
-//echo $cmd_huffcode;
-//echo $cmd_pressrdx;
 
 	/* make the indexes & compress */
 	exec($cmd_makeall,  $output);
-//show_var($output);
 	exec($cmd_huffcode, $output);
-//show_var($output);
 	exec($cmd_pressrdx, $output);
-//show_var($output);
+
 
 
 	/* delete the intermediate files that we were told we could delete */
@@ -222,13 +211,13 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 	$index_filename = "/$mysql_tempdir/{$corpus_sql_name}_freqdb_index.tbl";
 	
 	$s_decode_cmd = "/$path_to_cwb/cwb-s-decode -r /$cwb_registry $freq_corpus_cqp_name -S text_id > $index_filename";
-	
 	exec($s_decode_cmd);
+//	chmod($index_filename, 0777);
 	
 	/* now, create a mysql table with text begin-&-end-point indexes for this cwb-indexed corpus */
 	/* a table which is subsequently used in the process of making the subcorpus freq lists */
 // is it??
-	
+
 	$freq_text_index = "freq_text_index_$corpus_sql_name";
 	
 	$sql_query = "drop table if exists $freq_text_index";
@@ -252,7 +241,7 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 			mysql_error($mysql_link), __FILE__, __LINE__);
 	unset($result);
 
-	$sql_query = "load data infile '$index_filename' into table $freq_text_index";
+	$sql_query = "load data local infile '$index_filename' into table $freq_text_index";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 
