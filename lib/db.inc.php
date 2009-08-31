@@ -181,7 +181,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 			mysql_error($mysql_link), __FILE__, __LINE__);
 	unset($result);
 
-	$sql_query = "LOAD DATA INFILE '/$cqp_tempdir/$tabfile' into table $dbname fields escaped by ''";
+	$sql_query = "LOAD DATA LOCAL INFILE '/$cqp_tempdir/$tabfile' into table $dbname fields escaped by ''";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 

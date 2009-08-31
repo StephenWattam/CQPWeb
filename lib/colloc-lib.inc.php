@@ -481,6 +481,10 @@ function run_script_for_solo_collocation()
 	
 	global $corpus_title;
 	global $css_path;
+	global $corpus_main_script_is_r2l;
+	/* bdo tags ensure that l-to-r goes back to normal after an Arabic (etc) string */
+	$bdo_tag1 = ($corpus_main_script_is_r2l ? '<bdo dir="ltr">' : '');
+	$bdo_tag2 = ($corpus_main_script_is_r2l ? '</bdo>' : '');
 	
 	$soloform = mysql_real_escape_string($soloform);
 
@@ -531,7 +535,7 @@ function run_script_for_solo_collocation()
 			<th class="concordtable" colspan="2">
 	<?php
 	echo "Collocation information for the node &ldquo;{$query_record['cqp_query']}&rdquo; 
-		collocating with &ldquo;$soloform&rdquo; ($basis_to_show occurrences in $basis_point) ";
+		collocating with &ldquo;$soloform&rdquo; $bdo_tag1($basis_to_show occurrences in $basis_point)$bdo_tag2 ";
 
 	echo "</th>
 		</tr>

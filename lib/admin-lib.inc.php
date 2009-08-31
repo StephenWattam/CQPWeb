@@ -1221,7 +1221,7 @@ function create_text_metadata_for()
 				where corpus = '$corpus'";
 	}
 		
-	$load_statement = "load data local infile '$input_file' into table text_metadata_for_$corpus";
+	$load_statement = "load data infile '$input_file' into table text_metadata_for_$corpus";
 
 	
 //show_var($inserts_for_metadata_fields);
@@ -1591,7 +1591,23 @@ function cqpweb_mysql_recreate_tables()
 
 
 
-
+function cqpweb_import_css_file($filename)
+{
+	global $cqpweb_uploaddir;
+	
+	$orig = "/$cqpweb_uploaddir/$filename";
+	$new = "../css/$filename";
+	
+	if (is_file($orig))
+	{
+		if (is_file($new))
+		{
+			exiterror_general("A CSS file of that name already exists ($new). File not copied.");
+		}
+		else
+			copy($orig, $new);
+	}
+}
 
 
 

@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
-	<META NAME="CHANGED" CONTENT="20090826;2473400">
+	<META NAME="CHANGED" CONTENT="20090831;13041800">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -24,7 +24,7 @@ you will need</B></FONT></FONT></P>
 </P>
 <P LANG="en-GB">You'll need a machine with a Unix-style operating
 system (<I>CQPweb has been tested, so far, on Sun OS 5.10; Debian;
-and Fedora</I>). Other software you need: 
+Ubuntu; and Fedora</I>). Other software you need: 
 </P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Apache or some other webserver (note: <I>internal
@@ -60,7 +60,7 @@ and Fedora</I>). Other software you need:
 up Apache</B></FONT></FONT></P>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB">This section assumes  that you are using Apache and
+<P LANG="en-GB">This section assumes that you are using Apache and
 that you want to use the internal username/password functions in
 CQPweb. If this assumption is false, skip onwards to the next
 section!</P>
@@ -74,12 +74,12 @@ None</B></FONT></FONT></FONT></P>
 Change it to</P>
 <P LANG="en-GB" ALIGN=LEFT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>AllowOverride
 All</B></FONT></FONT></FONT></P>
-<P LANG="en-GB"><I>for the site or directory which contains  the
-CQ</I><SPAN LANG="en-GB"><I>Pweb web-directory</I></SPAN><SPAN LANG="en-GB">.
-Depending on how your Apache config files are set up, this might be
-set overall for the server (in </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">/etc/apache2/apache2.conf</SPAN></FONT><SPAN LANG="en-GB">);
+<P LANG="en-GB"><I>for the site or directory which contains the
+CQPweb web-directory</I>. Depending on how your Apache config files
+are set up, this might be set overall for the server (in
+<FONT FACE="Courier New, monospace">/etc/apache2/apache2.conf</FONT>);
 or for the particular host (in
-</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">/etc/apache2/sites-available/{$site}.conf</SPAN></FONT><SPAN LANG="en-GB">).</SPAN></P>
+<FONT FACE="Courier New, monospace">/etc/apache2/sites-available/{$site}.conf</FONT>).</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -102,7 +102,7 @@ BNCweb v 4.2 – this is v3.0 of cwb-perl-lib.</P>
 	directory on Perl's @INC path, such as
 	<FONT FACE="Courier New, monospace">/usr/local/lib/perl/{$version}/</FONT>
 	or <FONT FACE="Courier New, monospace">/usr/lib/perl5/{$version}/</FONT>
-	 , depending on the details of how Perl is set up on your system.</P>
+	, depending on the details of how Perl is set up on your system.</P>
 </UL>
 <P LANG="en-GB"><BR><BR>
 </P>
@@ -114,10 +114,12 @@ up MySQL</B></FONT></FONT></P>
 for CQPweb to use.</P>
 <P LANG="en-GB">Make a note of the username / password of this new
 user and of the new database.</P>
-<P LANG="en-GB">The new database should have <B>default charset</B>
-set to <B>utf8.</B> <SPAN STYLE="font-weight: normal">This addresses
-a bug which affects some (but not all!) versions of the MySQL server
-software – see <A HREF="http://bugs.mysql.com/bug.php?id=10195">http://bugs.mysql.com/bug.php?id=10195</A></SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">The new database should have
+</SPAN><SPAN LANG="en-GB"><B>default charset</B></SPAN><SPAN LANG="en-GB">
+set to </SPAN><SPAN LANG="en-GB"><B>utf8.</B></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-weight: normal">This
+addresses a bug which affects some (but not all!) versions of the
+MySQL server software – see <A HREF="http://bugs.mysql.com/bug.php?id=10195">http://bugs.mysql.com/bug.php?id=10195</A></SPAN></SPAN></P>
 <P LANG="en-GB">The new user needs to have <FONT FACE="Courier New, monospace">GRANT
 ALL</FONT> on the new database. The new user also needs <FONT FACE="Courier New, monospace">GRANT
 FILE ON *.*</FONT></P>
@@ -244,7 +246,8 @@ on the server.</P>
 </TABLE>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB">… make a note of the path of each one. 
+<P LANG="en-GB">… <SPAN LANG="en-GB">make a note of the path of
+each one. </SPAN>
 </P>
 <P LANG="en-GB">Note that the data / registry locations do not need
 to be the same as the ones you normally use for CWB.</P>
@@ -252,24 +255,53 @@ to be the same as the ones you normally use for CWB.</P>
 usually something like <B>www</B> or <B>www-data</B>) need to have
 read-write-execute access to all these directories. The username of
 the mysqld process (usually something like <B>mysql</B><SPAN STYLE="font-weight: normal">)
-also needs read and write access. So, these new folders </SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I><SPAN STYLE="font-weight: normal">
-have the write permission  set for either “all” or – if you are
-worried about security – for “group” (where the file is
-assigned to some group that both the mysql server's account and the
-web server's account belong to).</SPAN></P>
+also needs read and write access. So, these new folders </SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I>
+<SPAN STYLE="font-weight: normal">have the write permission set for
+either “all” or – if you are worried about security – for
+“group” (where the file is assigned to some group that both the
+mysql server's account and the web server's account belong to).</SPAN></P>
 <P LANG="en-GB"><I><SPAN STYLE="font-weight: normal">Sidenote for
 Unix novices</SPAN></I><SPAN STYLE="font-weight: normal">: the easy
 way to find out what the username of these two server programs is
 with commands like these – the first word on the output line is the
 username you want</SPAN></P>
 <UL>
+	<LI><P LANG="en-GB" STYLE="font-weight: normal"><FONT FACE="Courier New, monospace">ps
+	-e -o user,comm | grep mysqld </FONT>
+	</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">ps
-	-e -o user,comm | grep mysqld	</SPAN></FONT></P>
-	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">ps
-	-e -o user,comm | grep apache2		</SPAN><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">or
+	-e -o user,comm | grep apache2 </SPAN><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">or
 	whatever the name of the web server program is</SPAN></FONT></FONT></P>
 </UL>
-<P LANG="en-GB"><BR><BR>
+<P LANG="en-GB"><FONT FACE="Courier New, monospace"><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">A
+“gotcha” can occur here in systems that have AppArmor (for
+example, recent versions of Ubuntu). AppArmor allows/disallows file
+access to individual programs; if it does not allow mysqld access to
+these new directories, you will not be able to run CQPweb
+successfully, </SPAN></FONT><FONT FACE="Times New Roman, serif"><I><SPAN STYLE="font-weight: normal">even
+if</SPAN></I></FONT><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">
+the </SPAN></FONT><FONT FACE="Times New Roman, serif"><B>mysql</B></FONT><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">
+username has full permissions. You fix this by doing the following
+(as root):</SPAN></FONT></FONT></P>
+<UL>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">edit
+	</SPAN></FONT><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">/etc/apparmor.d/usr.sbin.mysqld</SPAN></FONT><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">
+	and add a line like this before the closing brace for each CQPweb
+	directory:</SPAN></FONT></FONT></P>
+	<UL>
+		<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">/path/to/the/directory/in/question/**
+		rw,</SPAN></FONT></P>
+	</UL>
+	<LI><P LANG="en-GB" STYLE="font-weight: normal"><FONT FACE="Times New Roman, serif">Then
+	restart AppArmor:</FONT></P>
+	<UL>
+		<LI><P LANG="en-GB" STYLE="font-weight: normal"><FONT FACE="Courier New, monospace">/etc/init.d/apparmor
+		restart</FONT></P>
+	</UL>
+</UL>
+<P LANG="en-GB" STYLE="font-weight: normal"><FONT FACE="Times New Roman, serif">The
+alternative is to disable AppArmor.</FONT></P>
+<P LANG="en-GB" STYLE="font-weight: normal"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
 up the web scripts</B></FONT></FONT></P>
@@ -293,8 +325,8 @@ configuration variables. To use it, change directory to the web
 directory, and run</P>
 <P LANG="en-GB"><FONT FACE="Courier New, monospace">php
 cqpweb-autoconfig.php</FONT></P>
-<P LANG="en-GB">… and follow the instructions to enter the paths
-and other info that you made a note of above.</P>
+<P LANG="en-GB">… <SPAN LANG="en-GB">and follow the instructions to
+enter the paths and other info that you made a note of above.</SPAN></P>
 <P LANG="en-GB">When you are asked to specify admin usernames, enter
 at least one username (the one you will use). Its password is
 initially set to the same as the username, you should change this as
@@ -466,8 +498,8 @@ for the <B>./adm</B> directory. It should look like this:</P>
 /<FONT COLOR="#800000">$cqpweb_accessdir</FONT>/.htgroup<BR>AuthName
 CQPweb<BR>AuthType Basic<BR>deny from all<BR>require group
 superusers<BR>satisfy any</B></FONT></FONT></FONT></P>
-<P LANG="en-GB">… but with the appropriate directories substituted,
-as in the configuration file.</P>
+<P LANG="en-GB">… <SPAN LANG="en-GB">but with the appropriate
+directories substituted, as in the configuration file.</SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Getting
@@ -701,10 +733,10 @@ set this up here.</P>
 <B>http://your-server.net/path/to/cqpweb/web/directory</B> and you’re
 off.</P>
 <HR>
-<P LANG="en-GB"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
+<P LANG="en-GB"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
 v2.02 © 2008-2009 – documentation by Andrew Hardie,
 <A HREF="mailto:andrewhardie@sourceforge.net">andrewhardie@sourceforge.net</A>
-</SPAN></SPAN></FONT></FONT></FONT>
+</SPAN></SPAN></SPAN></FONT></FONT></FONT>
 </P>
 </BODY>
 </HTML>

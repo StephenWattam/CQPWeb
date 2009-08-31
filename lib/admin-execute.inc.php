@@ -201,6 +201,18 @@ switch($_GET['admFunction'])
 		$_GET['locationAfter'] = 'index.php?thisF=skins&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
+	
+	case 'transferStylesheetFile':
+		$_GET['function'] = 'cqpweb_import_css_file';
+		if (!isset($_GET['cssFile']))
+		{
+			header("Location: index.php?thisF=skins&uT=y");
+			exit();
+		}	
+		$_GET['args'] = $_GET['cssFile'];
+		$_GET['locationAfter'] = 'index.php?thisF=skins&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
 		
 	case 'updateCategoryDescriptions':
 		$update_text_metadata_values_descriptions_info['corpus'] = $_GET['corpus'];

@@ -745,7 +745,7 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
+		exiterror_mysqlquery(mysql_errno($mysql_link),
 			mysql_error($mysql_link), __FILE__, __LINE__);
 	unset($result);
 
