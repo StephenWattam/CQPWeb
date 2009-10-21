@@ -628,17 +628,6 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	$rcCount = count($rc);
 	$nodeCount = count($node);
 
-	/* bncweb bit -- has to do wuith sorting //$thePos = the sort position
-	if ($params{ot}=~m/before(\d)/) 
-		$thePos = -$1;
-	else if ($params{ot}=~m/after(\d)/) 
-		$thePos = $1;
-	else if ($colDist) 
-		$thePos = $colDist;
-	else  
-		$thePos = "";
-		// prb don't need this  since I have other methods.......
-*/
 
 	/* forward slash can be part of a word, but not part of a tag */
 	$word_extraction_pattern = (empty($primary_tag_handle) ? false : '/\A(.*)\/(.*?)\z/');
@@ -648,17 +637,7 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	$lc_tool_string = '';
 	for ($i = 0; $i < $lcCount; $i++) 
 	{
-		if ($word_extraction_pattern)
-		{
-			preg_match($word_extraction_pattern, cqpweb_htmlspecialchars($lc[$i]), $m);
-			$word = $m[1];
-			$tag = '_' . $m[2];
-		}
-		else
-		{
-			$word = $lc[$i];
-			$tag = '';
-		}
+		list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $lc[$i]);
 		
 		if ($i == 0 && preg_match('/\A[.,;:?\-!"]\Z/', $word))
 			/* don't show the first word of left context if it's just punctuation */
@@ -681,17 +660,8 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	$node_tool_string = '';
 	for ($i = 0; $i < $nodeCount; $i++) 
 	{
-		if ($word_extraction_pattern)
-		{
-			preg_match($word_extraction_pattern, cqpweb_htmlspecialchars($node[$i]), $m);
-			$word = $m[1];
-			$tag = '_' . $m[2];
-		}
-		else
-		{
-			$word = $node[$i];
-			$tag = '';
-		}
+		list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $node[$i]);
+
 
 		/* if this word is the word being sorted on / collocated etc. */
 		/* the only thing that is different is the possibility of the tag being shown */
@@ -708,17 +678,7 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	$rc_tool_string = '';
 	for ($i = 0; $i < $rcCount; $i++) 
 	{
-		if ($word_extraction_pattern)
-		{
-			preg_match($word_extraction_pattern, cqpweb_htmlspecialchars($rc[$i]), $m);
-			$word = $m[1];
-			$tag = '_' . $m[2];
-		}
-		else
-		{
-			$word = $rc[$i];
-			$tag = '';
-		}
+		list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $rc[$i]);
 		
 		if ($highlight_position == $i+1) /* if this word is the word being sorted on / collocated etc. */
 		{
@@ -785,9 +745,23 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 
 
 
-
-
-
+/* used by print_concordance_line above and also by context.inc.php */
+/* returns an array of word, tag */
+function extract_cqp_word_and_tag(&$word_extraction_pattern, &$cqp_source_string)
+{
+	if ($word_extraction_pattern)
+	{
+		preg_match($word_extraction_pattern, cqpweb_htmlspecialchars($cqp_source_string), $m);
+		$word = $m[1];
+		$tag = '_' . $m[2];
+	}
+	else
+	{
+		$word = $cqp_source_string;
+		$tag = '';
+	}
+	return array($word, $tag);
+}
 
 
 

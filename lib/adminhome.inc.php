@@ -706,7 +706,7 @@ function printquery_installcorpus_indexed()
 				<td class="concordgeneral" rowspan="2">Where is the registry file?</td>
 				<td class="concordgeneral">
 					<input type="radio" name="corpus_useDefaultRegistry" value="1" checked="checked" />
-					In the default CQPweb registry directory 
+					In CQPweb's usual registry directory 
 					<a class="menuItem" onmouseover="return escape('/<?php echo $cwb_registry; ?>/')">
 						[?]
 					</a>

@@ -81,7 +81,7 @@ $path_to_apache_utils = get_variable_path("the path to the directory containing 
 $path_to_perl = get_variable_path("the path to the directory containing the perl executable");
 
 $cwb_datadir = get_variable_path("the path to the directory you wish to use for the CWB datafiles");
-$cwb_registry = get_variable_path("the path to the directory you wish to use for CWB registry");
+$cwb_registry = get_variable_path("the path to the directory you wish to use for CWB registry files");
 
 $cqp_tempdir = get_variable_path("the path to the directory you wish to use for the CQP cache");
 $mysql_tempdir = get_variable_path("the path to the directory you wish to use for MySQL temp files");
@@ -95,6 +95,7 @@ $mysql_schema = get_variable_word("the name of the MySQL database to use for CQP
 
 echo "\n\nNote: the system will be set to use 'localhost' as the MySQL server.";
 echo "\nIf you want to use a different MySQL server, please edit config.inc.php manually.\n\n";
+
   
 $mysql_server = 'localhost';
 

@@ -26,7 +26,7 @@
 
 
 
-// IMPORTANT NOTE all contents of this file are completely untested as of now.
+// IMPORTANT NOTE : much of the contents of this file are untested as of now.
 
 
 
@@ -48,6 +48,7 @@
  * $r = new RFace($path_to_r);
  * 
  * where $path_to_r is a relative path to the directory containing the R executable
+ * that DOES NOT end in a slash
  * 
  * $result = $r->execute("text to be fed to R here");
  * 
@@ -101,9 +102,9 @@ class RFace
 		if ($path_to_r === FALSE)
 		{
 			/* try to deduce the path using Unix "which" */
-			system("which R", ($output = array()));
-			if (is_executable($output[0]))
-				$patch_to_r = substr($output[0], 0, -2);
+			exec("which R", $exec_output);
+			if (is_executable($exec_output[0]))
+				$path_to_r = substr($exec_output[0], 0, -2);
 		}
 		if ( ! is_dir($path_to_r) )
 			exit("ERROR: directory $path_to_r for R executable not found.\n");
@@ -174,8 +175,8 @@ class RFace
 		/* then, get lines one by one from [OUT] */
 		while (strlen($line = fgets($this->handle[1])) > 0 )
 		{
-			/* delete carriage returns from the line */
-			$line = trim($line, "\r\n");
+			/* delete whitespace from the line */
+			$line = trim($line, " \t\r\n");
 
 			if ($this->debug_mode)
 				echo "R >> $line\n";
@@ -194,8 +195,43 @@ class RFace
 
 		/* return the array of results */
 		return $result;
+
+	}
 	
 	
+	/**
+	 * load functions
+	 */
+	
+	public function load_vector_from_array(&$array, $type = 'deduce')
+	{
+		switch ($type)
+		{
+		case 'string':
+			return load_vector_from_array_of_strings($array);
+		case 'number':
+			return load_vector_from_array_of_numbers($array);
+		case 'deduce':
+			return load_vector_from_array($array, $this->deduce_array_type($array));
+			// should deduce_array_type be a static method ? probably. actually, private static.
+		}	
+	}
+	
+	public function load_vector_from_array_of_strings(&$array)
+	{
+		//TODO
+	}
+	
+	public function load_vector_from_array_of_numbers(&$array)
+	{
+		//TODO
+	}
+	
+	
+	public function list_objects()
+	{
+		return $this->execute("ls()");
+		//TODO: additional procesing of output required?	probably....
 	}
 	
 	
@@ -203,6 +239,8 @@ class RFace
 	
 	
 	
+	
+	/* error management functions */
 
 
 /* end of class RFace */

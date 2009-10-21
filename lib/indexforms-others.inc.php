@@ -525,6 +525,10 @@ function printquery_latest()
 	
 	<ul>
 		<li>
+		<b>Version 2.07</b>, 2009-09-08<br/>&nbsp;<br/>
+		Fixed a bug in context display affecting untagged corpora; 
+		<br/>&nbsp;</li>
+		<li>
 		<b>Version 2.07</b>, 2009-08-07<br/>&nbsp;<br/>
 		Enabled frequency-list comparison; fixed a bug in the sort function and another in the corpus 
 		setup procedure.

@@ -102,7 +102,7 @@ class corpus_install_info
 			else
 			{
 				$this->directory_override['data_dir'] = $m[1];
-				$test_datadir = '/' . $this->directory_override;
+				$test_datadir = '/' . $this->directory_override['data_dir'];
 			}
 			
 			if (!is_dir($test_datadir))
@@ -152,6 +152,12 @@ class corpus_install_info
 					continue;
 				$this->p_attributes[] = $p;
 				$this->p_attributes_mysql_insert[] = $this->get_p_att_mysql_insert($p, '', '', '');
+				
+				/* note that no "primary" annotation is created if we are loading in an existing corpus */
+				/* instead, the primary annotation can be set later */
+				$this->corpus_metadata_fixed_mysql_insert =
+					"insert into corpus_metadata_fixed (corpus, primary_annotation) 
+					values ('{$this->corpus_mysql_name}', NULL)";
 			}
 		}
 		else

@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
-	<META NAME="CHANGED" CONTENT="20090831;13041800">
+	<META NAME="CHANGED" CONTENT="20091021;23363900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -126,7 +126,23 @@ FILE ON *.*</FONT></P>
 <P LANG="en-GB">Also make a note of the servername needed to access
 the MySQL server by a webscript. This will probably be <FONT FACE="Courier New, monospace">localhost</FONT>.
 <I>Note that it is not currently possible to use CQPweb with a MySQL
-installation on a separate server to the web server</I>.</P>
+installation on a separate server to the web server</I>. 
+</P>
+<P LANG="en-GB"><SPAN LANG="en-GB">A known “gotcha”: PHP needs to
+know how to connect to the MySQL server via a </SPAN><SPAN LANG="en-GB"><I>socket</I></SPAN><SPAN LANG="en-GB">
+in the filesystem. This information is often contained in the </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
+file, which contains settings loaded by PHP when it starts up. On
+many systems, connecting to MySQL simply “works” by default, but
+on some systems you may need to edit your </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
+file to tell PHP where to find the socket, by changing the
+</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">mysql.default_socket</SPAN></FONT><SPAN LANG="en-GB">
+setting. For instance,  if your socket is at </SPAN><FONT FACE="Courier New, monospace">/tmp/mysql.sock
+</FONT><SPAN LANG="en-GB">but PHP is looking at</SPAN><FONT FACE="Courier New, monospace">
+/var/mysql/mysql.sock</FONT><SPAN LANG="en-GB"> , you need to adjust 
+</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">mysql.default_socket</SPAN></FONT>
+to /tmp/mysql.sock. If you edit a <FONT FACE="Courier New, monospace">php.ini</FONT>
+file, make sure it is the one used when PHP is run by the server
+(i.e. as CGI or as an Apache module).</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -279,18 +295,19 @@ example, recent versions of Ubuntu). AppArmor allows/disallows file
 access to individual programs; if it does not allow mysqld access to
 these new directories, you will not be able to run CQPweb
 successfully, </SPAN></FONT><FONT FACE="Times New Roman, serif"><I><SPAN STYLE="font-weight: normal">even
-if</SPAN></I></FONT><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">
-the </SPAN></FONT><FONT FACE="Times New Roman, serif"><B>mysql</B></FONT><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">
-username has full permissions. You fix this by doing the following
-(as root):</SPAN></FONT></FONT></P>
+if</SPAN></I></FONT> <FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">the
+</SPAN></FONT><FONT FACE="Times New Roman, serif"><B>mysql</B></FONT>
+<FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">username
+has full permissions. You fix this by doing the following (as root):</SPAN></FONT></FONT></P>
 <UL>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">edit
-	</SPAN></FONT><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">/etc/apparmor.d/usr.sbin.mysqld</SPAN></FONT><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">
-	and add a line like this before the closing brace for each CQPweb
+	</SPAN></FONT><SPAN STYLE="font-weight: normal">/etc/apparmor.d/usr.sbin.mysqld</SPAN>
+	<FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">and
+	add a line like this before the closing brace for each CQPweb
 	directory:</SPAN></FONT></FONT></P>
 	<UL>
-		<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">/path/to/the/directory/in/question/**
-		rw,</SPAN></FONT></P>
+		<LI><P LANG="en-GB" STYLE="font-weight: normal"><FONT FACE="Courier New, monospace">/path/to/the/directory/in/question/**
+		rw,</FONT></P>
 	</UL>
 	<LI><P LANG="en-GB" STYLE="font-weight: normal"><FONT FACE="Times New Roman, serif">Then
 	restart AppArmor:</FONT></P>
@@ -301,7 +318,7 @@ username has full permissions. You fix this by doing the following
 </UL>
 <P LANG="en-GB" STYLE="font-weight: normal"><FONT FACE="Times New Roman, serif">The
 alternative is to disable AppArmor.</FONT></P>
-<P LANG="en-GB" STYLE="font-weight: normal"><BR><BR>
+<P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
 up the web scripts</B></FONT></FONT></P>

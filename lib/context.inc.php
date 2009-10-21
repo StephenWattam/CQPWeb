@@ -165,7 +165,7 @@ if ($utf8_set_required)
 $cqp = new CQP;
 
 /* select an error handling function */
-$cqp->set_error_handler("cqp_error_handler");
+$cqp->set_error_handler("exiterror_cqp");
 /* the other option is cqp_error_handler_full */
 
 /* set CQP's temporary directory */
@@ -178,7 +178,7 @@ $cqp->execute("$corpus_cqp_name");
 $primary_tag_handle = get_corpus_metadata('primary_annotation');
 
 $cqp->execute("set Context $context_size words");
-$cqp->execute("show +word +$primary_tag_handle");
+$cqp->execute("show +word" . (isset($primary_tag_handle) ? " +$primary_tag_handle" : '') );
 $cqp->execute("set PrintStructures \"text_id\""); 
 $cqp->execute("set LeftKWICDelim '--%%%--'");
 $cqp->execute("set RightKWICDelim '--%%%--'");
@@ -215,27 +215,20 @@ $lcCount = count($lc);
 $rcCount = count($rc);
 $nodeCount = count($node);
 
+$word_extraction_pattern = (empty($primary_tag_handle) ? false : '/\A(.*)\/(.*?)\z/');
 
 /* left context string */
-$lc_string = "";
+$lc_string = '';
 for ($i = 0; $i < $lcCount; $i++) 
 {
-	/* forward slash can be part of a word, but not part of a tag */
-	preg_match('/\A(.*)\/(.*?)\Z/', cqpweb_htmlspecialchars($lc[$i]), $m);
-	$word = $m[1];
-	$tag = $m[2];
-	
+	list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $lc[$i]);
+
 	if ($i == 0 && preg_match('/\A[.,;:?\-!"\x{0964}]\Z/u', $word))
 		/* don't show the first word of left context if it's just punctuation */
 		continue;
 
-	$word = cqpweb_htmlspecialchars($word);
+	$lc_string .= $word . ( $show_tags ? $tag : '' ) . ' ';
 
-	
-	if ($show_tags)
-		$lc_string .= $word . '_' . $tag . ' ';
-	else
-		$lc_string .= $word . ' ';
 
 	/* break line if this word is an end of sentence punctuation */
 	if (preg_match('/\A[.?!\x{0964}]\Z/u', $word) || $word == '...'  )
@@ -244,18 +237,12 @@ for ($i = 0; $i < $lcCount; $i++)
 }
 	
 /* node string */
-$node_string = "";
+$node_string = '';
 for ($i = 0; $i < $nodeCount; $i++) 
 {
-	/* forward slash can be part of a word, but not part of a tag */
-	preg_match('/\A(.*)\/(.*?)\Z/', cqpweb_htmlspecialchars($node[$i]), $m);
-	$word = $m[1];
-	$tag = $m[2];
-	
-	if ($show_tags)
-		$node_string .= $word . '_' . $tag . ' ';
-	else
-		$node_string .= $word . ' ';
+	list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $node[$i]);
+
+	$node_string .= $word . ( $show_tags ? $tag : '' ) . ' ';
 
 	/* break line if this word is an end of sentence punctuation */
 	if (preg_match('/\A[.?!\x{0964}]\Z/u', $word) || $word == '...'  )
@@ -267,20 +254,14 @@ for ($i = 0; $i < $nodeCount; $i++)
 $rc_string = "";
 for ($i = 0; $i < $rcCount; $i++) 
 {
-	/* forward slash can be part of a word, but not part of a tag */
-	preg_match('/\A(.*)\/(.*?)\Z/', cqpweb_htmlspecialchars($rc[$i]), $m);
-	$word = $m[1];
-	$tag = $m[2];
+	list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $rc[$i]);
 	
-	if ($show_tags)
-		$rc_string .= $word . '_' . $tag . ' ';
-	else
-		$rc_string .= $word . ' ';
+	$rc_string .= $word . ( $show_tags ? $tag : '' ) . ' ';
 
 	/* break line if this word is an end of sentence punctuation */
 	// this is a BAD regex. Hopefully, PHP 6 will have some function that does it for me.
-// potentially better version? but might be slow (see PHP PCRE manual)
-//	if (preg_match('/\A\p{P}\Z/u', $word) || $word == '...'  )
+	// potentially better version? but might be slow (see PHP PCRE manual)
+	//	if (preg_match('/\A\p{P}\Z/u', $word) || $word == '...'  )
 	if (preg_match('/\A[.?!\x{0964}]\Z/u', $word) || $word == '...'  )
 		$rc_string .= '<br/>&nbsp;<br/>
 			';
