@@ -449,9 +449,9 @@ function install_create_settings_file($filepath, $info)
 		. "\$css_path = '{$info->css_url}';\n"
 		. ($info->script_is_r2l ? "\$corpus_main_script_is_r2l = true;\n" : '')
 		. (empty($info->directory_override['reg_dir']) ? '' : 
-			"\$this_corpus_directory_override['reg_dir'] = {$info->directory_override['reg_dir']};\n")
+			"\$this_corpus_directory_override['reg_dir'] = '{$info->directory_override['reg_dir']}';\n")
 		. (empty($info->directory_override['data_dir']) ? '' : 
-			"\$this_corpus_directory_override['data_dir'] = {$info->directory_override['data_dir']};\n")
+			"\$this_corpus_directory_override['data_dir'] = '{$info->directory_override['data_dir']}';\n")
 		. '?>';
 	file_put_contents($filepath, $data);
 	chmod($filepath, 0775);
