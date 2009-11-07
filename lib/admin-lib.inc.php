@@ -1227,7 +1227,7 @@ function create_text_metadata_for()
 				where corpus = '$corpus'";
 	}
 		
-	$load_statement = "load data infile '$input_file' into table text_metadata_for_$corpus";
+	$load_statement = load_data_infile()." '$input_file' INTO TABLE text_metadata_for_$corpus";
 
 	
 //show_var($inserts_for_metadata_fields);

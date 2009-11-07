@@ -390,14 +390,10 @@ function categorise_separate()
 	$newqname_root = $qname . '_';
 	$newsavename_root = $query_record['save_name'] . '_';
 
-	$outfile_path_1 = "/$cqp_tempdir/temp_cat_$newqname_root.tbl";
-	$outfile_path_2 = "/$cqp_tempdir/temp_cat_$newqname_root.undump";
-	if (is_file($outfile_path_1))
-		unlink($outfile_path_1);
-	if (is_file($outfile_path_2))
-		unlink($outfile_path_2);
+	$outfile_path = "/$cqp_tempdir/temp_cat_$newqname_root.tbl";
+	if (is_file($outfile_path))
+		unlink($outfile_path);
 
-	
 	$category_list = catquery_list_categories($qname);
 	
 	
@@ -413,37 +409,24 @@ function categorise_separate()
 		
 		$newsavename = $newsavename_root . $category;
 		
-		/* create the dumpfile */
-		$sql_query = "select beginPosition, endPosition into outfile '$outfile_path_1' from $dbname 
-			where category = '$category'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
+		/* create the dumpfile & obtain solution count */
+		$sql_query = "SELECT beginPosition, endPosition FROM $dbname 
+			WHERE category = '$category'";
+		$solution_count = mysql_query_local_outfile($sql_query, $outfile_path, $mysql_link);
+		if ($solution_count == false) 
 			exiterror_mysqlquery(mysql_errno($mysql_link), 
 				mysql_error($mysql_link), __FILE__, __LINE__);
 		
-		/* and find out how many solutions it contains */
-		$sql_query = "select count(*) from $dbname where category = '$category'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);		
-		list($solution_count) = mysql_fetch_row($result);
-		
 		if ($solution_count < 1)
 		{
-			unlink($outfile_path_1);
+			unlink($outfile_path);
 			continue;
 		}	
 		
-		exec("echo $solution_count | cat - '$outfile_path_1' > '$outfile_path_2'");
-
-
-		$cqp->execute("undump $newqname < '$outfile_path_2'");
+		$cqp->execute("undump $newqname < '$outfile_path'");
 		$cqp->execute("save $newqname");
 
-
-		unlink($outfile_path_1);
-		unlink($outfile_path_2);
+		unlink($outfile_path);
 		
 		/* longer postprocessor string ... */
 		$new_pp_string = $query_record['postprocess']

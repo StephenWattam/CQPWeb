@@ -100,7 +100,7 @@ function corpus_make_freqtables()
 
 
 	database_disable_keys($temp_tablename);
-	$sql_query = "load data infile '$filename' into table $temp_tablename fields escaped by ''";
+	$sql_query = load_data_infile()." '$filename' INTO TABLE $temp_tablename FIELDS ESCAPED BY ''";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false)
 		exiterror_mysqlquery(mysql_errno($mysql_link),
@@ -322,7 +322,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	
 	/* import the base frequency list */
 	database_disable_keys($temp_table);
-	$sql_query = "LOAD DATA INFILE '$temp_table_loadfile' into table $temp_table fields escaped by ''";
+	$sql_query = load_data_infile()." '$temp_table_loadfile' into table $temp_table fields escaped by ''";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 

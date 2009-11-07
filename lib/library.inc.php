@@ -405,6 +405,53 @@ function dump_mysql_result($result)
 	return $s;
 }
 
+/* replacement for SELECT ... INTO LOCAL OUTFILE (i.e. save SQL result set to local file)
+    - $filename should be full absolute path; must be in $mysql_tempdir if $mysql_file_access == true */
+function mysql_query_local_outfile($query, $filename, $conn)
+{
+	global $mysql_file_access;
+	
+	if ($mysql_file_access) {
+		$into_outfile = sprintf("INTO OUTFILE '%s' FROM ", mysql_real_escape_string($filename, $conn));
+		$replaced = 0;
+		$query = str_replace("FROM ", $into_outfile, $query, $replaced);
+		if ($replaced != 1)
+			return false;
+		$result = mysql_query($query);
+		if (!$result)
+			return false;
+		else
+			return mysql_affected_rows($conn);
+	}
+	else {
+		$result = mysql_unbuffered_query($query, $conn); /* avoid memory overhead for large result sets */
+		if ($result == false)
+			return $result;
+	
+		$fh = fopen($filename, 'w');
+		if (!$fh) {
+			mysql_free_result($result);
+			return false;
+		}
+		$rowcount = 0;
+		while ($row = mysql_fetch_row($result)) {
+			fprintf($fh, "%s\n", implode("\t", $row));
+			$rowcount++;
+		}
+		fclose($fh);
+		return $rowcount;
+	}
+}
+
+/* returns appropriate LOAD DATA (LOCAL) INFILE command, depending on $mysql_file_access */
+function load_data_infile()
+{
+	global $mysql_file_access;
+	if ($mysql_file_access)
+		return "LOAD DATA INFILE";
+	else
+		return "LOAD DATA LOCAL INFILE";
+}
 
 function coming_soon_page()
 {

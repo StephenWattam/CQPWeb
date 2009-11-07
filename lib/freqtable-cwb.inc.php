@@ -241,7 +241,7 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 			mysql_error($mysql_link), __FILE__, __LINE__);
 	unset($result);
 
-	$sql_query = "load data infile '$index_filename' into table $freq_text_index";
+	$sql_query = load_data_infile()." '$index_filename' INTO TABLE $freq_text_index";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 

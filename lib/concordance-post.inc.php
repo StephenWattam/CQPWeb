@@ -433,29 +433,17 @@ class POSTPROCESS {
 	
 	/* functions for collocations */
 	
-	function colloc_sql_for_queryfile($file)
+	function colloc_sql_for_queryfile()
 	{
 		if (!$this->colloc_sql_capable())
 			return false;
-	
-		return "select beginPosition, endPosition
-			into outfile '$file'
-			from {$this->colloc_db}
-			where {$this->colloc_att} = '{$this->colloc_target}'
-			and dist between {$this->colloc_dist_from} and {$this->colloc_dist_to}";
-	}
-	
-	function colloc_sql_count_remaining_hits()
-	{
-		if (!$this->colloc_sql_capable())
-			return false;
-	
-		return "select count(*)
-			from {$this->colloc_db}
-			where {$this->colloc_att} = '{$this->colloc_target}'
-			and dist between {$this->colloc_dist_from} and {$this->colloc_dist_to}";
-	}
 
+		return "SELECT beginPosition, endPosition
+			FROM {$this->colloc_db}
+			WHERE {$this->colloc_att} = '{$this->colloc_target}'
+			AND dist BETWEEN {$this->colloc_dist_from} AND {$this->colloc_dist_to}";
+	}
+	
 	function colloc_sql_capable()
 	{
 		return ( isset($this->colloc_db, $this->colloc_dist_from, 
@@ -495,7 +483,7 @@ class POSTPROCESS {
 	}
 
 	/* the "orig" query record is needed to be passed to sort_set_dbname */
-	function sort_sql_for_queryfile($file, $orig_query_record)
+	function sort_sql_for_queryfile($orig_query_record)
 	{			
 		$this->sort_set_dbname($orig_query_record);
 		if (!$this->sort_sql_capable())
@@ -548,25 +536,11 @@ class POSTPROCESS {
 				$this->sort_thinning_sql_where = 'where ' . $where_clause_temp;
 		}		
 			
-		return "select beginPosition, endPosition
-			into outfile '$file' 
-			from {$this->sort_db} 
+		return "SELECT beginPosition, endPosition
+			FROM {$this->sort_db} 
 			$this->sort_thinning_sql_where
-			order by $sort_position_sql  $extra_sort_pos_sql  ";
+			ORDER BY $sort_position_sql  $extra_sort_pos_sql  ";
 
-	}
-	
-	function sort_sql_count_remaining_hits()
-	{
-
-		if (!$this->sort_sql_capable())
-			return false;
-		if (! isset($this->sort_thinning_sql_where))
-			return false;
-
-		return "select count(*)
-			from {$this->sort_db}
-			$this->sort_thinning_sql_where";
 	}
 	
 
@@ -603,7 +577,7 @@ class POSTPROCESS {
 	
 	/* "item" functions ; note the "item" postprocess re-uses some of the sort methods too */ 
 	
-	function item_sql_for_queryfile($file, $orig_query_record)
+	function item_sql_for_queryfile($orig_query_record)
 	{
 		$this->sort_set_dbname($orig_query_record);
 		
@@ -621,23 +595,11 @@ class POSTPROCESS {
 			$this->sort_thinning_sql_where .= " tagnode = '$this->item_tag' ";
 		}
 
-		return "select beginPosition, endPosition
-			into outfile '$file' 
-			from {$this->sort_db}
+		return "SELECT beginPosition, endPosition
+			FROM {$this->sort_db}
 			$this->sort_thinning_sql_where
-			order by beginPosition  ";
+			ORDER BY beginPosition  ";
 
-	}
-
-	function item_sql_count_remaining_hits()
-	{
-		if (! isset($this->sort_thinning_sql_where))
-			return false;
-
-		return "select count(*)
-			from {$this->sort_db}
-			$this->sort_thinning_sql_where";
-		
 	}
 	
 	function dist_set_dbname($orig_query_record)
@@ -663,42 +625,28 @@ class POSTPROCESS {
 			
 	}
 	
-	function dist_sql_for_queryfile($file, $orig_query_record)
+	function dist_sql_for_queryfile($orig_query_record)
 	{
 		global $corpus_sql_name;
 		
 		$this->dist_set_dbname($orig_query_record);
 		
-		return "select beginPosition, endPosition
-			into outfile '$file' 
-			from {$this->dist_db} 
-			inner join text_metadata_for_$corpus_sql_name 
-			on {$this->dist_db}.text_id = text_metadata_for_$corpus_sql_name.text_id 
-			where text_metadata_for_$corpus_sql_name.{$this->dist_categorisation_handle}
+		return "SELECT beginPosition, endPosition
+			FROM {$this->dist_db} 
+			INNER JOIN text_metadata_for_$corpus_sql_name 
+			ON {$this->dist_db}.text_id = text_metadata_for_$corpus_sql_name.text_id 
+			WHERE text_metadata_for_$corpus_sql_name.{$this->dist_categorisation_handle}
 				= '{$this->dist_class_handle}' ";
 	}
 	
-	function dist_sql_count_remaining_hits()
-	{
-		global $corpus_sql_name;
-		
-		return "select count(*)
-			from {$this->dist_db}
-			inner join text_metadata_for_$corpus_sql_name 
-			on {$this->dist_db}.text_id = text_metadata_for_$corpus_sql_name.text_id 
-			where text_metadata_for_$corpus_sql_name.{$this->dist_categorisation_handle}
-				= '{$this->dist_class_handle}'";
-	}
-	
-	function text_sql_for_queryfile($file, $orig_query_record)
+	function text_sql_for_queryfile($orig_query_record)
 	{
 		/* IMPORTANT NB!! uses the same dbname-finding function as "dist" */
 		$this->dist_set_dbname($orig_query_record);	
 		
-		return "select beginPosition, endPosition
-			into outfile '$file' 
-			from {$this->dist_db}
-			where text_id = '{$this->text_target_id}'";
+		return "SELECT beginPosition, endPosition
+			FROM {$this->dist_db}
+			WHERE text_id = '{$this->text_target_id}'";
 	}
 	
 	function text_sql_count_remaining_hits()
@@ -739,44 +687,27 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 
 	/* first, write a "dumpfile" to temporary storage */
 	$tempfile  = "/$cqp_tempdir/temp_coll_$new_qname.tbl";
-	$tempfile2 = "/$cqp_tempdir/temp_coll_$new_qname.undump";
 
 	$sql_query = $descriptor->colloc_sql_for_queryfile($tempfile);
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
+	$solutions_remaining = mysql_query_local_outfile($sql_query, $tempfile, $mysql_link);
+	if ($solutions_remaining == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link),
 			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
 
-	/* now, work out how many hits were in it */
-	$sql_query = $descriptor->colloc_sql_count_remaining_hits($tempfile);
-
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-
-	list($solutions_remaining) = mysql_fetch_row($result);
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
-	unset($result);
-
 	if ($solutions_remaining > 0)
 	{
-		/* prepend number of hits to output file */
-		exec("echo $solutions_remaining | cat - '$tempfile' > '$tempfile2'");
-		unlink($tempfile);
-
 		/* load to CQP as a new query, and save */
-		$cqp->execute("undump $new_qname < '$tempfile2'");
+		$cqp->execute("undump $new_qname < '$tempfile'");
 		$cqp->execute("save $new_qname");
 		
 		/* get the size of the new query */
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
-		unlink($tempfile2);
+		unlink($tempfile);
 
 		/* put this newly-created query in the cache */
 
@@ -791,9 +722,11 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 		update_cached_query($cache_record);
 
 	}
-	else
+	else {
+		unlink($tempfile);
 		say_sorry_postprocess();
 		/* which exits the program */
+	}
 
 	return $cache_record;
 }
@@ -814,25 +747,14 @@ function run_postprocess_sort($cache_record, &$descriptor)
 
 	/* first, write a "dumpfile" to temporary storage */
 	$tempfile  = "/$cqp_tempdir/temp_sort_$new_qname.tbl";
-	$tempfile2 = "/$cqp_tempdir/temp_sort_$new_qname.undump";
 
-	$sql_query = $descriptor->sort_sql_for_queryfile($tempfile, $orig_cache_record);
+	$sql_query = $descriptor->sort_sql_for_queryfile($orig_cache_record);
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
-
-	/* now, work out how many hits were in it */
-	$sql_query = $descriptor->sort_sql_count_remaining_hits($tempfile);
-
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
+	$solutions_remaining = mysql_query_local_outfile($sql_query, $tempfile, $mysql_link);
+	if ($solutions_remaining == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 
 			mysql_error($mysql_link), __FILE__, __LINE__);
 
-	list($solutions_remaining) = mysql_fetch_row($result);
 	if ($descriptor->sort_remove_prev_sort)
 	{
 		/* we need to remove the previous "hits left" because a sort has been undone */
@@ -841,22 +763,17 @@ function run_postprocess_sort($cache_record, &$descriptor)
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
-	unset($result);
-
 	if ($solutions_remaining > 0)
 	{
-		/* prepend number of hits to output file */
-		exec("echo $solutions_remaining | cat - '$tempfile' > '$tempfile2'");
-		unlink($tempfile);
-
+		
 		/* load to CQP as a new query, and save */
-		$cqp->execute("undump $new_qname < '$tempfile2'");
+		$cqp->execute("undump $new_qname < '$tempfile'");
 		$cqp->execute("save $new_qname");
 		
 		/* get the size of the new query */
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
-
-		unlink($tempfile2);
+		
+		unlink($tempfile);
 
 		/* put this newly-created query in the cache */
 
@@ -871,9 +788,11 @@ function run_postprocess_sort($cache_record, &$descriptor)
 		update_cached_query($cache_record);
 	
 	}
-	else
+	else {
+		unlink($tempfile);
 		say_sorry_postprocess();
 		/* which exits the program */
+	}
 
 	return $cache_record;
 }
@@ -1016,47 +935,29 @@ function run_postprocess_item($cache_record, &$descriptor)
 
 	/* first, write a "dumpfile" to temporary storage */
 	$tempfile  = "/$cqp_tempdir/temp_item_$new_qname.tbl";
-	$tempfile2 = "/$cqp_tempdir/temp_item_$new_qname.undump";
-
 
 	/* this method call creates the DB if it doesn't already exist */
-	$sql_query = $descriptor->item_sql_for_queryfile($tempfile, $orig_cache_record);
+	$sql_query = $descriptor->item_sql_for_queryfile($orig_cache_record);
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
+	$solutions_remaining = mysql_query_local_outfile($sql_query, $tempfile, $mysql_link);
+	if ($solutions_remaining == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 
 			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
-
-	/* now, work out how many hits were in it */
-	$sql_query = $descriptor->item_sql_count_remaining_hits($tempfile);
-
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-
-	list($solutions_remaining) = mysql_fetch_row($result);
 
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
-	unset($result);
-
 	if ($solutions_remaining > 0)
 	{
-		/* prepend number of hits to output file */
-		exec("echo $solutions_remaining | cat - '$tempfile' > '$tempfile2'");
-		unlink($tempfile);
 
 		/* load to CQP as a new query, and save */
-		$cqp->execute("undump $new_qname < '$tempfile2'");
+		$cqp->execute("undump $new_qname < '$tempfile'");
 		$cqp->execute("save $new_qname");
 		
 		/* get the size of the new query */
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
-		unlink($tempfile2);
+		unlink($tempfile);
 
 		/* put this newly-created query in the cache */
 
@@ -1071,10 +972,11 @@ function run_postprocess_item($cache_record, &$descriptor)
 		update_cached_query($cache_record);
 	
 	}
-	else
+	else {
+		unlink($tempfile);
 		say_sorry_postprocess();
 		/* which exits the program */
-
+	}
 
 	return $cache_record;
 }
@@ -1104,47 +1006,29 @@ function run_postprocess_dist($cache_record, &$descriptor)
 
 	/* first, write a "dumpfile" to temporary storage */
 	$tempfile  = "/$cqp_tempdir/temp_dist_$new_qname.tbl";
-	$tempfile2 = "/$cqp_tempdir/temp_dist_$new_qname.undump";
-
 
 	/* this method call creates the DB if it doesn't already exist */
-	$sql_query = $descriptor->dist_sql_for_queryfile($tempfile, $orig_cache_record);
+	$sql_query = $descriptor->dist_sql_for_queryfile($orig_cache_record);
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
+	$solutions_remaining = mysql_query_local_outfile($sql_query, $tempfile, $mysql_link);
+	if ($solutions_remaining == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 
 			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
-
-	/* now, work out how many hits were in it */
-	$sql_query = $descriptor->dist_sql_count_remaining_hits($tempfile);
-
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-
-	list($solutions_remaining) = mysql_fetch_row($result);
 
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
-	unset($result);
-
 	if ($solutions_remaining > 0)
 	{
-		/* prepend number of hits to output file */
-		exec("echo $solutions_remaining | cat - '$tempfile' > '$tempfile2'");
-		unlink($tempfile);
 
 		/* load to CQP as a new query, and save */
-		$cqp->execute("undump $new_qname < '$tempfile2'");
+		$cqp->execute("undump $new_qname < '$tempfile'");
 		$cqp->execute("save $new_qname");
 		
 		/* get the size of the new query */
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
-		unlink($tempfile2);
+		unlink($tempfile);
 
 		/* put this newly-created query in the cache */
 
@@ -1159,10 +1043,11 @@ function run_postprocess_dist($cache_record, &$descriptor)
 		update_cached_query($cache_record);
 	
 	}
-	else
+	else {
+		unlink($tempfile);
 		say_sorry_postprocess();
 		/* which exits the program */
-
+	}
 
 	return $cache_record;
 	
@@ -1190,47 +1075,29 @@ function run_postprocess_text($cache_record, &$descriptor)
 
 	/* first, write a "dumpfile" to temporary storage */
 	$tempfile  = "/$cqp_tempdir/temp_text_$new_qname.tbl";
-	$tempfile2 = "/$cqp_tempdir/temp_text_$new_qname.undump";
-
 
 	/* this method call creates the DB if it doesn't already exist */
-	$sql_query = $descriptor->text_sql_for_queryfile($tempfile, $orig_cache_record);
+	$sql_query = $descriptor->text_sql_for_queryfile($orig_cache_record);
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
+	$solutions_remaining = mysql_query_local_outfile($sql_query, $tempfile, $mysql_link);
+	if ($solutions_remaining == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 
 			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
-
-	/* now, work out how many hits were in it */
-	$sql_query = $descriptor->text_sql_count_remaining_hits($tempfile);
-
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-
-	list($solutions_remaining) = mysql_fetch_row($result);
 
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
-	unset($result);
-
 	if ($solutions_remaining > 0)
 	{
-		/* prepend number of hits to output file */
-		exec("echo $solutions_remaining | cat - '$tempfile' > '$tempfile2'");
-		unlink($tempfile);
 
 		/* load to CQP as a new query, and save */
-		$cqp->execute("undump $new_qname < '$tempfile2'");
+		$cqp->execute("undump $new_qname < '$tempfile'");
 		$cqp->execute("save $new_qname");
 		
 		/* get the size of the new query */
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
-		unlink($tempfile2);
+		unlink($tempfile);
 
 		/* put this newly-created query in the cache */
 
@@ -1245,10 +1112,11 @@ function run_postprocess_text($cache_record, &$descriptor)
 		update_cached_query($cache_record);
 	
 	}
-	else
+	else {
+		unlink($tempfile);
 		say_sorry_postprocess();
 		/* which exits the program */
-
+	}
 
 	return $cache_record;
 }

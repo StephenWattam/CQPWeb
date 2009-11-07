@@ -559,16 +559,13 @@ function load_subcorpus_to_cqp($subcorpus)
 
 		$sqlfile = "/$mysql_tempdir/sc_temp_$instance_name";
 	
-		$sql_query = "SELECT cqp_begin, cqp_end INTO OUTFILE '$sqlfile' 
+		$sql_query = "SELECT cqp_begin, cqp_end 
 			FROM text_metadata_for_$corpus_sql_name 
 			WHERE $wherelist ORDER BY cqp_begin ASC";
-	
-		$result = mysql_query($sql_query, $mysql_link);
+		$result = mysql_query_local_outfile($sql_query, $sqlfile, $mysql_link);
 		if ($result == false) 
 			exiterror_mysqlquery(mysql_errno($mysql_link), 
 				mysql_error($mysql_link), __FILE__, __LINE__);
-				
-		unset($result);
 				
 		load_limits_to_cqp($sqlfile);
 		unlink($sqlfile);
@@ -599,17 +596,14 @@ function load_restrictions_to_cqp($restrictions)
 			
 	$sqlfile = "/$mysql_tempdir/sc_temp_$instance_name";
 	
-	$sql_query = "SELECT cqp_begin, cqp_end INTO OUTFILE '$sqlfile' 
+	$sql_query = "SELECT cqp_begin, cqp_end 
 		FROM text_metadata_for_$corpus_sql_name 
 		WHERE $restrictions ORDER BY cqp_begin ASC";
-
-	$result = mysql_query($sql_query, $mysql_link);
+	$result = mysql_query_local_outfile($sql_query, $sqlfile, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 
 			mysql_error($mysql_link), __FILE__, __LINE__);
 			
-	unset($result);
-	
 	load_limits_to_cqp($sqlfile);
 	unlink($sqlfile);
 }
@@ -619,22 +613,8 @@ function load_restrictions_to_cqp($restrictions)
 function load_limits_to_cqp($limits_file)
 {
 	global $cqp;
-	global $mysql_tempdir;
-	
-	$lines = NULL;
-	$line_from_unix = exec("wc -l $limits_file", $lines);
-	$m = array();
-	preg_match('/\d+/', $line_from_unix, $m);
-	$n = $m[0];
-	
-	$temp = new CWBTempFile("/$mysql_tempdir/sc_temp_$instance_name.2");
-	$temp->write("$n\n");
-	$temp->finish();
-	$tempfilename = $temp->get_filename();
-	system("cat $limits_file >> $tempfilename");
-	
-	$cqp->execute("undump Limits < '$tempfilename'");
-	$temp->close();
+
+	$cqp->execute("undump Limits < '$limits_file'");
 	$cqp->execute("Limits");
 }
 
