@@ -33,6 +33,7 @@ require("../lib/defaults.inc.php");
 require('../lib/library.inc.php');
 require('../lib/concordance-lib.inc.php');
 require('../lib/cache.inc.php');
+require('../lib/subcorpus.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/metadata.inc.php');
 require('../lib/user-settings.inc.php');
@@ -440,6 +441,9 @@ if ($_GET['downloadGo'] === 'yes')
 
 	/* loop for concordance line download, 100 lines at a time */
 	
+	/* before running the loop, unlimit in case of big query */
+	php_execute_time_unlimit();
+	
 	for ($batch_start = 0; $batch_start < $num_of_solutions; $batch_start += 100) 
 	{
 		$batch_end = $batch_start + 99;
@@ -512,6 +516,9 @@ if ($_GET['downloadGo'] === 'yes')
 		} /* end loop for each line */
 
 	} /* end loop for concordance line download */
+
+	/* just in case ... */
+	php_execute_time_relimit();
 
 } /* end of if ($_GET['downloadGo'] === 'yes') */
 

@@ -143,10 +143,10 @@ class CQP
 			}
 			$this->compile_date  = (isset($matches[4]) ? $matches[4] : NULL);
 			
-			/* we need cqp-2.2.b94 or newer */	
+			/* we need cqp-2.2.b101 or newer */	
 			if (!( ($this->major_version >= 3)
 				|| ($this->major_version == 2 && $this->minor_version == 2 
-					&& $this->beta_version >= 94)
+					&& $this->beta_version >= 101)
 				) )
 				exit("ERROR: CQP version too old ($version_string).\n");
     		}

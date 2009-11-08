@@ -757,7 +757,7 @@ function extract_cqp_word_and_tag(&$word_extraction_pattern, &$cqp_source_string
 	}
 	else
 	{
-		$word = $cqp_source_string;
+		$word = cqpweb_htmlspecialchars($cqp_source_string);
 		$tag = '';
 	}
 	return array($word, $tag);
