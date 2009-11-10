@@ -67,6 +67,7 @@ function make_cwb_freq_index()
 	global $corpus_sql_name;
 	global $corpus_cqp_name;
 	global $mysql_link;
+	global $mysql_LOAD_DATA_INFILE_command;
 	global $cqp_tempdir;
 	global $mysql_tempdir;
 	global $cwb_datadir;
@@ -116,12 +117,11 @@ function make_cwb_freq_index()
 
 	/* open a pipe **from** cwb-decode and another **to** cwb-encode */
 	$cmd_decode = "/$path_to_cwb/cwb-decode -r /$cwb_registry -C $corpus_cqp_name $p_att_line -S text_id";
-//echo '<pre>' . $cmd_decode . '</pre>';
+
 	$source = popen($cmd_decode, 'r');
 
-
 	$cmd_encode = "/$path_to_cwb/cwb-encode -d $datadir -R $regfile $p_att_line_no_word -P __freq -S text:0+id ";
-//show_var($cmd_encode);
+
 	$dest = popen($cmd_encode, 'w');
 
 if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes didnae open properly </pre>';
@@ -241,7 +241,7 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 			mysql_error($mysql_link), __FILE__, __LINE__);
 	unset($result);
 
-	$sql_query = load_data_infile()." '$index_filename' INTO TABLE $freq_text_index";
+	$sql_query = "$mysql_LOAD_DATA_INFILE_command '$index_filename' INTO TABLE $freq_text_index";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 

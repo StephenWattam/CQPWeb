@@ -100,7 +100,7 @@ function corpus_make_freqtables()
 
 
 	database_disable_keys($temp_tablename);
-	$sql_query = load_data_infile()." '$filename' INTO TABLE $temp_tablename FIELDS ESCAPED BY ''";
+	$sql_query = "$mysql_LOAD_DATA_INFILE_command '$filename' INTO TABLE $temp_tablename FIELDS ESCAPED BY ''";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false)
 		exiterror_mysqlquery(mysql_errno($mysql_link),
@@ -173,17 +173,20 @@ function corpus_make_freqtables()
 
 
 
-/* create frequency lists for a --subsection only-- of the current corpus, */
-/* ie a restriction or subcorpus */
-/* note that the specification of a subcorpus trumps restrictions */
-/* this is essentially like a query */
-/* note also that no check for "already exists" is performed */
-/* this must be done beforehand */
+/**
+ * create frequency lists for a --subsection only-- of the current corpus, 
+ * ie a restriction or subcorpus 
+ * note that the specification of a subcorpus trumps restrictions 
+ * this is essentially like a query 
+ * note also that no check for "already exists" is performed 
+ * this must be done beforehand 
+ */
 function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 'no_restriction')
 {
 	global $corpus_sql_name;
 	global $corpus_cqp_name;
 	global $mysql_link;
+	global $mysql_LOAD_DATA_INFILE_command;
 	global $mysql_tempdir;
 	global $instance_name;
 	global $path_to_cwb;
@@ -322,7 +325,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	
 	/* import the base frequency list */
 	database_disable_keys($temp_table);
-	$sql_query = load_data_infile()." '$temp_table_loadfile' into table $temp_table fields escaped by ''";
+	$sql_query = "$mysql_LOAD_DATA_INFILE_command '$temp_table_loadfile' into table $temp_table fields escaped by ''";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 

@@ -314,6 +314,8 @@ class apache_htaccess {
 		
 		$data .= "$groupname: \n";
 
+		if (copy($this->path_to_groups_file, $this->path_to_groups_file.'_backup_'.time()) === false)
+			return false;
 		if (file_put_contents($this->path_to_groups_file, $data) === false)
 			return false;
 		
@@ -371,7 +373,9 @@ class apache_htaccess {
 			return true;
 			
 		$data = preg_replace("/$group: /", "$group: $user ", $data);
-		
+
+		if (copy($this->path_to_groups_file, $this->path_to_groups_file.'_backup_'.time()) === false)
+			return false;
 		if (file_put_contents($this->path_to_groups_file, $data) === false)
 			return false;
 		
@@ -393,6 +397,8 @@ class apache_htaccess {
 
 		$data = str_replace($oldline, $newline, $data);
 
+		if (copy($this->path_to_groups_file, $this->path_to_groups_file.'_backup_'.time()) === false)
+			return false;
 		if (file_put_contents($this->path_to_groups_file, $data) === false)
 			return false;
 		
@@ -408,6 +414,8 @@ class apache_htaccess {
 
 		$data = preg_replace("/ $user\b/", '', $data);
 
+		if (copy($this->path_to_groups_file, $this->path_to_groups_file.'_backup_'.time()) === false)
+			return false;
 		if (file_put_contents($this->path_to_groups_file, $data) === false)
 			return false;
 		
@@ -424,13 +432,15 @@ class apache_htaccess {
 		
 		$data = preg_replace("/$group: .*\n/", '', $data);
 
+		if (copy($this->path_to_groups_file, $this->path_to_groups_file.'_backup_'.time()) === false)
+			return false;
 		if (file_put_contents($this->path_to_groups_file, $data) === false)
 			return false;
 		
 		return true;
 	}
 
-	/* returns the return val from htpasswd */
+	/* returns the return val from htpasswd, or 1 in case of unix copy fail */
 	function new_user($username, $password)
 	{
 		/* create the user, adding them & their password to the password file */
@@ -438,7 +448,15 @@ class apache_htaccess {
 		if (!$this->check_ok_for_password_op())
 			return false;
 		
-		$c = (file_exists($this->path_to_password_file) ? '' : 'c');
+		/* backup the previous file */
+		if (file_exists($this->path_to_password_file))
+		{
+			$c = '';
+			if (copy($this->path_to_password_file, $this->path_to_password_file . '_backup_' . time()) == false)
+				return 1;
+		}
+		else
+			$c = 'c';
 		exec("{$this->path_to_apache_password_utility_directory}/htpasswd -b$c {$this->path_to_password_file} $username $password", 
 			$junk, $val);
 

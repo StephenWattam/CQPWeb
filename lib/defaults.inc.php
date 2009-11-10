@@ -25,12 +25,66 @@
 
 /* because this might be called from the root directory rather than a corpus */
 if (file_exists('lib/config.inc.php'))
-	require('lib/config.inc.php');
+	require_once('lib/config.inc.php');
 else
-	require('../lib/config.inc.php');
+	require_once('../lib/config.inc.php');
 
+
+/* ------------------------ */
 /* GENERAL DEFAULT SETTINGS */
+/* ------------------------ */
+
 /* can be overridden by setting these variables in config.inc.php */
+
+/* Does mysqld have file-write/read ability? If set to true, CQPweb uses LOAD DATA
+ * INFILE and SELECT INTO OUTFILE. If set to false, file write/read into/out of
+ * mysql tables is done via the client-server link.
+ * 
+ * Giving mysqld file access, so that CQPweb can directly exchange files in 
+ * $mysql_tempdir with the MySQL server, may be considerably more efficient.
+ * 
+ * The default is false. 
+ */
+if (!isset($mysql_has_file_access))
+	$mysql_has_file_access = false;
+
+/* this has implications:
+ * 
+ * FOR THE TEMPORARY DIRECTORIES:
+ * if mysqld does not have file access, then we should ignore the distinction between
+ * cqp_tempdir and mysql_tempdir; all temporary files should be in one place only.
+ * In this case, mysql_tempdir does not actually need to be set.
+ * But if mysqld does have file access, we need ot check that mysql_tempdir has been set.
+ * 
+ * FOR HOW TEMPORARY FILES ARE LOADED TO MYSQL:
+ * If mysqld has file access, then "load infile" operations should use the path to
+ * the file from the perspective of mysqld, and it is mysqld (not the php-mysql-client) which
+ * will do the opening of the file.
+ * But if mysqld does not have file access, then we should load all infiles locally.
+ */
+if ($mysql_has_file_access)
+{
+	if (!isset($mysql_tempdir))
+	{
+		echo('CRITICAL ERROR: $mysql_tempdir has not been set');
+		exit();
+	}
+	$mysql_LOAD_DATA_INFILE_command = 'LOAD DATA INFILE';
+}
+else
+{
+	$mysql_tempdir = $cqp_tempdir;
+	$mysql_LOAD_DATA_INFILE_command = 'LOAD DATA LOCAL INFILE';
+}
+
+/*DEBUG CODE: due to current unceertainty, the identity of the two temp directories is enforced */
+$mysql_tempdir = $cqp_tempdir;
+/* so the across-two-computers thing doesn't work */
+
+if (!isset($utf8_set_required))
+	$utf8_set_required = true;
+
+/* the next defaults are for tweaks to the system -- not so much critical! */
 
 if (!isset($use_corpus_categories_on_homepage))
 	$use_corpus_categories_on_homepage = false;
@@ -44,6 +98,8 @@ if (!isset($css_path_for_adminpage))
 if (!isset($create_password_function))
 	$create_password_function = "password_insert_internal";
 
+if (!isset($cqpweb_uses_apache))
+	$cqpweb_uses_apache = true;
 
 
 
@@ -182,7 +238,7 @@ $mysql_process_name = array(
 	);
 
 
-/* if apache (or the like) is not being used, then $sername should be set by code in config.inc.php */
+/* if apache (or the like) is not being used, then $username should be set by code in config.inc.php */
 if (!isset($username))
 	$username = $_SERVER['REMOTE_USER'];
 if (!isset($username))
@@ -192,7 +248,7 @@ if (!isset($username))
 
 /* instance_name is the unique identifier of the present run of a given script */
 /* which will be used as the name of any queries/records saved by the present script */
-$instance_name = $username . "_" . time();
+$instance_name = $username . '_' . time();
 
 if (! isset($this_script))
 {

@@ -25,8 +25,6 @@ $path_to_perl = '';
 $cqp_tempdir = '';
 $cqpweb_accessdir = '';
 $cqpweb_uploaddir = '';
-$mysql_tempdir = '';
-$mysql_file_access = false; /* whether CQPweb can directly exchange files in $mysql_tempdir with MySQL server */
 $cwb_datadir = '';
 $cwb_registry = '';
 

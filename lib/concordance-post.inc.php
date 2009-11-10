@@ -649,12 +649,14 @@ class POSTPROCESS {
 			WHERE text_id = '{$this->text_target_id}'";
 	}
 	
+	/*
+	// deletable function I think
 	function text_sql_count_remaining_hits()
 	{
 		return "select count(*)
 			from {$this->dist_db}
 			where text_id = '{$this->text_target_id}'";
-	}
+	}*/
 
 
 } /* end of class POSTPROCESS */
@@ -688,12 +690,9 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 	/* first, write a "dumpfile" to temporary storage */
 	$tempfile  = "/$cqp_tempdir/temp_coll_$new_qname.tbl";
 
-	$sql_query = $descriptor->colloc_sql_for_queryfile($tempfile);
+	$sql_query = $descriptor->colloc_sql_for_queryfile();
 
-	$solutions_remaining = mysql_query_local_outfile($sql_query, $tempfile, $mysql_link);
-	if ($solutions_remaining == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link),
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$solutions_remaining = do_mysql_outfile_query($sql_query, $tempfile);
 
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
@@ -703,14 +702,12 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 		/* load to CQP as a new query, and save */
 		$cqp->execute("undump $new_qname < '$tempfile'");
 		$cqp->execute("save $new_qname");
+		unlink($tempfile);
 		
 		/* get the size of the new query */
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
-		unlink($tempfile);
-
 		/* put this newly-created query in the cache */
-
 		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
 
 		$insert_result = mysql_query($insert, $mysql_link);
@@ -722,7 +719,8 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 		update_cached_query($cache_record);
 
 	}
-	else {
+	else 
+	{
 		unlink($tempfile);
 		say_sorry_postprocess();
 		/* which exits the program */
@@ -750,10 +748,8 @@ function run_postprocess_sort($cache_record, &$descriptor)
 
 	$sql_query = $descriptor->sort_sql_for_queryfile($orig_cache_record);
 
-	$solutions_remaining = mysql_query_local_outfile($sql_query, $tempfile, $mysql_link);
-	if ($solutions_remaining == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$solutions_remaining = do_mysql_outfile_query($sql_query, $tempfile);
+
 
 	if ($descriptor->sort_remove_prev_sort)
 	{
@@ -769,14 +765,12 @@ function run_postprocess_sort($cache_record, &$descriptor)
 		/* load to CQP as a new query, and save */
 		$cqp->execute("undump $new_qname < '$tempfile'");
 		$cqp->execute("save $new_qname");
+		unlink($tempfile);
 		
 		/* get the size of the new query */
-		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
-		
-		unlink($tempfile);
+		$cache_record['file_size'] = cqp_file_sizeof($new_qname);	
 
 		/* put this newly-created query in the cache */
-
 		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
 
 		$insert_result = mysql_query($insert, $mysql_link);
@@ -788,7 +782,8 @@ function run_postprocess_sort($cache_record, &$descriptor)
 		update_cached_query($cache_record);
 	
 	}
-	else {
+	else 
+	{
 		unlink($tempfile);
 		say_sorry_postprocess();
 		/* which exits the program */
@@ -939,28 +934,22 @@ function run_postprocess_item($cache_record, &$descriptor)
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->item_sql_for_queryfile($orig_cache_record);
 
-	$solutions_remaining = mysql_query_local_outfile($sql_query, $tempfile, $mysql_link);
-	if ($solutions_remaining == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$solutions_remaining = do_mysql_outfile_query($sql_query, $tempfile);
 
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
 	if ($solutions_remaining > 0)
 	{
-
 		/* load to CQP as a new query, and save */
 		$cqp->execute("undump $new_qname < '$tempfile'");
 		$cqp->execute("save $new_qname");
+		unlink($tempfile);
 		
 		/* get the size of the new query */
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
-		unlink($tempfile);
-
 		/* put this newly-created query in the cache */
-
 		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
 
 		$insert_result = mysql_query($insert, $mysql_link);
@@ -970,9 +959,9 @@ function run_postprocess_item($cache_record, &$descriptor)
 		unset($insert_result);
 
 		update_cached_query($cache_record);
-	
 	}
-	else {
+	else 
+	{
 		unlink($tempfile);
 		say_sorry_postprocess();
 		/* which exits the program */
@@ -1010,28 +999,22 @@ function run_postprocess_dist($cache_record, &$descriptor)
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->dist_sql_for_queryfile($orig_cache_record);
 
-	$solutions_remaining = mysql_query_local_outfile($sql_query, $tempfile, $mysql_link);
-	if ($solutions_remaining == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$solutions_remaining = do_mysql_outfile_query($sql_query, $tempfile);
 
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
 	if ($solutions_remaining > 0)
 	{
-
 		/* load to CQP as a new query, and save */
 		$cqp->execute("undump $new_qname < '$tempfile'");
 		$cqp->execute("save $new_qname");
+		unlink($tempfile);
 		
 		/* get the size of the new query */
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
-		unlink($tempfile);
-
 		/* put this newly-created query in the cache */
-
 		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
 
 		$insert_result = mysql_query($insert, $mysql_link);
@@ -1041,9 +1024,9 @@ function run_postprocess_dist($cache_record, &$descriptor)
 		unset($insert_result);
 
 		update_cached_query($cache_record);
-	
 	}
-	else {
+	else 
+	{
 		unlink($tempfile);
 		say_sorry_postprocess();
 		/* which exits the program */
@@ -1079,28 +1062,22 @@ function run_postprocess_text($cache_record, &$descriptor)
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->text_sql_for_queryfile($orig_cache_record);
 
-	$solutions_remaining = mysql_query_local_outfile($sql_query, $tempfile, $mysql_link);
-	if ($solutions_remaining == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$solutions_remaining = do_mysql_outfile_query($sql_query, $tempfile);
 
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $solutions_remaining;
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
 	if ($solutions_remaining > 0)
 	{
-
 		/* load to CQP as a new query, and save */
 		$cqp->execute("undump $new_qname < '$tempfile'");
 		$cqp->execute("save $new_qname");
+		unlink($tempfile);
 		
 		/* get the size of the new query */
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
-		unlink($tempfile);
-
 		/* put this newly-created query in the cache */
-
 		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
 
 		$insert_result = mysql_query($insert, $mysql_link);
@@ -1110,9 +1087,9 @@ function run_postprocess_text($cache_record, &$descriptor)
 		unset($insert_result);
 
 		update_cached_query($cache_record);
-	
 	}
-	else {
+	else 
+	{
 		unlink($tempfile);
 		say_sorry_postprocess();
 		/* which exits the program */

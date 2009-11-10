@@ -67,9 +67,6 @@ function printquery_search()
 			&nbsp;<br/>
 			&nbsp;<br/>
 			
-			<!-- not sure what this next parameter does -->
-			<!--input type="hidden" name="qType" value="cql"/-->
-			
 			<table>	
 				<tr><td class="basicbox">Query mode:</td>
 				
@@ -238,9 +235,6 @@ function printquery_restricted()
 			&nbsp;<br/>
 			&nbsp;<br/>
 			
-			<!-- not sure what this next parameter does -->
-			<!--input type="hidden" name="qType" value="cql"/-->
-			
 			<table>	
 				<tr><td class="basicbox">Query mode:</td>
 				
@@ -305,16 +299,15 @@ function printquery_restricted()
 
 
 
-/* this provides the metadata restrictions block that is used for queries and for subcorpora */
-/* checkarray is an array of categories / classes that are to be checked */
-/* if it is NULL, the query string will be searched for pairs of inherited values */
+/* this provides the metadata restrictions block that is used for queries and for subcorpora
+ * checkarray is an array of categories / classes that are to be checked
+ * if it is NULL, the http query string will be searched for pairs of inherited values */
 function printquery_build_restriction_block($checkarray, $thing_to_produce)
 {
-	global $qString;
 	if ($checkarray === NULL)
 	{
-		/* build checkarray from the $qstring */
-		preg_match_all('/&t=([^~]+)~([^&]+)/', $qString, $pairs, PREG_SET_ORDER );
+		/* build checkarray from the http query string */
+		preg_match_all('/&t=([^~]+)~([^&]+)/', $_SERVER['QUERY_STRING'], $pairs, PREG_SET_ORDER );
 		
 		foreach($pairs as $p)
 			$checkarray[$p[1]][$p[2]] = 'checked="checked" ';

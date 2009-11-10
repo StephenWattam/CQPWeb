@@ -554,21 +554,19 @@ function load_subcorpus_to_cqp($subcorpus)
 	if ($sc_record['text_list'] != '')
 	{
 		/* use text list - don't even look at restrictions */
-
 		$wherelist = translate_textlist_to_where($sc_record['text_list']);
 
 		$sqlfile = "/$mysql_tempdir/sc_temp_$instance_name";
+		$sqlfile_localequiv = "/$cqp_tempdir/sc_temp_$instance_name"; 
 	
 		$sql_query = "SELECT cqp_begin, cqp_end 
 			FROM text_metadata_for_$corpus_sql_name 
 			WHERE $wherelist ORDER BY cqp_begin ASC";
-		$result = mysql_query_local_outfile($sql_query, $sqlfile, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-				
-		load_limits_to_cqp($sqlfile);
-		unlink($sqlfile);
+		do_mysql_outfile_query($sql_query, $sqlfile);
+
+		/* we load the mysql outfile to CQP, addressing it by means of cqp_tempdir */
+		load_limits_to_cqp($sqlfile_localequiv);
+		unlink($sqlfile_localequiv);
 	}
 	else
 	{
@@ -587,6 +585,7 @@ function load_restrictions_to_cqp($restrictions)
 {
 	global $mysql_link;
 	global $mysql_tempdir;
+	global $cqp_tempdir;
 	global $corpus_sql_name;
 	global $instance_name;
 
@@ -595,17 +594,16 @@ function load_restrictions_to_cqp($restrictions)
 			__FILE__, __LINE__);
 			
 	$sqlfile = "/$mysql_tempdir/sc_temp_$instance_name";
+	$sqlfile_localequiv = "/$cqp_tempdir/sc_temp_$instance_name"; 
 	
 	$sql_query = "SELECT cqp_begin, cqp_end 
 		FROM text_metadata_for_$corpus_sql_name 
 		WHERE $restrictions ORDER BY cqp_begin ASC";
-	$result = mysql_query_local_outfile($sql_query, $sqlfile, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-			
-	load_limits_to_cqp($sqlfile);
-	unlink($sqlfile);
+	do_mysql_outfile_query($sql_query, $sqlfile);
+
+	/* we load the mysql outfile to CQP, addressing it by means of cqp_tempdir */
+	load_limits_to_cqp($sqlfile_localequiv);
+	unlink($sqlfile_localequiv);
 }
 
 

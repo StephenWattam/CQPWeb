@@ -1141,6 +1141,7 @@ function create_text_metadata_for()
 	global $cqpweb_uploaddir;
 	global $mysql_tempdir;
 	global $mysql_link;
+	global $mysql_LOAD_DATA_INFILE_command;
 	
 	
 	$corpus = preg_replace('/\W/', '', $create_text_metadata_for_info['corpus']);
@@ -1195,6 +1196,8 @@ function create_text_metadata_for()
 									"select distinct({$create_text_metadata_for_info['fields'][$i]['handle']}) 
 									from text_metadata_for_$corpus"
 									);
+			/* and add to list for which indexes are needed */
+			$category_index_list[] = $create_text_metadata_for_info['fields'][$i]['handle'];
 		}
 		else
 		{
@@ -1207,15 +1210,22 @@ function create_text_metadata_for()
 				'{$create_text_metadata_for_info['fields'][$i]['description']}', 0)";
 		}
 	}
-
-	/* finish off the create statement */
 	/* note, varchar(20) seems ungenerous - fix this? */
+
+	/* add the standard fields; begin list of indexes. */
 	$create_statement .= ",
 		`words` INTEGER NOT NULL default '0',
 		`cqp_begin` BIGINT UNSIGNED NOT NULL default '0',
 		`cqp_end` BIGINT UNSIGNED NOT NULL default '0',
-		key (text_id)
-	) CHARSET=utf8 ;\n\n";
+		primary key (text_id),
+		";
+	if (!empty($category_index_list))
+		$create_statement .= 'index(' . implode(',',$category_index_list) . ') ';
+
+	/* finish off the rest of the create statement */
+	$create_statement .= "
+		) CHARSET=utf8 ;\n\n";
+
 
 	$update_statement = '';
 	if (isset($create_text_metadata_for_info['primary_classification']))
@@ -1226,15 +1236,10 @@ function create_text_metadata_for()
 			$update_statement = "update corpus_metadata_fixed set primary_classification_field = '$pa' 
 				where corpus = '$corpus'";
 	}
-		
-	$load_statement = load_data_infile()." '$input_file' INTO TABLE text_metadata_for_$corpus";
 
-	
-//show_var($inserts_for_metadata_fields);
-//show_var($create_statement);
-//show_var($load_statement);
-//show_var($update_statement);
-//show_var($scan_statements);
+	$load_statement = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE text_metadata_for_$corpus";
+
+
 	if (isset($inserts_for_metadata_fields))
 	{
 		foreach($inserts_for_metadata_fields as &$ins)

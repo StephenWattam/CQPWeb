@@ -31,6 +31,7 @@
 class CQP
 {
 	/* MEMBERS */
+	
 	/* for backwards compatability, all are public (as they were "var" in PHP 4.x) */
 	/* but note that many should probably be private. */
 	
@@ -95,9 +96,6 @@ class CQP
 
 		if (! is_resource($this->process))
 			exit("ERROR: CQP backend startup failed; command ==\n$command\n");
-// debug code
-// else echo "\n\n<br/>CQP startup fine<br/>";
-
 
 		/* $handle now looks like this:
 		   0 => writeable handle connected to child stdin

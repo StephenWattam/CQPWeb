@@ -405,53 +405,78 @@ function dump_mysql_result($result)
 	return $s;
 }
 
-/* replacement for SELECT ... INTO LOCAL OUTFILE (i.e. save SQL result set to local file)
-    - $filename should be full absolute path; must be in $mysql_tempdir if $mysql_file_access == true */
-function mysql_query_local_outfile($query, $filename, $conn)
+
+/**
+ * Does a mysql query and puts the result into an output file.
+ * 
+ * This works regardless of whether the mysql server program (mysqld)
+ * is allowed to write files or not.
+ * 
+ * The mysql $query should be of the form "select [somthing] FROM [table] [other conditions]" 
+ * -- that is, it MUST NOT contain "into outfile $filename", and the FROM must be in capitals. 
+ * 
+ * The output file is specified by $filename - this must be a full absolute path,
+ * and must be in $mysql_tempdir if $mysql_has_file_access == true.
+ * 
+ * Typically used to create a dump file (new format post CWB2.2.101)
+ * for input to CQP e.g. in the creation of a postprocessed query. 
+ * 
+ * Its return value is the number of rows written to file. In case of problem,
+ * existerror_* is called here.
+ */
+function do_mysql_outfile_query($query, $filename)
 {
-	global $mysql_file_access;
+	global $mysql_has_file_access;
+	global $mysql_link;
 	
-	if ($mysql_file_access) {
-		$into_outfile = sprintf("INTO OUTFILE '%s' FROM ", mysql_real_escape_string($filename, $conn));
+	if ($mysql_has_file_access) 
+	{
+		/* We should use INTO OUTFILE */
+		
+		$into_outfile = 'INTO OUTFILE "' . mysql_real_escape_string($filename) . '" FROM ';
 		$replaced = 0;
 		$query = str_replace("FROM ", $into_outfile, $query, $replaced);
+		
 		if ($replaced != 1)
-			return false;
+			exiterror_mysqlquery('no_number',
+				'A query was prepared which does not contain FROM, or contains multiple instances of FROM: ' 
+				. $query , __FILE__, __LINE__);
+				
 		$result = mysql_query($query);
-		if (!$result)
-			return false;
+		if ($result == false) 
+			exiterror_mysqlquery(mysql_errno($mysql_link),
+				mysql_error($mysql_link), __FILE__, __LINE__);
 		else
-			return mysql_affected_rows($conn);
+			return mysql_affected_rows($mysql_link);
 	}
-	else {
-		$result = mysql_unbuffered_query($query, $conn); /* avoid memory overhead for large result sets */
+	else 
+	{
+		/* we cannot use INTO OUTFILE, so run the query, and write to file ourselves */
+		
+		$result = mysql_unbuffered_query($query, $mysql_link); /* avoid memory overhead for large result sets */
 		if ($result == false)
-			return $result;
+			exiterror_mysqlquery(mysql_errno($mysql_link),
+				mysql_error($mysql_link), __FILE__, __LINE__);
 	
-		$fh = fopen($filename, 'w');
-		if (!$fh) {
+		if (!($fh = fopen($filename, 'w'))) 
+		{
 			mysql_free_result($result);
-			return false;
+			exiterror_general("Could not open file for write ( $filename )", __FILE__, __LINE__);
 		}
+		
 		$rowcount = 0;
-		while ($row = mysql_fetch_row($result)) {
-			fprintf($fh, "%s\n", implode("\t", $row));
+		while ($row = mysql_fetch_row($result)) 
+		{
+			fputs($fh, implode("\t", $row) . "\n");
 			$rowcount++;
 		}
+		
 		fclose($fh);
+		
 		return $rowcount;
 	}
 }
 
-/* returns appropriate LOAD DATA (LOCAL) INFILE command, depending on $mysql_file_access */
-function load_data_infile()
-{
-	global $mysql_file_access;
-	if ($mysql_file_access)
-		return "LOAD DATA INFILE";
-	else
-		return "LOAD DATA LOCAL INFILE";
-}
 
 function coming_soon_page()
 {
@@ -499,9 +524,7 @@ function coming_soon_finish_page()
 }
 
 
-// needs moving to CQP object file
-// maybe don't even bother with constants
-
+// this shouldn't now be needed and can be deleted as cqp.inc.php does not use these constants any more
 function create_pipe_handle_constants()
 {
 	define("IN",  0);	/* stdin,  i.e. input  TO   the child */
@@ -511,22 +534,18 @@ function create_pipe_handle_constants()
 
 
 
-
-/*
-script_path	path to the script, relative to current PHP script
-arguments		anything to add after the script name 
-*/
-
-
-
-/* perl handling */
-
-// an object interface would be better
-// assemble script in PHP memory and then pipe to Perl (???)
-
-/* currently set to return up to 10 Kb of text written to STDOUT */
-/* returns "" if it doesn't get anything back */
-
+/**
+ * Runs a script in perl and returns up to 10Kb of text written to STDOUT
+ * by that perl script, or an empty string if Perl writes nothing to STDOUT.
+ * 
+ * It reads STDERR if nothing is written to STDOUT.
+ * 
+ * This function is not currently used.
+ * 
+ * script_path	path to the script, relative to current PHP script (string)
+ * arguments	anything to add after the script name (string)
+ * 
+ */
 function perl_interface($script_path, $arguments, $select_maxtime='!')
 {
 	global $path_to_perl;
@@ -561,6 +580,7 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 		fclose($handles[1]);    
 		fclose($handles[2]);    
 		proc_close($process);
+		
 		return $output;
 	}
 	else

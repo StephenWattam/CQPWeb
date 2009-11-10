@@ -412,10 +412,7 @@ function categorise_separate()
 		/* create the dumpfile & obtain solution count */
 		$sql_query = "SELECT beginPosition, endPosition FROM $dbname 
 			WHERE category = '$category'";
-		$solution_count = mysql_query_local_outfile($sql_query, $outfile_path, $mysql_link);
-		if ($solution_count == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$solution_count = do_mysql_outfile_query($sql_query, $outfile_path);
 		
 		if ($solution_count < 1)
 		{

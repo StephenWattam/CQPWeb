@@ -3,15 +3,15 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
-	<META NAME="CHANGED" CONTENT="20091021;23363900">
+	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
+	<META NAME="CHANGED" CONTENT="20091110;11485900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
-	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1 LANG="en-GB">Some very quick notes on how to set up CQPweb v 2.03
@@ -20,11 +20,10 @@ or higher</H1>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>What
 you will need</B></FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">You'll need a machine with a Unix-style operating
-system (<I>CQPweb has been tested, so far, on Sun OS 5.10; Debian;
-Ubuntu; and Fedora</I>). Other software you need: 
+<P LANG="en-GB"><SPAN LANG="en-GB">You'll need a machine with a
+Unix-style operating system (<I>CQPweb has been tested, so far, on
+Sun OS 5.10; Debian; Ubuntu; and Fedora</I>). Other software you
+need: </SPAN>
 </P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Apache or some other webserver (note: <I>internal
@@ -56,10 +55,8 @@ Ubuntu; and Fedora</I>). Other software you need:
 </UL>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
-up Apache</B></FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><B><FONT FACE="Albany, sans-serif"><FONT SIZE=4><SPAN LANG="en-GB">Setting
+up Apache</SPAN></FONT></FONT></B></P>
 <P LANG="en-GB">This section assumes that you are using Apache and
 that you want to use the internal username/password functions in
 CQPweb. If this assumption is false, skip onwards to the next
@@ -82,10 +79,8 @@ or for the particular host (in
 <FONT FACE="Courier New, monospace">/etc/apache2/sites-available/{$site}.conf</FONT>).</P>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
-up the Perl elements</B></FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><B><FONT FACE="Albany, sans-serif"><FONT SIZE=4><SPAN LANG="en-GB">Setting
+up the Perl elements</SPAN></FONT></FONT></B></P>
 <P LANG="en-GB">You will need to install the following Perl modules
 from the CWB Perl distribution:</P>
 <UL TYPE=DISC>
@@ -108,10 +103,8 @@ BNCweb v 4.2 – this is v3.0 of cwb-perl-lib.</P>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
 up MySQL</B></FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">You will need to create a new user and a new database
-for CQPweb to use.</P>
+<P LANG="en-GB"><SPAN LANG="en-GB">You will need to create a new user
+and a new database for CQPweb to use.</SPAN></P>
 <P LANG="en-GB">Make a note of the username / password of this new
 user and of the new database.</P>
 <P LANG="en-GB"><SPAN LANG="en-GB">The new database should have
@@ -121,25 +114,25 @@ set to </SPAN><SPAN LANG="en-GB"><B>utf8.</B></SPAN><SPAN LANG="en-GB">
 addresses a bug which affects some (but not all!) versions of the
 MySQL server software – see <A HREF="http://bugs.mysql.com/bug.php?id=10195">http://bugs.mysql.com/bug.php?id=10195</A></SPAN></SPAN></P>
 <P LANG="en-GB">The new user needs to have <FONT FACE="Courier New, monospace">GRANT
-ALL</FONT> on the new database. The new user also needs <FONT FACE="Courier New, monospace">GRANT
+ALL</FONT> on the new database. If you want MySQL to use file-access
+functions (this is not necessary, but may speed things up; see
+below), the new user also needs <FONT FACE="Courier New, monospace">GRANT
 FILE ON *.*</FONT></P>
 <P LANG="en-GB">Also make a note of the servername needed to access
-the MySQL server by a webscript. This will probably be <FONT FACE="Courier New, monospace">localhost</FONT>.
-<I>Note that it is not currently possible to use CQPweb with a MySQL
-installation on a separate server to the web server</I>. 
-</P>
-<P LANG="en-GB"><SPAN LANG="en-GB">A known “gotcha”: PHP needs to
-know how to connect to the MySQL server via a </SPAN><SPAN LANG="en-GB"><I>socket</I></SPAN><SPAN LANG="en-GB">
-in the filesystem. This information is often contained in the </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
+the MySQL server by a webscript. This will probably be <FONT FACE="Courier New, monospace">localhost</FONT>,
+assuming that the MySQL server is on the same machine as the
+webscripts. (It does not absolutely need to be.)</P>
+<P LANG="en-GB">A known “gotcha”: PHP needs to know how to
+connect to the MySQL server via a <I>socket</I> in the filesystem.
+This information is often contained in the <FONT FACE="Courier New, monospace">php.ini</FONT>
 file, which contains settings loaded by PHP when it starts up. On
 many systems, connecting to MySQL simply “works” by default, but
-on some systems you may need to edit your </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
+on some systems you may need to edit your <FONT FACE="Courier New, monospace">php.ini</FONT>
 file to tell PHP where to find the socket, by changing the
-</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">mysql.default_socket</SPAN></FONT><SPAN LANG="en-GB">
-setting. For instance,  if your socket is at </SPAN><FONT FACE="Courier New, monospace">/tmp/mysql.sock
-</FONT><SPAN LANG="en-GB">but PHP is looking at</SPAN><FONT FACE="Courier New, monospace">
-/var/mysql/mysql.sock</FONT><SPAN LANG="en-GB"> , you need to adjust 
-</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">mysql.default_socket</SPAN></FONT>
+<FONT FACE="Courier New, monospace">mysql.default_socket</FONT>
+setting. For instance, if your socket is at <FONT FACE="Courier New, monospace">/tmp/mysql.sock
+</FONT>but PHP is looking at <FONT FACE="Courier New, monospace">/var/mysql/mysql.sock</FONT>
+, you need to adjust <FONT FACE="Courier New, monospace">mysql.default_socket</FONT>
 to /tmp/mysql.sock. If you edit a <FONT FACE="Courier New, monospace">php.ini</FONT>
 file, make sure it is the one used when PHP is run by the server
 (i.e. as CGI or as an Apache module).</P>
@@ -147,12 +140,8 @@ file, make sure it is the one used when PHP is run by the server
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
 up directories</B></FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">CQPweb needs the following directories to be created
-on the server.</P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB"><SPAN LANG="en-GB">CQPweb needs the following
+directories to be created on the server.</SPAN></P>
 <TABLE WIDTH=882 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
 	<COL WIDTH=556>
 	<COL WIDTH=309>
@@ -271,7 +260,8 @@ to be the same as the ones you normally use for CWB.</P>
 usually something like <B>www</B> or <B>www-data</B>) need to have
 read-write-execute access to all these directories. The username of
 the mysqld process (usually something like <B>mysql</B><SPAN STYLE="font-weight: normal">)
-also needs read and write access. So, these new folders </SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I>
+also needs read and write access if you want MySQL to use file-access
+functions. So, these new folders </SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I>
 <SPAN STYLE="font-weight: normal">have the write permission set for
 either “all” or – if you are worried about security – for
 “group” (where the file is assigned to some group that both the
@@ -317,7 +307,7 @@ has full permissions. You fix this by doing the following (as root):</SPAN></FON
 	</UL>
 </UL>
 <P LANG="en-GB" STYLE="font-weight: normal"><FONT FACE="Times New Roman, serif">The
-alternative is to disable AppArmor.</FONT></P>
+alternative is to disable AppArmor completely.</FONT></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -330,8 +320,10 @@ the www user has rwx access to all the files you’ve just put in
 here.</P>
 <P LANG="en-GB">Alternatively, use subversion to get the most
 up-to-date version of the code:</P>
-<P LANG="en-GB">svn co 
-</P>
+<UL>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">svn
+	co http://cwb.svn.sourceforge.net/viewvc/cwb/gui/cqpweb/trunk cqpweb</SPAN></FONT></P>
+</UL>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Creating
@@ -340,8 +332,10 @@ a config file: automatically</B></FONT></FONT></P>
 primitive but it will save you fiddling with PHP code for
 configuration variables. To use it, change directory to the web
 directory, and run</P>
-<P LANG="en-GB"><FONT FACE="Courier New, monospace">php
-cqpweb-autoconfig.php</FONT></P>
+<UL>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php
+	cqpweb-autoconfig.php</SPAN></FONT></P>
+</UL>
 <P LANG="en-GB">… <SPAN LANG="en-GB">and follow the instructions to
 enter the paths and other info that you made a note of above.</SPAN></P>
 <P LANG="en-GB">When you are asked to specify admin usernames, enter
@@ -363,12 +357,8 @@ a config file: manually</B></FONT></FONT></P>
 actually edit the code file that contains the config variables. Do
 this as follows: 
 </P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">Find the file called “template.config.inc.php”
-and edit it. It looks like this:</P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB"><SPAN LANG="en-GB">Find the file called
+“template.config.inc.php” and edit it. It looks like this:</SPAN></P>
 <TABLE WIDTH=1012 BORDER=1 CELLPADDING=4 CELLSPACING=3>
 	<COL WIDTH=996>
 	<TR>
@@ -413,8 +403,6 @@ and edit it. It looks like this:</P>
 			= '2';</FONT></FONT></P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqpweb_uploaddir
 			= '6';</FONT></FONT></P>
-			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$mysql_tempdir
-			= '3';</FONT></FONT></P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cwb_datadir
 			= '4';</FONT></FONT></P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cwb_registry
@@ -445,27 +433,17 @@ settings are the things you noted when creating the mysql user.</P>
 settings specify where the perl, cwb and apache utilities binaries
 are to be found. Give them in the following format (example paths
 from a linux server):</P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_cwb
-= 'usr/local/bin';</FONT></FONT></P>
-<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_apache_utils
-= 'usr/local/bin';</FONT></FONT></P>
-<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_perl
-= 'usr/bin';</FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">Note in particular: there IS NOT a slash at the
-beginning or end of any of these three paths.</P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">You are recommended to start with <FONT FACE="Courier New"><FONT SIZE=2><SPAN LANG="en-US">$utf8_set_required
+<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><SPAN LANG="en-GB"><FONT SIZE=2>$path_to_cwb
+= 'usr/local/bin';<BR>$path_to_apache_utils =
+'usr/local/bin';<BR>$path_to_perl = 'usr/bin';</FONT></SPAN></FONT></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">Note in particular: there IS NOT a
+slash at the beginning or end of any of these three paths.</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">You are recommended to start with
+<FONT FACE="Courier New"><FONT SIZE=2><SPAN LANG="en-US">$utf8_set_required
 = true;</SPAN></FONT></FONT> and see if it causes a problem – and
-change it if so.</P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">There are two settings that can be set manually, but
-not automatically. They are</P>
+change it if so.</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">There are assorted settings that
+can be set manually, but not automatically. They are</SPAN></P>
 <UL>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$use_corpus_categories_on_homepage</FONT>
 	– this defaults to <B>false,</B> if you set it to <B>true</B> <SPAN STYLE="font-weight: normal">then
@@ -486,22 +464,32 @@ not automatically. They are</P>
 	</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">'password_insert_lancaster'</SPAN></FONT><SPAN STYLE="font-weight: normal">.
 	</SPAN>
 	</P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$mysql_has_file_access</FONT>
+	– this defaults to false, if you set it to true then this affects
+	various functions that load data from file to the MySQL server: they
+	may run faster. But this must only be set to true <B>if</B> (a) the
+	MySQL server actually does have access to the appropriate temporary
+	directory <B>and</B> (b) the MySQL username used by CQPweb has <FONT FACE="Courier New, monospace">GRANT
+	FILE ON *.*</FONT> permissions. It is important you get this right,
+	as CQPweb doesn't check these two preconditions for you! 
+	</P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$mysql_tempdir</FONT>
+	– this defaults to the same as <FONT FACE="Courier New, monospace">$cqp_tempdir</FONT>,
+	but you can set it to a different path if you are using a separate
+	computer for MySQL. See section on “Using a separate computer for
+	MySQL”.</P>
 </UL>
+<P LANG="en-GB"><SPAN LANG="en-GB">Save the edited file as
+“config.inc.php” and put it into the “lib” subdirectory of
+the web directory.</SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB">Save the edited file as “config.inc.php” and put
-it into the “lib” subdirectory of the web directory.</P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Setting
-up administrator users</FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><B><SPAN LANG="en-GB"><FONT SIZE=4><FONT FACE="Albany, sans-serif">Setting
+up administrator users</FONT></FONT></SPAN></B></P>
 <P LANG="en-GB"><I><U>If you have used the autoconfig, then this is
 done automatically for you.</U></I> Otherwise...</P>
-<P LANG="en-GB">Using a text editor, create a file called&nbsp;
-<B>.htgroup</B> in directory (2) as described above. It should look
-like this:</P>
+<P LANG="en-GB">Using a text editor, create a file called <B>.htgroup</B>
+in directory (2) as described above. It should look like this:</P>
 <P LANG="en-GB" ALIGN=LEFT><FONT FACE="Courier New"><B>superusers:
 bob jeff</B></FONT></P>
 <P LANG="en-GB">but with the usernames changed to match the ones in
@@ -519,19 +507,15 @@ superusers<BR>satisfy any</B></FONT></FONT></FONT></P>
 directories substituted, as in the configuration file.</SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Getting
-it up and running</FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><B><FONT SIZE=4><SPAN LANG="en-GB">Getting
+it up and running</SPAN></FONT></B></FONT></P>
 <P LANG="en-GB">You are now ready to go. Open a web browser and
 navigate to 
 </P>
 <P LANG="en-GB"><FONT FACE="Courier New, monospace"><B>http://your-server.net/path/to/cqpweb/web/directory/adm</B></FONT></P>
-<P LANG="en-GB">(the “adm” is short for Admin).</P>
-<P LANG="en-GB">&nbsp;</P>
-<P LANG="en-GB">You should see an admin menu. 
-</P>
-<P LANG="en-GB"><BR><BR>
+<P LANG="en-GB"><SPAN LANG="en-GB">(the “adm” is short for
+Admin).</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">You should see an admin menu. </SPAN>
 </P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Click on “manage users”. Create usernames
@@ -556,22 +540,18 @@ navigate to
 </UL>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Creating
-usernames</FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><SPAN LANG="en-GB"><B><FONT SIZE=4><FONT FACE="Albany, sans-serif">Creating
+usernames</FONT></FONT></B></SPAN></P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Use “manage users” for this.</P>
 	<LI><P LANG="en-GB">CQPweb gives access to corpora to groups of
 	users, not individual usernames. This is done through the “manage
 	access” link for each corpus: find this on the “show corpora”
 	item of the admin menu.</P>
-	<LI><P LANG="en-GB">A user can be assigned to as many groups as you
-	like. Use “Manage groups” for this. 
+	<LI><P LANG="en-GB"><SPAN LANG="en-GB">A user can be assigned to as
+	many groups as you like. Use “Manage groups” for this. </SPAN>
 	</P>
 </UL>
-<P LANG="en-GB"><BR><BR>
-</P>
 <P LANG="en-GB">CQPweb passwords are transmitted in plaintext via
 HTTP. <B>User accounts are thus not secure</B>, the security is all
 based on the fact that even if someone manages to hack in, they can’t
@@ -582,38 +562,27 @@ purposes. If you really want secure username/password access, you
 need to set up CQPweb on an HTTPS server.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>Installing
-a corpus</FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">Corpora must follow all the usual rules for CWB
-corpora and in addition there is the following requirement:</P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT SIZE=4><SPAN LANG="en-GB"><FONT FACE="Albany, sans-serif"><B>Installing
+a corpus</B></FONT></SPAN></FONT></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">Corpora must follow all the usual
+rules for CWB corpora and in addition there is the following
+requirement:</SPAN></P>
 <P LANG="en-GB">Every text in the corpus must begin with</P>
-<P LANG="en-GB"><FONT FACE="Courier New, monospace">&lt;text
+<P LANG="en-GB" STYLE="margin-left: 1.25cm"><FONT FACE="Courier New, monospace">&lt;text
 id=&quot;XXX&quot;&gt;</FONT></P>
-<P LANG="en-GB"><FONT FACE="Courier New, monospace">...</FONT></P>
+<P LANG="en-GB" STYLE="margin-left: 1.25cm"><FONT FACE="Courier New, monospace">...</FONT></P>
 <P LANG="en-GB">and end with</P>
-<P LANG="en-GB"><FONT FACE="Courier New, monospace">&lt;/text&gt;</FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">and there must be at least one of these “text”
-elements (ie if the whole corpus is one text you still need these XML
-bits at the start and finish).</P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">The XXX id-codes must be C / Unix words – i.e. made
-up only of the letters A to Z, a to z, the numbers 0 to 9, and the
-underscore (with an underscore or letter in the first position). This
-is because they are used as “handles” by the system to refer to
-different texts. So no spaces or punctuation (except underscore) are
-allowed.</P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">To install a corpus, you need:</P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB" STYLE="margin-left: 1.25cm"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">&lt;/text&gt;</SPAN></FONT></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">and there must be at least one of
+these “text” elements (ie if the whole corpus is one text you
+still need these XML bits at the start and finish).</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">The XXX id-codes must be C / Unix
+words – i.e. made up only of the letters A to Z, a to z, the
+numbers 0 to 9, and the underscore (with an underscore or letter in
+the first position). This is because they are used as “handles”
+by the system to refer to different texts. So no spaces or
+punctuation (except underscore) are allowed.</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">To install a corpus, you need:</SPAN></P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">A file or files containing the corpus text, as
 	above 
@@ -621,20 +590,15 @@ allowed.</P>
 	<LI><P LANG="en-GB">A file of corpus metadata. 
 	</P>
 </UL>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">The metadata file should be a tab-delimited database.
-The first column should be the text id-codes, with a line for each
-text. You can then have as many columns of metadata as you need.</P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">Metadata is of two sorts – classifications and free
-text</P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB"><SPAN LANG="en-GB">The metadata file should be a
+tab-delimited database. The first column should be the text id-codes,
+with a line for each text. You can then have as many columns of
+metadata as you need.</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">Metadata is of two sorts –
+classifications and free text</SPAN></P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB">Free text – for items where the metadata can
-	vary across every single text (e.g. text title) 
+	<LI><P LANG="en-GB"><SPAN LANG="en-GB">Free text – for items where
+	the metadata can vary across every single text (e.g. text title) </SPAN>
 	</P>
 </UL>
 <UL TYPE=DISC>
@@ -644,18 +608,14 @@ text</P>
 	described above), NOT multi-word explanations 
 	</P>
 </UL>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">All files must be either ASCII or UTF-8. If they are
-UTF-8, the file must <U><B>not</B></U> have a leading byte-order
-mark. Linebreaks should be \n , not \r or \r\n .</P>
-<P LANG="en-GB"><BR><BR>
-</P>
+<P LANG="en-GB"><SPAN LANG="en-GB">All files must be either ASCII or
+UTF-8. If they are UTF-8, the file must <U><B>not</B></U> have a
+leading byte-order mark. Linebreaks should be \n , not \r or \r\n .</SPAN></P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB">Upload all your files (text + metadata) to the
-	upload area (directory 6). Then go to “Install new corpus” in
-	the web admin interface. This form is pretty self-explanatory if you
-	know CWB, but note the following: 
+	<LI><P LANG="en-GB"><SPAN LANG="en-GB">Upload all your files (text +
+	metadata) to the upload area (directory 6). Then go to “Install
+	new corpus” in the web admin interface. This form is pretty
+	self-explanatory if you know CWB, but note the following: </SPAN>
 	</P>
 	<LI><P LANG="en-GB">There is a bug in CQPweb just now that creates
 	problems if the MySQL name and the CWB name are not the same. Again,
@@ -682,32 +642,25 @@ mark. Linebreaks should be \n , not \r or \r\n .</P>
 		below</P>
 	</UL>
 </UL>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">When you have installed your corpus, you will need to
-fill in a form describing the metadata table, which is then loaded.</P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">Each field must have a handle, and you must specify
-whether it is a classification or not.</P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">Once the metadata table is loaded, you will be on a
-page called “<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="font-style: normal"><B>Admin
+<P LANG="en-GB"><SPAN LANG="en-GB">When you have installed your
+corpus, you will need to fill in a form describing the metadata
+table, which is then loaded.</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">Each field must have a handle, and
+you must specify whether it is a classification or not.</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">Once the metadata table is loaded,
+you will be on a page called “<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="font-style: normal"><B>Admin
 tools for managing corpus metadata</B></SPAN></FONT></FONT></FONT> ”.
 Click each of the buttons on this page, working from the bottom up
 (and press “back” once the operation has completed to press the
 next button). <I>On corpora which are just one long text, “Create
-CWB frequency table” is unnecessary and, indeed, may not work</I>.</P>
-<P LANG="en-GB"><BR><BR>
-</P>
-<P LANG="en-GB">The next (optional) step is to set up the interaction
-of your annotation with the CEQL Simple Query Parser. Click on
-“Manage Annotation” for this. The primary annotation will already
-be set up – it is accessed by putting the tag you want to search
-for after an underscore in Simple Query (like POS tags in BNCweb).
-But if you want to use CEQL to access other p-attributes, you need to
-set this up here.</P>
+CWB frequency table” is unnecessary and, indeed, may not work</I>.</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">The next (optional) step is to set
+up the interaction of your annotation with the CEQL Simple Query
+Parser. Click on “Manage Annotation” for this. The primary
+annotation will already be set up – it is accessed by putting the
+tag you want to search for after an underscore in Simple Query (like
+POS tags in BNCweb). But if you want to use CEQL to access other
+p-attributes, you need to set this up here.</SPAN></P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">The <B>secondary</B> annotation is just another
 	column like the primary annotation, accessed in CEQL by putting what
@@ -744,16 +697,47 @@ set this up here.</P>
 	<LI><P LANG="en-GB">Annotations that are not accessible via CEQL can
 	still be accessed using the full CQP syntax.</P>
 </UL>
+<P LANG="en-GB"><SPAN LANG="en-GB">You are now ready to go – point
+your browser at </SPAN><SPAN LANG="en-GB"><B>http://your-server.net/path/to/cqpweb/web/directory</B></SPAN><SPAN LANG="en-GB">
+and you’re off.</SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB">You are now ready to go – point your browser at
-<B>http://your-server.net/path/to/cqpweb/web/directory</B> and you’re
-off.</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Using
+a separate computer for MySQL <FONT COLOR="#ff0000">&lt;this doesn't
+work yet&gt;</FONT></B></FONT></FONT></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">You might want to use two separate
+machines for the CWB-based and MySQL-based parts of CQPweb, for
+reasons of performance (for a big corpus and for queries with lots of
+results, both MySQL and CWB require lots of disk space and lots of
+processing power). In this case, CQPweb itself (the web scripts)
+should be on the same system as CWB, and all the paths specified in
+the config file should refer to </SPAN><SPAN LANG="en-GB"><I>that</I></SPAN><SPAN LANG="en-GB">
+file-system, </SPAN><SPAN LANG="en-GB"><I>not</I></SPAN><SPAN LANG="en-GB">
+the one with MySQL on it.</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">You will need to make a decision
+regarding temporary files. There are two basic options.</SPAN></P>
+<UL>
+	<LI><P LANG="en-GB"><SPAN LANG="en-GB">Give the MySQL server file
+	access. (See section on manual config files for how). In this case,
+	the temporary directory is used as a place of interchange for
+	CQPweb, CWB and MySQL – so </SPAN><SPAN LANG="en-GB"><I>it must be
+	mounted on both machines</I></SPAN><SPAN LANG="en-GB">. The variable
+	</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$cqp_tempdir</SPAN></FONT><SPAN LANG="en-GB">
+	should be the path of this shared directory as it is mounted on the
+	CWB machine. The variable </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$mysql_tempdir</SPAN></FONT><SPAN LANG="en-GB">
+	should be the path of this shared directory as it is mounted on the
+	MySQL server machine.</SPAN></P>
+	<LI><P LANG="en-GB"><SPAN LANG="en-GB">Don't give the MySQL server
+	file access. In this case, large amounts of data will need to be
+	interchanged between the MySQL client and server.</SPAN></P>
+</UL>
+<P LANG="en-GB"><BR><BR>
+</P>
 <HR>
-<P LANG="en-GB"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
+<P LANG="en-GB"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
 v2.02 © 2008-2009 – documentation by Andrew Hardie,
 <A HREF="mailto:andrewhardie@sourceforge.net">andrewhardie@sourceforge.net</A>
-</SPAN></SPAN></SPAN></FONT></FONT></FONT>
+</SPAN></SPAN></SPAN></FONT></FONT></FONT></SPAN></SPAN></SPAN></FONT></FONT></FONT>
 </P>
 </BODY>
 </HTML>

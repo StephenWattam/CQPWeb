@@ -69,6 +69,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 	global $username;
 
 	global $mysql_link;
+	global $mysql_LOAD_DATA_INFILE_command;
 	
 	global $colloc_db_premium;
 	
@@ -159,7 +160,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 	}
 	else
 		$tabulate_dest = "'/$cqp_tempdir/$tabfile'";
-	
+
 
 
 	/* create the empty table */
@@ -181,7 +182,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 			mysql_error($mysql_link), __FILE__, __LINE__);
 	unset($result);
 
-	$sql_query = load_data_infile()." '/$cqp_tempdir/$tabfile' into table $dbname fields escaped by ''";
+	$sql_query = "$mysql_LOAD_DATA_INFILE_command '/$cqp_tempdir/$tabfile' into table $dbname fields escaped by ''";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 

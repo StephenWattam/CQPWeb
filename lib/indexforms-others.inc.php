@@ -525,8 +525,13 @@ function printquery_latest()
 	
 	<ul>
 		<li>
+		<b>Version 2.08</b>, 2009-11-08<br/>&nbsp;<br/>
+		Updated internal database-query interaction. As a result, CQPweb requires CWB version 2.2.101 or later.
+		Other changes:  
+		<br/>&nbsp;</li>
+		<li>
 		<b>Version 2.07</b>, 2009-09-08<br/>&nbsp;<br/>
-		Fixed a bug in context display affecting untagged corpora; 
+		Fixed a bug in context display affecting untagged corpora.
 		<br/>&nbsp;</li>
 		<li>
 		<b>Version 2.07</b>, 2009-08-07<br/>&nbsp;<br/>
