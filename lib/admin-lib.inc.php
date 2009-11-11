@@ -58,8 +58,8 @@ class corpus_install_info
 		/* get each thing from GET */
 		/***************************/
 		
-		$this->corpus_mysql_name = preg_replace('/\W/', '', $_GET['corpus_mysql_name']);
-		$this->corpus_cwb_name = strtolower(preg_replace('/\W/', '', $_GET['corpus_cwb_name']));
+		$this->corpus_mysql_name = cqpweb_handle_enforce($_GET['corpus_mysql_name']);
+		$this->corpus_cwb_name = strtolower(cqpweb_handle_enforce($_GET['corpus_cwb_name']));
 		$this->script_is_r2l = ( $_GET['corpus_scriptIsR2L'] === '1' );
 				
 		if ( $this->corpus_cwb_name === '' || $this->corpus_mysql_name === '' )
@@ -181,7 +181,7 @@ class corpus_install_info
 				if (preg_match('/^\w+:0\+[^+]+(\+[^+]+)*$/', $_GET["customS$q"]) > 0)
 					$cand = $_GET["customS$q"];
 				else
-					$cand = preg_replace('/\W/', '', $_GET["customS$q"]);
+					$cand = cqpweb_handle_enforce($_GET["customS$q"]);
 				if ($cand === '')
 					continue;
 				else
@@ -662,18 +662,20 @@ function uploaded_file_gzip($filename)
 	$in_file = fopen($path, "rb");
 	if (!$out_file = gzopen ($zip_path, "wb"))
 	{
-        exiterror_fullpage('Your request could not be completed - compressed file could not be opened.', 
+		exiterror_fullpage('Your request could not be completed - compressed file could not be opened.', 
 			__FILE__, __LINE__);
-    }
-   
-    while (!feof ($in_file)) 
-    {
-        $buffer = fgets ($in_file, 4096);
-        gzwrite ($out_file, $buffer, 4096);
-    }
+	}
 
-    fclose ($in_file);
-    gzclose ($out_file);
+	php_execute_time_unlimit();
+	while (!feof ($in_file)) 
+	{
+		$buffer = fgets($in_file, 4096);
+		gzwrite($out_file, $buffer, 4096);
+	}
+	php_execute_time_relimit();
+
+	fclose ($in_file);
+	gzclose ($out_file);
 	
 	unlink($path);
 	chmod($zip_path, 0777);
@@ -696,18 +698,20 @@ function uploaded_file_gunzip($filename)
 
 	$unzip_path = "/$cqpweb_uploaddir/{$m[1]}";
 	
-    $in_file = gzopen($path, "rb");
-    $out_file = fopen($unzip_path, "wb");
+	$in_file = gzopen($path, "rb");
+	$out_file = fopen($unzip_path, "wb");
 
-    while (!gzeof($in_file)) 
-    {
-        $buffer = gzread ($in_file, 4096);
-        fwrite ($out_file, $buffer, 4096);
-    }
- 
-    gzclose($in_file);
-    fclose ($out_file);
-    			
+	php_execute_time_unlimit();
+	while (!gzeof($in_file)) 
+	{
+		$buffer = gzread($in_file, 4096);
+		fwrite($out_file, $buffer, 4096);
+	}
+	php_execute_time_relimit();
+
+	gzclose($in_file);
+	fclose ($out_file);
+			
 	unlink($path);
 	chmod($unzip_path, 0777);
 }
@@ -1177,7 +1181,7 @@ function create_text_metadata_for()
 	for ($i = 1; $i <= $create_text_metadata_for_info['field_count']; $i++)
 	{
 		$create_text_metadata_for_info['fields'][$i]['handle'] 
-			= preg_replace('/\W/', '', $create_text_metadata_for_info['fields'][$i]['handle']);
+			= cqpweb_handle_enforce($create_text_metadata_for_info['fields'][$i]['handle']);
 			
 		if ($create_text_metadata_for_info['fields'][$i]['handle'] == '')
 			continue;

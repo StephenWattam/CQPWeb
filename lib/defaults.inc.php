@@ -43,6 +43,8 @@ else
  * Giving mysqld file access, so that CQPweb can directly exchange files in 
  * $mysql_tempdir with the MySQL server, may be considerably more efficient.
  * 
+ * (BUT -- we've not tested this yet)
+ * 
  * The default is false. 
  */
 if (!isset($mysql_has_file_access))
@@ -51,16 +53,16 @@ if (!isset($mysql_has_file_access))
 /* this has implications:
  * 
  * FOR THE TEMPORARY DIRECTORIES:
- * if mysqld does not have file access, then we should ignore the distinction between
+ * -- if mysqld does not have file access, then we should ignore the distinction between
  * cqp_tempdir and mysql_tempdir; all temporary files should be in one place only.
- * In this case, mysql_tempdir does not actually need to be set.
- * But if mysqld does have file access, we need ot check that mysql_tempdir has been set.
+ * -- In this case, mysql_tempdir does not actually need to be set.
+ * -- But if mysqld does have file access, we need ot check that mysql_tempdir has been set.
  * 
  * FOR HOW TEMPORARY FILES ARE LOADED TO MYSQL:
- * If mysqld has file access, then "load infile" operations should use the path to
+ * -- If mysqld has file access, then "load infile" operations should use the path to
  * the file from the perspective of mysqld, and it is mysqld (not the php-mysql-client) which
  * will do the opening of the file.
- * But if mysqld does not have file access, then we should load all infiles locally.
+ * -- But if mysqld does not have file access, then we should load all infiles locally.
  */
 if ($mysql_has_file_access)
 {

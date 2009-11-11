@@ -1218,161 +1218,170 @@ function printquery_uploadarea()
 function printquery_useradmin()
 {
 	global $mysql_link;
+	global $cqpweb_uses_apache;
 	
 	$apache = get_apache_object('nopath');
 	
-	$array_of_users = $apache->list_users();
 	
-	$user_list_as_options = '';
-	foreach ($array_of_users as $a)
-		$user_list_as_options .= "<option>$a</option>\n";
+	if ($cqpweb_uses_apache)
+	{
+		$array_of_users = $apache->list_users();
+		
+		$user_list_as_options = '';
+		foreach ($array_of_users as $a)
+			$user_list_as_options .= "<option>$a</option>\n";
+		
+		
+		/* before we start, add the javascript function that inserts password cxandidates */
+		
+		echo print_javascript_for_password_insert('password_insert_lancaster');
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th colspan="3" class="concordtable">
+					Create new user (or reset user password)
+				</th>
+			</tr>
+			<form action="index.php" method="GET">
+				<tr>
+					<td class="concordgeneral">
+						Enter the username you wish to create/reset:
+					</td>
+					<td class="concordgeneral">
+						<input type="text" name="newUsername" tabindex="1" width="30" />
+					</td>
+					<td class="concordgeneral" rowspan="3">
+						<input type="submit" value="Create user account" tabindex="5" />
+					</td>
+				</tr>
+				<tr>
+					<td class="concordgeneral">
+						Enter a new password for the specified user:
+					</td>
+					<td class="concordgeneral">
+						<input type="text" id="passwordField" name="newPassword" tabindex="2" width="30" />
+						<a class="menuItem" tabindex="3"
+							onmouseover="return escape('Suggest a password')" onclick="insertPassword()">
+							[+]
+						</a>
+					</td>
+				</tr>
+				<tr>
+					<td class="concordgeneral">
+						Enter the user's email address (optional):
+					</td>
+					<td class="concordgeneral">
+						<input type="text" name="newEmail" tabindex="4" width="30" />
+					</td>
+				</tr>
+				<input type="hidden" name="admFunction" value="newUser"/>
+				<input type="hidden" name="uT" value="y" />
+			</form>
+			
+			
+			
+			<tr>
+				<th colspan="3" class="concordtable">
+					Create a batch of user accounts
+				</th>
+			</tr>
+			<form action="index.php" method="GET">
+				<tr>
+					<td class="concordgeneral">
+						Enter the root for the batch of usernames:
+					</td>
+					<td class="concordgeneral">
+						<input type="text" name="newUsername" width="30" />
+					</td>
+					<td class="concordgeneral" rowspan="5">
+						<input type="submit" value="Create batch of users" />
+						<br/>&nbsp;<br/>
+						<input type="reset" value="Clear form" />
+					</td>
+				</tr>
+				<tr>
+					<td class="concordgeneral">
+						Enter the number of accounts in the batch:
+						<br/>
+						<em>(Usernames will have the numbers 1 to N appended to them)</em>
+					</td>
+					<td class="concordgeneral">
+						<input type="text" name="sizeOfBatch" width="30" />
+					</td>
+				<tr>
+					<td rowspan="2" class="concordgeneral">
+						Enter a password for the users, or assign random passwords automatically:
+					</td>
+					<td class="concordgeneral">
+						<input type="radio" checked="checked" name="newPasswordUseRandom" value="0"/>
+						<input type="text" name="newPassword" width="30" />
+					</td>
+				</tr>
+				<tr>
+					<td class="concordgeneral">
+						<input type="radio" name="newPasswordUseRandom" value="1"/>
+						Assign passwords randomly and report results in text file format
+					</td>
+				</tr>
+				<tr>
+					<td class="concordgeneral">
+						Enter a group for the new users to be assigned to:
+					</td>
+					<td class="concordgeneral">
+						<input type="text" name="batchAutogroup" width="30" />
+					</td>
+				</tr>
+				<input type="hidden" name="admFunction" value="newBatchOfUsers"/>
+				<input type="hidden" name="uT" value="y" />
+			</form>
+			
+			
+			
+			<tr>
+				<th colspan="3" class="concordtable">
+					Delete a user account
+				</th>
+			</tr>
+			<form action="index.php" method="GET">
+				<tr>
+					<td class="concordgeneral">
+						Select a user to delete:
+					</td>
+					<td class="concordgeneral">
+						<select name="userToDelete">
+							<option></option>
+							<?php echo $user_list_as_options; ?>
+						</select>
+					</td>
+					<td class="concordgeneral">
+						<input type="submit" value="Delete this user's account" />
+					</td>
+				</tr>
+				<input type="hidden" name="admFunction" value="deleteUser"/>
+				<input type="hidden" name="uT" value="y" />
+			</form>
+			<form action="index.php" method="GET">
+				<tr>
+					<td class="concordgeneral">
+						Delete a batch of users - all usernames consisting of this string plus a number:
+					</td>
+					<td class="concordgeneral">
+						<input type="text" name="userBatchToDelete" />
+					</td>
+					<td class="concordgeneral">
+						<input type="submit" value="Delete all matching users' accounts" />
+					</td>
+				</tr>
+				<input type="hidden" name="admFunction" value="deleteUserBatch"/>
+				<input type="hidden" name="uT" value="y" />
+			</form>
+		</table>
+		
+		<?php
+	}
+	/* endif: cqpweb_uses_apache */
 	
-	
-	/* before we start, add the javascript function that inserts password cxandidates */
-	
-	echo print_javascript_for_password_insert('password_insert_lancaster');
 	?>
-	<table class="concordtable" width="100%">
-		<tr>
-			<th colspan="3" class="concordtable">
-				Create new user (or reset user password)
-			</th>
-		</tr>
-		<form action="index.php" method="GET">
-			<tr>
-				<td class="concordgeneral">
-					Enter the username you wish to create/reset:
-				</td>
-				<td class="concordgeneral">
-					<input type="text" name="newUsername" tabindex="1" width="30" />
-				</td>
-				<td class="concordgeneral" rowspan="3">
-					<input type="submit" value="Create user account" tabindex="5" />
-				</td>
-			</tr>
-			<tr>
-				<td class="concordgeneral">
-					Enter a new password for the specified user:
-				</td>
-				<td class="concordgeneral">
-					<input type="text" id="passwordField" name="newPassword" tabindex="2" width="30" />
-					<a class="menuItem" tabindex="3"
-						onmouseover="return escape('Suggest a password')" onclick="insertPassword()">
-						[+]
-					</a>
-				</td>
-			</tr>
-			<tr>
-				<td class="concordgeneral">
-					Enter the user's email address (optional):
-				</td>
-				<td class="concordgeneral">
-					<input type="text" name="newEmail" tabindex="4" width="30" />
-				</td>
-			</tr>
-			<input type="hidden" name="admFunction" value="newUser"/>
-			<input type="hidden" name="uT" value="y" />
-		</form>
-		
-		
-		
-		<tr>
-			<th colspan="3" class="concordtable">
-				Create a batch of user accounts
-			</th>
-		</tr>
-		<form action="index.php" method="GET">
-			<tr>
-				<td class="concordgeneral">
-					Enter the root for the batch of usernames:
-				</td>
-				<td class="concordgeneral">
-					<input type="text" name="newUsername" width="30" />
-				</td>
-				<td class="concordgeneral" rowspan="5">
-					<input type="submit" value="Create batch of users" />
-					<br/>&nbsp;<br/>
-					<input type="reset" value="Clear form" />
-				</td>
-			</tr>
-			<tr>
-				<td class="concordgeneral">
-					Enter the number of accounts in the batch:
-					<br/>
-					<em>(Usernames will have the numbers 1 to N appended to them)</em>
-				</td>
-				<td class="concordgeneral">
-					<input type="text" name="sizeOfBatch" width="30" />
-				</td>
-			<tr>
-				<td rowspan="2" class="concordgeneral">
-					Enter a password for the users, or assign random passwords automatically:
-				</td>
-				<td class="concordgeneral">
-					<input type="radio" checked="checked" name="newPasswordUseRandom" value="0"/>
-					<input type="text" name="newPassword" width="30" />
-				</td>
-			</tr>
-			<tr>
-				<td class="concordgeneral">
-					<input type="radio" name="newPasswordUseRandom" value="1"/>
-					Assign passwords randomly and report results in text file format
-				</td>
-			</tr>
-			<tr>
-				<td class="concordgeneral">
-					Enter a group for the new users to be assigned to:
-				</td>
-				<td class="concordgeneral">
-					<input type="text" name="batchAutogroup" width="30" />
-				</td>
-			</tr>
-			<input type="hidden" name="admFunction" value="newBatchOfUsers"/>
-			<input type="hidden" name="uT" value="y" />
-		</form>
-		
-		
-		
-		<tr>
-			<th colspan="3" class="concordtable">
-				Delete a user account
-			</th>
-		</tr>
-		<form action="index.php" method="GET">
-			<tr>
-				<td class="concordgeneral">
-					Select a user to delete:
-				</td>
-				<td class="concordgeneral">
-					<select name="userToDelete">
-						<option></option>
-						<?php echo $user_list_as_options; ?>
-					</select>
-				</td>
-				<td class="concordgeneral">
-					<input type="submit" value="Delete this user's account" />
-				</td>
-			</tr>
-			<input type="hidden" name="admFunction" value="deleteUser"/>
-			<input type="hidden" name="uT" value="y" />
-		</form>
-		<form action="index.php" method="GET">
-			<tr>
-				<td class="concordgeneral">
-					Delete a batch of users - all usernames consisting of this string plus a number:
-				</td>
-				<td class="concordgeneral">
-					<input type="text" name="userBatchToDelete" />
-				</td>
-				<td class="concordgeneral">
-					<input type="submit" value="Delete all matching users' accounts" />
-				</td>
-			</tr>
-			<input type="hidden" name="admFunction" value="deleteUserBatch"/>
-			<input type="hidden" name="uT" value="y" />
-		</form>
-	</table>
-	
 	
 	<table class="concordtable" width="100%">
 		<tr>
@@ -1443,122 +1452,145 @@ function printquery_useradmin()
 
 function printquery_groupadmin()
 {
-	?>
-	<table class="concordtable" width="100%">
-		<tr>
-			<th colspan="7" class="concordtable">
-				User groups
-			</th>
-		</tr>
-		<tr>
-			<th class="concordtable">Group</th>
-			<th class="concordtable">Members</th>
-			<th class="concordtable" colspan="2">Add member</th>			
-			<th class="concordtable" colspan="2">Remove member</th>	
-			<th class="concordtable">Delete</th>
-		</tr>
-	<?php
-	$apache = get_apache_object('nopath');	
-	$list_of_groups = $apache->list_groups();
-	
-	foreach ($list_of_groups as $group)
-	{
-		echo '<tr>';
-		echo '<td class="concordgeneral"><strong>' . $group . '</strong></td>';
+	global $cqpweb_uses_apache;
 
-		$member_list = $apache->list_users_in_group($group);
-		sort($member_list);
-		echo "\n<td class=\"concordgeneral\">";
-		$i = 0;
-		foreach ($member_list as &$member)
-		{
-			echo $member . ' ';
-			$i++;
-			if ($i == 5)
-			{
-				echo "<br/>\n";
-				$i = 0;
-			}
-		}
-		if (empty($member_list))echo '&nbsp;';
-		echo '</td>';
-		
-		if ($group == 'superusers')
-		{
-			echo '<td class="concordgeneral" colspan="5">&nbsp;</td>';
-			continue;
-		}
-		
-		$members_not_in_group = array_diff($apache->list_users(), $member_list);
-		$options = "<option></option>\n";
-		foreach ($members_not_in_group as &$m)
-			$options .= "<option>$m</option>\n";		
-		echo "<form action=\"index.php\" method=\"GET\">
-			<td class=\"concordgeneral\" align=\"center\">
-			<select name=\"userToAdd\">$options</select></td>\n";
-		echo "<td class=\"concordgeneral\" align=\"center\">
-			<input type=\"submit\" value=\"Add user to group\" /></td>\n";
-		echo "<input type=\"hidden\" name=\"admFunction\" value=\"addUserToGroup\" />
-			<input type=\"hidden\" name=\"groupToAddTo\" value=\"$group\" />
-			<input type=\"hidden\" name=\"uT\" value=\"y\" /></form>\n";
-		
-		$options = "<option></option>\n";
-		foreach ($member_list as &$m)
-			$options .= "<option>$m</option>\n";
-		echo "<form action=\"index.php\" method=\"GET\">\n
-			<td class=\"concordgeneral\" align=\"center\">
-			<select name=\"userToRemove\">$options</select></td>\n";
-		echo "<td class=\"concordgeneral\" align=\"center\">
-			<input type=\"submit\" value=\"Remove user from group\" /></td>\n";
-		echo "<input type=\"hidden\" name=\"admFunction\" value=\"removeUserFromGroup\" />
-			<input type=\"hidden\" name=\"groupToRemoveFrom\" value=\"$group\" />
-			<input type=\"hidden\" name=\"uT\" value=\"y\" /></form>\n";
-		
-		$l = '&locationAfter=' . urlencode('index.php?thisF=groupAdmin&uT=y');
-		echo "<td class=\"concordgeneral\" align=\"center\">
-			<a class=\"menuItem\" href=\"index.php?admFunction=execute&function=delete_group&args=$group$l&uT=y\">
-			[x]</a></td>\n";
-					
-		echo '</tr>';
-	}
-	?>
-	</table>
-	
-	<table class="concordtable" width="100%">
-		<form action="index.php" method="get">
+	if ($cqpweb_uses_apache)
+	{
+		?>
+		<table class="concordtable" width="100%">
 			<tr>
-				<th colspan="3" class="concordtable">
-					Add new group
+				<th colspan="7" class="concordtable">
+					User groups
 				</th>
 			</tr>
 			<tr>
-				<td class="concordgeneral">
-					<br/>
-					Enter the name for the new group:
-					<br/>
-					&nbsp;
-				</td>
-				<td class="concordgeneral" align="center">
-					<br/>
-					<input type="text" maxlength="20" name="args">
-					<br/>
-					&nbsp;
-				<td class="concordgeneral" align="center">
-					<br/>
-					<input type="submit" value="Add this group to the system"/>
-					<br/>
-					&nbsp;
-				</td>
+				<th class="concordtable">Group</th>
+				<th class="concordtable">Members</th>
+				<th class="concordtable" colspan="2">Add member</th>			
+				<th class="concordtable" colspan="2">Remove member</th>	
+				<th class="concordtable">Delete</th>
 			</tr>
-			<input type="hidden" name="admFunction" value="execute" />
-			<input type="hidden" name="function" value="create_group" />
-			<input type="hidden" name="locationAfter" value="index.php?thisF=groupAdmin&uT=y" />
-			<input type="hidden" name="uT" value="y" />
-		</form>
-	</table>
-			
+		<?php
+		$apache = get_apache_object('nopath');	
+		$list_of_groups = $apache->list_groups();
+		
+		foreach ($list_of_groups as $group)
+		{
+			echo '<tr>';
+			echo '<td class="concordgeneral"><strong>' . $group . '</strong></td>';
 	
-	<?php
+			$member_list = $apache->list_users_in_group($group);
+			sort($member_list);
+			echo "\n<td class=\"concordgeneral\">";
+			$i = 0;
+			foreach ($member_list as &$member)
+			{
+				echo $member . ' ';
+				$i++;
+				if ($i == 5)
+				{
+					echo "<br/>\n";
+					$i = 0;
+				}
+			}
+			if (empty($member_list))echo '&nbsp;';
+			echo '</td>';
+			
+			if ($group == 'superusers')
+			{
+				echo '<td class="concordgeneral" colspan="5">&nbsp;</td>';
+				continue;
+			}
+			
+			$members_not_in_group = array_diff($apache->list_users(), $member_list);
+			$options = "<option></option>\n";
+			foreach ($members_not_in_group as &$m)
+				$options .= "<option>$m</option>\n";		
+			echo "<form action=\"index.php\" method=\"GET\">
+				<td class=\"concordgeneral\" align=\"center\">
+				<select name=\"userToAdd\">$options</select></td>\n";
+			echo "<td class=\"concordgeneral\" align=\"center\">
+				<input type=\"submit\" value=\"Add user to group\" /></td>\n";
+			echo "<input type=\"hidden\" name=\"admFunction\" value=\"addUserToGroup\" />
+				<input type=\"hidden\" name=\"groupToAddTo\" value=\"$group\" />
+				<input type=\"hidden\" name=\"uT\" value=\"y\" /></form>\n";
+			
+			$options = "<option></option>\n";
+			foreach ($member_list as &$m)
+				$options .= "<option>$m</option>\n";
+			echo "<form action=\"index.php\" method=\"GET\">\n
+				<td class=\"concordgeneral\" align=\"center\">
+				<select name=\"userToRemove\">$options</select></td>\n";
+			echo "<td class=\"concordgeneral\" align=\"center\">
+				<input type=\"submit\" value=\"Remove user from group\" /></td>\n";
+			echo "<input type=\"hidden\" name=\"admFunction\" value=\"removeUserFromGroup\" />
+				<input type=\"hidden\" name=\"groupToRemoveFrom\" value=\"$group\" />
+				<input type=\"hidden\" name=\"uT\" value=\"y\" /></form>\n";
+			
+			$l = '&locationAfter=' . urlencode('index.php?thisF=groupAdmin&uT=y');
+			echo "<td class=\"concordgeneral\" align=\"center\">
+				<a class=\"menuItem\" href=\"index.php?admFunction=execute&function=delete_group&args=$group$l&uT=y\">
+				[x]</a></td>\n";
+						
+			echo '</tr>';
+		}
+		?>
+		</table>
+		
+		<table class="concordtable" width="100%">
+			<form action="index.php" method="get">
+				<tr>
+					<th colspan="3" class="concordtable">
+						Add new group
+					</th>
+				</tr>
+				<tr>
+					<td class="concordgeneral">
+						<br/>
+						Enter the name for the new group:
+						<br/>
+						&nbsp;
+					</td>
+					<td class="concordgeneral" align="center">
+						<br/>
+						<input type="text" maxlength="20" name="args">
+						<br/>
+						&nbsp;
+					<td class="concordgeneral" align="center">
+						<br/>
+						<input type="submit" value="Add this group to the system"/>
+						<br/>
+						&nbsp;
+					</td>
+				</tr>
+				<input type="hidden" name="admFunction" value="execute" />
+				<input type="hidden" name="function" value="create_group" />
+				<input type="hidden" name="locationAfter" value="index.php?thisF=groupAdmin&uT=y" />
+				<input type="hidden" name="uT" value="y" />
+			</form>
+		</table>
+		
+		<?php
+	} /* endif $cqpweb_uses_apache */
+	else
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					User groups
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgrey" align="center">
+					&nbsp;<br/>
+					CQPweb internal group management is not available (requires Apache web server).
+					<br/>&nbsp;
+				</th>
+			</tr>
+	
+		<?php	
+	}
 }
 
 

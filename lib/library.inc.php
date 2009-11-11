@@ -135,6 +135,19 @@ function cqpweb_htmlspecialchars($string)
 }
 
 
+/*
+ * A "handle" can only be a word character.
+ */
+function cqpweb_handle_enforce($string)
+{
+	return preg_replace('/\W/', '', $string);
+}
+
+function cqpweb_handle_check($string)
+{
+	return (bool) preg_match('/\W/', $string);
+}
+
 
 
 /* $u will be treated as a relative address if it does not begin with "http"

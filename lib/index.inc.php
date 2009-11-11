@@ -403,13 +403,16 @@ if (user_is_superuser($username))
 		echo "concordgrey\"><a class=\"menuCurrentItem\">";
 	echo "Corpus settings</a></td></tr>";
 
-	echo "<tr><td class=\"";
-	if ($thisQ != "userAccess")
-		echo "concordgeneral\"><a class=\"menuItem\" 
-			href=\"index.php?thisQ=userAccess&uT=y\">";
-	else 
-		echo "concordgrey\"><a class=\"menuCurrentItem\">";
-	echo "Manage access</a></td></tr>";
+	if ($cqpweb_uses_apache)
+	{
+		echo "<tr><td class=\"";
+		if ($thisQ != "userAccess")
+			echo "concordgeneral\"><a class=\"menuItem\" 
+				href=\"index.php?thisQ=userAccess&uT=y\">";
+		else 
+			echo "concordgrey\"><a class=\"menuCurrentItem\">";
+		echo "Manage access</a></td></tr>";
+	}
 	
 
 	echo "<tr><td class=\"";
