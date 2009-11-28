@@ -56,11 +56,12 @@ class corpus_install_info
 		
 		
 		/* get each thing from GET */
-		/***************************/
+		/* *********************** */
 		
 		$this->corpus_mysql_name = cqpweb_handle_enforce($_GET['corpus_mysql_name']);
 		$this->corpus_cwb_name = strtolower(cqpweb_handle_enforce($_GET['corpus_cwb_name']));
 		$this->script_is_r2l = ( $_GET['corpus_scriptIsR2L'] === '1' );
+		$this->encode_charset = ( $_GET['corpus_encodeIsLatin1'] === '1' ? 'latin1' : 'utf8' );
 				
 		if ( $this->corpus_cwb_name === '' || $this->corpus_mysql_name === '' )
 			exiterror_fullpage("You must specify a corpus name using only letter, numbers and underscore",
@@ -70,7 +71,8 @@ class corpus_install_info
 			$_GET['corpus_description'] = addcslashes($_GET['corpus_description'], "'");
 		$this->description = $_GET['corpus_description'];
 		
-		/*********************/
+		
+		/* ***************** */
 		
 		if ($this->already_cwb_indexed)
 		{
@@ -140,7 +142,7 @@ class corpus_install_info
 
 		
 
-		/*********************/
+		/* ******************* */
 		
 		/* p-attributes */
 		if ($this->already_cwb_indexed)
@@ -163,7 +165,7 @@ class corpus_install_info
 		else
 			$this->load_p_atts_based_on_get();
 
-		/*********************/
+		/* ******************* */
 
 		
 		/* s-attributes */
@@ -190,7 +192,7 @@ class corpus_install_info
 		}
 
 		
-		/*********************/
+		/* ******************* */
 
 		if ($_GET['cssCustom'] == 1)
 		{
@@ -206,7 +208,7 @@ class corpus_install_info
 				$this->css_url = '';
 		}
 		
-		/*********************/
+		/* ******************* */
 		
 		
 		
@@ -355,7 +357,7 @@ function install_new_corpus()
 	
 		$encode_output_file = "/$cqp_tempdir/{$corpus}__php-cwb-encode.txt";
 	
-		$encode_command =  "/$path_to_cwb/cwb-encode -xsB -d $datadir -f " 
+		$encode_command =  "/$path_to_cwb/cwb-encode -xsB -c {$info->encode_charset} -d $datadir -f " 
 			. implode(' -f ', $info->file_list)
 			. " -R /$cwb_registry/$corpus "
 			. $at_least_one_P

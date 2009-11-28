@@ -287,9 +287,9 @@ class CWBTempFile
 		{
 			/* open with pipes */
 			$io_settings = array(
-				IN  => array("pipe", "r"), /* pipe to child's stdin  */
-				OUT => array("pipe", "w"), /* pipe to child's stdout */
-				ERR => array("pipe", "w")  /* pipe to child's stderr */
+				0 => array("pipe", "r"), /* pipe to child's stdin  */
+				1 => array("pipe", "w"), /* pipe to child's stdout */
+				2 => array("pipe", "w")  /* pipe to child's stderr */
 				);		/* array of settings for the three pipe-handles */
 
 			/* start the process */
@@ -300,9 +300,9 @@ class CWBTempFile
 			
 			switch($mode)
 			{
-			case "r" :	$fh = $this->pipe_handle[OUT];	break;
-			case "w" :	$fh = $this->pipe_handle[IN];		break;
-			case "a" :	$fh = $this->pipe_handle[IN];		break;
+			case "r" :	$fh = $this->pipe_handle[1];	break;
+			case "w" :	$fh = $this->pipe_handle[0];		break;
+			case "a" :	$fh = $this->pipe_handle[0];		break;
 			default  :	exit("CWB::OpenFile: incorrect mode: $mode\n");
 			}	
 		}
@@ -320,12 +320,12 @@ class CWBTempFile
 	{
 		if ($this->compression)
 		{
-			if (isset($this->pipe_handle[IN]))
-				fclose($this->pipe_handle[IN]);
-			if (isset($this->pipe_handle[OUT]))
-				fclose($this->pipe_handle[OUT]);
-			if (isset($this->pipe_handle[ERR]))
-				fclose($this->pipe_handle[ERR]);
+			if (isset($this->pipe_handle[0]))
+				fclose($this->pipe_handle[0]);
+			if (isset($this->pipe_handle[1]))
+				fclose($this->pipe_handle[1]);
+			if (isset($this->pipe_handle[2]))
+				fclose($this->pipe_handle[2]);
 			if (isset($this->process))
 				proc_close($this->process);
 			

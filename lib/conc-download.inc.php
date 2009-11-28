@@ -40,7 +40,7 @@ require('../lib/user-settings.inc.php');
 
 
 /* and because I'm using the next two modules I need to... */
-create_pipe_handle_constants();
+//create_pipe_handle_constants();
 require("../lib/cwb.inc.php"); /* NOT TESTED YET - used by dump and undump, I think */
 require("../lib/cqp.inc.php");
 
@@ -80,7 +80,8 @@ $cqp->set_error_handler("exiterror_cqp");
 $cqp->execute("set DataDirectory '/$cqp_tempdir'");
 
 /* select corpus */
-$cqp->execute("$corpus_cqp_name;");
+//$cqp->execute("$corpus_cqp_name;");
+$cqp->set_corpus($corpus_cqp_name);
 /* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
 
 

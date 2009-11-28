@@ -571,6 +571,9 @@ function clear_cache($protect_user_saved = true)
 	global $mysql_link;
 	global $cqp_tempdir;
 	
+	/* this function can take a long time to run, so turn off the limits */
+	php_execute_time_unlimit();
+	
 	/* in case arg comes in as a string */
 	if ($protect_user_saved == '1' || $protect_user_saved == '0')
 		$protect_user_saved = (bool)$protect_user_saved;
@@ -633,6 +636,8 @@ function clear_cache($protect_user_saved = true)
 			unlink($file);
 		unset($result);
 	}
+	
+	php_execute_time_relimit();
 }
 
 

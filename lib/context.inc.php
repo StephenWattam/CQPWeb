@@ -51,7 +51,7 @@ include ("../lib/exiterror.inc.php");
 
 
 /* and because I'm using the next two modules I need to... */
-create_pipe_handle_constants();
+//create_pipe_handle_constants();
 include ("../lib/cwb.inc.php");
 include ("../lib/cqp.inc.php");
 
@@ -172,7 +172,8 @@ $cqp->set_error_handler("exiterror_cqp");
 $cqp->execute("set DataDirectory '/$cqp_tempdir'");
 
 /* select corpus */
-$cqp->execute("$corpus_cqp_name");
+//$cqp->execute("$corpus_cqp_name");
+$cqp->set_corpus($corpus_cqp_name);
 /* note that corpus must be RESELECTED after calling "set DataDirectory" */
 
 $primary_tag_handle = get_corpus_metadata('primary_annotation');

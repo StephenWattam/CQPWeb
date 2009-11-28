@@ -52,7 +52,8 @@ function connect_global_cqp()
 	/* set CQP's temporary directory */
 	$cqp->execute("set DataDirectory '/$cqp_tempdir'");
 	/* select corpus */
-	$cqp->execute("$corpus_cqp_name;");
+	//$cqp->execute("$corpus_cqp_name;");
+	$cqp->set_corpus($corpus_cqp_name);
 	/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
 }
 function disconnect_global_cqp()
@@ -80,7 +81,7 @@ function refresh_directory_global_cqp()
 	{
 		$cqp->execute("set DataDirectory '/'");
 		$cqp->execute("set DataDirectory '/$cqp_tempdir'");
-		$cqp->execute("$corpus_cqp_name;");
+		$cqp->set_corpus($corpus_cqp_name);
 		// Question: is this still necessary?
 	}
 }
@@ -538,12 +539,14 @@ function coming_soon_finish_page()
 
 
 // this shouldn't now be needed and can be deleted as cqp.inc.php does not use these constants any more
+/*
 function create_pipe_handle_constants()
 {
-	define("IN",  0);	/* stdin,  i.e. input  TO   the child */
-	define("OUT", 1);	/* stdout, i.e. output FROM the child */
-	define("ERR", 2);	/* stderr, i.e. errors FROM the child */
+	define("IN",  0);	/* stdin,  i.e. input  TO   the child * /
+	define("OUT", 1);	/* stdout, i.e. output FROM the child * /
+	define("ERR", 2);	/* stderr, i.e. errors FROM the child * /
 }
+*/
 
 
 

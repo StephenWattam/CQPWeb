@@ -66,6 +66,13 @@ class CQP
 	private $debug_mode;
 	
 	
+	/* character set handling */
+	private $corpus_charset;
+	
+	const CHARSET_UTF8 = 0;
+	const CHARSET_LATIN1 = 1;
+	
+	
 
 
 	/* METHODS */
@@ -79,7 +86,7 @@ class CQP
 		global $path_to_cwb;
 		global $cwb_registry;
 		// TODO !!
-		/* ugh the things above should almost certainly be parameters to __construct */
+		// ugh the things above should almost certainly be parameters to __construct 
 	
 		/* array of settings for the three pipe-handles */
 		$io_settings = array(
@@ -116,7 +123,7 @@ class CQP
 		$version_string = rtrim($version_string, "\r\n");
 
 		$version_pattern = 
-		'/^CQP\s+(?:\w+\s+)*([0-9]+)\.([0-9]+)(?:\.(b?[0-9]+))?(?:\s+(.*))?$/';
+			'/^CQP\s+(?:\w+\s+)*([0-9]+)\.([0-9]+)(?:\.(b?[0-9]+))?(?:\s+(.*))?$/';
 
 
 		if (preg_match($version_pattern, $version_string, $matches) == 0)
@@ -158,6 +165,7 @@ class CQP
 		$this->progress_handler = false;
 		$this->debug_mode = false;
 		$this->has_been_disconnected = false;
+		$this->corpus_charset = self::CHARSET_UTF8;
 
 		/* pretty-printing should be turned off for non-interactive use */
 		$this->execute("set PrettyPrint off"); 
@@ -221,8 +229,51 @@ class CQP
 		else
 			return false;
 	}
+	
+	/**
+	 * sets the corpus.
+	 * 
+	 * note: this is the same as running "execute" on the corpus name
+	 * except that it implements a "wrapper" around the charset
+	 * if necessary, allowing utf8 input to be converted to some other
+	 * character set for future calls to $this->execute() 
+	 */
+	function set_corpus($corpus_id)
+	{
+		$this->execute($corpus_id);
+		$infoblock = "\n" . implode("\n", $this->execute('info')) . "\n";
 		
+		if (preg_match("/\nCharset:\s+(\S+)\s/", $infoblock, $m) > 0)
+		{
+			switch($m[1])
+			{
+			case 'latin1':
+			case 'iso-8859-1':
+				$this->corpus_charset = self::CHARSET_LATIN1;
+				break;
+			default:
+				/* anything else gets treated as utf8: especially "ascii", "utf8" */
+				$this->corpus_charset = self::CHARSET_UTF8;
+				break;
+			}
+		}
+	}
+	
+	/*
+	 * This is the same as "executing" the 'show corpora' command,
+	 * but the function sorts through the output for you and returns 
+	 * the list of corpora in a nice, whitespace-free array
+	 */
+	function available_corpora()
+	{
+		$corpora = ' ' . implode("\t", $this->execute("show corpora"));
+		$corpora = preg_replace('/\s+/', ' ', $corpora);
+		$corpora = preg_replace('/ \w: /', ' ', $corpora);
+		$corpora = trim($corpora);
+		return explode(' ', $corpora);
+	}
 		
+	
 	/* execute a CQP command & returns an array of results */
 	function execute($command, $my_line_handler = false)
 	{
@@ -234,6 +285,7 @@ class CQP
 				$this->error_message);
 			$this->error($this->error_message);
 		}
+		$command = $this->filter_input($command);
 				
 		/* change any newlines in command to spaces */
 		preg_replace('/\n/', '/ /', $command);
@@ -286,7 +338,7 @@ class CQP
 		$this->checkerr();
 
 		/* return the array of results */
-		return $result;
+		return $this->filter_output($result);
 	
 	}
 	/* end of method execute() */
@@ -745,6 +797,44 @@ class CQP
 		return $oldstate;
 	}
 	
+	
+	/* input strings are always utf8. This method filters them to another encoding, if necessary */
+	private function filter_input($string)
+	{
+		switch($this->corpus_charset)
+		{
+		case self::CHARSET_UTF8:
+			return $string;
+		case self::CHARSET_LATIN1:
+			return utf8_decode($string);
+		}
+	}
+	/* output strings are always utf8. This method filters output in other encodings to utf8, if necessary */
+	private function filter_output($string)
+	{
+		/* output may be an array of strings: in which case call this method recursively */
+		if (is_array($string))
+		{
+			foreach($string as $k => &$v)
+				$string[$k] = $this->filter_output($v);
+			return $string;
+		}
+		switch($this->corpus_charset)
+		{
+		case self::CHARSET_UTF8:
+			return $string;
+		case self::CHARSET_LATIN1:
+			return utf8_encode($string);
+		}
+	}
+	public function get_corpus_charset()
+	{
+		switch ($this->corpus_charset)
+		{
+		case self::CHARSET_UTF8: 	return 'utf8';
+		case self::CHARSET_LATIN1:	return 'latin1';
+		}
+	}
 
 
 /* end of class CQP */

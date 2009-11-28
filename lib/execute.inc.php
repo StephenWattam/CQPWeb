@@ -77,7 +77,7 @@ include('../lib/exiterror.inc.php');
 include('../lib/user-settings.inc.php');
 include('../lib/rface.inc.php');
 include('../lib/corpus-settings.inc.php');
-create_pipe_handle_constants();
+//create_pipe_handle_constants();
 include('../lib/cwb.inc.php');
 include('../lib/cqp.inc.php');
 /* more to be added */
@@ -153,7 +153,7 @@ if ($utf8_set_required)
 $cqp = new CQP;
 $cqp->set_error_handler("exiterror_cqp");
 $cqp->execute("set DataDirectory '/$cqp_tempdir'");
-$cqp->execute("$corpus_cqp_name;");
+$cqp->set_corpus($corpus_cqp_name);
 
 
 /* run the function */

@@ -727,6 +727,18 @@ function printquery_installcorpus_indexed()
 				</td>
 			</tr>
 			<tr>
+				<td class="concordgeneral">
+					Tick here if the corpus is encoded in Latin1 (iso-8859-1)
+					<br/>
+					<em>
+						(note that the character set in CQPweb is assumed to be UTF8 unless otherwise specifed)
+					</em> 
+				</td>
+				<td class="concordgeneral">
+					<input type="checkbox" name="corpus_encodeIsLatin1" value="1"/>
+				</td>
+			</tr>
+			<tr>
 				<td colspan="2" class="concordgrey">
 					&nbsp;<br/>
 					P-attributes (annotation) are read automatically from the registry file.
@@ -802,6 +814,18 @@ function printquery_installcorpus_unindexed()
 				<td class="concordgeneral">Tick here if the main script in the corpus is right-to-left</td>
 				<td class="concordgeneral">
 					<input type="checkbox" name="corpus_scriptIsR2L" value="1"/>
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Tick here if the corpus is encoded in Latin1 (iso-8859-1)
+					<br/>
+					<em>
+						(note that the character set in CQPweb is assumed to be UTF8 unless otherwise specifed)
+					</em> 
+				</td>
+				<td class="concordgeneral">
+					<input type="checkbox" name="corpus_encodeIsLatin1" value="1"/>
 				</td>
 			</tr>
 		</table>

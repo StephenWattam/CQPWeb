@@ -48,7 +48,7 @@ require('../lib/db.inc.php');
 require('../lib/user-settings.inc.php');
 
 /* and because I'm using the next two modules I need to... */
-create_pipe_handle_constants();
+//create_pipe_handle_constants();
 require("../lib/cwb.inc.php");
 require("../lib/cqp.inc.php");
 

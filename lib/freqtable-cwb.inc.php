@@ -29,7 +29,7 @@
 
 
 
-////////////////////////////// this file may not implement the best way of divvying up the freqtable  functions.................... */
+////////////////////// this file may not implement the best way of divvying up the freqtable  functions.................... */
 
 
 
@@ -100,10 +100,23 @@ function make_cwb_freq_index()
 
 	/* names of the created corpus and various paths for commands */
 	$freq_corpus_sql_name = $corpus_sql_name . '__freq';
+	// TODO: massive potential bug here!!!!
 	$freq_corpus_cqp_name = strtoupper($freq_corpus_sql_name);
 	
 	$datadir = "/$cwb_datadir/$freq_corpus_sql_name";
 	$regfile = "/$cwb_registry/$freq_corpus_sql_name";
+	// TODO: here is where we need to make sure that __FREQ corpora get stored in the default cqp reg/datadirs, NOT in the
+	// place where the preindexed corpus lives (if it is  apreindexed corpus. 
+	// maybe have new global variables $cwb_datadir_for_freq which ALWAYS go to the default place?
+	// cos they will need to be referenced when creating 
+	
+	/* character set to use when encoding the new corpus */
+	$cqp = new CQP;
+	$cqp->set_error_handler('exiterror_cqp');
+	$cqp->set_corpus($corpus_cqp_name);
+	$charset = $cqp->get_corpus_charset();
+	unset($cqp);
+
 
 	/* delete any previously existing corpus of this name, or make the data directory ready */
 	if (! is_dir($datadir) )
@@ -120,12 +133,12 @@ function make_cwb_freq_index()
 
 	$source = popen($cmd_decode, 'r');
 
-	$cmd_encode = "/$path_to_cwb/cwb-encode -d $datadir -R $regfile $p_att_line_no_word -P __freq -S text:0+id ";
+	$cmd_encode = "/$path_to_cwb/cwb-encode -d $datadir -c $charset -R $regfile $p_att_line_no_word -P __freq -S text:0+id ";
 
 	$dest = popen($cmd_encode, 'w');
 
 if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes didnae open properly </pre>';
-//echo '<pre>';
+
 	/* for each line in the decoded output ... */
 	while ( ($line = fgets($source)) !== false)
 	{

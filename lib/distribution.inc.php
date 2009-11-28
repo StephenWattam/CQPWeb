@@ -59,7 +59,7 @@ require_once ("../lib/cache.inc.php");
 require_once ("../lib/db.inc.php");
 
 /* and because I'm using the next two modules I need to... */
-create_pipe_handle_constants();
+//create_pipe_handle_constants();
 require_once ("../lib/cwb.inc.php");
 require_once ("../lib/cqp.inc.php");
 
