@@ -83,6 +83,10 @@ else
 $mysql_tempdir = $cqp_tempdir;
 /* so the across-two-computers thing doesn't work */
 
+/* the following stops calls to CQP::set_corpus causing an error in the "adm" scripts */
+if (!isset($corpus_cqp_name))
+	$corpus_cqp_name = ';';
+
 if (!isset($utf8_set_required))
 	$utf8_set_required = true;
 
@@ -139,11 +143,14 @@ if (!isset($default_max_context))
 	$default_max_context = 1100;
 
 
-/* this allows settings.inc.php to override config.inc.php */
+/* this allows settings.inc.php to override config.inc.php * /
 if (isset($this_corpus_directory_override['reg_dir']))
 	$cwb_registry = $this_corpus_directory_override['reg_dir'];
 if (isset($this_corpus_directory_override['data_dir']))
 	$cwb_datadir = $this_corpus_directory_override['data_dir'];
+	
+	1/12/09 : as of now we are no longer allowing directory overrides.
+	*/
 
 	
 /* collocation defaults */
@@ -169,7 +176,7 @@ if (!isset($default_words_in_download_context))
 
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '2.08');
+define('CQPWEB_VERSION', '2.09');
 	
 
 

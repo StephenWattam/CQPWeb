@@ -525,10 +525,15 @@ function printquery_latest()
 	
 	<ul>
 		<li>
-		<b>Version 2.08</b>, 2009-11-08<br/>&nbsp;<br/>
+		<b>Version 2.09</b>, 2009-12-01<br/>&nbsp;<br/>
+		Assorted improvements to the internals of CQPweb.
+		<br/>&nbsp;</li>
+		<li>
+		<b>Version 2.08</b>, 2009-11-27<br/>&nbsp;<br/>
 		Updated internal database-query interaction. As a result, CQPweb requires CWB version 2.2.101 or later.
 		<br/>
-		Other changes:  enabled Latin-1 corpora.
+		Other changes (mostly behind-the-scenes):  enabled Latin-1 corpora; accelerated concordance display 
+		by caching number of texts in a query in the database; plus assorted bug fixes.
 		<br/>&nbsp;</li>
 		<li>
 		<b>Version 2.07</b>, 2009-09-08<br/>&nbsp;<br/>

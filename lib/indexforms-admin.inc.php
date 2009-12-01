@@ -141,6 +141,10 @@ function printquery_corpusoptions()
 			<input type="hidden" name="function" value="update_corpus_main_script_is_r2l" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
+		<!-- 
+		
+		following two rows are commented out because they are not needed any longer.
+		
 		<form action="redirect.php" method="get">
 			<tr>
 				<td class="concordgrey" align="center">
@@ -182,6 +186,8 @@ function printquery_corpusoptions()
 			<input type="hidden" name="function" value="update_corpus_directory_override" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
+		
+		-->
 
 
 
@@ -232,11 +238,25 @@ function printquery_corpusoptions()
 				</td>
 				<td class="concordgeneral" align="center">
 					<select name="settingsUpdatePrimaryClassification">
-						<?php echo $class_options; ?>
+						<?php
+						if (empty($class_options))
+						{
+							$button = '&nbsp;';
+							echo '<option selected="selected">There are no classification schemes for this corpus.</option>';
+						}
+						else
+						{
+							$button = '<input type="submit" value="Update" />';
+							echo $class_options;
+						}
+						?>
+						
 					</select>
+					
 				</td>
 				<td class="concordgeneral" align="center">
-					<input type="submit" value="Update" />
+					<?php echo $button ?>
+					
 				</td>
 			</tr>
 			<input type="hidden" name="thisQ" value="corpusSettings" />

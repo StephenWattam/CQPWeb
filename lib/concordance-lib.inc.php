@@ -140,20 +140,17 @@ function create_solution_heading($record, $include_corpus_size = true)
 		connect_global_cqp();
 	}
 
-	/* check only those elements of the array that are actually getting used */
-	/* and put them into easier-reference variables */
+	/* check only those elements of the array that are actually getting used
+	 * and put them into easier-reference variables 
+	 */
 	$qname				= (isset($record['query_name'])		? $record['query_name']		: exiterror_arguments('', '', __FILE__, __LINE__) );
 	$simple_query		= (isset($record['simple_query'])	? $record['simple_query']	: '' );
 	$cqp_query			= (isset($record['cqp_query'])		? $record['cqp_query']		: exiterror_arguments('', '', __FILE__, __LINE__) );
 	$qmode				= (isset($record['query_mode'])		? $record['query_mode']		: exiterror_arguments('', '', __FILE__, __LINE__) );
 	$num_of_solutions	= (isset($record['hits'])			? $record['hits']			: exiterror_arguments('', '', __FILE__, __LINE__) );
+	$num_of_files		= (isset($record['hit_texts'])		? $record['hit_texts']		: exiterror_arguments('', '', __FILE__, __LINE__) );
 	$subcorpus			= (isset($record['subcorpus'])		? $record['subcorpus']		: exiterror_arguments('', '', __FILE__, __LINE__) );
 	$restrictions		= (isset($record['restrictions'])	? $record['restrictions']	: exiterror_arguments('', '', __FILE__, __LINE__) );
-
-
-	/* get a list of texts with frequencies && count 'em */
-	$num_of_files = count( $cqp->execute("group $qname match text_id") );
-
 
 	$final_string = 'Your query &ldquo;';
 
@@ -177,7 +174,7 @@ function create_solution_heading($record, $include_corpus_size = true)
 	if ($num_of_files > 1) 
 		$final_string .= " in $num_of_files different texts";
 	else 
-		$final_string .= " in 1 text";		
+		$final_string .= " in 1 text";
 
 
 

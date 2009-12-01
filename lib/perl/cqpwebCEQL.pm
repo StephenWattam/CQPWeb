@@ -60,10 +60,7 @@ sub new {
 # override lemma_pattern rule to provide support for {book/V} notation
 sub lemma_pattern {
   my ($self, $lemma) = @_;
-  my $simple_pos = $self->GetParam("simple_pos");
-  die "Searches of the form _{...}  and {.../...} are not available.\n"
-    unless ref($simple_pos) eq "HASH";
-
+  
   # split lemma into headword pattern and optional simple POS constraint
   my ($hw, $tag, $extra) = split /(?<!\\)\//, $lemma;
   die "Only a single ''/'' separator is allowed between the first and second search terms in a {.../...} search.\n"
@@ -75,7 +72,13 @@ sub lemma_pattern {
   my $regexp = $self->Call("wildcard_pattern", $hw);
   
   if (defined $tag) {
-    # simple POS specified => look up in $simple_pos an combine with $regexp
+    # simple POS specified => look up in $simple_pos and combine with $regexp
+    
+    # before looking up the simple POS, we must check that the mapping table is defined
+    my $simple_pos = $self->GetParam("simple_pos");
+    die "Searches of the form _{...}  and {.../...} are not available.\n"
+      unless ref($simple_pos) eq "HASH";
+    
     my $tag_regexp = $simple_pos->{$tag};
     if (not defined $tag_regexp) {
       my @valid_tags = sort keys %$simple_pos;

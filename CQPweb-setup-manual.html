@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20091111;20281700">
+	<META NAME="CHANGED" CONTENT="20091128;10281600">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -466,16 +466,21 @@ but not automatically. They are</P>
 	– this defaults to false, if you set it to true then this affects
 	various functions that load data from file to the MySQL server: they
 	may run faster. But this must only be set to true <B>if</B> (a) the
-	MySQL server actually does have access to the appropriate temporary
-	directory <B>and</B> (b) the MySQL username used by CQPweb has <FONT FACE="Courier New, monospace">GRANT
+	MySQL server is running on the same computer as CQPweb <B>and</B>
+	(b) the MySQL server actually does have access to the temporary
+	directory <B>and</B> (c) the MySQL username used by CQPweb has <FONT FACE="Courier New, monospace">GRANT
 	FILE ON *.*</FONT> permissions. It is important you get this right,
-	as CQPweb doesn't check these two preconditions for you! 
+	as CQPweb doesn't check these preconditions for you! 
 	</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$mysql_tempdir</FONT>
 	– this defaults to the same as <FONT FACE="Courier New, monospace">$cqp_tempdir</FONT>,
 	but you can set it to a different path if you are using a separate
 	computer for MySQL. See section on “Using a separate computer for
 	MySQL”.</P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$cqpweb_uses_apache</FONT>
+	– this defaults to true, but you can set it to false if your web
+	server is not Apache. If it is set to false, functions that depend
+	on Apache will be hidden (since they wouldn't work anyway).</P>
 </UL>
 <P LANG="en-GB">Save the edited file as “config.inc.php” and put
 it into the “lib” subdirectory of the web directory.</P>
@@ -701,7 +706,10 @@ CQPweb with a web server other than Apache</B></FONT></FONT></P>
 Apache. However, you will not be able to use the internal
 user-creation, group-management, and access-management functions,
 because these are all dependent on Apache htaccess, htpasswd and
-htgroup files (and the information is not stored in the database).</P>
+htgroup files (and the information is not stored in the database).
+CQPweb on its own does nothing to restrict access to a corpus to
+particular users: this job belongs to the web server. 
+</P>
 <P LANG="en-GB">CQPweb does store some information about users in its
 database – notably, the “limits” of how big each individual use
 of the database can be, and the personalisable “settings” that
@@ -710,43 +718,38 @@ CQPweb gets the username from the HTTP request (PHP variable
 <FONT FACE="Courier New, monospace">$_SERVER['REMOTE_USER']</FONT> ).
 User entries in the database are created automatically when they
 change their settings (or with default settings when any script
-queries a user setting before they have been set.)</P>
-<P LANG="en-GB">So, any HTTP server system that results in the
-username being part of the HTTP request can be used with CQPweb.</P>
+queries a user setting before they have been set.) So, any HTTP
+server system that results in the username being part of the HTTP
+request can be used with CQPweb.</P>
 <P LANG="en-GB">CQPweb puts each corpus in a separate directory in
 its root web-directory, so that you can set access rights for each
-corpus separately, if you wish. But if you are no using Apache, you
-will have to manage this yourself. 
+corpus separately, if you wish. But if you are no using Apache, <I>you
+will have to manage this yourself</I>. 
 </P>
+<P LANG="en-GB">With Apache, this works as follows: (a) the
+web-folder of each corpus has an .htaccess file in which are listed
+the groups that have access to that corpus; (b) the list of members
+in each group is in the .htgroup file in CQPweb's “access”
+directory (and the .htpasswd file is there as well). How exactly you
+simulate this will depend on the details of the alternative web
+server you are using.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><SPAN LANG="en-GB"><B>Using
-a separate computer for MySQL </B></SPAN></FONT></FONT><FONT COLOR="#ff0000">&lt;this
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Using
+a separate computer for MySQL </B></FONT></FONT><FONT COLOR="#ff0000">&lt;this
 doesn't work yet&gt;</FONT></P>
 <P LANG="en-GB">You might want to use two separate machines for the
 CWB-based and MySQL-based parts of CQPweb, for reasons of performance
 (for a big corpus and for queries with lots of results, both MySQL
-and CWB require lots of disk space and lots of processing power). In
-this case, CQPweb itself (the web scripts) should be on the same
-system as CWB, and all the paths specified in the config file should
-refer to <I>that</I> file-system, <I>not</I> the one with MySQL on
-it.</P>
-<P LANG="en-GB">You will need to make a decision regarding temporary
-files. There are two basic options.</P>
-<UL>
-	<LI><P LANG="en-GB">Give the MySQL server file access. (See section
-	on manual config files for how). In this case, the temporary
-	directory is used as a place of interchange for CQPweb, CWB and
-	MySQL – so <I>it must be mounted on both machines</I>. The
-	variable <FONT FACE="Courier New, monospace">$cqp_tempdir</FONT>
-	should be the path of this shared directory as it is mounted on the
-	CWB machine. The variable <FONT FACE="Courier New, monospace">$mysql_tempdir</FONT>
-	should be the path of this shared directory as it is mounted on the
-	MySQL server machine.</P>
-	<LI><P LANG="en-GB">Don't give the MySQL server file access. In this
-	case, large amounts of data will need to be interchanged between the
-	MySQL client and server.</P>
-</UL>
+and CWB require lots of disk space and lots of processing power). 
+</P>
+<P LANG="en-GB">In this case, CQPweb itself (the web scripts) should
+be on the same system as CWB, and all the paths specified in the
+config file should refer to <I>that</I> file-system, <I>not</I> the
+one with MySQL on it.</P>
+<P LANG="en-GB">You <I>must not</I> set <FONT FACE="Courier New, monospace">$mysql_has_file_access</FONT>
+to true if the MySQL server is on a separate computer. The system
+cannot currently check this for you!</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <HR>

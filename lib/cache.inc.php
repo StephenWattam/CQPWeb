@@ -133,7 +133,7 @@ function qname_unique($qname)
 /* returns FALSE if there was some kind of error creating the cache record, otherwise TRUE */
 /* note: will not write if the cache file does not exist */
 function cache_query($qname, $cqp_query, $restrictions, $subcorpus, $postprocess, 
-	$num_of_solutions, $simple_query, $qmode, $link=NULL)
+	$num_of_solutions, $num_of_texts, $simple_query, $qmode, $link=NULL)
 {
 	global $mysql_link;
 	global $corpus_sql_name;
@@ -161,12 +161,12 @@ function cache_query($qname, $cqp_query, $restrictions, $subcorpus, $postprocess
 
 	$sql_query = "insert into saved_queries 
 		( query_name, user, corpus, cqp_query, restrictions, 
-		subcorpus, postprocess, time_of_query, hits, simple_query, 
-		query_mode, file_size, saved )
+		subcorpus, postprocess, time_of_query, hits, hit_texts,
+		simple_query, query_mode, file_size, saved )
 		values
 		( '$qname', '$username', '$corpus_sql_name', '$cqp_query', '$restrictions', 
-		'$subcorpus', $postprocess, '$time_now', '$num_of_solutions', '$simple_query', 
-		'$qmode', '$file_size', 0 )
+		'$subcorpus', $postprocess, '$time_now', '$num_of_solutions', '$num_of_texts', 
+		'$simple_query', '$qmode', '$file_size', 0 )
 		";
 		
 	$result = mysql_query($sql_query, $mysql_link);

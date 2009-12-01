@@ -281,8 +281,7 @@ class CQP
 		if ( (!is_string($command)) || $command == "" )
 		{
 			$this->status = 'error';
-			$this->error_message = array_merge("ERROR: CQP->execute was called with no command",
-				$this->error_message);
+			array_unshift($this->error_message, "ERROR: CQP->execute was called with no command");
 			$this->error($this->error_message);
 		}
 		$command = $this->filter_input($command);

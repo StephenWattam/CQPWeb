@@ -193,7 +193,8 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 	pclose($dest);
 	
 	/* system commands for everything else that needs to be done to make it a good corpus */
-	$cmd_makeall  = "/$path_to_cwb/cwb-makeall      -r /$cwb_registry -V $freq_corpus_cqp_name ";
+	$cmd_makeall  = "/$path_to_cwb/cwb-makeall      -M 50 -r /$cwb_registry -V $freq_corpus_cqp_name ";
+	// TODO - be a bit more rigorous about the amount of RAM cwb-makeall uses. make this configurable. 50 is an ass-pull.
 	$cmd_huffcode = "/$path_to_cwb/cwb-huffcode     -r /$cwb_registry -A $freq_corpus_cqp_name ";
 	$cmd_pressrdx = "/$path_to_cwb/cwb-compress-rdx -r /$cwb_registry -A $freq_corpus_cqp_name ";
 
@@ -226,6 +227,24 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 	$s_decode_cmd = "/$path_to_cwb/cwb-s-decode -r /$cwb_registry $freq_corpus_cqp_name -S text_id > $index_filename";
 	exec($s_decode_cmd);
 //	chmod($index_filename, 0777);
+	
+	/* make sure the $index_filename is utf8 */
+	if ($charset == 'latin1')
+	{
+		$index_filename_new = $index_filename . '.utf8';
+		
+		$source = fopen($index_filename, 'r');
+		$dest = fopen($index_filename_new, 'w');
+		
+		while ( ($line = fgets($source)) !== false)
+			fputs($dest, utf8_encode($line));
+		
+		fclose($source);
+		fclose($dest);
+		
+		unlink($index_filename);
+		$index_filename = $index_filename_new;
+	}
 	
 	/* now, create a mysql table with text begin-&-end-point indexes for this cwb-indexed corpus */
 	/* a table which is subsequently used in the process of making the subcorpus freq lists */

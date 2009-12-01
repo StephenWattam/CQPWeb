@@ -515,20 +515,25 @@ if ($run_new_query)
 	if (($num_of_solutions = $cqp->querysize($qname)) == 0)
 		/* no solutions */
 		say_sorry($instance_name); /* note that this exits() the script! */
+	
+	$num_of_texts = count( $cqp->execute("group $qname match text_id") );
+	/* note that this field in the record always refers to the ORIGINAL num of texts */
+	/* so, it is OK to set it here and not anywhere else (as postprocesses don't affect it) */
 
 	/* put the query in the cache */
 	cache_query($qname, $cqp_query, $restrictions, $subcorpus, '',
-		$num_of_solutions, $simple_query, $qmode);
+		$num_of_solutions, $num_of_texts, $simple_query, $qmode);
 	/* no need to check this call - if there is some kind of cockup,     */
 	/* it will be caught when the query is revisited by this very script */
 	
-	/* finally, create a query cache record. This array can be passed to functions that require */
-	/* a big bag o' info about the query (e.g. postprocess functions, the heading creator */
+	/* finally, create a query cache record. This array can be passed to functions that require
+	 * a big bag o' info about the query (e.g. postprocess functions, the heading creator) */
 	$cache_record = array(	'query_name' => $qname,
 							'simple_query' => $simple_query,
 							'cqp_query' => $cqp_query,
 							'query_mode' => $qmode,
 							'hits' => $num_of_solutions,
+							'hit_texts' => $num_of_texts,
 							'subcorpus' => $subcorpus,
 							'restrictions' => $restrictions,
 							'postprocess' => '',
@@ -633,7 +638,7 @@ $_GET['qname'] = $qname;
 
 
 /* whatever happened above, $num_of_solutions contains the number of solutions in the original query */
-/* BUT a postprocess the num of solutions that get rendered and thus the number of pages */
+/* BUT a postprocess can reduce the num of solutions that get rendered and thus the number of pages */
 /* num_of_solutions_final == the number of solutions all AFTER postprocessing */
 
 $num_of_solutions_final = (

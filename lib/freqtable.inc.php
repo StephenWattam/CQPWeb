@@ -48,6 +48,7 @@ function corpus_make_freqtables()
 	global $mysql_link;
 	global $mysql_tempdir;
 	global $username;
+	global $mysql_LOAD_DATA_INFILE_command;
 	
 	/* only superusers are allowed to do this! */
 	if (! user_is_superuser($username))

@@ -32,7 +32,7 @@ class corpus_install_info
 	
 	public $already_cwb_indexed;
 	
-	public $directory_override;
+//	public $directory_override;
 	
 	public $script_is_r2l;
 
@@ -76,39 +76,47 @@ class corpus_install_info
 		
 		if ($this->already_cwb_indexed)
 		{
+			global $cwb_registry;
 			/* check that the corpus registry file exists, that the corpus datadir exists */
 			/* in the process, getting the "override" directories, if they exist */
 			
 			$use_normal_regdir = (bool)$_GET['corpus_useDefaultRegistry'];
+			$registry_file = "/$cwb_registry/{$this->corpus_cwb_name}";
 			
-			if ($use_normal_regdir)
+			if ( ! $use_normal_regdir)
 			{
-				global $cwb_registry;
-				$registry_file = "/$cwb_registry/{$this->corpus_cwb_name}";
+				$orig_registry_file = 
+					'/' 
+					. trim(trim($_GET['corpus_cwb_registry_folder']), '/')
+					. '/' 
+					. $this->corpus_cwb_name;
+				if (is_file($registry_file))
+					exiterror_fullpage("A corpus by that name already exists in the CQPweb registry!",
+						__FILE__, __LINE__);					
+				if (!is_file($orig_registry_file))
+					exiterror_fullpage("The specified CWB registry file does not seem to exist in that location.",
+						__FILE__, __LINE__);		
+				
+				/* we have established that the registry file does not exist and the original does
+				 * so we can now import the registry file into CQPweb's registry 
+				 */	
+				copy($orig_registry_file, $registry_file);
 			}
 			else
 			{
-				$this->directory_override['reg_dir'] = trim(trim($_GET['corpus_cwb_registry_folder']), '/');
-				$registry_file = '/' . $this->directory_override . '/' . $this->corpus_cwb_name;
+				if (!is_file($registry_file))
+					exiterror_fullpage("The specified CWB corpus does not seem to exist CQPweb's registry.",
+						__FILE__, __LINE__);
 			}
-			if (!is_file($registry_file))
-				exiterror_fullpage("The specified CWB corpus does not seem to exist in that location.",
-					__FILE__, __LINE__);		
 			
 			$regdata = file_get_contents($registry_file);
 			
+			
 			preg_match("/HOME\s+\/([^\n]+)\n/", $regdata, $m);
-			global $cwb_datadir;
-			if ($m[1] == $cwb_datadir)
-				$test_datadir = '/' . $cwb_datadir;
-			else
-			{
-				$this->directory_override['data_dir'] = $m[1];
-				$test_datadir = '/' . $this->directory_override['data_dir'];
-			}
+			$test_datadir = '/' .  $m[1];
 			
 			if (!is_dir($test_datadir))
-				exiterror_fullpage("The specified data directory could not be found.",
+				exiterror_fullpage("The data directory specified in the registry file could not be found.",
 					__FILE__, __LINE__);
 			
 			/* check that <text> and <text_id> are s-attributes */
@@ -157,9 +165,12 @@ class corpus_install_info
 				
 				/* note that no "primary" annotation is created if we are loading in an existing corpus */
 				/* instead, the primary annotation can be set later */
+				/* note also that cwb_external applies EVEN IF the indexed corpus was already in this directory
+				 * (its sole use is to prevent deletion of data that CQPweb did not create)
+				 */
 				$this->corpus_metadata_fixed_mysql_insert =
-					"insert into corpus_metadata_fixed (corpus, primary_annotation) 
-					values ('{$this->corpus_mysql_name}', NULL)";
+					"insert into corpus_metadata_fixed (corpus, primary_annotation, cwb_external) 
+					values ('{$this->corpus_mysql_name}', NULL, 1)";
 			}
 		}
 		else
@@ -180,7 +191,7 @@ class corpus_install_info
 		{
 			foreach(array(1,2,3,4,5,6) as $q)
 			{
-				if (preg_match('/^\w+:0\+[^+]+(\+[^+]+)*$/', $_GET["customS$q"]) > 0)
+				if (preg_match('/^\w+(:0)?(\+\w+)+$/', $_GET["customS$q"]) > 0)
 					$cand = $_GET["customS$q"];
 				else
 					$cand = cqpweb_handle_enforce($_GET["customS$q"]);
@@ -450,10 +461,13 @@ function install_create_settings_file($filepath, $info)
 		. "\$corpus_cqp_name = '" . strtoupper($info->corpus_cwb_name) . "';\n"
 		. "\$css_path = '{$info->css_url}';\n"
 		. ($info->script_is_r2l ? "\$corpus_main_script_is_r2l = true;\n" : '')
-		. (empty($info->directory_override['reg_dir']) ? '' : 
-			"\$this_corpus_directory_override['reg_dir'] = '{$info->directory_override['reg_dir']}';\n")
-		. (empty($info->directory_override['data_dir']) ? '' : 
-			"\$this_corpus_directory_override['data_dir'] = '{$info->directory_override['data_dir']}';\n")
+		/*
+		 * next lines no longer needed because we have stopped allowing directory overrides
+		 */
+//		. (empty($info->directory_override['reg_dir']) ? '' : 
+//			"\$this_corpus_directory_override['reg_dir'] = '{$info->directory_override['reg_dir']}';\n")
+//		. (empty($info->directory_override['data_dir']) ? '' : 
+//			"\$this_corpus_directory_override['data_dir'] = '{$info->directory_override['data_dir']}';\n")
 		. '?>';
 	file_put_contents($filepath, $data);
 	chmod($filepath, 0775);
@@ -472,17 +486,18 @@ function delete_corpus_from_cqpweb($corpus)
 
 	/* get the cwb name of the corpus, etc. */
 	include("../$corpus/settings.inc.php");
-	if (isset($this_corpus_directory_override['reg_dir']))
-		$cwb_registry = $this_corpus_directory_override['reg_dir'];
-	if (isset($this_corpus_directory_override['data_dir']))
-		$cwb_datadir = $this_corpus_directory_override['data_dir'];	
+// overides not allowed any mroe
+//	if (isset($this_corpus_directory_override['reg_dir']))
+//		$cwb_registry = $this_corpus_directory_override['reg_dir'];
+//	if (isset($this_corpus_directory_override['data_dir']))
+//		$cwb_datadir = $this_corpus_directory_override['data_dir'];	
 	
 	$corpus_cwb_lower = strtolower($corpus_cqp_name);
 	
 	/* check the corpus is actually there to delete */
 	$sql_query = "select corpus, cwb_external from corpus_metadata_fixed where corpus = '$corpus'";
 	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
+	if ($result == false)
 		exiterror_mysqlquery(mysql_errno($mysql_link), 
 			mysql_error($mysql_link), __FILE__, __LINE__);
 	if (mysql_num_rows($result) < 1)
@@ -547,19 +562,24 @@ function delete_corpus_from_cqpweb($corpus)
 	/* delete the web directory */
 	recursive_delete_directory("../$corpus");
 	
+	/* what this implies is that a registry file / data WON'T be deleted 
+	 * unless CQPweb created them in the first place -- even if they are in
+	 * the CQPweb standard registry / data locations. */
 	if ($also_delete_cwb)
 	{
 		/* delete the CWB registry and data */
 		unlink("/$cwb_registry/$corpus_cwb_lower");
 		recursive_delete_directory("/$cwb_datadir/$corpus_cwb_lower");
-		
-		/* if they exist, delete the CWB registry and data for its __freq */
-		if (file_exists("/$cwb_registry/{$corpus_cwb_lower}__freq"))
-		{
-			unlink("/$cwb_registry/{$corpus_cwb_lower}__freq");
-			recursive_delete_directory("/$cwb_datadir/{$corpus_cwb_lower}__freq");
-		}
 	}
+	/* if they exist, delete the CWB registry and data for its __freq */
+	if (file_exists("/$cwb_registry/{$corpus_cwb_lower}__freq"))
+	{
+		unlink("/$cwb_registry/{$corpus_cwb_lower}__freq");
+		recursive_delete_directory("/$cwb_datadir/{$corpus_cwb_lower}__freq");
+	}
+	/* note, __freq deletion is not conditional on cwb_external -> also_delete_cwb
+	 * because __freq corpora are ALWAYS created by CQPweb itself.
+	 */
 }
 
 
@@ -831,7 +851,7 @@ function add_batch_of_users($username_root, $number_in_batch, $password, $autogr
 	
 	$autogroup = preg_replace('/\W/', '', $autogroup);
 	$password = preg_replace('/\W/', '', $password);
-	if (autogroup !== '')
+	if ($autogroup !== '')
 	{
 		$group_list = $apache->list_groups();
 		if (!in_array($autogroup, $group_list))
@@ -853,7 +873,7 @@ function add_batch_of_users($username_root, $number_in_batch, $password, $autogr
 	{
 		$this_password = ($different_passwords ? $password_list[$i] : $password);
 		$apache->new_user("$username_root$i", $this_password);
-		if (autogroup !== '')
+		if ($autogroup !== '')
 			$apache->add_user_to_group("$username_root$i", $autogroup);
 		if ($different_passwords)
 			echo "$username_root$i\t$this_password\n";
@@ -1405,6 +1425,7 @@ function cqpweb_mysql_recreate_tables()
 			`hits_left` text default NULL,
 			`time_of_query` int(11) default NULL,
 			`hits` int(11) default NULL,
+			`hit_texts` int(11) default NULL,
 			`file_size` int(10) unsigned default NULL,
 			`saved` tinyint(1) default 0,
 			`save_name` varchar(50) default NULL,
