@@ -251,8 +251,9 @@ $class_scheme_list = metadata_list_classifications();
 					?>
 				</select>
 			</td>
-			<td class="concordgrey">Show as:</td>
-			<td class="concordgrey">
+			<td class="concordgrey" rowspan="2">
+				Show as:
+				<br/>&nbsp;<br/>
 				<select name="showDistAs">
 					<?php if ($print_function == print_distribution_graph) { ?>
 					<option value="table">Distribution table</option>
@@ -263,8 +264,11 @@ $class_scheme_list = metadata_list_classifications();
 					<?php } ?>
 				</select>
 			</td>
-		</tr>
-		<tr>
+			<td class="concordgrey">
+				<input type="submit" value="Show distribution"/>
+			</td>
+	</tr>
+	<tr>
 			<td class="concordgrey">Category for crosstabs:</td>
 			<td class="concordgrey">
 				<select name="crosstabsClass">
@@ -290,9 +294,6 @@ $class_scheme_list = metadata_list_classifications();
 						echo '<option value="__none" selected="selected">No crosstabs</option>';
 					?>
 				</select>
-			</td>
-			<td class="concordgrey">
-				<input type="submit" value="Show distribution"/>
 			</td>
 			<?php
 				echo url_printinputs(array(
