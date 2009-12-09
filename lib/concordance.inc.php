@@ -118,6 +118,8 @@ $cqp->set_corpus($corpus_cqp_name);
 /* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
 
 
+/* download all user settings */
+$user_settings = get_all_user_settings($username);
 
 
 
@@ -272,14 +274,11 @@ else
 if (isset($_GET['viewMode']))
 	$viewMode = $_GET['viewMode'];
 else
-	$viewMode = "kwic";
-	// TO DO: get default view mode from user settings
-	// with the user settings retrieved from mysql
+	$viewMode = ( (bool) $user_settings->conc_kwicview ? 'kwic' : 'line' ) ;
 
 
 
 /* set kwic variables */
-// actually, these should be set using the default from mysql
 if ($viewMode == "kwic") 
 {
 	$reverseViewMode = "line";
@@ -324,7 +323,6 @@ default:
 /* --------------------- */
 /* set up user variables */
 /* --------------------- */
-// like default kwic view, possibly tooltips --- not done yet
 
 /* determine, for this user, whether or not tooltips are to be displayed */
 // not done yet
@@ -482,6 +480,18 @@ if ( ! $incoming_qname_specified )
 			touch_cached_query($qname);
 		/* next stop on this track is POSTPROCESS then DISPLAYING THE QUERY */
 	}
+}
+
+/* we now know if it's a new query, and can check whether to apply the user's auto-randomise function */
+/* but this is only applied if no other postprocess has been asked for */
+if ($run_new_query && ! $new_postprocess && ! $user_settings->conc_corpus_order)
+{
+	$_GET['newPostP'] = 'rand';
+	$new_postprocess = new POSTPROCESS();
+	/* no need to check whether it parsed correctly */
+	$page_no = 1;
+	unset($_GET['pageNo']);
+	/* so that we know it will go to page 1 of the postprocessed query */
 }
 
 
