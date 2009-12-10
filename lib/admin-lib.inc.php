@@ -120,8 +120,8 @@ class corpus_install_info
 					__FILE__, __LINE__);
 			
 			/* check that <text> and <text_id> are s-attributes */
-			if (preg_match('/\bSTRUCTURE text\b/', $regdata) < 1 
-				|| preg_match('/\bSTRUCTURE text_id\b/', $regdata) < 1)
+			if (preg_match('/\bSTRUCTURE\s+text\b/', $regdata) < 1 
+				|| preg_match('/\bSTRUCTURE\s+text_id\b/', $regdata) < 1)
 				exiterror_fullpage("Pre-indexed corpora require s-attributes text and text_id!!",
 					__FILE__, __LINE__);
 		}
@@ -155,7 +155,7 @@ class corpus_install_info
 		/* p-attributes */
 		if ($this->already_cwb_indexed)
 		{
-			preg_match_all("/ATTRIBUTE\s+(\w+)\n/", $regdata, $m, PREG_PATTERN_ORDER);
+			preg_match_all("/ATTRIBUTE\s+(\w+)\s+[#\n]/", $regdata, $m, PREG_PATTERN_ORDER);
 			foreach($m[1] as $p)
 			{
 				if ($p == 'word')
