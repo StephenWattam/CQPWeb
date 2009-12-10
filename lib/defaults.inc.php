@@ -50,38 +50,32 @@ else
 if (!isset($mysql_has_file_access))
 	$mysql_has_file_access = false;
 
-/* this has implications:
- * 
- * FOR THE TEMPORARY DIRECTORIES:
- * -- if mysqld does not have file access, then we should ignore the distinction between
- * cqp_tempdir and mysql_tempdir; all temporary files should be in one place only.
- * -- In this case, mysql_tempdir does not actually need to be set.
- * -- But if mysqld does have file access, we need ot check that mysql_tempdir has been set.
- * 
- * FOR HOW TEMPORARY FILES ARE LOADED TO MYSQL:
- * -- If mysqld has file access, then "load infile" operations should use the path to
- * the file from the perspective of mysqld, and it is mysqld (not the php-mysql-client) which
+/*
+ * -- If mysqld has file access,  it is mysqld (not the php-mysql-client) which
  * will do the opening of the file.
  * -- But if mysqld does not have file access, then we should load all infiles locally.
  */
 if ($mysql_has_file_access)
-{
-	if (!isset($mysql_tempdir))
-	{
-		echo('CRITICAL ERROR: $mysql_tempdir has not been set');
-		exit();
-	}
 	$mysql_LOAD_DATA_INFILE_command = 'LOAD DATA INFILE';
-}
 else
-{
-	$mysql_tempdir = $cqp_tempdir;
 	$mysql_LOAD_DATA_INFILE_command = 'LOAD DATA LOCAL INFILE';
-}
 
-/*DEBUG CODE: due to current unceertainty, the identity of the two temp directories is enforced */
-$mysql_tempdir = $cqp_tempdir;
-/* so the across-two-computers thing doesn't work */
+
+/* TEMPORARY DIRECTORIES
+ * 
+ * We previously had two different temporary directories
+ * 
+ * Now we have just one; but the code has not all been revised yet.
+ */
+if (!isset($cqpweb_tempdir))
+{
+	echo('CRITICAL ERROR: $cqpweb_tempdir has not been set');
+	exit();
+}
+/* This temporary code preserves the old directory names as references to the new directory name */
+$mysql_tempdir =& $cqpweb_tempdir;
+$cqp_tempdir =& $cqpweb_tempdir;
+
 
 /* the following stops calls to CQP::set_corpus causing an error in the "adm" scripts */
 if (!isset($corpus_cqp_name))

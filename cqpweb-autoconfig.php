@@ -83,8 +83,7 @@ $path_to_perl = get_variable_path("the path to the directory containing the perl
 $cwb_datadir = get_variable_path("the path to the directory you wish to use for the CWB datafiles");
 $cwb_registry = get_variable_path("the path to the directory you wish to use for CWB registry files");
 
-$cqp_tempdir = get_variable_path("the path to the directory you wish to use for the CQP cache");
-$mysql_tempdir = get_variable_path("the path to the directory you wish to use for MySQL temp files");
+$cqpweb_tempdir = get_variable_path("the path to the directory you wish to use for the CQPweb cache and other temp files");
 $cqpweb_accessdir = get_variable_path("the path to the directory you wish to store passwords / group files in");
 $cqpweb_uploaddir = get_variable_path("the path to the directory you wish to store uploaded files in");
 
@@ -141,10 +140,9 @@ $config_file =
 \$path_to_apache_utils = '$path_to_apache_utils';
 \$path_to_perl = '$path_to_perl';
 
-\$cqp_tempdir = '$cqp_tempdir';
+\$cqpweb_tempdir = '$cqpweb_tempdir';
 \$cqpweb_accessdir = '$cqpweb_accessdir';
 \$cqpweb_uploaddir = '$cqpweb_uploaddir';
-\$mysql_tempdir = '$mysql_tempdir';
 
 
 \$cwb_datadir = '$cwb_datadir';
@@ -176,8 +174,7 @@ if (is_file('lib/config.inc.php'))
 		}
 		else if ($i[0] == 'Y')
 		{
-			echo "OK! won't overwrite. Program aborts.\n\n";
-			exit();
+			break;
 		}		
 	} 
 }

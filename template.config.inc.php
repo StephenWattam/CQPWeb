@@ -22,7 +22,7 @@ $path_to_cwb = '';
 $path_to_apache_utils = '';
 $path_to_perl = '';
 
-$cqp_tempdir = '';
+$cqpweb_tempdir = '';
 $cqpweb_accessdir = '';
 $cqpweb_uploaddir = '';
 $cwb_datadir = '';

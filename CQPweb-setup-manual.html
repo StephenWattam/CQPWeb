@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20091128;10281600">
+	<META NAME="CHANGED" CONTENT="20091210;6283500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -396,7 +396,7 @@ and edit it. It looks like this:</P>
 			= '';</FONT></FONT></P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><BR><BR>
 			</P>
-			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqp_tempdir
+			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqpweb_tempdir
 			= '3';</FONT></FONT></P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$cqpweb_accessdir
 			= '2';</FONT></FONT></P>
@@ -426,8 +426,9 @@ You can have as many superusers as you like, but you must have at
 least one.</P>
 <P LANG="en-GB">The <FONT FACE="Courier New, monospace">$mysql_</FONT>
 settings are the things you noted when creating the mysql user.</P>
-<P LANG="en-GB">The last six settings are the directories you created
-(<I><B>numbers shown in the example correspond to the table above</B></I>).</P>
+<P LANG="en-GB">The last five settings are the directories you
+created (<I><B>numbers shown in the example correspond to the table
+above</B></I>).</P>
 <P LANG="en-GB">The <FONT FACE="Courier New, monospace">$path_to</FONT>
 settings specify where the perl, cwb and apache utilities binaries
 are to be found. Give them in the following format (example paths
@@ -472,11 +473,6 @@ but not automatically. They are</P>
 	FILE ON *.*</FONT> permissions. It is important you get this right,
 	as CQPweb doesn't check these preconditions for you! 
 	</P>
-	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$mysql_tempdir</FONT>
-	– this defaults to the same as <FONT FACE="Courier New, monospace">$cqp_tempdir</FONT>,
-	but you can set it to a different path if you are using a separate
-	computer for MySQL. See section on “Using a separate computer for
-	MySQL”.</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$cqpweb_uses_apache</FONT>
 	– this defaults to true, but you can set it to false if your web
 	server is not Apache. If it is set to false, functions that depend
@@ -728,7 +724,7 @@ will have to manage this yourself</I>.
 </P>
 <P LANG="en-GB">With Apache, this works as follows: (a) the
 web-folder of each corpus has an .htaccess file in which are listed
-the groups that have access to that corpus; (b) the list of members
+the groups that have access to that corpus; (b) the list of members
 in each group is in the .htgroup file in CQPweb's “access”
 directory (and the .htpasswd file is there as well). How exactly you
 simulate this will depend on the details of the alternative web
@@ -736,8 +732,8 @@ server you are using.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Using
-a separate computer for MySQL </B></FONT></FONT><FONT COLOR="#ff0000">&lt;this
-doesn't work yet&gt;</FONT></P>
+a separate computer for MySQL </B></FONT></FONT>
+</P>
 <P LANG="en-GB">You might want to use two separate machines for the
 CWB-based and MySQL-based parts of CQPweb, for reasons of performance
 (for a big corpus and for queries with lots of results, both MySQL
@@ -748,8 +744,8 @@ be on the same system as CWB, and all the paths specified in the
 config file should refer to <I>that</I> file-system, <I>not</I> the
 one with MySQL on it.</P>
 <P LANG="en-GB">You <I>must not</I> set <FONT FACE="Courier New, monospace">$mysql_has_file_access</FONT>
-to true if the MySQL server is on a separate computer. The system
-cannot currently check this for you!</P>
+to <B>true</B> if the MySQL server is on a separate computer. The
+system cannot currently check this for you!</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <HR>
