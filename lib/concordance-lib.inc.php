@@ -89,7 +89,6 @@ function prepare_query_mode($s, $strict = true)
 function amount_of_text_searched($subcorpus, $restrictions)
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	global $username;
 	
 	if ($subcorpus != 'no_subcorpus')
@@ -99,10 +98,7 @@ function amount_of_text_searched($subcorpus, $restrictions)
 			AND corpus = '$corpus_sql_name'
 			AND user = '$username'";
 
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 				
 		return mysql_fetch_row($result);
 	}
@@ -113,10 +109,7 @@ function amount_of_text_searched($subcorpus, $restrictions)
 
 		$sql_query .= ($restrictions == 'no_restriction' ? '' : ' where ' . $restrictions);
 
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 
 		return mysql_fetch_row($result);
 	}
@@ -128,7 +121,6 @@ function amount_of_text_searched($subcorpus, $restrictions)
 /* takes a "query-record" style associative array */
 function create_solution_heading($record, $include_corpus_size = true)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	global $cqp;
 	

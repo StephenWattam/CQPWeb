@@ -109,25 +109,9 @@ else
 
 
 
-/* connect to mySQL and set up for UTF-8 */
+/* connect to mySQL */
+connect_global_mysql();
 
-$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
-
-if (! $mysql_link)
-{
-	?>
-	<p class="errormessage">
-		mySQL did not connect - please try again later!
-	</p></body></html> 
-	<?php
-	exit(1);
-}
-
-mysql_select_db($mysql_schema, $mysql_link);
-
-/* utf-8 setting is dependent on a variable defined in settings.inc.php */
-if ($utf8_set_required)
-	mysql_query("SET NAMES utf8", $mysql_link);
 
 
 
@@ -343,9 +327,7 @@ echo "View corpus metadata</a></td></tr>";
 /* print a link to a corpus manual, if there is one */
 $sql_query = "select external_url from corpus_metadata_fixed where corpus = '"
 	. $corpus_sql_name . "' and external_url IS NOT NULL";
-$result = mysql_query($sql_query, $mysql_link);
-if ($result == false) 
-	exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), __FILE__, __LINE__);
+$result = do_mysql_query($sql_query);
 if (mysql_num_rows($result) < 1)
 	echo '<tr><td class="concordgeneral"><a class="menuCurrentItem">Corpus documentation</a></tr></td>';
 else
@@ -362,9 +344,8 @@ unset($row);
 /* print a link to each tagset for which an external_url is declared in metadata */
 $sql_query = "select description, tagset, external_url from annotation_metadata where corpus = '"
 	. $corpus_sql_name . "' and external_url IS NOT NULL";
-$result = mysql_query($sql_query, $mysql_link);
-if ($result == false) 
-	exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), __FILE__, __LINE__);
+$result = do_mysql_query($sql_query);
+
 
 
 while (($row = mysql_fetch_assoc($result)) != false)

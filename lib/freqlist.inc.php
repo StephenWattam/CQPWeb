@@ -61,19 +61,8 @@ if (!url_string_is_valid())
 
 
 
-/* connect to mySQL and set up for UTF-8 */
-
-$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
-
-if (! $mysql_link)
-	exiterror_fullpage("mySQL did not connect - please try again later!", __FILE__, __LINE__);
-
-
-mysql_select_db($mysql_schema, $mysql_link);
-
-/* utf-8 setting is dependent on a variable defined in settings.inc.php */
-if ($utf8_set_required)
-	mysql_query("SET NAMES utf8", $mysql_link);
+/* connect to mySQL */
+connect_global_mysql();
 
 
 

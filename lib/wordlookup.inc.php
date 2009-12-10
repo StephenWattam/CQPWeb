@@ -23,8 +23,8 @@
 
 
 
-/* a very short script, which turns the parameters from the wordlookup form into parameters for */
-/* concordance.php and then calls a "location" */
+/* a very short script, which turns the parameters from the wordlookup form into parameters for
+ * concordance.php and then calls a "location" */
 
 
 require('settings.inc.php');

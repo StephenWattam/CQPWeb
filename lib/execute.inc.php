@@ -137,23 +137,11 @@ CQPweb (c) 2008
 
 
 /* connect to mySQL and cqp, in case the function call needs them as globals */
-$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
-if (! $mysql_link)
-	exit('
-<html><head><title>mySQL problem in execute.php</title></head><body><pre>
-mySQL did not connect - please try again later!
+/* connect to mySQL */
+connect_global_mysql();
 
-CQPweb (c) 2008
-</pre></body></html>');
-
-mysql_select_db($mysql_schema, $mysql_link);
-if ($utf8_set_required)
-	mysql_query("SET NAMES utf8", $mysql_link);
-
-$cqp = new CQP;
-$cqp->set_error_handler("exiterror_cqp");
-$cqp->execute("set DataDirectory '/$cqp_tempdir'");
-$cqp->set_corpus($corpus_cqp_name);
+/* connect to CQP */
+connect_global_cqp();
 
 
 /* run the function */

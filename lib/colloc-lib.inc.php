@@ -123,7 +123,6 @@ function load_statistic_info()
 function create_statistic_sql_query($stat, $soloform = '')
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	
 	/* should these be parameters instead of globals? */
 	// probably YES.
@@ -330,10 +329,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 	case 7:		/* Dice coefficient */
 		/* this one uses extra variables, so get these first */
 		$sql_query = "SELECT COUNT(DISTINCT refnumber) from $dbname WHERE $range_condition";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 	
 		list($DICE_NODE_F) = mysql_fetch_row($result);
 		$P_COLL_NODE = "(COUNT(DISTINCT refnumber) / $DICE_NODE_F)";
@@ -352,9 +348,8 @@ function create_statistic_sql_query($stat, $soloform = '')
 			__FILE__, __LINE__);
 	}
 	
-	/* field names (keys) for the table you get back */
+	/* field names (keys) for the table you get back
 	
-	/* 
 	   $att 		 -- the collocate itself, with the name of the attribute it comes from as the field name 
 	   observed 	 -- the number of times the collocate occurs in the window
 	   expected 	 -- the number of times the collocate would occur in the window given smooth distribution
@@ -374,17 +369,20 @@ function create_statistic_sql_query($stat, $soloform = '')
 
 function calculate_total_basis($basis_table)
 {
-	global $mysql_link;
+	static $total_basis_cache;
 	
-	$sql_query = 'select sum(freq) from ' . mysql_real_escape_string($basis_table) ;
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	if ( ! isset($total_basis_cache[$basis_table]))	
+	{
+		$sql_query = 'select sum(freq) from ' . mysql_real_escape_string($basis_table) ;
 	
-	$r = mysql_fetch_row($result);
+		$result = do_mysql_query($sql_query);
+		
+		$r = mysql_fetch_row($result);
+		
+		$total_basis_cache[$basis_table] = $r[0];
+	}
 	
-	return $r[0];
+	return $total_basis_cache[$basis_table];
 }
 
 
@@ -394,7 +392,6 @@ function calculate_total_basis($basis_table)
 
 function calculate_words_in_window()
 {
-	global $mysql_link;
 	global $dbname;
 	global $calc_range_begin;
 	global $calc_range_end;
@@ -409,10 +406,8 @@ function calculate_words_in_window()
 		
 	/* note that mySQL 'BETWEEN' is inclusive of the limit-values */
 	
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
+
 	$r = mysql_fetch_row($result);
 
 	return $r[0];
@@ -433,7 +428,6 @@ function calculate_words_in_window()
 
 function colloc_table_taglist($field, $dbname)
 {
-	global $mysql_link;
 	
 	/* shouldn't be necessary...  but hey */
 	$field = mysql_real_escape_string($field);
@@ -442,10 +436,7 @@ function colloc_table_taglist($field, $dbname)
 		return array();
 	
 	$sql_query = "select distinct($field) from $dbname limit 1000";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 			
 	while ( ($r = mysql_fetch_row($result)) !== false )
 		$tags[] = $r[0];
@@ -472,7 +463,6 @@ function run_script_for_solo_collocation()
 	
 	global $statistic;
 	global $soloform;
-	global $mysql_link;
 	global $calc_range_begin;
 	global $calc_range_end;
 	global $att_for_calc;
@@ -493,10 +483,7 @@ function run_script_for_solo_collocation()
 	
 		$sql_query = create_statistic_sql_query($s, $soloform);
 
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = mysql_query($sql_query);
 				
 		$row = mysql_fetch_assoc($result);
 		
@@ -597,10 +584,8 @@ function run_script_for_solo_collocation()
 			AND dist = $i
 			";
 
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
+
 		$row = mysql_fetch_row($result);
 		
 		if ($row[0] == 0)

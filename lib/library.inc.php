@@ -44,18 +44,25 @@ function connect_global_cqp()
 	global $cqp;
 	global $cqp_tempdir;
 	global $corpus_cqp_name;
+	global $path_to_cwb;
+	global $cwb_registry;
+	global $print_debug_messages;
 
 	/* connect to CQP */
-	$cqp = new CQP;
+	$cqp = new CQP($path_to_cwb, $cwb_registry);
 	/* select an error handling function */
 	$cqp->set_error_handler("exiterror_cqp");
 	/* set CQP's temporary directory */
 	$cqp->execute("set DataDirectory '/$cqp_tempdir'");
 	/* select corpus */
-	//$cqp->execute("$corpus_cqp_name;");
 	$cqp->set_corpus($corpus_cqp_name);
 	/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
+	
+	if ($print_debug_messages)
+		$cqp->set_debug_mode(true);
 }
+
+
 function disconnect_global_cqp()
 {
 	global $cqp;
@@ -65,6 +72,8 @@ function disconnect_global_cqp()
 		unset($GLOBALS['cqp']);
 	}
 }
+
+
 /**
  * This function refreshes CQP's internal list of queries currently existing in its data directory
  * 
@@ -85,6 +94,148 @@ function refresh_directory_global_cqp()
 		// Question: is this still necessary?
 	}
 }
+
+function connect_global_mysql()
+{
+	global $mysql_link;
+	global $mysql_server;
+	global $mysql_webuser;
+	global $mysql_webpass;
+	global $mysql_schema;
+	global $utf8_set_required;
+	
+	$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
+	
+	if (! $mysql_link)
+	{
+		exiterror_fullpage('mySQL did not connect - please try again later!');
+	}
+	
+	mysql_select_db($mysql_schema, $mysql_link);
+	
+	/* utf-8 setting is dependent on a variable defined in settings.inc.php */
+	if ($utf8_set_required)
+		mysql_query("SET NAMES utf8", $mysql_link);	
+}
+
+/**
+ * disconnect from both cqp & mysql, assuming standard variable names are used
+ */
+function disconnect_all()
+{
+	global $cqp;
+	global $mysql_link;
+	if (isset($cqp))
+		disconnect_global_cqp();
+	if(isset($mysql_link))
+		mysql_close($mysql_link);
+}
+
+/**
+ * note - this function should replace all direct calls to mysql_query,
+ * thus avoiding duplication of error-checking code.
+ */ 
+function do_mysql_query($sql_query)
+{
+	global $mysql_link;
+	global $print_debug_messages;
+
+	if ($print_debug_messages)
+		print_debug_message("About to run the following MySQL query:\n\n$sql_query\n");
+		
+	$result = mysql_query($sql_query, $mysql_link);
+	
+	if ($result == false) 
+		exiterror_mysqlquery(mysql_errno($mysql_link), 
+			mysql_error($mysql_link), __FILE__, __LINE__);
+			
+	if ($print_debug_messages)
+		print_debug_message("The query ran successfully.\n");
+		
+	return $result;
+}
+
+function do_mysql_outfile_query($query, $filename)
+{
+	global $mysql_has_file_access;
+	global $mysql_link;
+	global $print_debug_messages;
+	
+	if ($mysql_has_file_access)
+	{
+		/* We should use INTO OUTFILE */
+		
+		$into_outfile = 'INTO OUTFILE "' . mysql_real_escape_string($filename) . '" FROM ';
+		$replaced = 0;
+		$query = str_replace("FROM ", $into_outfile, $query, $replaced);
+		
+		if ($replaced != 1)
+			exiterror_mysqlquery('no_number',
+				'A query was prepared which does not contain FROM, or contains multiple instances of FROM: ' 
+				. $query , __FILE__, __LINE__);
+		
+		if ($print_debug_messages)
+			print_debug_message("About to run the following MySQL query:\n\n$query\n");
+		$result = mysql_query($query);
+		if ($result == false)
+			exiterror_mysqlquery(mysql_errno($mysql_link),
+				mysql_error($mysql_link), __FILE__, __LINE__);
+		else
+		{
+			if ($print_debug_messages)
+				print_debug_message("The query ran successfully.\n");
+			return mysql_affected_rows($mysql_link);
+		}
+	}
+	else 
+	{
+		/* we cannot use INTO OUTFILE, so run the query, and write to file ourselves */
+		if ($print_debug_messages)
+			print_debug_message("About to run the following MySQL query:\n\n$query\n");
+		$result = mysql_unbuffered_query($query, $mysql_link); /* avoid memory overhead for large result sets */
+		if ($result == false)
+			exiterror_mysqlquery(mysql_errno($mysql_link),
+				mysql_error($mysql_link), __FILE__, __LINE__);
+		if ($print_debug_messages)
+			print_debug_message("The query ran successfully.\n");
+	
+		if (!($fh = fopen($filename, 'w'))) 
+		{
+			mysql_free_result($result);
+			exiterror_general("Could not open file for write ( $filename )", __FILE__, __LINE__);
+		}
+		
+		$rowcount = 0;
+		while ($row = mysql_fetch_row($result)) 
+		{
+			fputs($fh, implode("\t", $row) . "\n");
+			$rowcount++;
+		}
+		
+		fclose($fh);
+		
+		return $rowcount;
+	}
+}
+
+/**
+ * currently, this function just wraps pre_echo; 
+ * but we might want to create a more HTML-table-friendly version later.
+ */
+function print_debug_message($message)
+{
+	pre_echo($message);
+}
+
+
+/**
+ * Echoes a string, but with HTML 'pre' tags (ideal for debug messages)
+ */
+function pre_echo($s)
+{
+	echo "<pre>\n$s\n</pre>";
+}
+
 
 
 
@@ -438,58 +589,6 @@ function dump_mysql_result($result)
  * Its return value is the number of rows written to file. In case of problem,
  * existerror_* is called here.
  */
-function do_mysql_outfile_query($query, $filename)
-{
-	global $mysql_has_file_access;
-	global $mysql_link;
-	
-	if ($mysql_has_file_access) 
-	{
-		/* We should use INTO OUTFILE */
-		
-		$into_outfile = 'INTO OUTFILE "' . mysql_real_escape_string($filename) . '" FROM ';
-		$replaced = 0;
-		$query = str_replace("FROM ", $into_outfile, $query, $replaced);
-		
-		if ($replaced != 1)
-			exiterror_mysqlquery('no_number',
-				'A query was prepared which does not contain FROM, or contains multiple instances of FROM: ' 
-				. $query , __FILE__, __LINE__);
-				
-		$result = mysql_query($query);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link),
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		else
-			return mysql_affected_rows($mysql_link);
-	}
-	else 
-	{
-		/* we cannot use INTO OUTFILE, so run the query, and write to file ourselves */
-		
-		$result = mysql_unbuffered_query($query, $mysql_link); /* avoid memory overhead for large result sets */
-		if ($result == false)
-			exiterror_mysqlquery(mysql_errno($mysql_link),
-				mysql_error($mysql_link), __FILE__, __LINE__);
-	
-		if (!($fh = fopen($filename, 'w'))) 
-		{
-			mysql_free_result($result);
-			exiterror_general("Could not open file for write ( $filename )", __FILE__, __LINE__);
-		}
-		
-		$rowcount = 0;
-		while ($row = mysql_fetch_row($result)) 
-		{
-			fputs($fh, implode("\t", $row) . "\n");
-			$rowcount++;
-		}
-		
-		fclose($fh);
-		
-		return $rowcount;
-	}
-}
 
 
 function coming_soon_page()
@@ -607,17 +706,6 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 
 
 
-/* disconnect from both cqp & mysql, assuming standard variable names are used   */
-/* if I use any other external processes regularly, they should be added to this */
-function disconnect_all()
-{
-	global $cqp;
-	global $mysql_link;
-	if (isset($cqp))
-		$cqp->disconnect();
-	if(isset($mysql_link))
-		mysql_close($mysql_link);
-}
 
 
 /* returns an array of category names */
@@ -920,21 +1008,6 @@ function longvalue_retrieve($id)
 		
 	return $r[0];
 }
-
-
-/* standard sql call:
-
-	$sql_query = "QUERYHERE";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-
-/// later ...
-
-	unset($result);
-
-*/
 
 
 

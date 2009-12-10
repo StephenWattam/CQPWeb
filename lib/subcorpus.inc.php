@@ -922,27 +922,13 @@ function populate_corpus_cqp_positions()
 	global $corpus_sql_name;
 	
 	global $cqp;
-	global $cqp_tempdir;
-	global $corpus_cqp_name;
-
 
 	if (isset($cqp))
 		$cqp_was_set = true;
 	else
 	{
 		$cqp_was_set = false;
-		
-		// TODO: change to use global function instead (and, actually, in all scripts .... )
-		
-		/* connect to CQP */
-		$cqp = new CQP;
-		/* select an error handling function */
-		$cqp->set_error_handler("exiterror_cqp");
-		/* set CQP's temporary directory */
-		$cqp->execute("set DataDirectory '/$cqp_tempdir'");
-		/* select corpus */
-		$cqp->set_corpus($corpus_cqp_name);
-		/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
+		connect_global_cqp();
 	}
 
 	/* reduce unnecessary byte-passing - may help with bigger corpora */	

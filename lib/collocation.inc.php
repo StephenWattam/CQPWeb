@@ -84,34 +84,12 @@ if (!url_string_is_valid())
 
 
 
-/* connect to mySQL and set up for UTF-8 */
+/* connect to mySQL */
+connect_global_mysql();
 
-$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
-
-if (! $mysql_link)
-{
-	exiterror_fullpage('mySQL did not connect - please try again later!');
-}
-
-mysql_select_db($mysql_schema, $mysql_link);
-
-/* utf-8 setting is dependent on a variable defined in settings.inc.php */
-if ($utf8_set_required)
-	mysql_query("SET NAMES utf8", $mysql_link);
 
 /* connect to CQP */
-$cqp = new CQP;
-
-/* select an error handling function */
-$cqp->set_error_handler("exiterror_cqp");
-
-/* set CQP's temporary directory */
-$cqp->execute("set DataDirectory '/$cqp_tempdir'");
-
-/* select corpus */
-//$cqp->execute("$corpus_cqp_name;");
-$cqp->set_corpus($corpus_cqp_name);
-/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
+connect_global_cqp();
 
 
 /* download all user settings */
@@ -375,10 +353,7 @@ else
 
 /* for now just find out how many distinct items it has in it */
 $sql_query = "select distinct($att_for_calc) from $dbname";
-$result = mysql_query($sql_query, $mysql_link);
-if ($result == false) 
-	exiterror_mysqlquery(mysql_errno($mysql_link), 
-		mysql_error($mysql_link), __FILE__, __LINE__);
+$result = do_mysql_query($sql_query);
 $db_types_total = mysql_num_rows($result);
 unset($result);
 
@@ -457,11 +432,8 @@ if ($solomode === true)
 
 $sql_query = create_statistic_sql_query($calc_stat);
 
+$result = do_mysql_query($sql_query);
 
-$result = mysql_query($sql_query, $mysql_link);
-if ($result == false) 
-	exiterror_mysqlquery(mysql_errno($mysql_link), 
-		mysql_error($mysql_link), __FILE__, __LINE__);
 
 
 
@@ -743,7 +715,7 @@ mysql_close($mysql_link);
 
 
 
-// (7) BIG TEST : does it produce the same results on FLOB etc. as Xaira?
+// TODO BIG TEST : does it produce the same results on FLOB etc. as Xaira?
 
 
 

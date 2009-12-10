@@ -33,19 +33,8 @@ header('Content-Type: text/html; charset=utf-8');
 include ("lib/defaults.inc.php");
 include ("lib/library.inc.php");
 
-$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
-if (! $mysql_link)
-{
-	?>
-	<html><body>
-	<p class="errormessage">
-		mySQL did not connect - please try again later!
-	</p></body></html> 
-	<?php
-	exit(1);
-}
-
-mysql_select_db($mysql_schema, $mysql_link);
+/* connect to mySQL */
+connect_global_mysql();
 
 
 

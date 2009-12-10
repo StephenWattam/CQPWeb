@@ -66,25 +66,9 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 
 /* download the information */
 
-/* connect to mySQL and set up for UTF-8 */
+/* connect to mySQL */
+connect_global_mysql();
 
-$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
-
-if (! $mysql_link)
-{
-	?>
-	<p class="errormessage">
-		mySQL did not connect - please try again later!
-	</p></body></html> 
-	<?php
-	exit(1);
-}
-
-mysql_select_db($mysql_schema, $mysql_link);
-
-/* utf-8 setting is dependent on a variable defined in settings.inc.php */
-if ($utf8_set_required)
-	mysql_query("SET NAMES utf8", $mysql_link);
 
 	
 /* initialise variables from $_GET */

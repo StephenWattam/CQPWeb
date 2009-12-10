@@ -89,7 +89,7 @@ if (!isset($corpus_cqp_name))
 
 if (!isset($utf8_set_required))
 	$utf8_set_required = true;
-
+	
 /* the next defaults are for tweaks to the system -- not so much critical! */
 
 if (!isset($use_corpus_categories_on_homepage))
@@ -107,6 +107,8 @@ if (!isset($create_password_function))
 if (!isset($cqpweb_uses_apache))
 	$cqpweb_uses_apache = true;
 
+if (!isset($print_debug_messages))
+	$print_debug_messages = false;
 
 
 /* PER-CORPUS DEFAULT SETTINGS */

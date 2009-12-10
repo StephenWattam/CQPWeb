@@ -77,16 +77,21 @@ class CQP
 
 	/* METHODS */
 	
-	/* constructor function ("new") */
+
+	/**
+	 * Create a new CQP object.
+	 * 
+	 * Note that both parameters MUST be absolute paths WITHOUT the initial '/'.
+	 * 
+	 * @param $path_to_cqp  String : Directory containing the cqp executable
+	 * @param $cwb_registry String : Where to look for corpus registry files
+	 */ 
 	
-	function __construct()
+	function __construct($path_to_cqp, $cwb_registry)
 	{
 		/* create handles for CQP and leave CQP running in background */
 		
-		global $path_to_cwb;
-		global $cwb_registry;
-		// TODO !!
-		// ugh the things above should almost certainly be parameters to __construct 
+
 	
 		/* array of settings for the three pipe-handles */
 		$io_settings = array(
@@ -97,7 +102,7 @@ class CQP
 
 		/* start the child process */
 		/* NB: currently no allowance for extra arguments */
-		$command = "/$path_to_cwb/cqp -c -r /$cwb_registry";
+		$command = "/$path_to_cqp/cqp -c -r /$cwb_registry";
 
 		$this->process = proc_open($command, $io_settings, $this->handle);
 
@@ -782,7 +787,7 @@ class CQP
 
 
 
-	
+
 	/* switch debug mode on or off */
 	function set_debug_mode($newstate)
 	{
@@ -795,8 +800,8 @@ class CQP
 
 		return $oldstate;
 	}
-	
-	
+
+
 	/* input strings are always utf8. This method filters them to another encoding, if necessary */
 	private function filter_input($string)
 	{

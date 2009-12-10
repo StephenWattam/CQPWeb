@@ -64,58 +64,12 @@ if (!url_string_is_valid())
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-/* ----------------------------------------------------------------- */
-
-/*            establish mysql and cqp data connections               */
-
-/* ----------------------------------------------------------------- */
-
-
-/* connect to mySQL and set up for UTF-8 */
-
-$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
-
-if (! $mysql_link)
-{
-	?>
-	<p class="errormessage">
-		mySQL did not connect - please try again later!
-	</p></body></html> 
-	<?php
-	exit(1);
-}
-
-mysql_select_db($mysql_schema, $mysql_link);
-
-/* utf-8 setting is dependent on a variable defined in settings.inc.php */
-if ($utf8_set_required)
-	mysql_query("SET NAMES utf8", $mysql_link);
+/* connect to mySQL */
+connect_global_mysql();
 
 
 /* connect to CQP */
-$cqp = new CQP;
-
-/* select an error handling function */
-$cqp->set_error_handler("exiterror_cqp");
-
-/* set CQP's temporary directory */
-$cqp->execute("set DataDirectory '/$cqp_tempdir'");
-
-/* select corpus */
-//$cqp->execute("$corpus_cqp_name");
-$cqp->set_corpus($corpus_cqp_name);
-/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
+connect_global_cqp();
 
 
 /* download all user settings */

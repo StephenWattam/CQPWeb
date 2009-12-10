@@ -33,8 +33,6 @@
 /* BEGIN SCRIPT */
 /* ------------ */
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
 
 
 /* initialise variables from settings files  */
@@ -58,25 +56,6 @@ include ("../lib/cqp.inc.php");
 
 if (!url_string_is_valid())
 	exiterror_bad_url();
-
-
-
-
-?>
-
-
-<html>
-<head>
-<?php
-echo '<title>' . $corpus_title . ' -- CQPweb showing extra context</title>';
-echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-</head>
-<body>
-
-<?php
 
 
 
@@ -137,44 +116,39 @@ else
 
 
 
-/* connect to mySQL and set up for UTF-8 */
-
-$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
-
-if (! $mysql_link)
-{
-	?>
-	<p class="errormessage">
-		mySQL did not connect - please try again later!
-	</p></body></html> 
-	<?php
-	exit(1);
-}
-
-mysql_select_db($mysql_schema, $mysql_link);
-
-/* utf-8 setting is dependent on a variable defined in settings.inc.php */
-if ($utf8_set_required)
-	mysql_query("SET NAMES utf8", $mysql_link);
-
-
-
+/* connect to mySQL */
+connect_global_mysql();
 
 
 /* connect to CQP */
-$cqp = new CQP;
+connect_global_cqp();
 
-/* select an error handling function */
-$cqp->set_error_handler("exiterror_cqp");
-/* the other option is cqp_error_handler_full */
 
-/* set CQP's temporary directory */
-$cqp->execute("set DataDirectory '/$cqp_tempdir'");
 
-/* select corpus */
-//$cqp->execute("$corpus_cqp_name");
-$cqp->set_corpus($corpus_cqp_name);
-/* note that corpus must be RESELECTED after calling "set DataDirectory" */
+
+
+/* before anything else */
+header('Content-Type: text/html; charset=utf-8');
+
+?>
+
+
+<html>
+<head>
+<?php
+echo '<title>' . $corpus_title . ' -- CQPweb showing extra context</title>';
+echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
+?>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+</head>
+<body>
+
+<?php
+
+
+
+
 
 $primary_tag_handle = get_corpus_metadata('primary_annotation');
 
