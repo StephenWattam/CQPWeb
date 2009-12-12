@@ -68,8 +68,7 @@ function make_cwb_freq_index()
 	global $corpus_cqp_name;
 	global $mysql_link;
 	global $mysql_LOAD_DATA_INFILE_command;
-	global $cqp_tempdir;
-	global $mysql_tempdir;
+	global $cqpweb_tempdir;
 	global $cwb_datadir;
 	global $cwb_registry;
 	global $path_to_cwb;
@@ -222,7 +221,7 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 	  
 	  This then goes into a mysql table which corresponds to the __freq cwb corpus.
 	*/
-	$index_filename = "/$mysql_tempdir/{$corpus_sql_name}_freqdb_index.tbl";
+	$index_filename = "/$cqpweb_tempdir/{$corpus_sql_name}_freqdb_index.tbl";
 	
 	$s_decode_cmd = "/$path_to_cwb/cwb-s-decode -r /$cwb_registry $freq_corpus_cqp_name -S text_id > $index_filename";
 	exec($s_decode_cmd);

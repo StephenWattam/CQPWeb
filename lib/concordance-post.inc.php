@@ -238,7 +238,9 @@ class POSTPROCESS {
 		case 'thin':
 			$this->postprocess_type = 'thin';
 			
-			if ( ! isset( $_GET['newPostP_thinReallyRandom'], $_GET['newPostP_thinTo'], $_GET['newPostP_thinHitsBefore'] ) )
+			/* empty() checks for a range of nonsensical things: '', '0', etc. */
+			if ( ! isset( $_GET['newPostP_thinReallyRandom'], $_GET['newPostP_thinTo'], $_GET['newPostP_thinHitsBefore'] )
+				|| empty($_GET['newPostP_thinTo'])  )
 			{
 				$this->i_parsed_ok = false;
 				return;
@@ -248,13 +250,28 @@ class POSTPROCESS {
 			if (substr($_GET['newPostP_thinTo'], -1) == '%')
 			{
 				$thin_factor = str_replace('%', '', $_GET['newPostP_thinTo']) / 100;
+				
+				/* check for insane percentage values */
+				if ($thin_factor >= 1)
+				{
+					$this->i_parsed_ok = false;
+					return;
+				}
+				
 				$this->thin_target_hit_count = round(((int)$_GET['newPostP_thinHitsBefore']) * $thin_factor, 0);
 			}
 			else
 			{
 				$this->thin_target_hit_count = (int)$_GET['newPostP_thinTo'];
+				
+				/* a check for thinning to "more hits than we originally had" */			
+				if ($this->thin_target_hit_count >= (int)$_GET['newPostP_thinHitsBefore'])
+				{
+					$this->i_parsed_ok = false;
+					return;
+				}				
 			}
-// TODO add a check here for thinning to "more hits than we originally had"			
+			
 			$this->thin_genuinely_random = ($_GET['newPostP_thinReallyRandom'] == 1) ? true : false;
 			
 			break;
@@ -679,7 +696,7 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 	global $instance_name;
 	global $cqp;
 	global $mysql_link;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $username;
 	
 	
@@ -688,7 +705,7 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 	$cache_record['user'] = $username;
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqp_tempdir/temp_coll_$new_qname.tbl";
+	$tempfile  = "/$cqpweb_tempdir/temp_coll_$new_qname.tbl";
 
 	$sql_query = $descriptor->colloc_sql_for_queryfile();
 
@@ -735,7 +752,7 @@ function run_postprocess_sort($cache_record, &$descriptor)
 	global $instance_name;
 	global $cqp;
 	global $mysql_link;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $username;
 
 	$orig_cache_record = $cache_record;
@@ -744,7 +761,7 @@ function run_postprocess_sort($cache_record, &$descriptor)
 	$cache_record['user'] = $username;
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqp_tempdir/temp_sort_$new_qname.tbl";
+	$tempfile  = "/$cqpweb_tempdir/temp_sort_$new_qname.tbl";
 
 	$sql_query = $descriptor->sort_sql_for_queryfile($orig_cache_record);
 
@@ -914,7 +931,7 @@ function run_postprocess_item($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $mysql_link;
 	global $username;
 
@@ -929,7 +946,7 @@ function run_postprocess_item($cache_record, &$descriptor)
 	/* actually do it ! */
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqp_tempdir/temp_item_$new_qname.tbl";
+	$tempfile  = "/$cqpweb_tempdir/temp_item_$new_qname.tbl";
 
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->item_sql_for_queryfile($orig_cache_record);
@@ -979,7 +996,7 @@ function run_postprocess_dist($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $mysql_link;
 	global $username;
 
@@ -994,7 +1011,7 @@ function run_postprocess_dist($cache_record, &$descriptor)
 	/* actually do it ! */
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqp_tempdir/temp_dist_$new_qname.tbl";
+	$tempfile  = "/$cqpweb_tempdir/temp_dist_$new_qname.tbl";
 
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->dist_sql_for_queryfile($orig_cache_record);
@@ -1042,7 +1059,7 @@ function run_postprocess_text($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $mysql_link;
 	global $username;
 
@@ -1057,7 +1074,7 @@ function run_postprocess_text($cache_record, &$descriptor)
 	/* actually do it ! */
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqp_tempdir/temp_text_$new_qname.tbl";
+	$tempfile  = "/$cqpweb_tempdir/temp_text_$new_qname.tbl";
 
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->text_sql_for_queryfile($orig_cache_record);

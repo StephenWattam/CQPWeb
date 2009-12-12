@@ -342,7 +342,7 @@ function categorise_separate()
 {
 	global $username;
 	global $cqp;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $mysql_link;
 	global $corpus_sql_name;
 	
@@ -362,7 +362,7 @@ function categorise_separate()
 	$newqname_root = $qname . '_';
 	$newsavename_root = $query_record['save_name'] . '_';
 
-	$outfile_path = "/$cqp_tempdir/temp_cat_$newqname_root.tbl";
+	$outfile_path = "/$cqpweb_tempdir/temp_cat_$newqname_root.tbl";
 	if (is_file($outfile_path))
 		unlink($outfile_path);
 

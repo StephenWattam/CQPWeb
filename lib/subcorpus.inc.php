@@ -529,7 +529,7 @@ function load_subcorpus_to_cqp($subcorpus)
 	global $username;
 	global $mysql_link;
 	global $instance_name;
-	global $mysql_tempdir;
+	global $cqpweb_tempdir;
 
 	if (! is_string($subcorpus))
 		exiterror_arguments($subcorpus, "A string is needed for load_subcorpus_to_cqp!", 
@@ -556,17 +556,16 @@ function load_subcorpus_to_cqp($subcorpus)
 		/* use text list - don't even look at restrictions */
 		$wherelist = translate_textlist_to_where($sc_record['text_list']);
 
-		$sqlfile = "/$mysql_tempdir/sc_temp_$instance_name";
-		$sqlfile_localequiv = "/$cqp_tempdir/sc_temp_$instance_name"; 
+		$sqlfile = "/$cqpweb_tempdir/sc_temp_$instance_name"; 
 	
 		$sql_query = "SELECT cqp_begin, cqp_end 
 			FROM text_metadata_for_$corpus_sql_name 
 			WHERE $wherelist ORDER BY cqp_begin ASC";
 		do_mysql_outfile_query($sql_query, $sqlfile);
 
-		/* we load the mysql outfile to CQP, addressing it by means of cqp_tempdir */
-		load_limits_to_cqp($sqlfile_localequiv);
-		unlink($sqlfile_localequiv);
+		/* we load the mysql outfile to CQP*/
+		load_limits_to_cqp($sqlfile);
+		unlink($sqlfile);
 	}
 	else
 	{
@@ -584,8 +583,7 @@ function load_subcorpus_to_cqp($subcorpus)
 function load_restrictions_to_cqp($restrictions)
 {
 	global $mysql_link;
-	global $mysql_tempdir;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $corpus_sql_name;
 	global $instance_name;
 
@@ -593,17 +591,16 @@ function load_restrictions_to_cqp($restrictions)
 		exiterror_arguments($restrictions, "A string is needed for load_restrictions_to_cqp!", 
 			__FILE__, __LINE__);
 			
-	$sqlfile = "/$mysql_tempdir/sc_temp_$instance_name";
-	$sqlfile_localequiv = "/$cqp_tempdir/sc_temp_$instance_name"; 
+	$sqlfile = "/$cqpweb_tempdir/sc_temp_$instance_name"; 
 	
 	$sql_query = "SELECT cqp_begin, cqp_end 
 		FROM text_metadata_for_$corpus_sql_name 
 		WHERE $restrictions ORDER BY cqp_begin ASC";
 	do_mysql_outfile_query($sql_query, $sqlfile);
 
-	/* we load the mysql outfile to CQP, addressing it by means of cqp_tempdir */
-	load_limits_to_cqp($sqlfile_localequiv);
-	unlink($sqlfile_localequiv);
+	/* we load the mysql outfile to CQP */
+	load_limits_to_cqp($sqlfile);
+	unlink($sqlfile);
 }
 
 

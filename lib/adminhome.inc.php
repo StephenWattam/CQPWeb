@@ -298,6 +298,14 @@ else
 	echo "concordgrey\"><a class=\"menuCurrentItem\">";
 echo "Reset MySQL database</a></td></tr>";
 
+echo "<tr><td class=\"";
+if ($thisF != "phpConfig")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=phpConfig&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "PHP configuration</a></td></tr>";
+
 
 ?>
 
@@ -443,6 +451,10 @@ case 'systemSecurity':
 
 case 'mysqlRestore':
 	printquery_mysqlsystemrestore();
+	break;
+
+case 'phpConfig':
+	printquery_phpconfig();
 	break;
 
 case 'tableView':
@@ -2109,6 +2121,171 @@ function printquery_statistic($type = 'user')
 	echo $navlinks;
 }
 
+
+function printquery_phpconfig()
+{
+	if ($_GET['showPhpInfo'])
+	{
+		phpinfo();
+		return;
+	}
+	?>
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th colspan="2" class="concordtable">
+				Internal PHP settings relevant to CQPweb
+			</th>
+		</tr>
+		<tr>
+			<td colspan="2" class="concordgrey" align="center">
+				&nbsp;<br/>
+				To see the full phpinfo() dump, 
+					<a href="index.php?thisF=phpConfig&showPhpInfo=1&uT=y">click here</a>.
+				<br/>&nbsp;	
+			</td>
+		</tr>
+		
+		<tr>
+			<th colspan="2" class="concordtable">
+				General
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				PHP version
+			</td>
+			<td class="concordgeneral">
+				<?php echo phpversion(); ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Location of INI file
+			</td>
+			<td class="concordgeneral">
+				<?php echo php_ini_loaded_file(); ?>
+			</td>
+		</tr>
+		
+		<tr>
+			<th colspan="2" class="concordtable">
+				Magic quotes
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Magic quotes for GET, POST, COOKIE
+			</td>
+			<td class="concordgeneral">
+				<?php echo ini_get('magic_quotes_gpc') ? 'On' : 'Off'; ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Magic quotes at runtime
+			</td>
+			<td class="concordgeneral">
+				<?php echo ini_get('magic_quotes_runtime')? 'On' : 'Off'; ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Magic quotes sybase mode
+			</td>
+			<td class="concordgeneral">
+				<?php echo ini_get('magic_quotes_sybase')? 'On' : 'Off'; ?>
+			</td>
+		</tr>
+
+
+
+
+		<tr>
+			<th colspan="2" class="concordtable">
+				Memory and runtime
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				PHP's memory limit
+			</td>
+			<td class="concordgeneral">
+				<?php echo ini_get('memory_limit'); ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Maximum script running time 
+				<br/>
+				<em>(turned off by some scripts)</em>
+			</td>
+			<td class="concordgeneral">
+				<?php echo ini_get('max_execution_time'); ?> seconds
+			</td>
+		</tr>
+
+
+
+
+		<tr>
+			<th colspan="2" class="concordtable">
+				File uploads
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				File uploads enabled
+			</td>
+			<td class="concordgeneral">
+				<?php echo ini_get('file_uploads')? 'On' : 'Off'; ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Temporary upload directory
+			</td>
+			<td class="concordgeneral">
+				<?php echo ini_get('upload_tmp_dir') ; ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Maximum upload size
+			</td>
+			<td class="concordgeneral">
+				<?php echo ini_get('upload_max_filesize'); ?>
+			</td>
+		</tr>
+
+
+
+		<tr>
+			<th colspan="2" class="concordtable">
+				MySQL
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Client API version
+			</td>
+			<td class="concordgeneral">
+				<?php echo mysql_get_client_info(); ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Socket on localhost
+			</td>
+			<td class="concordgeneral">
+				<?php echo ini_get('mysql.default_socket'); ?>
+			</td>
+		</tr>
+
+	</table>
+	
+	<?php
+}
 
 
 ?>

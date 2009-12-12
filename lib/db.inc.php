@@ -62,7 +62,7 @@ function dbname_unique($dbname)
 function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $postprocess)
 {
 	global $cqp;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $corpus_sql_name;
 	global $corpus_cqp_name;
 	
@@ -141,10 +141,10 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 	/* name for a file containing the awk script */
 	$awkfile = 'awk_' . $db_type . '_' . $qname;
 
-	if (is_file("/$cqp_tempdir/$tabfile"))
-		unlink("/$cqp_tempdir/$tabfile");
-	if (is_file("/$cqp_tempdir/$awkfile"))
-		unlink("/$cqp_tempdir/$awkfile");
+	if (is_file("/$cqpweb_tempdir/$tabfile"))
+		unlink("/$cqpweb_tempdir/$tabfile");
+	if (is_file("/$cqpweb_tempdir/$awkfile"))
+		unlink("/$cqpweb_tempdir/$awkfile");
 
 	/* get the tabulate, awk, and create table commands for this type of database */
 	$commands = db_commands($dbname, $db_type, $qname);
@@ -153,13 +153,13 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 	{
 		/* if an awk script to intervene between cqp and mysql has been returned... */
 		// put it into a file for later -- file_put_contents would be great now
-		$awk_fh = fopen("/$cqp_tempdir/$awkfile", 'w');
+		$awk_fh = fopen("/$cqpweb_tempdir/$awkfile", 'w');
 		fwrite($awk_fh, $commands['awk']);
 		fclose($awk_fh);
-		$tabulate_dest = "\"| awk -f '/$cqp_tempdir/$awkfile' > '/$cqp_tempdir/$tabfile'\"";
+		$tabulate_dest = "\"| awk -f '/$cqpweb_tempdir/$awkfile' > '/$cqpweb_tempdir/$tabfile'\"";
 	}
 	else
-		$tabulate_dest = "'/$cqp_tempdir/$tabfile'";
+		$tabulate_dest = "'/$cqpweb_tempdir/$tabfile'";
 
 
 
@@ -182,7 +182,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 			mysql_error($mysql_link), __FILE__, __LINE__);
 	unset($result);
 
-	$sql_query = "$mysql_LOAD_DATA_INFILE_command '/$cqp_tempdir/$tabfile' into table $dbname fields escaped by ''";
+	$sql_query = "$mysql_LOAD_DATA_INFILE_command '/$cqpweb_tempdir/$tabfile' into table $dbname fields escaped by ''";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 
@@ -198,10 +198,10 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 
 	/* and delete the file from which the table was created, plus the awk-script if there was one */
-	if (is_file("/$cqp_tempdir/$tabfile"))
-		unlink("/$cqp_tempdir/$tabfile");
-	if (is_file("/$cqp_tempdir/$awkfile"))
-		unlink("/$cqp_tempdir/$awkfile");
+	if (is_file("/$cqpweb_tempdir/$tabfile"))
+		unlink("/$cqpweb_tempdir/$tabfile");
+	if (is_file("/$cqpweb_tempdir/$awkfile"))
+		unlink("/$cqpweb_tempdir/$awkfile");
 
 
 	/* now create a record of the db */

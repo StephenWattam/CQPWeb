@@ -129,6 +129,7 @@ $num_of_hits_text = '(current no. of instances: ' . make_thousands($hits) . ')';
 			echo '<input type="hidden" name="viewMode" value="' . $_GET['viewMode'] . '"/>';
 		/* does anything else from GET need passing on? */
 		?>
+		
 		<input type="hidden" name="uT" value="y" />
 	</form>
 </table>

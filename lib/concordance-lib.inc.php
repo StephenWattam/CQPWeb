@@ -46,14 +46,7 @@ function prepare_query_string($s)
 	$s = str_replace('%09', ' ', $s);
 	$s = str_replace('  ', ' ', $s);
 	
-	/* note that, at this point, somehow, quotes will have been "magicked" */
-	/* into slashed quotes; so I need to remove the slashes */
-	$s = preg_replace('/\\\\"/', '"', $s);
-	$s = preg_replace("/\\\\'/", "'", $s);
-// chnage this - there is a built-in PHP function for this
-// and, for forward-compatibility, do a check against the MAGIC-QUOTES constnt (see php manual
-	// not sure if all the above are necessary or even if they will work
-	// but if they don't work, then they will fail-safe instead of fail-sorry
+	// not sure if all the above are necessary ...
 	
 	return $s;
 }

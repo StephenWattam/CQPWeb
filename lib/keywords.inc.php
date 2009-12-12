@@ -47,6 +47,9 @@ require_once("../lib/library.inc.php");
 require_once("../lib/exiterror.inc.php");
 require_once("../lib/metadata.inc.php");
 require_once("../lib/user-settings.inc.php");
+require_once("../lib/cwb.inc.php");         // needed?
+require_once("../lib/cqp.inc.php");
+
 
 // debug
 ob_implicit_flush(true);
@@ -539,15 +542,16 @@ function print_keyword_line($data, $line_number, $att_for_comp, $restricts)
 		$leftstyle = $rightstyle = 'concordgrey';
 	
 	/* links do not appear if restricts[1|2] == false */
+	$target = CQP::escape_metacharacters($data->item);
 	$link[1] = ( $restricts[1] !== false && $data->freq1 > 0
 		? 'href="concordance.php?theData=' 
-			. urlencode("[$att_for_comp = \"{$data->item}\" %c]")
+			. urlencode("[$att_for_comp = \"{$target}\" %c]")
 			. $restricts[1] 
 			. '&qmode=cqp&uT=y"'
 		: '' ) ;
 	$link[2] = ( $restricts[2] !== false && $data->freq2 > 0
 		? 'href="concordance.php?theData=' 
-			. urlencode("[$att_for_comp = \"{$data->item}\" %c]")
+			. urlencode("[$att_for_comp = \"{$target}\" %c]")
 			. $restricts[2] 
 			. '&qmode=cqp&uT=y"'
 		: '' ) ;

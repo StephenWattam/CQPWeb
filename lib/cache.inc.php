@@ -33,36 +33,36 @@
 /* returns if a CQP temp file exists with that qname in its filename */
 function cqp_file_exists($qname)
 {
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $corpus_cqp_name;
-	return file_exists("/$cqp_tempdir/$corpus_cqp_name:$qname");
+	return file_exists("/$cqpweb_tempdir/$corpus_cqp_name:$qname");
 }
 
 
 /* returns size of a CQP temp file (including 0 if said file existeth not) */
 function cqp_file_sizeof($qname)
 {
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $corpus_cqp_name;
-	$s = filesize("/$cqp_tempdir/$corpus_cqp_name:$qname");
+	$s = filesize("/$cqpweb_tempdir/$corpus_cqp_name:$qname");
 	return ( $s == false ? 0 : $s );
 }
 
 function cqp_file_unlink($qname)
 {
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $corpus_cqp_name;
-	$f = "/$cqp_tempdir/$corpus_cqp_name:$qname";
+	$f = "/$cqpweb_tempdir/$corpus_cqp_name:$qname";
 	if ( file_exists($f) )
 		unlink($f);
 }
 
 function cqp_file_copy($oldqname, $newqname)
 {
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $corpus_cqp_name;
-	$of = "/$cqp_tempdir/$corpus_cqp_name:$oldqname";
-	$nf = "/$cqp_tempdir/$corpus_cqp_name:$newqname";
+	$of = "/$cqpweb_tempdir/$corpus_cqp_name:$oldqname";
+	$nf = "/$cqpweb_tempdir/$corpus_cqp_name:$newqname";
 	if ( file_exists($of) && ! file_exists($nf) )
 		copy($of, $nf);
 }
@@ -463,7 +463,7 @@ function delete_cached_queries($protect_user_saved = true)
 
 	global $mysql_link;
 	global $cache_size_limit;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 
 	if (!is_bool($protect_user_saved))
 		exiterror_arguments($protect_user_saved, 
@@ -507,7 +507,7 @@ function delete_cached_queries($protect_user_saved = true)
 			if ( ! ($current_del_row = mysql_fetch_row($del_result)) )
 				break;
 			
-			$globbed = glob("/$cqp_tempdir/*:" . $current_del_row[0]);
+			$globbed = glob("/$cqpweb_tempdir/*:" . $current_del_row[0]);
 			$current_path_to_delete = $globbed[0];
 
 			if (file_exists($current_path_to_delete))
@@ -569,7 +569,7 @@ function clear_cache($protect_user_saved = true)
 	/* just by deleting non-user-saved queries                            */
 
 	global $mysql_link;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	
 	/* this function can take a long time to run, so turn off the limits */
 	php_execute_time_unlimit();
@@ -596,7 +596,7 @@ function clear_cache($protect_user_saved = true)
 	$mysql_deletelist = array();
 	while (($current_del_row = mysql_fetch_row($del_result)) !== false)
 	{		
-		$globbed = glob("/$cqp_tempdir/*:" . $current_del_row[0]);
+		$globbed = glob("/$cqpweb_tempdir/*:" . $current_del_row[0]);
 		$current_path_to_delete = $globbed[0];
 
 		if (file_exists($current_path_to_delete))
@@ -620,7 +620,7 @@ function clear_cache($protect_user_saved = true)
 	}
 
 	/* are there any files left in the temp directory? */
-	foreach(glob("/$cqp_tempdir/*") as $file)
+	foreach(glob("/$cqpweb_tempdir/*") as $file)
 	{
 		/* was this file protected on the previous pass? */
 		preg_match('/\A([^:]*:)(.*)\z/', $file, $m);
@@ -651,7 +651,6 @@ function history_insert($instance_name, $cqp_query, $restrictions, $subcorpus, $
 	global $mysql_link;
 	global $corpus_sql_name;
 	global $username;
-//	global $qString;
 
 	$escaped_cqp_query = mysql_real_escape_string($cqp_query);
 	$escaped_restrictions = mysql_real_escape_string($restrictions);

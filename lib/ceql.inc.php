@@ -228,6 +228,8 @@ function process_simple_query($query, $case_sensitive)
 	
 	global $path_to_perl;
 	
+	global $print_debug_messages;
+	
 	/* return as is if nothing but whitespace */
 	if (preg_match('/^\s*$/', $query) > 0)
 		return $query;
@@ -258,7 +260,6 @@ function process_simple_query($query, $case_sensitive)
 		{
 			if (stream_select($r=array($handles[2]), $w=NULL, $e=NULL, 10) > 0 )
 				$ceql_errors = explode("\n", fread($handles[2], 10240));
-			
 		}
 
 		fclose($handles[1]);
@@ -281,6 +282,8 @@ function process_simple_query($query, $case_sensitive)
 
 		array_unshift($ceql_errors, "<u>Syntax error</u>", "Sorry, your simple query
 	        ' $query ' contains a syntax error.");
+		if ($print_debug_messages)
+			print_debug_message("Error in perl script for CEQL: this was the script\n\n$script");
 		exiterror_cqp_full($ceql_errors);
 	}
 	return $cqp_query;
@@ -443,7 +446,7 @@ function lookup_tertiary_mappings($mapping_table_name)
 	}
 }
 
-/* would it be ebtter to have this in the mySQL???  and the function with the actual tables ??? */
+/* TODO would it be better to have this in the mySQL???  and the function with the actual tables ??? */
 function get_list_of_tertiary_mapping_tables()
 {
 	return array(
@@ -456,7 +459,8 @@ function get_list_of_tertiary_mapping_tables()
 
 
 
-/// archive only
+/*
+// archive only
 function old_process_simple_query($query, $case_sensitive)
 {
 	global $username;
@@ -465,19 +469,19 @@ function old_process_simple_query($query, $case_sensitive)
 	global $restrictions;
 	global $subcorpus;
 	
-	/* return as is if nothing but whitespace */
+	/* return as is if nothing but whitespace * /
 	if (preg_match('/^\s*$/', $query) > 0)
 		return $query;
 
 
-	/* call the parser */
+	/* call the parser * /
 // note: is an escape needed here for the contents of $query?
 	$cqp_query = perl_interface("../lib/perl/parse_simple_query.pl", "\"$query\" $case_sensitive");
 	
 	if ( ! isset($cqp_query) || $cqp_query == "")
 	{
-		/* if conversion fails, add to history & then add syntax error code */
-		/* and then call an error -- script terminates */
+		/* if conversion fails, add to history & then add syntax error code * /
+		/* and then call an error -- script terminates * /
 
 		history_insert($instance_name, $query, $restrictions, $subcorpus, $query,
 			($case_sensitive ? 'sq_case' : 'sq_nocase'));
@@ -488,7 +492,7 @@ function old_process_simple_query($query, $case_sensitive)
 	}
 	return $cqp_query;
 }
-
+*/
 
 
 

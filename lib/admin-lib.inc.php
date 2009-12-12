@@ -32,8 +32,6 @@ class corpus_install_info
 	
 	public $already_cwb_indexed;
 	
-//	public $directory_override;
-	
 	public $script_is_r2l;
 
 	public $corpus_metadata_fixed_mysql_insert;
@@ -60,6 +58,10 @@ class corpus_install_info
 		
 		$this->corpus_mysql_name = cqpweb_handle_enforce($_GET['corpus_mysql_name']);
 		$this->corpus_cwb_name = strtolower(cqpweb_handle_enforce($_GET['corpus_cwb_name']));
+		
+		if (substr($this->corpus_cwb_name, -6) == '__freq')
+			exiterror_fullpage('Error: Corpus CWB names cannot end in __freq!!');
+		
 		$this->script_is_r2l = ( $_GET['corpus_scriptIsR2L'] === '1' );
 		$this->encode_charset = ( $_GET['corpus_encodeIsLatin1'] === '1' ? 'latin1' : 'utf8' );
 				
@@ -318,9 +320,9 @@ function install_new_corpus()
 {
 	global $path_to_cwb;
 	global $cqpweb_accessdir;
+	global $cqpweb_tempdir;
 	global $cwb_datadir;
 	global $cwb_registry;
-	global $cqp_tempdir;
 	
 	global $mysql_link;
 	
@@ -366,7 +368,7 @@ function install_new_corpus()
 	
 		/* run the commands one by one */
 	
-		$encode_output_file = "/$cqp_tempdir/{$corpus}__php-cwb-encode.txt";
+		$encode_output_file = "/$cqpweb_tempdir/{$corpus}__php-cwb-encode.txt";
 	
 		$encode_command =  "/$path_to_cwb/cwb-encode -xsB -c {$info->encode_charset} -d $datadir -f " 
 			. implode(' -f ', $info->file_list)
@@ -380,12 +382,12 @@ function install_new_corpus()
 		
 		chmod("/$cwb_registry/$corpus", 0664);
 	
-		$make_output_file = "/$cqp_tempdir/{$corpus}__php-cwb-make.txt";
+		$make_output_file = "/$cqpweb_tempdir/{$corpus}__php-cwb-make.txt";
 		
 		exec("/$path_to_cwb/cwb-makeall -r /$cwb_registry -V $CORPUS > $make_output_file");
 	
 	
-		$huffcode_output_file = "/$cqp_tempdir/{$corpus}__php-cwb-huffcode.txt";
+		$huffcode_output_file = "/$cqpweb_tempdir/{$corpus}__php-cwb-huffcode.txt";
 		
 		exec("/$path_to_cwb/cwb-huffcode -A $CORPUS > $huffcode_output_file");
 		exec("/$path_to_cwb/cwb-compress-rdx -A $CORPUS >> $huffcode_output_file" );
@@ -1165,7 +1167,7 @@ function create_text_metadata_for()
 	/* this is an ugly but efficient way to get the data that I need for this */
 	global $create_text_metadata_for_info;
 	global $cqpweb_uploaddir;
-	global $mysql_tempdir;
+	global $cqpweb_tempdir;
 	global $mysql_link;
 	global $mysql_LOAD_DATA_INFILE_command;
 	
@@ -1179,7 +1181,7 @@ function create_text_metadata_for()
 	if (!is_file($file))
 		exiterror_fullpage("The file [$file] is not a file!", __FILE__, __LINE__);
 
-	$input_file = "/$mysql_tempdir/___install_temp_{$create_text_metadata_for_info['filename']}";
+	$input_file = "/$cqpweb_tempdir/___install_temp_{$create_text_metadata_for_info['filename']}";
 	
 	$data = file_get_contents($file);
 	$data = str_replace("\n", "\t0\t0\t0\n", $data);

@@ -43,11 +43,14 @@ require("../lib/defaults.inc.php");
 
 
 /* include function library files */
-require("../lib/library.inc.php");
-require("../lib/freqtable.inc.php");
-require("../lib/exiterror.inc.php");
-require("../lib/metadata.inc.php");
-require("../lib/user-settings.inc.php");
+require_once("../lib/library.inc.php");
+require_once("../lib/freqtable.inc.php");
+require_once("../lib/exiterror.inc.php");
+require_once("../lib/metadata.inc.php");
+require_once("../lib/user-settings.inc.php");
+require_once("../lib/cwb.inc.php");         // needed?
+require_once("../lib/cqp.inc.php");
+
 
 // debug
 ob_implicit_flush(true);
@@ -368,13 +371,15 @@ mysql_close($mysql_link);
 
 function print_freqlist_line($data, $line_number, $att, $restricts)
 {
-	/* the format of "data" is as follows
-	object(stdClass)(2) {
-	  ["item"]=>
-	  ["freq"]=>
-	*/
+	/* 
+	 * the format of "data" is as follows
+	 * object(stdClass)(2) {
+	 *   ["item"]=>
+	 *   ["freq"]=>
+	 */
+	$string = CQP::escape_metacharacters($data->item);
 	$link = 'href="concordance.php?theData=' 
-			. urlencode("[$att = \"{$data->item}\" %c]")
+			. urlencode("[$att = \"{$string}\" %c]")
 			. $restricts 
 			. '&qmode=cqp&uT=y"'
 			;

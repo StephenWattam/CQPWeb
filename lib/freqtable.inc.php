@@ -46,7 +46,7 @@ function corpus_make_freqtables()
 	global $corpus_sql_name;
 	global $corpus_cqp_name;
 	global $mysql_link;
-	global $mysql_tempdir;
+	global $cqpweb_tempdir;
 	global $username;
 	global $mysql_LOAD_DATA_INFILE_command;
 	
@@ -88,7 +88,7 @@ function corpus_make_freqtables()
 	unset($result);	
 
 	/* for convenience, $filename is absolute */
-	$filename = "/$mysql_tempdir/____$temp_tablename.tbl";
+	$filename = "/$cqpweb_tempdir/____$temp_tablename.tbl";
 
 	/* now, use cwb-scan-corpus to prepare the input */	
 	$cwb_command = "/$path_to_cwb/cwb-scan-corpus -r /$cwb_registry -o $filename -q $corpus_cqp_name";
@@ -145,7 +145,7 @@ function corpus_make_freqtables()
 				select sum(freq) as f, $att as item 
 					from $temp_tablename
 					group by $att";
-//show_var($sql_query);
+
 		$result = mysql_query($sql_query, $mysql_link);
 		if ($result == false) 
 			exiterror_mysqlquery(mysql_errno($mysql_link), 
@@ -188,7 +188,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	global $corpus_cqp_name;
 	global $mysql_link;
 	global $mysql_LOAD_DATA_INFILE_command;
-	global $mysql_tempdir;
+	global $cqpweb_tempdir;
 	global $instance_name;
 	global $path_to_cwb;
 	global $cwb_registry;
@@ -283,7 +283,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	$n_regions = count($regions);
 	
 	/* store regions to be scanned in a temporary file */
-	$regionfile = new CWBTempFile("/$mysql_tempdir/cwbscan_temp_$instance_name");
+	$regionfile = new CWBTempFile("/$cqpweb_tempdir/cwbscan_temp_$instance_name");
 	foreach ($regions as $region)
 		$regionfile->write(implode("\t", $region) . "\n");
 	$regionfile->finish();
@@ -291,7 +291,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	
 	
 	$temp_table = "__freqmake_temptable_$instance_name";
-	$temp_table_loadfile = "/$mysql_tempdir/__infile$temp_table";
+	$temp_table_loadfile = "/$cqpweb_tempdir/__infile$temp_table";
 	
 	/* prepare command to extract the frequency lines for those bits of the corpus */
 	$cmd_scancorpus = "/$path_to_cwb/cwb-scan-corpus -r /$cwb_registry -F __freq "

@@ -839,6 +839,30 @@ class CQP
 		case self::CHARSET_LATIN1:	return 'latin1';
 		}
 	}
+	
+	
+	
+	
+	/* STATIC METHODS */
+	
+	/* backslash-escapes any CQP-syntaxmetacharacters in the argument string */
+	public static function escape_metacharacters($s)
+	{
+		$replacements = array(
+			'"' => '\"',
+			'(' => '\(',
+			')' => '\)',
+			'|' => '\|',
+			'[' => '\[',
+			']' => '\]',
+			'.' => '\.',
+			'?' => '\?',
+			'+' => '\+',
+			'*' => '\*'		
+			);
+		/* call str_replace for backslash to make sure this happens first */
+		return strtr(str_replace('\\', '\\\\', $s), $replacements);
+	}
 
 
 /* end of class CQP */

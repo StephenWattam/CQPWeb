@@ -41,7 +41,7 @@ else
  * mysql tables is done via the client-server link.
  * 
  * Giving mysqld file access, so that CQPweb can directly exchange files in 
- * $mysql_tempdir with the MySQL server, may be considerably more efficient.
+ * $cqpweb_tempdir with the MySQL server, may be considerably more efficient.
  * 
  * (BUT -- we've not tested this yet)
  * 
@@ -261,10 +261,36 @@ if (! isset($this_script))
 	$this_script = $m[1];
 }
 
-$qString = $_SERVER['QUERY_STRING'];
-// important note -- not all scripts that use the query string use $qString. Many of them go directly to $_SERVER.
-// this could potentially become a tangle...
-// not sure I really need this.
+
+
+/* ------------ */
+/* MAGIC QUOTES */
+/* ------------ */
+
+/* a simplified version of the code here: http://php.net/manual/en/security.magicquotes.disabling.php */
+
+if (get_magic_quotes_gpc()) 
+{
+	foreach ($_POST as $k => $v) 
+	{
+		unset($_POST[$k]);
+		$_POST[stripslashes($k)] = stripslashes($v);
+	}
+	foreach ($_GET as $k => $v) 
+	{
+		unset($_GET[$k]);
+		$_GET[stripslashes($k)] = stripslashes($v);
+	}
+	unset($process);
+}
+
+
+
+
+
+
+
+
 
 
 ?>

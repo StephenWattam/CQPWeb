@@ -42,7 +42,7 @@
 function connect_global_cqp()
 {
 	global $cqp;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $corpus_cqp_name;
 	global $path_to_cwb;
 	global $cwb_registry;
@@ -53,7 +53,7 @@ function connect_global_cqp()
 	/* select an error handling function */
 	$cqp->set_error_handler("exiterror_cqp");
 	/* set CQP's temporary directory */
-	$cqp->execute("set DataDirectory '/$cqp_tempdir'");
+	$cqp->execute("set DataDirectory '/$cqpweb_tempdir'");
 	/* select corpus */
 	$cqp->set_corpus($corpus_cqp_name);
 	/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
@@ -83,13 +83,13 @@ function disconnect_global_cqp()
 function refresh_directory_global_cqp()
 {
 	global $cqp;
-	global $cqp_tempdir;
+	global $cqpweb_tempdir;
 	global $corpus_cqp_name;
 	
 	if (isset($cqp))
 	{
 		$cqp->execute("set DataDirectory '/'");
-		$cqp->execute("set DataDirectory '/$cqp_tempdir'");
+		$cqp->execute("set DataDirectory '/$cqpweb_tempdir'");
 		$cqp->set_corpus($corpus_cqp_name);
 		// Question: is this still necessary?
 	}
@@ -155,6 +155,24 @@ function do_mysql_query($sql_query)
 	return $result;
 }
 
+
+/**
+ * Does a mysql query and puts the result into an output file.
+ * 
+ * This works regardless of whether the mysql server program (mysqld)
+ * is allowed to write files or not.
+ * 
+ * The mysql $query should be of the form "select [somthing] FROM [table] [other conditions]" 
+ * -- that is, it MUST NOT contain "into outfile $filename", and the FROM must be in capitals. 
+ * 
+ * The output file is specified by $filename - this must be a full absolute path.
+ * 
+ * Typically used to create a dump file (new format post CWB2.2.101)
+ * for input to CQP e.g. in the creation of a postprocessed query. 
+ * 
+ * Its return value is the number of rows written to file. In case of problem,
+ * exiterror_* is called here.
+ */
 function do_mysql_outfile_query($query, $filename)
 {
 	global $mysql_has_file_access;
@@ -571,24 +589,6 @@ function dump_mysql_result($result)
 }
 
 
-/**
- * Does a mysql query and puts the result into an output file.
- * 
- * This works regardless of whether the mysql server program (mysqld)
- * is allowed to write files or not.
- * 
- * The mysql $query should be of the form "select [somthing] FROM [table] [other conditions]" 
- * -- that is, it MUST NOT contain "into outfile $filename", and the FROM must be in capitals. 
- * 
- * The output file is specified by $filename - this must be a full absolute path,
- * and must be in $mysql_tempdir if $mysql_has_file_access == true.
- * 
- * Typically used to create a dump file (new format post CWB2.2.101)
- * for input to CQP e.g. in the creation of a postprocessed query. 
- * 
- * Its return value is the number of rows written to file. In case of problem,
- * existerror_* is called here.
- */
 
 
 function coming_soon_page()
