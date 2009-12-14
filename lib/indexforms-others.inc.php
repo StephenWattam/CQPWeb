@@ -253,44 +253,28 @@ function printquery_corpusmetadata()
 	/* load metadata into two result arrays */
 
 	$sql_query = "select * from corpus_metadata_fixed where corpus = '$corpus_sql_name'";
-	$result_fixed = mysql_query($sql_query, $mysql_link);
-	if ($result_fixed == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result_fixed = do_mysql_query($sql_query);
 	/* this will only contain a single row */
 	$metadata_fixed = mysql_fetch_assoc($result_fixed);
 	
 	$sql_query = "select * from corpus_metadata_variable where corpus = '$corpus_sql_name'";
-	$result_variable = mysql_query($sql_query, $mysql_link);
-	if ($result_variable == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	
+	$result_variable = do_mysql_query($sql_query);	
 	
 	/* now get total word length of all files */
 	$words_in_all_texts = make_thousands(get_corpus_wordcount());
 	
 	/* get a list of metadata_fields */
 	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus_sql_name'";
-	$result_textfields = mysql_query($sql_query, $mysql_link);
-	if ($result_textfields == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result_textfields = do_mysql_query($sql_query);
 
 	/* get a list of annotations */
 	$sql_query = "select * from annotation_metadata where corpus = '$corpus_sql_name'";
-	$result_annotations = mysql_query($sql_query, $mysql_link);
-	if ($result_annotations == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result_annotations = do_mysql_query($sql_query);
 	
 	/* get the primary annotation's description */
 	$sql_query = 'select description from annotation_metadata where handle = "' 
 		. $metadata_fixed['primary_annotation'] . '"';
-	$result_primary_tag = mysql_query($sql_query, $mysql_link);
-	if ($result_primary_tag == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result_primary_tag = do_mysql_query($sql_query);
 	if (mysql_num_rows($result_primary_tag) > 0 )
 	{
 		$primary_row = mysql_fetch_row($result_primary_tag);
@@ -525,8 +509,8 @@ function printquery_latest()
 	
 	<ul>
 		<li>
-		<b>Version 2.09</b>, 2009-12-01<br/>&nbsp;<br/>
-		Assorted improvements to the internals of CQPweb.
+		<b>Version 2.09</b>, 2009-12-13<br/>&nbsp;<br/>
+		New metadata-importing functions and other improvements to the internals of CQPweb.
 		<br/>&nbsp;</li>
 		<li>
 		<b>Version 2.08</b>, 2009-11-27<br/>&nbsp;<br/>

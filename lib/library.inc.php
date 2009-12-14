@@ -237,12 +237,15 @@ function do_mysql_outfile_query($query, $filename)
 }
 
 /**
- * currently, this function just wraps pre_echo; 
+ * currently, this function just wraps pre_echo, or echoes naked to the command line 
  * but we might want to create a more HTML-table-friendly version later.
  */
 function print_debug_message($message)
 {
-	pre_echo($message);
+	if (php_sapi_name() == 'cli')
+		echo $message. "\n\n";
+	else
+		pre_echo($message);
 }
 
 
@@ -254,7 +257,26 @@ function pre_echo($s)
 	echo "<pre>\n$s\n</pre>";
 }
 
-
+/**
+ * Imports the settings for a corpus into global variable space.
+ */
+function import_settings_as_global($corpus)
+{
+	$data = file_get_contents("../$corpus/settings.inc.php");
+	
+	/* get list of variables and create global references */
+	preg_match_all('/\$(\w+)\W/', $data, $m, PREG_PATTERN_ORDER);
+	foreach($m[1] as $v)
+	{
+		global $$v;	
+	}
+	include("../$corpus/settings.inc.php");
+	
+	/* one special one */
+	global $cqp;
+	if (isset($cqp, $corpus_cqp_name))
+		$cqp->set_corpus($corpus_cqp_name);
+}
 
 
 function make_thousands($number)

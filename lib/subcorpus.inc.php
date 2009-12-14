@@ -938,22 +938,15 @@ function populate_corpus_cqp_positions()
 	
 	$cqp->execute("A = <text> []");
 	$lines = $cqp->execute("cat A");
-
 // new version devised cos old version wouldn't run for LLC on all servers.
 
 	foreach ($lines as &$a)
 	{
 		preg_match("/\A\s*(\d+): <text_id (\w+)>:/", $a, $m);
 	
-		$sql_query = "update text_metadata_for_$corpus_sql_name set cqp_begin = {$m[1]}
-			where text_id = '{$m[2]}'";
-
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		do_mysql_query("update text_metadata_for_$corpus_sql_name set cqp_begin = {$m[1]}
+			where text_id = '{$m[2]}'");
 	}
-
 	unset($lines);
 	
 
@@ -964,23 +957,14 @@ function populate_corpus_cqp_positions()
 	{
 		preg_match("/\A\s*(\d+): <text_id (\w+)>:/", $b, $m);
 
-		$sql_query = "update text_metadata_for_$corpus_sql_name set cqp_end = {$m[1]}
-			where text_id = '{$m[2]}'";
-
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		do_mysql_query("update text_metadata_for_$corpus_sql_name set cqp_end = {$m[1]}
+			where text_id = '{$m[2]}'");
 	}
-	
 	unset($lines);
 
 	
 	$sql_query = "select text_id, cqp_begin, cqp_end from text_metadata_for_$corpus_sql_name";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	while (($r = mysql_fetch_row($result)) !== false)
 	{
@@ -988,12 +972,9 @@ function populate_corpus_cqp_positions()
 			. ((int)$r[2] - (int)$r[1]) .
 			" where text_id = '{$r[0]}'";
 
-		$inner_result = mysql_query($sql_query, $mysql_link);
-		if ($inner_result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		do_mysql_query($sql_query);
 	}
-	
+
 /* old version
 	foreach ($lines as &$a)
 	{

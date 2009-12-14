@@ -656,16 +656,11 @@ function metadata_size_of_cat_thinned($classification, $category, $class2, $cat2
  */
 function metadata_calculate_category_sizes()
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 
 	/* get a list of classification schemes */
 	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus_sql_name' and is_classification = 1";
-
-	$result_list_of_classifications = mysql_query($sql_query, $mysql_link);
-	if ($result_list_of_classifications == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result_list_of_classifications = do_mysql_query($sql_query);
 	
 	/* for each classification scheme ... */
 	while( ($c = mysql_fetch_row($result_list_of_classifications) ) != false)
@@ -673,12 +668,11 @@ function metadata_calculate_category_sizes()
 		$classification_handle = $c[0];
 		
 		/* get a list of categories */
-		$sql_query = "select handle from text_metadata_values where corpus = '$corpus_sql_name' and field_handle = '$classification_handle'";
+		$sql_query = "select handle from text_metadata_values 
+						where corpus = '$corpus_sql_name' and field_handle = '$classification_handle'";
 
-		$result_list_of_categories = mysql_query($sql_query, $mysql_link);
-		if ($result_list_of_categories == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result_list_of_categories = do_mysql_query($sql_query);
+
 	
 		/* for each category handle found... */
 		while ( ($d = mysql_fetch_row($result_list_of_categories)) != false)
@@ -686,24 +680,21 @@ function metadata_calculate_category_sizes()
 			$category_handle = $d[0];
 			
 			/* how many files / words fall into that category? */
-			$sql_query = "select count(*), sum(words) from text_metadata_for_$corpus_sql_name where $classification_handle = '$category_handle'";
+			$sql_query = "select count(*), sum(words) from text_metadata_for_$corpus_sql_name 
+							where $classification_handle = '$category_handle'";
 			
-			$result_counts = mysql_query($sql_query, $mysql_link);
-			if ($result_counts == false) 
-				exiterror_mysqlquery(mysql_errno($mysql_link), 
-					mysql_error($mysql_link), __FILE__, __LINE__);
+			$result_counts = do_mysql_query($sql_query);
 
 			if (mysql_num_rows($result_counts) > 0)
 			{
 				list($file_count, $word_count) = mysql_fetch_row($result_counts);
 
-				$sql_query = "update text_metadata_values set category_num_files = '$file_count', category_num_words = '$word_count'
-					where corpus = '$corpus_sql_name' and field_handle = '$classification_handle' and handle = '$category_handle'";
-				$result_update = mysql_query($sql_query, $mysql_link);
-				if ($result_update == false) 
-					exiterror_mysqlquery(mysql_errno($mysql_link), 
-						mysql_error($mysql_link), __FILE__, __LINE__);
-				unset($result_update);
+				$sql_query = "update text_metadata_values set category_num_files = '$file_count',
+					category_num_words = '$word_count'
+					where corpus = '$corpus_sql_name' 
+					and field_handle = '$classification_handle' 
+					and handle = '$category_handle'";
+				do_mysql_query($sql_query);
 			}
 			unset($result_counts);
 		} /* loop for each category */

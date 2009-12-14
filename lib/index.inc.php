@@ -64,9 +64,7 @@ require_once("../lib/db.inc.php");
 require_once("../lib/ceql.inc.php");
 require_once("../lib/freqtable.inc.php");
 require_once("../lib/metadata.inc.php");
-/* just for one function */
 require_once("../lib/concordance-lib.inc.php");
-/* just for print functions */
 require_once("../lib/colloc-lib.inc.php");
 
 /* this is probably _too_ paranoid. but hey */
@@ -75,6 +73,7 @@ if (user_is_superuser($username))
 	require_once('../lib/apache.inc.php');
 	require_once('../lib/admin-lib.inc.php');
 	require_once('../lib/corpus-settings.inc.php');
+	require_once("../lib/xml.inc.php");		// future this may need moving to the main section
 }
 
 
@@ -139,9 +138,9 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 
 
 
-/***********************/
+/* ******************* */
 /* PRINT SIDE BAR MENU */
-/***********************/
+/* ******************* */
 
 // TODO: add tool tips using onmouseOver
 
@@ -407,6 +406,16 @@ if (user_is_superuser($username))
 
 
 	echo "<tr><td class=\"";
+	if ($thisQ != "manageCategories")
+		echo "concordgeneral\"><a class=\"menuItem\" 
+			href=\"index.php?thisQ=manageCategories&uT=y\">";
+	else 
+		echo "concordgrey\"><a class=\"menuCurrentItem\">";
+	echo "Manage text categories</a></td></tr>";
+
+
+
+	echo "<tr><td class=\"";
 	if ($thisQ != "manageAnnotation")
 		echo "concordgeneral\"><a class=\"menuItem\" 
 			href=\"index.php?thisQ=manageAnnotation&uT=y\">";
@@ -588,6 +597,10 @@ case 'userAccess':
 
 case 'manageMetadata':
 	printquery_managemeta();
+	break;
+
+case 'manageCategories':
+	printquery_managecategories();
 	break;
 
 case 'manageAnnotation':

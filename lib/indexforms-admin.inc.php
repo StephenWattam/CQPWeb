@@ -406,13 +406,11 @@ function printquery_manageaccess()
 
 
 
-// note, this page is  a bit of a mishmash -- contains all sorts of tools, not all relating very much to metadata.
-// most are actually "setup"
-// could do with spreading out between headings
 function printquery_managemeta()
 {	
 	global $cqpweb_uploaddir;
 	global $corpus_sql_name;
+	
 	
 	?>
 	<table class="concordtable" width="100%">
@@ -421,22 +419,165 @@ function printquery_managemeta()
 			<th class="concordtable">Admin tools for managing corpus metadata</th>
 		</tr>
 	
-	<?php	
+	<?php
 	
-	if (!text_metadata_table_exists())
+	if (! text_metadata_table_exists())
 	{
 		/* we need to create a text metadata table for this corpus */
+		
+		/* first, test for the "alternate" form. */
+		if ($_GET['createMetadataFromXml'] == '1')
+		{
+			?><table class="concordtable" width="100%">
+		
+			<tr>
+				<th class="concordtable" colspan="5" >Create metadata table from corpus XML annotations</th>
+			</tr>
+			<?php
+			
+			$possible_annotations = get_xml_annotations();
+			
+			/* there is always at least one */
+			if (count($possible_annotations) == 1)
+			{
+				?>
+				<tr>
+					<td class="concordgrey" colspan="5" align="center">
+						&nbsp;<br/>
+						No XML annotations found for this corpus.
+						<br/>&nbsp;
+					</td>
+				</tr>
+				<?php
+			}
+			else
+			{
+				?>
+				<form action="../adm/index.php" method="get">
+				
+					<tr>
+						<td class="concordgrey" colspan="5" align="center">
+							&nbsp;<br/>
+							
+							The following XML annotations are indexed in the corpus.
+							Select the ones which you wish to use as text-metadata fields.
+							
+							<br/>&nbsp;<br/>
+							
+							<em>Note: you must only select annotations that occur <strong>at or above</strong>
+							the level of &lt;text&gt; in the XML hierarchy of your corpus; doing otherwise will 
+							cause a CQP error.</em> 
+							
+							<br/>&nbsp;<br/>
+							
+						</td>
+					</tr>
+					<tr>
+						<th class="concordtable">Use?</th>
+						<th class="concordtable">Field handle</th>
+						<th class="concordtable">Description for this field</th>
+						<th class="concordtable">Does the field classify texts or provide free-text info?</th>
+						<th class="concordtable">Which field is the primary classification?</th>
+					</tr>
+				<?php
+				
+				foreach($possible_annotations as $xml_annotation)
+				{
+					if ($xml_annotation == 'text_id')
+						continue;
+						
+					echo "\n\n<tr>";
+					echo '<td class="concordgeneral">'
+						. '<input name="createMetadataFromXmlUse_'
+						. $xml_annotation
+						. '" type="checkbox" value="1" /> '
+						. '</td>';
+					echo '<td class="concordgeneral">' . $xml_annotation . '</td>';
+					echo '<td class="concordgeneral">' 
+						. '<input name="createMetadataFromXmlDescription_' 
+						. $xml_annotation
+						. '" type="text" /> '
+						. '</td>';
+					echo '<td class="concordgeneral" align="center"><select name=\"isClassificationField_'
+						. $xml_annotation
+						. '"><option value="1" selected="selected">Classification</option>'
+						. '<option value="0">Free text</option></select></td>';
+					echo '<td class="concordgeneral" align="center">'
+						. '<input type="radio" name="primaryClassification" value="'
+						. $xml_annotation 
+						. '"/></td>';
+					echo "</tr>\n\n\n";
+				}
+				
+				?>
+					<tr>
+						<th class="concordtable" colspan="5">
+							Do you want to automatically run frequency-list setup?
+						</th>
+					</tr>
+					<tr>
+						<td class="concordgeneral" colspan="5">
+							<table align="center">
+								<tr>
+									<td class="basicbox">
+										<input type="radio" name="createMetadataRunFullSetupAfter" value="1"/>
+										<strong>Yes please</strong>, run this automatically (ideal for relatively small corpora)
+									</td>
+								</tr>
+								<tr>
+									<td class="basicbox">
+										<input type="radio" name="createMetadataRunFullSetupAfter" value="0"  checked="checked"/>
+										<strong>No thanks</strong>, I'll run this myself (safer for very large corpora)
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						<td align="center" class="concordgeneral" colspan="5">
+							<input type="submit" value="Create metadata table from XML using the settings above" />
+						</td>
+					</tr>
+					<tr>
+						<td align="center" class="concordgrey" colspan="5">
+							&nbsp;<br/>
+							<a href="index.php?thisQ=manageMetadata&uT=y">
+								Click here to go back to the normal metadata setup form.</a>
+							<br/>&nbsp;
+						</td>
+					</tr>		
+					<input type="hidden" name="admFunction" value="createMetadataFromXml" />
+					<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name; ?>" />
+					<input type="hidden" name="uT" value="y" />
+				</form>
+				<?php
+			}
+		
+			/* to avoid wrapping the whole of the rest of the function in an else */
+			echo '</table>';
+			return;	
+		}
+		
+		
+		/* OK, print the main metadata setup page. */
+		
+		
 		$number_of_fields_in_form 
 			= ( isset($_GET['metadataFormFieldCount']) ? (int)$_GET['metadataFormFieldCount'] : 8);
 		?>
 		
 			<tr>
 				<td class="concordgrey">
+					&nbsp;<br/>
 					The text metadata table for this corpus has not yet been set up. You must create it,
 					using the controls below, before you can search this corpus.
+					<br/>&nbsp;
 				</td>
 			</tr>
 		</table>
+		
+
+		
 		
 		<!-- i want a form with more slots! -->
 
@@ -531,7 +672,9 @@ function printquery_managemeta()
 				<td class="concordgrey" colspan="5">
 					Note: you should not specify text_id, which must be the first field. 
 					This is inserted automatically.
+					
 					<br/>&nbsp;<br/>
+					
 					<em>Classification</em> fields contain one of a set number of handles indicating text 
 					categories. <em>Free-text metadata</em> fields can contain anything, and don't indicate
 					categories of texts.
@@ -556,8 +699,8 @@ function printquery_managemeta()
 					<td class=\"concordgeneral\">
 						<input type=\"text\" name=\"fieldDescription$i\" maxlength=\"200\"/>
 					</td>
-					<td class=\"concordgeneral\">
-						<select name=\"isClassificationField$i\">
+					<td class=\"concordgeneral\" align=\"center\">
+						<select name=\"isClassificationField$i\" align=\"center\">
 							<option value=\"1\" selected=\"selected\">Classification</option>
 							<option value=\"0\">Free text</option>
 						</select>
@@ -569,8 +712,30 @@ function printquery_managemeta()
 				";
 			?>
 			
-
-			
+			<tr>
+				<th class="concordtable" colspan="5">
+					Do you want to automatically run frequency-list setup?
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="5">
+					<table align="center">
+						<tr>
+							<td class="basicbox">
+								<input type="radio" name="createMetadataRunFullSetupAfter" value="1"/>
+								<strong>Yes please</strong>, run this automatically (ideal for relatively small corpora)
+							</td>
+						</tr>
+						<tr>
+							<td class="basicbox">
+								<input type="radio" name="createMetadataRunFullSetupAfter" value="0"  checked="checked"/>
+								<strong>No thanks</strong>, I'll run this myself (safer for very large corpora)
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		
 			<tr>
 				<td align="center" class="concordgeneral" colspan="5">
 					<input type="submit" value="Install metadata table using the settings above" />
@@ -584,8 +749,86 @@ function printquery_managemeta()
 			<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name; ?>" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
+
+		<table class="concordtable" width="100%">
 		
+		
+			<!-- minimalist metadata -->
+		
+			<tr>
+				<th class="concordtable">My corpus has no metadata!</th>
+			</tr>
+			<tr>
+				<form action="execute.php" method="get">
+					<td class="concordgeneral" align="center">
+						&nbsp;<br/>
+						
+						Click here to automatically generate a &ldquo;dummy&rdquo; metadata table,
+						containing only text IDs, for a corpus with no other metadata.
+						
+						<br/>
+						&nbsp;<br/>
+						
+						<input type="submit" value="Create minimalist metadata table"/>
+						
+						<br/>&nbsp;
+					</td>
+					<input type="hidden" name="function" value="create_text_metadata_for_minimalist"/>
+					<input type="hidden" name="locationAfter" value="index.php?thisQ=manageMetadata&uT=y" />
+					<input type="hidden" name="uT" value="y"/>
+				</form>				
+			</tr>
+		</table>
+		
+		
+		
+		<!-- pre-encoded metadata:link to alt page -->
+			
+		<table class="concordtable" width="100%">
+		
+			<tr>
+				<th class="concordtable" >My metadata is embedded in the XML of my corpus!</th>
+			</tr>
+			<?php
+			
+			$possible_annotations = get_xml_annotations();
+			
+			/* there is always at least one */
+			if (count($possible_annotations) == 1)
+			{
+				?>
+				<tr>
+					<td class="concordgrey" colspan="5" align="center">
+						&nbsp;<br/>
+						No XML annotations found for this corpus.
+						<br/>&nbsp;
+					</td>
+				</tr>
+				<?php
+			}
+			else
+			{
+				?>
+					<tr>
+						<td class="concordgrey" align="center">
+							&nbsp;<br/>
+							
+							<a href="index.php?thisQ=manageMetadata&createMetadataFromXml=1&uT=y">
+								Click here to install metadata from within-corpus XML annotation.</a>
+							
+							<br/>&nbsp;<br/>
+							
+						</td>
+					</tr>
+
+				<?php
+			}
+			?>
+			
+		</table>
+
 		<?php
+		/* endif text metadata table does not already exist */
 	}
 	else
 	{
@@ -599,7 +842,7 @@ function printquery_managemeta()
 				<th colspan="2" class="concordtable">Add item of corpus metadata</th>
 			</tr>
 			<tr>
-				<td class="concordgrey" align="center">Attribute</td>
+				<td class="concordgrey" align="center" width="50%">Attribute</td>
 				<td class="concordgrey" align="center">Value</td>
 			</tr>
 			<form action="../adm/index.php" method="get">
@@ -615,11 +858,51 @@ function printquery_managemeta()
 				</tr>
 				<tr>
 					<td class="concordgeneral" align="center" colspan="2" />
+						&nbsp;<br/>
 						<input type="submit" value="Add this item to corpus metadata" />
+						<br/>&nbsp;
 					</td>
 				</tr>
 				<input type="hidden" name="uT" value="y" />
 			</form>
+			<tr>
+				<td class="concordgrey" align="center" colspan="2" />
+					<em>
+						<?php
+						$sql_query = "select * from corpus_metadata_variable where corpus = '$corpus_sql_name'";
+						$result_variable = do_mysql_query($sql_query);	
+						
+						echo mysql_num_rows($result_variable) != 0
+							? 'Existing items of variable metadata attribute-value pairs:' 
+							: 'No items of variable metadata attribute-value pairs have been set.';
+						?>
+
+					</em>
+				</td>
+			</tr>
+			<?php
+			while (($metadata = mysql_fetch_assoc($result_variable)) != false)
+			{
+				$del_link = 'execute.php?function=delete_variable_corpus_metadata&args='
+					. urlencode("$corpus_sql_name#{$metadata['attribute']}#{$metadata['value']}")
+					. '&locationAfter=' . urlencode('index.php?thisQ=manageMetadata&uT=y') . '&uT=y';
+				?>
+				<tr>
+					<td class="concordgeneral" align="center">
+						<?php 
+							echo "Attribute [<strong>{$metadata['attribute']}</strong>] 
+									with value [<strong>{$metadata['value']}</strong>]"; 
+						?>
+					</td>
+					<td class="concordgeneral" align="center">
+						<a href="<?php echo $del_link; ?>">
+							[Delete]
+						</a>
+					</td>
+				</tr>
+				<?php
+			}
+			?>
 		</table>
 
 		<table class="concordtable" width="100%">
@@ -647,88 +930,209 @@ function printquery_managemeta()
 			</form>
 		</table>
 
+
+
+		<!-- ****************************************************************************** -->
+
+
+
 		<table class="concordtable" width="100%">
-		<tr>
-			<th class="concordtable">Insert or update text category descriptions</th>
-		</tr>
-		<?php
+			<tr>
+				<th class="concordtable" colspan="2">Other metadata controls</th>
+			</tr>
 
-		$classification_list = metadata_list_classifications();
-
-		foreach ($classification_list as $scheme)
-		{
+			<?php
+			
+			list($n) = mysql_fetch_row(
+							do_mysql_query("select count(*) from text_metadata_for_$corpus_sql_name where words > 0")
+						);
+			if ($n > 0)
+			{
+				$message = 'The text metadata table <strong>has already been populated</strong> 
+									with begin/end offset positions. Use the button below to refresh 
+									this data.';
+				$button_label = 'Update CWB text-position records';
+			}
+			else
+			{
+				$message = 'The text metadata table <strong>has not yet been populated</strong> 
+									with begin/end offset positions. Use the button below to generate 
+									this data.';
+				$button_label = 'Generate CWB text-position records';
+			}
+		
 			?>
 			<tr>
-				<td class="concordgrey" align="center">
-					Categories in classifications scheme <em><?php echo $scheme['handle'];?><em>
-				</td>
-			</tr>
-			<tr>
+				<td class="concordgrey" width="20%" valign="center">Text begin/end positions</td>
 				<td class="concordgeneral" align="center">
-					<form action="../adm/index.php" method="get">
-						<table>
-							<tr>
-								<td class="basicbox" align="center"><strong>Scheme = Category</strong></td>
-								<td class="basicbox" align="center"><strong>Category description</strong></td>
-							</tr>
-							<?php
-							
-							$category_list = metadata_category_listdescs($scheme['handle']);
-				
-							foreach ($category_list as $handle => $description)
-							{
-								echo '<tr><td class="basicbox">' . "{$scheme['handle']} = $handle" . '</td>';
-								echo '<td class="basicbox">
-									<input type="text" name="' . "desc-{$scheme['handle']}-$handle"
-									. '" value="' . $description . '"/>
-									</td>
-								</tr>';
-							}
-							
-							?>
-							<tr>
-								<td class="basicbox" align="center" colspan="2">
-									<input type="submit" value="Update category descriptions" />
-								</td>
-							</tr>
-						</table>
-						<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name; ?>" />
-						<input type="hidden" name="admFunction" value="updateCategoryDescriptions" />
+					&nbsp;<br/>
+					<?php echo $message; ?>
+					<br/>&nbsp;
+					<form action="execute.php" method="get">
+						<input type="submit" value="<?php echo $button_label; ?>"/>
+						<br/>
+						<input type="hidden" name="function" value="populate_corpus_cqp_positions" />
+						<input type="hidden" name="locationAfter" value="index.php?thisQ=manageMetadata&uT=y" />
 						<input type="hidden" name="uT" value="y" />
 					</form>
 				</td>
 			</tr>
+			
+
 			<?php
-		}
-	
-		?>
-		</table>
-		<table class="concordtable" width="100%">
+			
+			$n = mysql_num_rows(
+					do_mysql_query("select handle from text_metadata_fields 
+						where corpus = '$corpus_sql_name' and is_classification = 1")
+					);
+			if ($n == 0)
+			{
+				?>
+				<tr>
+					<td class="concordgrey" width="20%" valign="center">Text category wordcounts</td>
+					<td class="concordgeneral" align="center">
+						&nbsp;<br/>
+						There are no text classification systems in this corpus; wordcounts are therefore not relevant.
+						<br/>&nbsp;
+					</td>
+				</tr>
+				<?php
+			}
+			else
+			{
+				if ( mysql_num_rows(
+						do_mysql_query("select handle from text_metadata_values
+							where corpus = '$corpus_sql_name' and category_num_words IS NOT NULL")  )
+					> 0)
+				{
+					$button_label = 'Update word and file counts';
+					$message = 'The word count tables for the different text classification categories 
+									in this corpus <strong>have already been generated</strong>. Use the button below 
+									to regenerate them.';
+				}
+				else
+				{
+					$button_label = 'Populate word and file counts';
+					$message = 'The word count tables for the different text classification categories 
+									in this corpus <strong>have not yet been populated</strong>. Use the button below  
+									to populate them.';
+				}
+				
+				?>
+				<tr>
+					<td class="concordgrey" width="20%" valign="center">Text category wordcounts</td>
+					<td class="concordgeneral" align="center">
+						&nbsp;<br/>
+						<?php echo $message; ?>
+						<br/>&nbsp;
+						<form action="execute.php" method="get">
+							<input type="submit" value="<?php echo $button_label; ?>"/>
+							<br/>
+							<input type="hidden" name="function" value="metadata_calculate_category_sizes" />
+							<input type="hidden" name="locationAfter" value="index.php?thisQ=manageMetadata&uT=y" />
+							<input type="hidden" name="uT" value="y" />
+						</form>
+					</td>
+				</tr>
+				<?php
+			}
+			
+			?>
+			
+			
+			
+			<?php
+			
+			global $cwb_registry;
+			global $corpus_cqp_name;
+			$corpus_cqp_name_lower = strtolower($corpus_cqp_name);
+			
+			if (file_exists("/$cwb_registry/{$corpus_cqp_name_lower}__freq"))
+			{
+				$message = 'The text-by-text list for this corpus <strong>has already been created</strong>. Use
+								the button below to delete and recreate it.';
+				$button_label = 'Recreate CWB frequency table';
+			}
+			else
+			{
+				$message = 'The text-by-text list for this corpus <strong>has not yet been created</strong>. Use
+								the button below to generate it.';
+				$button_label = 'Create CWB frequency table';
+			}
+			
+			?>
 			<tr>
-				<th class="concordtable">Other metadata controls</th>
+				<td class="concordgrey" width="20%" valign="center">Text-by-text freq-lists</td>
+				<td class="concordgeneral" align="center">
+					&nbsp;<br/>
+					CWB text-by-text frequency lists are used to generate subcorpus frequency lists
+					(important for keywords, collocations etc.)
+					<br/>&nbsp;<br/>
+					<?php echo $message; ?>
+					<br/>&nbsp;
+					<form action="execute.php" method="get">
+						<input type="submit" value="<?php echo $button_label; ?>"/>
+						<br/>
+						<input type="hidden" name="function" value="make_cwb_freq_index" />
+						<input type="hidden" name="locationAfter" value="index.php?thisQ=manageMetadata&uT=y" />
+						<input type="hidden" name="uT" value="y" />
+					</form>
+				</td>
 			</tr>
+
+			<?php
+			
+			if (mysql_num_rows(do_mysql_query("show tables like 'freq_corpus_{$corpus_sql_name}_word'")) > 0)
+			{
+				$message = 'Word and annotation frequency tables for this corpus <strong>have already been created</strong>. 
+								Use the button below to delete and recreate them.';
+				$button_label = 'Recreate frequency tables';
+			}
+			else
+			{
+				$message = 'Word and annotation frequency tables for this corpus <strong>have not yet been created</strong>. 
+								Use the button below to generate them.';
+				$button_label = 'Create frequency tables';
+			}
+			?>			
+			
+			
+
+			<tr>
+				<td class="concordgrey" width="20%" valign="center">Frequency tables</td>
+				<td class="concordgeneral" align="center">
+					&nbsp;<br/>
+					<?php echo $message; ?>
+					<br/>&nbsp;<br/>
+					<form action="execute.php" method="get">
+						<input type="submit" value="<?php echo $button_label; ?>"/>
+						<br/>
+						<input type="hidden" name="function" value="corpus_make_freqtables" />
+						<input type="hidden" name="locationAfter" value="index.php?thisQ=manageMetadata&uT=y" />
+						<input type="hidden" name="uT" value="y" />
+					</form>
+				</td>
+			</tr>
+			
+
 		
 			<?php	
-			//TODO show the current status of each button
-			//TODO some of the buttons may be better off elsewhere
-			// eg..... public, freq tables, CWB freq table.
-			// the other two are probably OK here.
-			if ( get_corpus_metadata('public_freqlist_desc' ) != NULL) /* corpus is public on the system */
+
+			/* Is the corpus public on the system? */
+			if ( ($public_freqlist_desc = get_corpus_metadata('public_freqlist_desc') ) != NULL) 
 			/* nb NULL in mySQL comes back as NULL */
 			{
 				?>
 				<tr>
-					<td class="concordgeneral">
+					<td class="concordgrey" width="20%" valign="center">Public freq-lists</td>
+					<td class="concordgeneral" align="center">
 						&nbsp;<br/>
-						<center>
-							This corpus's frequency list is publicly available across the system (for
-							keywords, etc). Use the button below to undo this!
-						</center>
-						&nbsp;<br/>
+						This corpus's frequency list is publicly available across the system (for
+						keywords, etc), identified as <strong><?php echo $public_freqlist_desc;?></strong>.
+						Use the button below to undo this!
+						<br/>&nbsp;<br/>
 						<form action="execute.php" method="get">
-							<center>
-								<input type="submit" value="Make this corpus's frequency list private again!"/>
-							</center>
+							<input type="submit" value="Make this corpus's frequency list private again!"/>
 							<br/>
 							<input type="hidden" name="function" value="unpublicise_this_corpus_freqtable" />
 							<input type="hidden" name="locationAfter" value="index.php?thisQ=manageMetadata&uT=y" />
@@ -742,25 +1146,23 @@ function printquery_managemeta()
 			{
 				?>
 				<tr>
-					<td class="concordgeneral">
+					<td class="concordgrey" width="20%" valign="center">Public freq-lists</td>
+					<td class="concordgeneral" align="center">
 						&nbsp;<br/>
-						<center>
-							Use this control to make the frequency list for this corpus public on the
-							system, so that anyone can use it for calculation of keywords, etc.
-						</center>
+						Use this control to make the frequency list for this corpus public on the
+						system, so that anyone can use it for calculation of keywords, etc.
+						<br/>&nbsp;<br/>
 						<form action="execute.php" method="get">
-							<center>
-								The frequency list will be identified by this descriptor 
-								(you may wish to modify):
-								<br/>
-								<input type="text" name="args" value="<?php 
-									echo $corpus_title;
-									?>" size="40" maxlength="100" />
-								<br/>
-								&nbsp;
-								<br/>
-								<input type="submit" value="Make this frequency table public"/>
-							</center>
+
+							The frequency list will be identified by this descriptor 
+							(you may wish to modify):
+							<br/>&nbsp;<br/>
+							<input type="text" name="args" value="<?php 
+								echo $corpus_title;
+								?>" size="40" maxlength="100" />
+							<br/>&nbsp;<br/>
+							<input type="submit" value="Make this frequency table public"/>
+
 							&nbsp;<br/>
 							<input type="hidden" name="function" value="publicise_this_corpus_freqtable" />
 							<input type="hidden" name="locationAfter" value="index.php?thisQ=manageMetadata&uT=y" />
@@ -771,87 +1173,14 @@ function printquery_managemeta()
 				<?php
 			}
 			?>
-			
-			<tr>
-				<td class="concordgeneral">
-					&nbsp;<br/>
-					<center>
-						Use the button below to create or recreate the word and annotation frequency 
-						tables for this corpus.
-					</center>
-					&nbsp;<br/>
-					<form action="execute.php" method="get">
-						<center>
-							<input type="submit" value="Create frequency tables"/>
-						</center>
-						<br/>
-						<input type="hidden" name="function" value="corpus_make_freqtables" />
-						<input type="hidden" name="uT" value="y" />
-					</form>
-				</td>
-			</tr>
-			
-			<tr>
-				<td class="concordgeneral">
-					&nbsp;<br/>
-					<center>
-						Use the button below to create CWB text-by-text frequency lists for this corpus. 
-						(These are used to generate subcorpus frequency lists.)
-					</center>
-					&nbsp;<br/>
-					<form action="execute.php" method="get">
-						<center>
-							<input type="submit" value="Create CWB frequency table"/>
-						</center>
-						<br/>
-						<input type="hidden" name="function" value="make_cwb_freq_index" />
-						<input type="hidden" name="uT" value="y" />
-					</form>
-				</td>
-			</tr>
-	
-	
-	
-			<tr>
-				<td class="concordgeneral">
-					&nbsp;<br/>
-					<center>
-						Use the button below to populate/update the word count tables for the different 
-						text classification categories in this corpus.
-					</center>
-					&nbsp;<br/>
-					<form action="execute.php" method="get">
-						<center>
-							<input type="submit" value="Update word and file counts"/>
-						</center>
-						<br/>
-						<input type="hidden" name="function" value="metadata_calculate_category_sizes" />
-						<input type="hidden" name="uT" value="y" />
-					</form>
-				</td>
-			</tr>
-			
-			<tr>
-				<td class="concordgeneral">
-					&nbsp;<br/>
-					<center>
-						Use the button below to populate/update the text metadata table with begin/end
-						offset positions in the CQP-indexed corpus.
-					</center>
-					&nbsp;<br/>
-					<form action="execute.php" method="get">
-						<center>
-							<input type="submit" value="Update CQP text corpus position records"/>
-						</center>
-						<br/>
-						<input type="hidden" name="function" value="populate_corpus_cqp_positions" />
-						<input type="hidden" name="uT" value="y" />
-					</form>
-				</td>
-			</tr>
-			
+
+
+		</table>
 		<?php
+	}
 		/* create table statement for the textmetadata table for this corpus * /
+		 * NOTE -- this is not needed any mroe.... generated by admin-lib rather than
+		 * expecting the user to do it.
 			<tr>
 				<th class="concordtable">
 					Below is a CREATE TABLE statement for this corpus' metadata table.
@@ -898,16 +1227,75 @@ function printquery_managemeta()
 				</td>
 			</tr>
 		*/
-		?>
-	
-	
-		</table>
-		<?php
-	}
+
 }
 
 
+function printquery_managecategories()
+{
+	global $corpus_sql_name;
+	
+	$classification_list = metadata_list_classifications();
 
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">Insert or update text category descriptions</th>
+		</tr>
+		<?php
+
+		if (empty($classification_list))
+			echo '<tr><td class="concordgrey" align="center">&nbsp;<br/>
+				No text classification schemes exist for this corpus.
+				<br/>&nbsp;</td></tr>';
+
+		foreach ($classification_list as $scheme)
+		{
+			?>
+			<tr>
+				<td class="concordgrey" align="center">
+					Categories in classification scheme <em><?php echo $scheme['handle'];?><em>
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" align="center">
+					<form action="../adm/index.php" method="get">
+						<table>
+							<tr>
+								<td class="basicbox" align="center"><strong>Scheme = Category</strong></td>
+								<td class="basicbox" align="center"><strong>Category description</strong></td>
+							</tr>
+							<?php
+							
+							$category_list = metadata_category_listdescs($scheme['handle']);
+				
+							foreach ($category_list as $handle => $description)
+							{
+								echo '<tr><td class="basicbox">' . "{$scheme['handle']} = $handle" . '</td>';
+								echo '<td class="basicbox">
+									<input type="text" name="' . "desc-{$scheme['handle']}-$handle"
+									. '" value="' . $description . '"/>
+									</td>
+								</tr>';
+							}
+							
+							?>
+							<tr>
+								<td class="basicbox" align="center" colspan="2">
+									<input type="submit" value="Update category descriptions" />
+								</td>
+							</tr>
+						</table>
+						<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name; ?>" />
+						<input type="hidden" name="admFunction" value="updateCategoryDescriptions" />
+						<input type="hidden" name="uT" value="y" />
+					</form>
+				</td>
+			</tr>
+			<?php
+		}
+	echo '</table>';
+}
 
 
 function printquery_manageannotation()
@@ -936,10 +1324,7 @@ function printquery_manageannotation()
 			combo_annotation = $new_combo,
 			tertiary_annotation_tablehandle = $new_maptable
 			where corpus = '$corpus_sql_name'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 	}
 	else if ($_GET['updateMe'] === 'annotation_metadata')
 	{
@@ -959,18 +1344,12 @@ function printquery_manageannotation()
 			tagset = $new_tagset,
 			external_url = $new_url
 			where corpus = '$corpus_sql_name' and handle = '$handle_to_change'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 	}
 
 
 	$sql_query = "select * from corpus_metadata_fixed where corpus='$corpus_sql_name'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	$data = mysql_fetch_object($result);
 	
 	$annotation_list = get_corpus_annotations();

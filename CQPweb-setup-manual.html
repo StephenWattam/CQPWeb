@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20091210;6283500">
+	<META NAME="CHANGED" CONTENT="20091214;6504900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -638,16 +638,33 @@ mark. Linebreaks should be \n , not \r or \r\n .</P>
 	</UL>
 </UL>
 <P LANG="en-GB">When you have installed your corpus, you will need to
-fill in a form describing the metadata table, which is then loaded.</P>
-<P LANG="en-GB">Each field must have a handle, and you must specify
-whether it is a classification or not.</P>
-<P LANG="en-GB">Once the metadata table is loaded, you will be on a
-page called “<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="font-style: normal"><B>Admin
+fill in a form describing the metadata table, which is then loaded.
+Each field must have a handle, and you must specify whether it is a
+classification or not.</P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB">At <SPAN LANG="en-GB">the</SPAN> bottom of the
+	form are two alternative methods: create a “dummy” table if
+	there is no metadata, and use information indexed in the XML of the
+	corpus to create the metadata table (this has a similar form to fill
+	in).</P>
+	<LI><P LANG="en-GB">You also need to decide whether or not you want
+	to automatically run the frequency list setup. The best answer is
+	<B>yes</B><SPAN STYLE="font-weight: normal"> for small corpora and
+	</SPAN><B>no</B><SPAN STYLE="font-weight: normal"> for large
+	corpora.</SPAN></P>
+</UL>
+<P LANG="en-GB"><SPAN LANG="en-GB">Once the metadata table is loaded,
+you will be on a page called “<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="font-style: normal"><B>Admin
 tools for managing corpus metadata</B></SPAN></FONT></FONT></FONT> ”.
-Click each of the buttons on this page, working from the bottom up
-(and press “back” once the operation has completed to press the
-next button). <I>On corpora which are just one long text, “Create
-CWB frequency table” is unnecessary and, indeed, may not work</I>.</P>
+If you didn't automatically setup frequency lists, you can now do so
+using the first four buttons under “<B>Other metadata controls</B>”.
+Or, for very big corpora, you may prefer to run the setup offline:
+the command for this is <FONT FACE="Courier New, monospace">../lib/offline-freqlists.php</FONT>
+and you must run it from within the web-directory that has been
+created for your corpus. Ideally, you should run this script as the
+web-user (see above), but if you run it under a different username,
+make sure all the files it creates are read-and-writeable by the
+web-user before going any further.</SPAN></P>
 <P LANG="en-GB">The next (optional) step is to set up the interaction
 of your annotation with the CEQL Simple Query Parser. Click on
 “Manage Annotation” for this. The primary annotation will already

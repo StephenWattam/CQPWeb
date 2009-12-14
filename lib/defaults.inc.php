@@ -281,7 +281,7 @@ if (get_magic_quotes_gpc())
 		unset($_GET[$k]);
 		$_GET[stripslashes($k)] = stripslashes($v);
 	}
-	unset($process);
+	unset($k, $v);
 }
 
 

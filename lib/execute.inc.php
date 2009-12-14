@@ -77,6 +77,7 @@ include('../lib/exiterror.inc.php');
 include('../lib/user-settings.inc.php');
 include('../lib/rface.inc.php');
 include('../lib/corpus-settings.inc.php');
+include('../lib/xml.inc.php');
 //create_pipe_handle_constants();
 include('../lib/cwb.inc.php');
 include('../lib/cqp.inc.php');
@@ -91,7 +92,6 @@ Your username does not have permission to run execute.php.
 
 CQPweb (c) 2008
 </pre></body></html>');
-
 
 
 if (!url_string_is_valid())

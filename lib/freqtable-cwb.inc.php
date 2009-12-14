@@ -78,6 +78,12 @@ function make_cwb_freq_index()
 	if (! user_is_superuser($username))
 		return;
 	
+	/* disallow this function for corpora with only one text */
+	list($count_of_texts_in_corpus) 
+		= mysql_fetch_row(do_mysql_query("select count(*) from text_metadata_for_$corpus_sql_name"));
+	if ($count_of_texts_in_corpus < 2)
+		exiterror_general("This corpus only contains one text. 
+			Using a CWB frequency text-index is therefore neither necessary nor desirable.");
 	
 	/* this function may take longer than the script time limit */
 	php_execute_time_unlimit();
@@ -110,7 +116,7 @@ function make_cwb_freq_index()
 	// cos they will need to be referenced when creating 
 	
 	/* character set to use when encoding the new corpus */
-	$cqp = new CQP;
+	$cqp = new CQP($path_to_cwb, $cwb_registry);
 	$cqp->set_error_handler('exiterror_cqp');
 	$cqp->set_corpus($corpus_cqp_name);
 	$charset = $cqp->get_corpus_charset();

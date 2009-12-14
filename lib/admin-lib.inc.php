@@ -157,7 +157,7 @@ class corpus_install_info
 		/* p-attributes */
 		if ($this->already_cwb_indexed)
 		{
-			preg_match_all("/ATTRIBUTE\s+(\w+)\s+[#\n]/", $regdata, $m, PREG_PATTERN_ORDER);
+			preg_match_all("/ATTRIBUTE\s+(\w+)\s*[#\n]/", $regdata, $m, PREG_PATTERN_ORDER);
 			foreach($m[1] as $p)
 			{
 				if ($p == 'word')
@@ -1059,18 +1059,26 @@ function update_corpus_metadata_fixed()
 
 function add_variable_corpus_metadata($corpus, $attribute, $value)
 {
-	global $mysql_link;
-	
 	$corpus = mysql_real_escape_string($corpus);
 	$attribute = mysql_real_escape_string($attribute);
 	$value = mysql_real_escape_string($value);
 	
 	$sql_query = "insert into corpus_metadata_variable (corpus, attribute, value) values
 		('$corpus', '$attribute', '$value')";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
+}
+
+function delete_variable_corpus_metadata($corpus, $attribute, $value)
+{
+	$corpus = mysql_real_escape_string($corpus);
+	$attribute = mysql_real_escape_string($attribute);
+	$value = mysql_real_escape_string($value);
+	
+	$sql_query = "delete from corpus_metadata_variable 
+			where corpus = '$corpus'
+			and   attribute = '$attribute'
+			and   value = '$value'";
+	do_mysql_query($sql_query);
 }
 
 
@@ -1172,11 +1180,14 @@ function create_text_metadata_for()
 	global $mysql_LOAD_DATA_INFILE_command;
 	
 	
-	$corpus = preg_replace('/\W/', '', $create_text_metadata_for_info['corpus']);
+	$corpus = cqpweb_handle_enforce($create_text_metadata_for_info['corpus']);
 	
 	if (!is_dir("../$corpus"))
 		exiterror_fullpage("Corpus $corpus does not seem to be installed!", __FILE__, __LINE__);	
 	
+	if (empty($create_text_metadata_for_info['filename']))
+		exiterror_fullpage("No input file was specified!\nMetadata setup aborts.", __FILE__, __LINE__);
+				
 	$file = "/$cqpweb_uploaddir/{$create_text_metadata_for_info['filename']}";
 	if (!is_file($file))
 		exiterror_fullpage("The file [$file] is not a file!", __FILE__, __LINE__);
@@ -1186,14 +1197,17 @@ function create_text_metadata_for()
 	$data = file_get_contents($file);
 	$data = str_replace("\n", "\t0\t0\t0\n", $data);
 	file_put_contents($input_file, $data);
+
+	/* cleanup the original file if we were asked to */
+	if ($create_text_metadata_for_info['file_should_be_deleted'])
+		unlink($file);
+
 	
 // what the hell does this do?
 // it doesn't seem to do anything.
 // cut it out, see if it still works???
 	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false)
-		exiterror_fullpage("MySQL failure!", __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query, $mysql_link);
 // end of bit that doesn't seem to do anything.
 	
 	/* note, size of text_id is 50 to allow possibility of non-decoded UTF8 - they should be shorter */
@@ -1245,11 +1259,11 @@ function create_text_metadata_for()
 		`words` INTEGER NOT NULL default '0',
 		`cqp_begin` BIGINT UNSIGNED NOT NULL default '0',
 		`cqp_end` BIGINT UNSIGNED NOT NULL default '0',
-		primary key (text_id),
+		primary key (text_id)
 		";
-	if (!empty($category_index_list))
-		$create_statement .= 'index(' . implode(',',$category_index_list) . ') ';
-
+	foreach ($category_index_list as &$cur)
+		$create_statement .= ", index($cur) ";
+	
 	/* finish off the rest of the create statement */
 	$create_statement .= "
 		) CHARSET=utf8 ;\n\n";
@@ -1267,7 +1281,6 @@ function create_text_metadata_for()
 
 	$load_statement = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE text_metadata_for_$corpus";
 
-
 	if (isset($inserts_for_metadata_fields))
 	{
 		foreach($inserts_for_metadata_fields as &$ins)
@@ -1278,42 +1291,105 @@ function create_text_metadata_for()
 					mysql_error($mysql_link), __FILE__, __LINE__);
 		}
 	}
-	$result = mysql_query($create_statement, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	$result = mysql_query($load_statement, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	
+	do_mysql_query($create_statement);
+	do_mysql_query($load_statement);
+	
 	if ($update_statement !== '')
-	{
-		$result = mysql_query($update_statement, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-	}
+		do_mysql_query($update_statement, $mysql_link);
+
 	foreach($scan_statements as &$current)
 	{
-		$result = mysql_query($current['statement'], $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($current['statement']);
+
 		while (($r = mysql_fetch_row($result)) !== false)
 		{
 			$add_value_sql = "insert into text_metadata_values (corpus, field_handle, handle)
 				values
 				('$corpus', '{$current['field']}', '{$r[0]}')";
-			$inner_result = mysql_query($add_value_sql, $mysql_link);
-			if ($inner_result == false) 
-				exiterror_mysqlquery(mysql_errno($mysql_link), 
-					mysql_error($mysql_link), __FILE__, __LINE__);
+			do_mysql_query($add_value_sql);
 		}
 	}
 
 	unlink($input_file);
+
+	/* and, if requested, we can do all the other setup automatically */
+	if ($create_text_metadata_for_info['do_automatic_metadata_setup'])
+	{
+		global $print_debug_messages;
+		if ($print_debug_messages)
+			print_debug_message('About to start running auto-pre-setup functions');
+		
+		/* get the right global settings for these functions */
+		import_settings_as_global($corpus);
+
+		/* do unconditionally */
+		populate_corpus_cqp_positions();
+		
+		/* if there are any classifications... */
+		if (mysql_num_rows(
+				do_mysql_query("select handle from text_metadata_fields 
+					where corpus = '$corpus' and is_classification = 1")
+				) > 0 )
+			metadata_calculate_category_sizes();
+			
+		/* if there is more than one text ... */
+		list($n) = mysql_fetch_row(do_mysql_query("select count(text_id) from text_metadata_for_$corpus"));
+		if ($n > 1)		
+			make_cwb_freq_index();
+		
+		/* do unconditionally */
+		corpus_make_freqtables();
+		
+		if ($print_debug_messages)
+			print_debug_message('Auto-pre-setup functions complete.');
+	}
 }
 
+/**
+ * A much, much simpler version of create_text_metadata_for()
+ * which simply creates a table of text_ids with no other info.
+ * 
+ * Unlike create_text_metadata_for() it must run from WITHIN the
+ * corpus directory, not from within ../adm .
+ */
+function create_text_metadata_for_minimalist()
+{
+	global $path_to_cwb;
+	global $cqpweb_tempdir;
+	global $corpus_cqp_name;
+	global $corpus_sql_name;
+	global $cwb_registry;
+	global $mysql_LOAD_DATA_INFILE_command;
+	
+	
+	if (!is_dir("../$corpus_sql_name"))
+		exiterror_fullpage("Corpus $corpus_sql_name does not seem to be installed!", __FILE__, __LINE__);	
+
+	$input_file = "/$cqpweb_tempdir/___install_temp_metadata_$corpus_sql_name";
+
+	exec("/$path_to_cwb/cwb-s-decode -n -r /$cwb_registry $corpus_cqp_name -S text_id"
+		. " > $input_file");
+
+	/* note, size of text_id is 50 to allow possibility of non-decoded UTF8 - they should be shorter */
+	$create_statement = "create table `text_metadata_for_$corpus_sql_name`(
+		`text_id` varchar(50) NOT NULL,
+		`words` INTEGER NOT NULL default '0',
+		`cqp_begin` BIGINT UNSIGNED NOT NULL default '0',
+		`cqp_end` BIGINT UNSIGNED NOT NULL default '0',
+		primary key (text_id)
+		) CHARSET=utf8 ;\n\n";
+
+	$load_statement = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE text_metadata_for_$corpus_sql_name";
+
+	do_mysql_query($create_statement);
+	do_mysql_query($load_statement);
+
+	unlink($input_file);
+	
+	/* finally call position and word count update. */
+	populate_corpus_cqp_positions();
+}
 
 
 
