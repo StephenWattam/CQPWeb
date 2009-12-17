@@ -38,24 +38,19 @@
 
 /* check if a cwb-frequency-"corpus" exists for the specified lowercase name */
 /* only for subcorpora, not for corpora */
+	// I have no idea what the comment on the rpeceding line actually means...
 function check_cwb_freq_index($corpus_name)
 {
-	global $mysql_link;
-
-	$sql_name = $corpus_name . '__freq'; 
+	$lowercase_name = $corpus_name . '__freq'; 
 	$mysql_table = "freq_text_index_$corpus_name";
 	
-	$sql_query = "show tables";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query("show tables");
 	while ( ($r = mysql_fetch_row($result)) !== false)
 		$a[] = $r[0];
 
 	unset($result);
 
-	return ( in_array($mysql_table, $a) && cwb_corpus_exists($sql_name) ) ;
+	return ( in_array($mysql_table, $a) && cwb_corpus_exists($lowercase_name) ) ;
 }
 
 
@@ -103,17 +98,13 @@ function make_cwb_freq_index()
 		$p_att_line_no_word .= "-P $a ";
 	}
 
-	/* names of the created corpus and various paths for commands */
-	$freq_corpus_sql_name = $corpus_sql_name . '__freq';
-	// TODO: massive potential bug here!!!!
-	$freq_corpus_cqp_name = strtoupper($freq_corpus_sql_name);
+	/* names of the created corpus (lowercase, upppercase) and various paths for commands */
+	$freq_corpus_cqp_name_lc = strtolower($corpus_cqp_name) . '__freq';
+	$freq_corpus_cqp_name_uc = strtoupper($freq_corpus_cqp_name_lc);
 	
-	$datadir = "/$cwb_datadir/$freq_corpus_sql_name";
-	$regfile = "/$cwb_registry/$freq_corpus_sql_name";
-	// TODO: here is where we need to make sure that __FREQ corpora get stored in the default cqp reg/datadirs, NOT in the
-	// place where the preindexed corpus lives (if it is  apreindexed corpus. 
-	// maybe have new global variables $cwb_datadir_for_freq which ALWAYS go to the default place?
-	// cos they will need to be referenced when creating 
+	$datadir = "/$cwb_datadir/$freq_corpus_cqp_name_lc";
+	$regfile = "/$cwb_registry/$freq_corpus_cqp_name_lc";
+
 	
 	/* character set to use when encoding the new corpus */
 	$cqp = new CQP($path_to_cwb, $cwb_registry);
@@ -130,7 +121,7 @@ function make_cwb_freq_index()
 		chmod($datadir, 0777);
 	}
 	else
-		cwb_uncreate_corpus($freq_corpus_sql_name);
+		cwb_uncreate_corpus($freq_corpus_cqp_name_lc);
 
 
 	/* open a pipe **from** cwb-decode and another **to** cwb-encode */
@@ -142,7 +133,8 @@ function make_cwb_freq_index()
 
 	$dest = popen($cmd_encode, 'w');
 
-if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes didnae open properly </pre>';
+	if (!is_resource($source) || !is_resource($dest) )
+		echo '<pre>one of the pipes didnae open properly </pre>';
 
 	/* for each line in the decoded output ... */
 	while ( ($line = fgets($source)) !== false)
@@ -162,13 +154,13 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 			
 			if ( ! isset($current_id) )
 				exiterror_general("Unexpected </text> tag while creating corpus 
-					$freq_corpus_cqp_name! -- creation aborted",
+					$freq_corpus_cqp_name_uc! -- creation aborted",
 					__FILE__, __LINE__);
 			
 			fputs($dest, "<text id=\"$current_id\">\n");
 			arsort($F);
 			
-			foreach ($F as $l => $c)
+			foreach ($F as $l => &$c)
 				fputs($dest, "$l\t$c\n");
 			fputs($dest, "</text>\n");
 			unset($current_id, $F);
@@ -178,7 +170,7 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 			/* if we're at the point of waiting for a text_id, and we got this, then ABORT! */
 			if ( ! isset($current_id) )
 				exiterror_general("Unexpected line outside &lt;text&gt; tags while creating corpus 
-					$freq_corpus_cqp_name! -- creation aborted",
+					$freq_corpus_cqp_name_uc! -- creation aborted",
 					__FILE__, __LINE__);
 			
 			/* otherwise... */
@@ -198,10 +190,10 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 	pclose($dest);
 	
 	/* system commands for everything else that needs to be done to make it a good corpus */
-	$cmd_makeall  = "/$path_to_cwb/cwb-makeall      -M 50 -r /$cwb_registry -V $freq_corpus_cqp_name ";
+	$cmd_makeall  = "/$path_to_cwb/cwb-makeall -M 50 -r /$cwb_registry -V $freq_corpus_cqp_name_uc ";
 	// TODO - be a bit more rigorous about the amount of RAM cwb-makeall uses. make this configurable. 50 is an ass-pull.
-	$cmd_huffcode = "/$path_to_cwb/cwb-huffcode     -r /$cwb_registry -A $freq_corpus_cqp_name ";
-	$cmd_pressrdx = "/$path_to_cwb/cwb-compress-rdx -r /$cwb_registry -A $freq_corpus_cqp_name ";
+	$cmd_huffcode = "/$path_to_cwb/cwb-huffcode      -r /$cwb_registry -A $freq_corpus_cqp_name_uc ";
+	$cmd_pressrdx = "/$path_to_cwb/cwb-compress-rdx  -r /$cwb_registry -A $freq_corpus_cqp_name_uc ";
 
 
 	/* make the indexes & compress */
@@ -229,7 +221,7 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 	*/
 	$index_filename = "/$cqpweb_tempdir/{$corpus_sql_name}_freqdb_index.tbl";
 	
-	$s_decode_cmd = "/$path_to_cwb/cwb-s-decode -r /$cwb_registry $freq_corpus_cqp_name -S text_id > $index_filename";
+	$s_decode_cmd = "/$path_to_cwb/cwb-s-decode -r /$cwb_registry $freq_corpus_cqp_name_uc -S text_id > $index_filename";
 	exec($s_decode_cmd);
 //	chmod($index_filename, 0777);
 	
@@ -257,14 +249,10 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 
 	$freq_text_index = "freq_text_index_$corpus_sql_name";
 	
-	$sql_query = "drop table if exists $freq_text_index";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query("drop table if exists $freq_text_index");
+
 	
-	$sql_query = "CREATE TABLE `$freq_text_index` 
+	$creation_query = "CREATE TABLE `$freq_text_index` 
 		(
 			`start` int(11) unsigned NOT NULL,
 			`end` int(11) unsigned NOT NULL,
@@ -272,18 +260,10 @@ if (!is_resource($source) || !is_resource($dest) ) echo '<pre>one of the pipes d
 			KEY `text_id` (`text_id`)
 		) 
 		CHARACTER SET utf8 COLLATE utf8_general_ci";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query($creation_query);
 
-	$sql_query = "$mysql_LOAD_DATA_INFILE_command '$index_filename' INTO TABLE $freq_text_index";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$index_filename' INTO TABLE $freq_text_index");
+
 
 	unlink($index_filename);
 

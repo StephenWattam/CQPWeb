@@ -1188,13 +1188,11 @@ function create_text_metadata_for_from_xml($fields_to_show)
 	/* get the $corpus_cqp_name variable by including the corpus's settings file */
 	include("../{$create_text_metadata_for_info['corpus']}/settings.inc.php");
 
-
 	$cqp->set_corpus($corpus_cqp_name);
 	$cqp->execute('c_M_F_xml = <text> []');
 	$cqp->execute("tabulate c_M_F_xml match text_id $fields_to_show > \"$full_filename\"");
+
 	/* the wrapping is done: pass to create_text_metadata_for() */
-show_var($create_text_metadata_for_info);
-$create_text_metadata_for_info["file_should_be_deleted"] = false;
 	create_text_metadata_for();	
 }
 

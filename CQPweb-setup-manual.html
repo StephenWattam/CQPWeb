@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20091214;6504900">
+	<META NAME="CHANGED" CONTENT="20091217;21502300">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -612,9 +612,11 @@ mark. Linebreaks should be \n , not \r or \r\n .</P>
 	the web admin interface. This form is pretty self-explanatory if you
 	know CWB, but note the following: 
 	</P>
-	<LI><P LANG="en-GB">There is a bug in CQPweb just now that creates
-	problems if the MySQL name and the CWB name are not the same. Again,
-	these are handles, so use Unix words. 
+	<LI><P LANG="en-GB"><FONT COLOR="#ff0000"><B>There is a bug in
+	CQPweb just now that creates problems if the MySQL name and the CWB
+	name are not the same. Again, these are handles, so use Unix words
+	</B><SPAN STYLE="font-weight: normal">(and both must be
+	all-lowercase)</SPAN><B>. </B></FONT>
 	</P>
 </UL>
 <UL TYPE=DISC>
@@ -642,19 +644,18 @@ fill in a form describing the metadata table, which is then loaded.
 Each field must have a handle, and you must specify whether it is a
 classification or not.</P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB">At <SPAN LANG="en-GB">the</SPAN> bottom of the
-	form are two alternative methods: create a “dummy” table if
-	there is no metadata, and use information indexed in the XML of the
-	corpus to create the metadata table (this has a similar form to fill
-	in).</P>
+	<LI><P LANG="en-GB">At the bottom of the form are two alternative
+	methods: create a “dummy” table if there is no metadata, and use
+	information indexed in the XML of the corpus to create the metadata
+	table (this has a similar form to fill in).</P>
 	<LI><P LANG="en-GB">You also need to decide whether or not you want
 	to automatically run the frequency list setup. The best answer is
-	<B>yes</B><SPAN STYLE="font-weight: normal"> for small corpora and
-	</SPAN><B>no</B><SPAN STYLE="font-weight: normal"> for large
+	<B>yes</B> <SPAN STYLE="font-weight: normal">for small corpora and
+	</SPAN><B>no</B> <SPAN STYLE="font-weight: normal">for large
 	corpora.</SPAN></P>
 </UL>
-<P LANG="en-GB"><SPAN LANG="en-GB">Once the metadata table is loaded,
-you will be on a page called “<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="font-style: normal"><B>Admin
+<P LANG="en-GB">Once the metadata table is loaded, you will be on a
+page called “<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="font-style: normal"><B>Admin
 tools for managing corpus metadata</B></SPAN></FONT></FONT></FONT> ”.
 If you didn't automatically setup frequency lists, you can now do so
 using the first four buttons under “<B>Other metadata controls</B>”.
@@ -664,7 +665,7 @@ and you must run it from within the web-directory that has been
 created for your corpus. Ideally, you should run this script as the
 web-user (see above), but if you run it under a different username,
 make sure all the files it creates are read-and-writeable by the
-web-user before going any further.</SPAN></P>
+web-user before going any further.</P>
 <P LANG="en-GB">The next (optional) step is to set up the interaction
 of your annotation with the CEQL Simple Query Parser. Click on
 “Manage Annotation” for this. The primary annotation will already
