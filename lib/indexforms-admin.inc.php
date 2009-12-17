@@ -498,7 +498,7 @@ function printquery_managemeta()
 						. $xml_annotation
 						. '" type="text" /> '
 						. '</td>';
-					echo '<td class="concordgeneral" align="center"><select name=\"isClassificationField_'
+					echo '<td class="concordgeneral" align="center"><select name="isClassificationField_'
 						. $xml_annotation
 						. '"><option value="1" selected="selected">Classification</option>'
 						. '<option value="0">Free text</option></select></td>';

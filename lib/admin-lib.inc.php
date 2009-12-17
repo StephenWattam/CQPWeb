@@ -69,8 +69,7 @@ class corpus_install_info
 			exiterror_fullpage("You must specify a corpus name using only letter, numbers and underscore",
 				__FILE__, __LINE__);
 		
-		if (get_magic_quotes_gpc() == 0)
-			$_GET['corpus_description'] = addcslashes($_GET['corpus_description'], "'");
+		$_GET['corpus_description'] = addcslashes($_GET['corpus_description'], "'");
 		$this->description = $_GET['corpus_description'];
 		
 		
@@ -97,7 +96,7 @@ class corpus_install_info
 						__FILE__, __LINE__);					
 				if (!is_file($orig_registry_file))
 					exiterror_fullpage("The specified CWB registry file does not seem to exist in that location.",
-						__FILE__, __LINE__);		
+						__FILE__, __LINE__);
 				
 				/* we have established that the registry file does not exist and the original does
 				 * so we can now import the registry file into CQPweb's registry 
@@ -107,14 +106,20 @@ class corpus_install_info
 			else
 			{
 				if (!is_file($registry_file))
-					exiterror_fullpage("The specified CWB corpus does not seem to exist CQPweb's registry.",
+					exiterror_fullpage("The specified CWB corpus does not seem to exist in CQPweb's registry.",
 						__FILE__, __LINE__);
 			}
 			
 			$regdata = file_get_contents($registry_file);
 			
-			
-			preg_match("/HOME\s+\/([^\n]+)\n/", $regdata, $m);
+			if (preg_match("/HOME\s+\/([^\n]+)\s/", $regdata, $m) < 1)
+			{
+				unlink($registry_file);
+				exiterror_fullpage("A data-directory path could not be found in the registry file for "
+					. "the CWB corpus you specified.\n\nEither the data-directory is unspecified, or it is "
+					. "specified with a relative path (an absolute path is needed).",
+						__FILE__, __LINE__);
+			}
 			$test_datadir = '/' .  $m[1];
 			
 			if (!is_dir($test_datadir))
@@ -1168,6 +1173,31 @@ function password_insert_lancaster($n)
 }
 
 
+/**
+ * Wrapper round create_text_metadata_for() for when we need to create the file from CQP.
+ * $fields_to_show is (part of) a CQP instruction: see admin-execute.php 
+ */
+function create_text_metadata_for_from_xml($fields_to_show)
+{
+	global $cqp;
+	global $create_text_metadata_for_info;
+	global $cqpweb_uploaddir;
+
+	$full_filename = "/$cqpweb_uploaddir/{$create_text_metadata_for_info['filename']}";
+
+	/* get the $corpus_cqp_name variable by including the corpus's settings file */
+	include("../{$create_text_metadata_for_info['corpus']}/settings.inc.php");
+
+
+	$cqp->set_corpus($corpus_cqp_name);
+	$cqp->execute('c_M_F_xml = <text> []');
+	$cqp->execute("tabulate c_M_F_xml match text_id $fields_to_show > \"$full_filename\"");
+	/* the wrapping is done: pass to create_text_metadata_for() */
+show_var($create_text_metadata_for_info);
+$create_text_metadata_for_info["file_should_be_deleted"] = false;
+	create_text_metadata_for();	
+}
+
 
 
 function create_text_metadata_for()
@@ -1261,8 +1291,9 @@ function create_text_metadata_for()
 		`cqp_end` BIGINT UNSIGNED NOT NULL default '0',
 		primary key (text_id)
 		";
-	foreach ($category_index_list as &$cur)
-		$create_statement .= ", index($cur) ";
+	if (! empty($category_index_list))
+		foreach ($category_index_list as &$cur)
+			$create_statement .= ", index($cur) ";
 	
 	/* finish off the rest of the create statement */
 	$create_statement .= "

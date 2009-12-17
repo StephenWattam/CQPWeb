@@ -273,16 +273,16 @@ switch($_GET['admFunction'])
 		$create_text_metadata_for_info = array();
 		$create_text_metadata_for_info['corpus'] = $_GET['corpus'];
 		$create_text_metadata_for_info['filename'] = "___createMetadataFromXml_{$_GET['corpus']}";
-		$full_filename = "/$cqpweb_uploaddir/{$create_text_metadata_for_info['filename']}";
 		$create_text_metadata_for_info['file_should_be_deleted'] = true;
 		$create_text_metadata_for_info['primary_classification'] = $_GET['primaryClassification'];
-		$create_text_metadata_for_info['fields'] = array();
-		
+		$create_text_metadata_for_info['fields'] = array(false);
+		/* note the dummy value for [fields][0], becaue reading from here starts at 1 */
+
 		foreach($_GET as $k => &$v)
 		{
-			if (! substr($k, 0, 24) == 'createMetadataFromXmlUse')
+			if ( substr($k, 0, 24) != 'createMetadataFromXmlUse')
 				continue;
-			if ($v == '1')
+			if ($v !== '1')
 				continue;
 				
 			/* OK, we know we've found a field handle that we are supposed to use. */
@@ -297,19 +297,13 @@ switch($_GET['admFunction'])
 				);
 		}
 		$create_text_metadata_for_info['field_count'] = count($create_text_metadata_for_info['fields']);
-		/* now, to actually create the file */
+		$create_text_metadata_for_info['do_automatic_metadata_setup'] = (bool) $_GET['createMetadataRunFullSetupAfter'];
+
 		$fields_to_show = '';
 		foreach($field_list as &$f)
 			$fields_to_show .= ', match ' . $f;
-		connect_global_cqp();
-		$cqp->set_corpus($_GET['corpus']);
-		$cqp->execute('c_M_F_xml = <text> []');
-		$cqp->execute("tabulate c_M_F_xml > match text_id $fields_to_show > \"$full_filename\"");
-		disconnect_global_cqp();
-
-		/* we are now in the same position as we were for "createMetadataTable", so we can call the same function */
-		$create_text_metadata_for_info['do_automatic_metadata_setup'] = (bool) $_GET['createMetadataRunFullSetupAfter'];
-		$_GET['function'] = 'create_text_metadata_for';
+		$_GET['args'] = $fields_to_show;
+		$_GET['function'] = 'create_text_metadata_for_from_xml';
 		$_GET['locationAfter'] = '../' . $_GET['corpus'] .'/index.php?thisQ=manageMetadata&uT=y';
 		require('../lib/execute.inc.php');
 		exit();

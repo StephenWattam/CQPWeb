@@ -276,6 +276,7 @@ if (get_magic_quotes_gpc())
 		unset($_POST[$k]);
 		$_POST[stripslashes($k)] = stripslashes($v);
 	}
+	unset($k, $v);
 	foreach ($_GET as $k => $v) 
 	{
 		unset($_GET[$k]);

@@ -227,9 +227,73 @@ else
 	echo "concordgrey\"><a class=\"menuCurrentItem\">";
 echo "Manage superuser access</a></td></tr>";
 
+
+?>
+<tr>
+	<th class="concordtable"><a class="menuHeaderItem">Database</a></th>
+</tr>
+
+<?php
+
+echo "<tr><td class=\"";
+if ($thisF != "manageProcesses")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=manageProcesses&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "Manage MySQL processes</a></td></tr>";
+
+echo "<tr><td class=\"";
+if ($thisF != "tableView")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=tableView&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "View a MySQL table</a></td></tr>";
+
+echo "<tr><td class=\"";
+if ($thisF != "mysqlRestore")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=mysqlRestore&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "Reset MySQL database</a></td></tr>";
+
 ?>
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">System</a></th>
+</tr>
+
+<?php
+
+echo "<tr><td class=\"";
+if ($thisF != "systemSettings")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=systemSettings&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "System settings</a></td></tr>";
+
+echo "<tr><td class=\"";
+if ($thisF != "systemMessages")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=systemMessages&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "System messages</a></td></tr>";
+
+echo "<tr><td class=\"";
+if ($thisF != "systemSecurity")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=systemSecurity&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "System security</a></td></tr>";
+
+
+?>
+<tr>
+	<th class="concordtable"><a class="menuHeaderItem">Misc</a></th>
 </tr>
 
 <tr>
@@ -257,46 +321,6 @@ if ($thisF != "cacheControl")
 else 
 	echo "concordgrey\"><a class=\"menuCurrentItem\">";
 echo "Cache control</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "systemSettings")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=systemSettings&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "System settings</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "systemMessages")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=systemMessages&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "System messages</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "systemSecurity")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=systemSecurity&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "System security</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "tableView")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=tableView&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "View a mySQL table</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "mysqlRestore")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=mysqlRestore&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Reset MySQL database</a></td></tr>";
 
 echo "<tr><td class=\"";
 if ($thisF != "phpConfig")
@@ -377,9 +401,9 @@ echo "Usage statistics</a></td></tr>";
 
 
 
-/**************************************/
+/* ********************************** */
 /* PRINT MAIN SEARCH FUNCTION CONTENT */
-/**************************************/
+/* ********************************** */
 
 
 
@@ -459,6 +483,10 @@ case 'phpConfig':
 
 case 'tableView':
 	printquery_tableview();
+	break;
+	
+case 'manageProcesses':
+	printquery_mysqlprocesses();
 	break;
 	
 case 'corpusStatistics':
@@ -2013,6 +2041,38 @@ function printquery_tableview()
 	?></td></tr></table><?php
 }
 
+// currently just dumps the table to the page.
+// we also want options to kill, etc.
+// and ideally delete any associated temp files if their names can be worked out.
+// TODO : this, properly!
+function printquery_mysqlprocesses()
+{
+	$result= do_mysql_query('SELECT * from mysql_processes');
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="4">Viewing running mySQL processes</th>
+		</tr>
+		<tr>
+			<th class="concordtable" >Database being created</th>
+			<th class="concordtable" >Time process began</th>
+			<th class="concordtable" >Process type</th>
+			<th class="concordtable" >Process ID</th>
+		</tr>
+		<?php
+		while (($process = mysql_fetch_object($result)) !== false)
+		{
+			echo '<tr>'
+				. '<td class="concordgeneral">' . $process->dbname . '</td>'
+				. '<td class="concordgeneral">' . date(DATE_RSS, $process->begin_time) . '</td>'
+				. '<td class="concordgeneral">' . $process->process_type . '</td>'
+				. '<td class="concordgeneral">' . $process->process_id . '</td>'
+				. '</tr>';	
+		}
+		?>
+	</table>
+	<?php
+}
 
 
 

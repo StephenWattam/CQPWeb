@@ -94,6 +94,7 @@ CQPweb (c) 2008
 </pre></body></html>');
 
 
+
 if (!url_string_is_valid())
 	exiterror_bad_url();
 
