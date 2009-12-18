@@ -60,6 +60,7 @@ require("../lib/defaults.inc.php");
 include('../lib/admin-lib.inc.php');
 include('../lib/apache.inc.php');
 include('../lib/cache.inc.php');
+include('../lib/ceql.inc.php');
 include('../lib/db.inc.php');
 include('../lib/colloc-lib.inc.php');
 include('../lib/concordance-lib.inc.php');

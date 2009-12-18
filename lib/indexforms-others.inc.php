@@ -314,6 +314,12 @@ function printquery_corpusmetadata()
 		<?php
 	}
 	
+	?>
+		<tr>
+			<th class="concordtable" colspan="2">Text metadata and word-level annotation</td>
+		</tr>
+	<?php
+	
 	
 	/* TEXT CLASSIFICATIONS */
 	$num_rows = mysql_num_rows($result_textfields);
@@ -333,11 +339,17 @@ function printquery_corpusmetadata()
 			echo '<tr>';
 		$i++;
 	}
+	if ($i == 1)
+		echo '<td class="concordgeneral">There is no text-level metadata for this corpus.</td></tr>';
 	?>
 		<tr>
 			<td class="concordgrey">The <b>primary</b> classification of texts is based on:</td>
 			<td class="concordgeneral">
-				<?php echo metadata_expand_field($metadata_fixed['primary_classification_field']); ?>
+				<?php 
+				echo (empty($metadata_fixed['primary_classification_field'])
+					? 'A primary classification scheme for texts has not been set.'
+					: metadata_expand_field($metadata_fixed['primary_classification_field'])); 
+				?>
 			</td>
 		</tr>
 	<?php	
@@ -375,10 +387,19 @@ function printquery_corpusmetadata()
 			echo '<tr>';
 		$i++;
 	}
+	/* if there were no annotations.... */
+	if ($i == 1)
+		echo '<td class="concordgeneral">There is no word-level annotation in this corpus.</td></tr>';
 	?>
 		<tr>
 			<td class="concordgrey">The <b>primary</b> tagging scheme is:</td>
-			<td class="concordgeneral"><?php echo $primary_annotation_string; ?></td>
+			<td class="concordgeneral">
+				<?php 
+				echo empty($primary_annotation_string) 
+					? 'A primary tagging scheme has not been set' 
+					: $primary_annotation_string; 
+				?>
+			</td>
 		</tr>
 	<?php		
 	
@@ -508,6 +529,10 @@ function printquery_latest()
 	<p>&nbsp;</p>
 	
 	<ul>
+		<li>
+		<b>Version 2.10</b>, 2009-12-18<br/>&nbsp;<br/>
+		Added customisable mapping tables for use with CEQL tertiary-annotations.
+		<br/>&nbsp;</li>
 		<li>
 		<b>Version 2.09</b>, 2009-12-13<br/>&nbsp;<br/>
 		New metadata-importing functions and other improvements to the internals of CQPweb.

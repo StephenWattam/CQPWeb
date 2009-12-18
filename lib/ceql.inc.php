@@ -290,36 +290,143 @@ function process_simple_query($query, $case_sensitive)
 }
 
 
-
-
-
-function lookup_tertiary_mappings($mapping_table_name)
+/**
+ * Returns the Perl string of the specified mapping table (with appropriate escapes)
+ * 
+ * Return value is false if the mapping table was not found.
+ */
+function lookup_tertiary_mappings($mapping_table_id)
 {
-	/* this function is effectively a collection of the tertiary mappings */
-	/* (ie simple-tag or tag-lemma aliases) that CQPweb allows */
-	switch ($mapping_table_name)
+	$mapping_table_id = mysql_real_escape_string($mapping_table_id);
+	
+	$result = do_mysql_query("select mappings from annotation_mapping_tables where id = '$mapping_table_id'");
+	
+	$r = mysql_fetch_row($result);
+	
+	if ($r === false)
+		return false;
+	else
+		return $r[0];
+}
+
+
+
+
+// delete this function once we're sure about the new system
+/* TODO would it be better to have this in the mySQL???  and the function with the actual tables ??? */
+function get_list_of_tertiary_mapping_tables_old()
+{
+	return array(
+		'oxford_simplified_tags' => 'Oxford Simplified Tagset',
+		'russian_mystem_wordclasses' => 'MyStem Wordclasses',
+		'german_tiger_tags' => 'TIGER tagset for German'
+		);
+}
+
+/**
+ * Returns a list of mapping tables as an array of the form handle => desc;
+ * or an empty array if no mapping tables were found in the database.
+ */
+function get_list_of_tertiary_mapping_tables()
+{
+	$result = do_mysql_query('select id, name from annotation_mapping_tables');
+	$list = array();
+	while ( ($r = mysql_fetch_object($result)) !== false)
+		$list[$r->id] = $r->name;
+	return $list;
+}
+
+/**
+ * Returns an array of mapping tables as objects with the following
+ * public members:
+ * ->id
+ * ->name
+ * ->mappings.
+ * 
+ * All mapping tables currently available (both custom and builtin)
+ * are returned.
+ */
+function get_all_tertiary_mapping_tables()
+{
+	$result = do_mysql_query('select * from annotation_mapping_tables');
+	$list = array();
+	while ( ($r = mysql_fetch_object($result)) !== false)
+		$list[] = $r;
+	return $list;
+}
+
+/**
+ * Regenerates the built-in mapping tables.
+ */ 
+function regenerate_builtin_mapping_tables()
+{
+	/* default ids and names are contained here */
+	$id_and_name = get_builtin_mapping_table_names();
+	foreach($id_and_name as $id => $name)
+	{
+		/* this should handle multiple escaping... I think! */
+		$code = get_builtin_mapping_table($id);
+		drop_tertiary_mapping_table($id);
+		add_tertiary_mapping_table($id, $name, $code);
+	}
+}
+
+
+function add_tertiary_mapping_table($id, $name, $mappings)
+{
+	$id = mysql_real_escape_string($id);
+	$name = mysql_real_escape_string($name);
+	/* NB hopefully this will take care of multiple-escaping! */
+	$mappings = mysql_real_escape_string($mappings);
+	do_mysql_query("insert into annotation_mapping_tables (id, name, mappings) values ('$id', '$name', '$mappings')");
+}
+
+
+function drop_tertiary_mapping_table($id)
+{
+	do_mysql_query("delete from annotation_mapping_tables where id = '$id'");
+}
+
+
+
+function get_builtin_mapping_table_names()
+{
+	return array(
+		'oxford_simplified_tags' => 'Oxford Simplified Tagset (English)',
+		'russian_mystem_wordclasses' => 'MyStem Wordclasses',
+		'german_tiger_tags' => 'TIGER tagset for German',
+		'simplified_nepali_tags' => 'Oxford Simplified Tagset (Nepali)'
+		);
+}
+
+/* Note that this function contains the actual code for the said builtins. */
+function get_builtin_mapping_table($mapping_table_id)
+{
+	/* this function is effectively a collection of the tertiary mappings
+	 * (ie simple-tag or tag-lemma aliases) that CQPweb allows */
+	switch ($mapping_table_id)
 	{
 	/* note, these should be perl code exactly as it would be written into the perl script */
 	/* a perl hash table in each case; aliases keyed to regexes */
 	case 'oxford_simplified_tags':
 		return '{ 
-           "A" => "ADJ",
-           "ADJ" => "ADJ",
-           "N" => "SUBST",
-           "SUBST" => "SUBST",
-           "V" => "VERB",
-           "VERB" => "VERB",
-           "ADV" => "ADV",
-           "ART" => "ART",
-           "CONJ" => "CONJ",
-           "INT" => "INTERJ",
-           "INTERJ" => "INTERJ",
-           "PREP" => "PREP",
-           "PRON" => "PRON",
-           \'$\' => "STOP",
-           "STOP" => "STOP",
-           "UNC" => "UNC"
-          }';
+			"A" => "ADJ",
+			"ADJ" => "ADJ",
+			"N" => "SUBST",
+			"SUBST" => "SUBST",
+			"V" => "VERB",
+			"VERB" => "VERB",
+			"ADV" => "ADV",
+			"ART" => "ART",
+			"CONJ" => "CONJ",
+			"INT" => "INTERJ",
+			"INTERJ" => "INTERJ",
+			"PREP" => "PREP",
+			"PRON" => "PRON",
+			\'$\' => "STOP",
+			"STOP" => "STOP",
+			"UNC" => "UNC"
+			}';
 	case 'russian_mystem_wordclasses':
 		/* note, first come the NORMAL russian classes, then the "aliases" */
 		return '{ 
@@ -353,7 +460,7 @@ function lookup_tertiary_mappings($mapping_table_name)
 			"PREP" => "PR",
 			\'$\' => "(PUNCT|SENT)",
 			"STOP" => "(PUNCT|SENT)"
-          }';
+			}';
 	case 'simplified_nepali_tags':
 		/* no particular order */
 		return '{ 
@@ -445,55 +552,6 @@ function lookup_tertiary_mappings($mapping_table_name)
 		return NULL;
 	}
 }
-
-/* TODO would it be better to have this in the mySQL???  and the function with the actual tables ??? */
-function get_list_of_tertiary_mapping_tables()
-{
-	return array(
-		'oxford_simplified_tags' => 'Oxford Simplified Tagset',
-		'russian_mystem_wordclasses' => 'MyStem Wordclasses',
-		'german_tiger_tags' => 'TIGER tagset for German'
-		);
-}
-
-
-
-
-/*
-// archive only
-function old_process_simple_query($query, $case_sensitive)
-{
-	global $username;
-	global $corpus_sql_name;
-	
-	global $restrictions;
-	global $subcorpus;
-	
-	/* return as is if nothing but whitespace * /
-	if (preg_match('/^\s*$/', $query) > 0)
-		return $query;
-
-
-	/* call the parser * /
-// note: is an escape needed here for the contents of $query?
-	$cqp_query = perl_interface("../lib/perl/parse_simple_query.pl", "\"$query\" $case_sensitive");
-	
-	if ( ! isset($cqp_query) || $cqp_query == "")
-	{
-		/* if conversion fails, add to history & then add syntax error code * /
-		/* and then call an error -- script terminates * /
-
-		history_insert($instance_name, $query, $restrictions, $subcorpus, $query,
-			($case_sensitive ? 'sq_case' : 'sq_nocase'));
-		history_update_hits($instance_name, -1);
-
-		exiterror_cqp_full(array("<u>Syntax error</u>", "Sorry, your simple query
-	        ' $query ' contains a syntax error."));
-	}
-	return $cqp_query;
-}
-*/
-
 
 
 ?>

@@ -314,7 +314,16 @@ switch($_GET['admFunction'])
 		$_GET['args'] = $_GET['corpus'] ;
 		require('../lib/execute.inc.php');
 		exit();
-		
+	
+	
+	case 'newMappingTable':
+		$_GET['function'] = 'add_tertiary_mapping_table';
+		$_GET['locationAfter'] = 'index.php?thisF=mappingTables&showExisting=1&uT=y';
+		if(strpos($_GET['newMappingTableCode'], '#') !== false)
+			exiterror_fullpage("You cannot use the character <strong>#</strong> in a mapping table.");
+		$_GET['args'] = $_GET['newMappingTableId'].'#'.$_GET['newMappingTableName'].'#'.$_GET['newMappingTableCode'] ;
+		require('../lib/execute.inc.php');
+		exit();
 		
 	default:
 		/* break and fall through to the rest of adminhome.inc.php */

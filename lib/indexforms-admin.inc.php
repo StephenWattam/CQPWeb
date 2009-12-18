@@ -839,7 +839,7 @@ function printquery_managemeta()
 		</table>
 		<table class="concordtable" width="100%">
 			<tr>
-				<th colspan="2" class="concordtable">Add item of corpus metadata</th>
+				<th colspan="2" class="concordtable">Add item of corpus-level metadata</th>
 			</tr>
 			<tr>
 				<td class="concordgrey" align="center" width="50%">Attribute</td>
@@ -873,8 +873,8 @@ function printquery_managemeta()
 						$result_variable = do_mysql_query($sql_query);	
 						
 						echo mysql_num_rows($result_variable) != 0
-							? 'Existing items of variable metadata attribute-value pairs:' 
-							: 'No items of variable metadata attribute-value pairs have been set.';
+							? 'Existing items of variable corpus-level metadata (as attribute-value pairs):' 
+							: 'No items of variable corpus-level metadata have been set.';
 						?>
 
 					</em>

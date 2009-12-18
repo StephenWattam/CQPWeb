@@ -1719,6 +1719,14 @@ function cqpweb_mysql_recreate_tables()
 			primary key(`id`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
 	
+	$create_statements['annotation_mapping_tables'] =
+		"CREATE TABLE `annotation_mapping_tables` (
+			`id` varchar(40),
+			`name` varchar(255), 
+			`mappings` text character set utf8,
+			key(`id`)
+	) CHARACTER SET utf8 COLLATE utf8_bin";
+	
 	
 	return $create_statements;
 }

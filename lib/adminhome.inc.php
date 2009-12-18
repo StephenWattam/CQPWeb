@@ -69,6 +69,7 @@ require ("../lib/apache.inc.php");
 require ("../lib/admin-lib.inc.php");
 require ("../lib/exiterror.inc.php");
 require ("../lib/metadata.inc.php");
+require ("../lib/ceql.inc.php");
 
 
 if (!user_is_superuser($username))
@@ -315,6 +316,14 @@ else
 echo "Skins and colours</a></td></tr>";
 
 echo "<tr><td class=\"";
+if ($thisF != "mappingTables")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=mappingTables&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "Mapping tables</a></td></tr>";
+
+echo "<tr><td class=\"";
 if ($thisF != "cacheControl")
 	echo "concordgeneral\"><a class=\"menuItem\" 
 		href=\"index.php?thisF=cacheControl&uT=y\">";
@@ -458,6 +467,10 @@ case 'superuserAccess':
 	
 case 'skins':
 	printquery_skins();
+	break;
+
+case 'mappingTables':
+	printquery_mappingtables();
 	break;
 
 case 'cacheControl':
@@ -1756,6 +1769,165 @@ function printquery_skins()
 		</form>
 	</table>
 	<?php
+}
+
+
+
+function printquery_mappingtables()
+{
+	$show_existing = (bool)$_GET['showExisting']
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="3">
+				Mapping tables
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="3">
+				&nbsp;<br/>
+				
+				&ldquo;Mapping tables&rdquo; are used in the Common Elementary Query Language (CEQL)
+				system (aka &ldquo;Simple query&rdquo;).
+				
+				<br/>&nbsp;<br/>
+				
+				They transform <em>the tag the user searches for</em> (referred to as an 
+				<strong>alias</strong>) into <em>the tag that actually occurs in the corpus</em>, or 
+				alternatively into <em>a regular expression covering a group of tags</em> (referred to
+				as the <strong>search term</strong>.
+				
+				<br/>&nbsp;<br/>
+				
+				Each alias-to-search-term mapping has the form "ALIAS" => "SEARCH TERM".  
+					
+				<br/>&nbsp;<br/>
+				
+				<?php
+				
+				echo '<a href="index.php?thisF=mappingTables&showExisting='
+					. ($show_existing ? '0' : '1')
+					. '&uT=y">Click here '
+					. ($show_existing ? 'to add a new mapping table' : 'to view all stored mapping tables')
+					. "</a>.\n\n";
+				?>
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<?php
+		if ($show_existing)
+		{
+			/* show existing mapping tables */
+			?>
+			<tr>
+				<th class="concordtable" colspan="3">
+					Currently stored mapping tables
+				</th>
+			</tr>
+			<tr>
+				<th class="concordtable">Name</th>
+				<th class="concordtable">Mapping table</th>
+				<th class="concordtable">Actions</th>
+			</tr>
+			
+			<?php
+			foreach(get_all_tertiary_mapping_tables() as $table)
+			{
+				echo '<tr>'
+					. '<td class="concordgeneral">' . $table->name . ' <br/>&nbsp;<br/>(<em>' . $table->id . '</em>)</td>'
+					. '<td class="concordgeneral"><font size="-2" face="courier new, monospace">' 
+					. strtr($table->mappings, array("\n"=>'<br/>', "\t"=>'&nbsp;&nbsp;&nbsp;') )
+					. '</font></td>'
+					. '<td class="concordgeneral" align="center">'
+					. '<a class="menuItem" href="index.php?admFunction=execute&function=drop_tertiary_mapping_table&args=' 
+					. $table->id . '&locationAfter=' . urlencode('index.php?thisF=mappingTables&showExisting=1&uT=y') 
+					. '&uT=y">[Delete]</a></td>'
+					. "</tr>\n\n";	
+			}
+
+		}
+		else
+		{
+			/* main page for adding new mapping tables */
+			?>
+			<tr>
+				<th class="concordtable" colspan="3">
+					Create a new mapping table
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgrey" colspan="3">
+					Your mapping table must start and end in a brace <strong>{ }</strong> ; each 
+					alias-to-search-term mapping but the last must be followed by a comma. 
+					Use perl-style escapes for quotation marks where necessary.
+					
+					<br/>&nbsp;<br/>
+					
+					You are strongly advised to save an offline copy of your mapping table,
+					as it is a lot of work to recreate if it accidentally gets deleted from
+					the database.
+				</td>
+			</tr>
+			<form action="index.php" method="get">
+				<tr>
+					<td class="concordgeneral" align="center" valign="top">
+						Enter an ID code
+						<br/> 
+						(letters, numbers, and _ only)
+						<br/>&nbsp;<br/>
+						<input type="text" size="30" name="newMappingTableId"/>
+					</td>
+					<td class="concordgeneral" align="center" valign="top">
+						Enter the name of the mapping table:
+						<br/>&nbsp;<br/>&nbsp;<br/>
+						<input type="text" size="30" name="newMappingTableName"/>
+					</td>
+					<td class="concordgeneral" align="center" valign="top">
+						Enter the mapping table code here:
+						<br/>&nbsp;<br/>&nbsp;<br/>
+						<textarea name="newMappingTableCode" cols="60" rows="25"></textarea>					
+					</td>				
+				</tr>
+				<tr>
+					<td class="concordgeneral" colspan="3" align="center">
+						<input type="submit" value="Create mapping table!"/>
+					</td>				
+				</tr>
+				<input type="hidden" name="admFunction" value="newMappingTable" />
+				<input type="hidden" name="uT" value="y" />
+			</form>
+			
+			
+			
+			<?php
+		}
+		?>
+		<tr>
+			<th class="concordtable" colspan="3">
+				Built-in mapping tables
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral" colspan="3" align="center">
+				CQPweb contains a number of built-in mapping tables, including the Oxford Simplified Tagset 
+				devised for the BNC (highly recommended).
+				<br/>&nbsp;<br/>
+				Use the button below to insert them into the database.
+				<br/>&nbsp;<br/>
+
+				<form action="index.php" method="get">
+					<input type="submit" value="Click here to regenerate built-in mapping tables."/>
+					<br/>
+					<input type="hidden" name="admFunction" value="execute" />
+					<input type="hidden" name="function" value="regenerate_builtin_mapping_tables" />
+					<input type="hidden" name="locationAfter" 
+						value="index.php?thisF=mappingTables&showExisting=1&uT=y" />
+					<input type="hidden" name="uT" value="y" />
+				</form>					
+			</td>
+		</tr>
+	</table>
+	<?	
 }
 
 
