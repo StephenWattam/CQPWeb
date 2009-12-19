@@ -928,52 +928,24 @@ function populate_corpus_cqp_positions()
 		connect_global_cqp();
 	}
 
-	/* reduce unnecessary byte-passing - may help with bigger corpora */	
-	$cqp->execute("set Context 0");
-	
-	$cqp->execute("set PrintStructures text_id");
+	// more efficient implementation of this code (SE, 2009-12-19)
 
-	
-	$corpus_file_positions = array();
-	
-	$cqp->execute("A = <text> []");
-	$lines = $cqp->execute("cat A");
-// new version devised cos old version wouldn't run for LLC on all servers.
-
+	$cqp->execute("A = <text> [] expand to text");
+	$lines = $cqp->execute("tabulate A match, matchend, match text_id");
 	foreach ($lines as &$a)
 	{
-		preg_match("/\A\s*(\d+): <text_id (\w+)>:/", $a, $m);
-	
-		do_mysql_query("update text_metadata_for_$corpus_sql_name set cqp_begin = {$m[1]}
-			where text_id = '{$m[2]}'");
-	}
-	unset($lines);
-	
-
-	$cqp->execute("B = [] </text>");
-	$lines = $cqp->execute("cat B");
-
-	foreach ($lines as &$b)
-	{
-		preg_match("/\A\s*(\d+): <text_id (\w+)>:/", $b, $m);
-
-		do_mysql_query("update text_metadata_for_$corpus_sql_name set cqp_end = {$m[1]}
-			where text_id = '{$m[2]}'");
+		$item = explode("\t", $a);
+		// PHP's MySQL interface is badly broken as it doesn't support prepared queries.
+		// This code recompiles the SQL query below for each metadata item. It is slow and unsafe.
+		do_mysql_query("update text_metadata_for_$corpus_sql_name
+			set cqp_begin = {$item[0]}, cqp_end = {$item[1]}
+			where text_id = '{$item[2]}'");
 	}
 	unset($lines);
 
-	
-	$sql_query = "select text_id, cqp_begin, cqp_end from text_metadata_for_$corpus_sql_name";
-	$result = do_mysql_query($sql_query);
-
-	while (($r = mysql_fetch_row($result)) !== false)
-	{
-		$sql_query = "update text_metadata_for_$corpus_sql_name set words = "
-			. ((int)$r[2] - (int)$r[1]) .
-			" where text_id = '{$r[0]}'";
-
-		do_mysql_query($sql_query);
-	}
+	// update word counts for each text (NB: previous calculation words = cqp_end - cqp_start was wrong!)
+	$sql_query = "update text_metadata_for_$corpus_sql_name set words = cqp_end - cqp_begin + 1";
+	do_mysql_query($sql_query);
 
 /* old version
 	foreach ($lines as &$a)

@@ -251,14 +251,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 		$sql = "select $item, $O11 as observed,  $E11 as expected,
 			$freq_table.freq, count(distinct(text_id)) as text_id_count
 			from $bwMYSQLusertable.$dbname, $freq_table 
-			where $item = $freq_table.item
-			and $range_condition
-			$tag_clause
-			and $freq_table.freq >= $calc_minfreq_collocalone
-			group by $item
-			having observed >= $calc_minfreq_together
-			order by observed desc 
-			$limit_string";
+			$sql_endclause";
 		break;
 	
 	case 1:		/* Mutual information */

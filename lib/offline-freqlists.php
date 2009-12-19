@@ -81,8 +81,10 @@ connect_global_cqp();
 
 $print_debug_messages = true;
 
-
-
+/* set up some variables for the offline code */
+$corpus = $corpus_sql_name; /* code below was copied from subroutine with argument $corpus -- is the MySQL name correct? */
+$superuser_list = explode('|', $superuser_username); /* only superusers are allowed to create frequency tables, so pretend we're one */
+$username = $superuser_list[0];
 
 echo "About to run the function populating corpus CQP positions...\n\n";
 populate_corpus_cqp_positions();
@@ -105,12 +107,12 @@ else
 list($n) = mysql_fetch_row(do_mysql_query("select count(text_id) from text_metadata_for_$corpus"));
 if ($n > 1)
 {
-	echo "About to run the function making the CWB test-by-text frequency index...\n\n";	
+	echo "About to run the function making the CWB text-by-text frequency index...\n\n";	
 	make_cwb_freq_index();
-	echo "Done making the CWB test-by-text frequency index.\n\n";	
+	echo "Done making the CWB text-by-text frequency index.\n\n";	
 }
 else
-	echo "Function making the CWB test-by-text frequency index was not run because there is only one text.\n\n";	
+	echo "Function making the CWB text-by-text frequency index was not run because there is only one text.\n\n";	
 
 
 /* do unconditionally */
