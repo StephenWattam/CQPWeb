@@ -146,7 +146,9 @@ function get_ceql_script_for_perl($query, $case_sensitive)
 		#~~xml_annotation_command~~#
 		
 		$CEQL->SetParam("default_ignore_case", ##~~case_sensitivity_here~~##);
-		$cqp_query = $CEQL->Parse("##~~string_of_query_here~~##");
+		$cqp_query = $CEQL->Parse(<<\'END_OF_CEQL_QUERY\');
+  ##~~string_of_query_here~~##
+END_OF_CEQL_QUERY
 		if (not defined $cqp_query) 
 		{
 			@error_msg = $CEQL->ErrorMessage;

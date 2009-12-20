@@ -320,7 +320,13 @@ switch($_GET['admFunction'])
 		$_GET['function'] = 'add_tertiary_mapping_table';
 		$_GET['locationAfter'] = 'index.php?thisF=mappingTables&showExisting=1&uT=y';
 		if(strpos($_GET['newMappingTableCode'], '#') !== false)
+		{
+			require_once("../lib/config.inc.php"); // there has to be a better way of handling all these includes ... (sigh!)
+			require_once("../lib/defaults.inc.php");
+			require_once("../lib/library.inc.php");
+			require_once("../lib/exiterror.inc.php");
 			exiterror_fullpage("You cannot use the character <strong>#</strong> in a mapping table.");
+		}
 		$_GET['args'] = $_GET['newMappingTableId'].'#'.$_GET['newMappingTableName'].'#'.$_GET['newMappingTableCode'] ;
 		require('../lib/execute.inc.php');
 		exit();
