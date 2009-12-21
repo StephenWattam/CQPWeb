@@ -251,8 +251,8 @@ if (!isset($username))
 
 
 
-/* instance_name is the unique identifier of the present run of a given script */
-/* which will be used as the name of any queries/records saved by the present script */
+/* instance_name is the unique identifier of the present run of a given script 
+ * which will be used as the name of any queries/records saved by the present script */
 $instance_name = $username . '_' . time();
 
 if (! isset($this_script))

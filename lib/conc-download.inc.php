@@ -517,7 +517,8 @@ else
 <?php
 echo '<title>' . $corpus_title . ' -- CQPweb Concordance Download</title>';
 echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>	
+?>
+<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
 </head>
 <body>
 <table class="concordtable" width="100%">

@@ -321,6 +321,7 @@ else
 	echo '<title>' . $corpus_title . ' -- CQPweb Query Frequency Breakdown</title>';
 	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	?>
+	<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script>
 	
 	</head>
 	<body>

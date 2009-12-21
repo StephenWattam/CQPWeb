@@ -530,6 +530,7 @@ else
 	echo '<title>' . $corpus_title . ' -- CQPweb collocation results</title>';
 	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	?>
+	<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	
 	</head>

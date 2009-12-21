@@ -317,17 +317,21 @@ switch($_GET['admFunction'])
 	
 	
 	case 'newMappingTable':
-		$_GET['function'] = 'add_tertiary_mapping_table';
-		$_GET['locationAfter'] = 'index.php?thisF=mappingTables&showExisting=1&uT=y';
 		if(strpos($_GET['newMappingTableCode'], '#') !== false)
 		{
-			require_once("../lib/config.inc.php"); // there has to be a better way of handling all these includes ... (sigh!)
-			require_once("../lib/defaults.inc.php");
-			require_once("../lib/library.inc.php");
-			require_once("../lib/exiterror.inc.php");
-			exiterror_fullpage("You cannot use the character <strong>#</strong> in a mapping table.");
+			$_GET['args'] = "You cannot use the \"hash\" character in a mapping table.";
+			// Actually this is a lie. You can, should you really want to do something that bonkers.
+			// the problem is that then it can't be passed to execute.inc.php
+			// because hash is an argument separator.
+			// TODO: clean this up.
+			$_GET['function'] = 'exiterror_fullpage';
 		}
-		$_GET['args'] = $_GET['newMappingTableId'].'#'.$_GET['newMappingTableName'].'#'.$_GET['newMappingTableCode'] ;
+		else
+		{
+			$_GET['function'] = 'add_tertiary_mapping_table';
+			$_GET['locationAfter'] = 'index.php?thisF=mappingTables&showExisting=1&uT=y';
+			$_GET['args'] = $_GET['newMappingTableId'].'#'.$_GET['newMappingTableName'].'#'.$_GET['newMappingTableCode'] ;
+		}
 		require('../lib/execute.inc.php');
 		exit();
 		

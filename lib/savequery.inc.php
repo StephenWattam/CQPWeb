@@ -267,11 +267,12 @@ function print_savename_top()
 	
 	<html>
 	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<?php
 	echo '<title>CQPweb Save Query</title>';
 	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	?>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
 	
 	</head>
 	<body>

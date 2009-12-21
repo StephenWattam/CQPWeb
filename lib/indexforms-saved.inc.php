@@ -811,7 +811,7 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 		$toplimit = $alt_toplimit + 1;
 	
 	if ($toplimit == 1)
-		echo '<tr><td class="concordgrey" colspan="' . ($usercolumn ? '7' : '6') . '" align="center">
+		echo '<tr><td class="concordgrey" colspan="' . ($usercolumn ? '8' : '7') . '" align="center">
 				&nbsp;<br/>No saved queries were found.<br/>&nbsp;
 				</td</tr>';
 

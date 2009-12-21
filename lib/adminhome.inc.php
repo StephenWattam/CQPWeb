@@ -104,6 +104,7 @@ connect_global_mysql();
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>CQPweb Sysadmin Control Panel</title>
 <link rel="stylesheet" type="text/css" href="<?php echo $css_path_for_adminpage;?>" />
+<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
 <!-- nonstandard header includes javascript for corpus highlight function! -->
 <script type="text/javascript">
 <!--
@@ -729,7 +730,7 @@ function printquery_installcorpus_indexed()
 			<tr>
 				<td class="concordgeneral">Specify a MySQL name for this corpus</td>
 				<td class="concordgeneral">
-					<input type="text" name="corpus_mysql_name" />
+					<input type="text" name="corpus_mysql_name"  onKeyUp="check_c_word(this)" />
 				</td>
 			</tr>
 			<tr>
@@ -741,7 +742,7 @@ function printquery_installcorpus_indexed()
 			<tr>
 				<td class="concordgeneral">Specify the CWB name (lowercase format)</td>
 				<td class="concordgeneral">
-					<input type="text" name="corpus_cwb_name" />
+					<input type="text" name="corpus_cwb_name" onKeyUp="check_c_word(this)" />
 				</td>
 			</tr>
 			<tr>
@@ -837,13 +838,13 @@ function printquery_installcorpus_unindexed()
 			<tr>
 				<td class="concordgeneral">Specify the MySQL name of the corpus you wish to create</td>
 				<td class="concordgeneral">
-					<input type="text" name="corpus_mysql_name" />
+					<input type="text" name="corpus_mysql_name" onKeyUp="check_c_word(this)"/>
 				</td>
 			</tr>
 			<tr>
 				<td class="concordgeneral">Specify the CWB name of the corpus you wish to create</td>
 				<td class="concordgeneral">
-					<input type="text" name="corpus_cwb_name" />
+					<input type="text" name="corpus_cwb_name" onKeyUp="check_c_word(this)"/>
 				</td>
 			</tr>
 			<tr>
@@ -953,7 +954,7 @@ function printquery_installcorpus_unindexed()
 				{
 					if ($q != 1) echo '<tr>';
 					echo "<td colspan=\"5\"align=\"center\" class=\"concordgeneral\">
-							<input type=\"text\" name=\"customS$q\" />
+							<input type=\"text\" name=\"customS$q\"  onKeyUp=\"check_c_word(this)\"/>
 						</td>
 					</tr>";
 				}
@@ -985,7 +986,7 @@ function printquery_installcorpus_unindexed()
 						<input type=\"radio\" name=\"customPPrimary\" value=\"$q\" />
 					</td>
 					<td align=\"center\" class=\"concordgeneral\">
-						<input type=\"text\" maxlength=\"15\" name=\"customPHandle$q\" />
+						<input type=\"text\" maxlength=\"15\" name=\"customPHandle$q\" onKeyUp=\"check_c_word(this)\" />
 					</td>
 					<td align=\"center\" class=\"concordgeneral\">
 						<input type=\"text\" maxlength=\"150\" name=\"customPDesc$q\" />
@@ -1314,7 +1315,7 @@ function printquery_useradmin()
 						Enter the username you wish to create/reset:
 					</td>
 					<td class="concordgeneral">
-						<input type="text" name="newUsername" tabindex="1" width="30" />
+						<input type="text" name="newUsername" tabindex="1" width="30" onKeyUp="check_c_word(this)" />
 					</td>
 					<td class="concordgeneral" rowspan="3">
 						<input type="submit" value="Create user account" tabindex="5" />
@@ -1325,7 +1326,8 @@ function printquery_useradmin()
 						Enter a new password for the specified user:
 					</td>
 					<td class="concordgeneral">
-						<input type="text" id="passwordField" name="newPassword" tabindex="2" width="30" />
+						<input type="text" id="passwordField" name="newPassword" tabindex="2" width="30" 
+							onKeyUp="check_c_word(this)" />
 						<a class="menuItem" tabindex="3"
 							onmouseover="return escape('Suggest a password')" onclick="insertPassword()">
 							[+]
@@ -1357,7 +1359,7 @@ function printquery_useradmin()
 						Enter the root for the batch of usernames:
 					</td>
 					<td class="concordgeneral">
-						<input type="text" name="newUsername" width="30" />
+						<input type="text" name="newUsername" width="30" onKeyUp="check_c_word(this)" />
 					</td>
 					<td class="concordgeneral" rowspan="5">
 						<input type="submit" value="Create batch of users" />
@@ -1380,7 +1382,7 @@ function printquery_useradmin()
 					</td>
 					<td class="concordgeneral">
 						<input type="radio" checked="checked" name="newPasswordUseRandom" value="0"/>
-						<input type="text" name="newPassword" width="30" />
+						<input type="text" name="newPassword" width="30" onKeyUp="check_c_word(this)" />
 					</td>
 				</tr>
 				<tr>
@@ -1394,7 +1396,7 @@ function printquery_useradmin()
 						Enter a group for the new users to be assigned to:
 					</td>
 					<td class="concordgeneral">
-						<input type="text" name="batchAutogroup" width="30" />
+						<input type="text" name="batchAutogroup" width="30" onKeyUp="check_c_word(this)"  />
 					</td>
 				</tr>
 				<input type="hidden" name="admFunction" value="newBatchOfUsers"/>
@@ -1432,7 +1434,7 @@ function printquery_useradmin()
 						Delete a batch of users - all usernames consisting of this string plus a number:
 					</td>
 					<td class="concordgeneral">
-						<input type="text" name="userBatchToDelete" />
+						<input type="text" name="userBatchToDelete" onKeyUp="check_c_word(this)" />
 					</td>
 					<td class="concordgeneral">
 						<input type="submit" value="Delete all matching users' accounts" />
@@ -1619,7 +1621,7 @@ function printquery_groupadmin()
 					</td>
 					<td class="concordgeneral" align="center">
 						<br/>
-						<input type="text" maxlength="20" name="args">
+						<input type="text" maxlength="20" name="args" onKeyUp="check_c_word(this)" >
 						<br/>
 						&nbsp;
 					<td class="concordgeneral" align="center">
@@ -1875,7 +1877,7 @@ function printquery_mappingtables()
 						<br/> 
 						(letters, numbers, and _ only)
 						<br/>&nbsp;<br/>
-						<input type="text" size="30" name="newMappingTableId"/>
+						<input type="text" size="30" name="newMappingTableId" onKeyUp="check_c_word(this)" />
 					</td>
 					<td class="concordgeneral" align="center" valign="top">
 						Enter the name of the mapping table:

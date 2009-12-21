@@ -316,6 +316,7 @@ else
 	echo '<title>' . $corpus_title . ' -- view CQPweb frequency list</title>';
 	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	?>
+	<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
 	
 	</head>
 	<body>

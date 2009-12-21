@@ -694,7 +694,7 @@ function printquery_managemeta()
 				echo "<tr>
 					<td class=\"concordgeneral\">Field $i</td>
 					<td class=\"concordgeneral\">
-						<input type=\"text\" name=\"fieldHandle$i\" maxlength=\"12\"/>
+						<input type=\"text\" name=\"fieldHandle$i\" maxlength=\"12\" onKeyUp=\"check_c_word(this)\" />
 					</td>
 					<td class=\"concordgeneral\">
 						<input type=\"text\" name=\"fieldDescription$i\" maxlength=\"200\"/>

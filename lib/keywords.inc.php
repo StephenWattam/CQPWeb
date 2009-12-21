@@ -274,7 +274,7 @@ if ($table_foreign[2] === true)
 
 $att_desc = get_corpus_annotations();	
 $att_desc['word'] = 'Word';
-
+// TTD: add tool tips using onmouseOver
 /* if the script has been fed an attribute that doesn't exist for this corpus, failsafe to 'word' */
 if (! array_key_exists($att_for_comp, $att_desc) )
 	$att_for_comp = 'word';
@@ -443,6 +443,7 @@ else
 	echo '<title>' . $corpus_title . ' -- CQPweb keywords analysis</title>';
 	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	?>
+	<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
 	
 	</head>
 	<body>

@@ -73,6 +73,7 @@ connect_global_mysql();
 echo '<title>' . $corpus_title . ' -- CQPweb</title>';
 echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 ?>
+<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
 </head>
 <body>
 
@@ -82,9 +83,9 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 
 
 
-/***********************/
+/* ******************* */
 /* PRINT SIDE BAR MENU */
-/***********************/
+/* ******************* */
 
 // TTD: add tool tips using onmouseOver
 

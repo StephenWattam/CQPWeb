@@ -206,7 +206,7 @@ function print_sc_nameform($badname_entered, $colspan)
 								if(isset($_GET['subcorpusNewName']))
 									echo ' value="' . $_GET['subcorpusNewName'] . '"';
 								?>
-							/>
+							onKeyUp="check_c_word(this)" />
 						</td>
 					</tr>
 				</table>
@@ -625,7 +625,7 @@ function print_sc_copy($badname_entered)
 								if(isset($_GET['subcorpusNewName']))
 									echo ' value="' . $_GET['subcorpusNewName'] . '"';
 								?>
-							/>
+							onKeyUp="check_c_word(this)" />
 						</td>
 					</tr>
 				</table>

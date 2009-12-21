@@ -113,7 +113,6 @@ A CEQL parser can be told to accept the following varieties of attribute:
 
 function get_ceql_script_for_perl($query, $case_sensitive)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	$sql_query = "select primary_annotation, secondary_annotation, tertiary_annotation, 
@@ -121,10 +120,7 @@ function get_ceql_script_for_perl($query, $case_sensitive)
 		from corpus_metadata_fixed 
 		where corpus = '$corpus_sql_name'";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false || mysql_num_rows($result) == 0) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	list($name_of_primary_annotation,$name_of_secondary_annotation,$name_of_tertiary_annotation,
 		$name_of_table_of_3ary_mappings,$name_of_combo_annotation)
@@ -147,8 +143,11 @@ function get_ceql_script_for_perl($query, $case_sensitive)
 		
 		$CEQL->SetParam("default_ignore_case", ##~~case_sensitivity_here~~##);
 		$cqp_query = $CEQL->Parse(<<\'END_OF_CEQL_QUERY\');
-  ##~~string_of_query_here~~##
+
+##~~string_of_query_here~~##
+
 END_OF_CEQL_QUERY
+
 		if (not defined $cqp_query) 
 		{
 			@error_msg = $CEQL->ErrorMessage;
@@ -224,6 +223,7 @@ function process_simple_query($query, $case_sensitive)
 {
 	global $username;
 	global $corpus_sql_name;
+	global $instance_name;
 	
 	global $restrictions;
 	global $subcorpus;
@@ -284,12 +284,24 @@ function process_simple_query($query, $case_sensitive)
 
 		array_unshift($ceql_errors, "<u>Syntax error</u>", "Sorry, your simple query
 	        ' $query ' contains a syntax error.");
+	        
 		if ($print_debug_messages)
 			print_debug_message("Error in perl script for CEQL: this was the script\n\n$script");
+		
 		exiterror_cqp_full($ceql_errors);
 	}
 	return $cqp_query;
 }
+
+
+
+
+
+
+
+
+
+
 
 
 /**
@@ -312,19 +324,6 @@ function lookup_tertiary_mappings($mapping_table_id)
 }
 
 
-
-
-// delete this function once we're sure about the new system
-/* TODO would it be better to have this in the mySQL???  and the function with the actual tables ??? */
-function get_list_of_tertiary_mapping_tables_old()
-{
-	return array(
-		'oxford_simplified_tags' => 'Oxford Simplified Tagset',
-		'russian_mystem_wordclasses' => 'MyStem Wordclasses',
-		'german_tiger_tags' => 'TIGER tagset for German'
-		);
-}
-
 /**
  * Returns a list of mapping tables as an array of the form handle => desc;
  * or an empty array if no mapping tables were found in the database.
@@ -341,11 +340,11 @@ function get_list_of_tertiary_mapping_tables()
 /**
  * Returns an array of mapping tables as objects with the following
  * public members:
- * ->id
- * ->name
- * ->mappings.
+ *   ->id
+ *   ->name
+ *   ->mappings
  * 
- * All mapping tables currently available (both custom and builtin)
+ * All mapping tables currently available (whether custom or builtin)
  * are returned.
  */
 function get_all_tertiary_mapping_tables()
@@ -374,6 +373,12 @@ function regenerate_builtin_mapping_tables()
 }
 
 
+
+
+
+
+
+
 function add_tertiary_mapping_table($id, $name, $mappings)
 {
 	$id = mysql_real_escape_string($id);
@@ -383,11 +388,18 @@ function add_tertiary_mapping_table($id, $name, $mappings)
 	do_mysql_query("insert into annotation_mapping_tables (id, name, mappings) values ('$id', '$name', '$mappings')");
 }
 
-
 function drop_tertiary_mapping_table($id)
 {
 	do_mysql_query("delete from annotation_mapping_tables where id = '$id'");
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -656,6 +656,7 @@ header('Content-Type: text/html; charset=utf-8');
 		echo '<title>' . $corpus_title . ' -- CQPweb Concordance</title>';
 		echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 		?>
+		<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
 
 	</head>
 	<body>
