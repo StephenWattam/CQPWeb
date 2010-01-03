@@ -809,7 +809,7 @@ function print_footer()
 	<table class="concordtable" width="100%">
 		<tr>
 			<td align="left" class="cqpweb_copynote">
-				CQPweb v<?php echo CQPWEB_VERSION;?> &#169; 2008-2009
+				CQPweb v<?php echo CQPWEB_VERSION; ?> &#169; 2008-2010
 			</td>
 			<?php echo $help_cell; ?>
 			<td align="right" class="cqpweb_copynote">

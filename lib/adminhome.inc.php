@@ -219,7 +219,15 @@ if ($thisF != "groupAdmin")
 		href=\"index.php?thisF=groupAdmin&uT=y\">";
 else 
 	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Manage groups</a></td></tr>";
+echo "Manage group membership</a></td></tr>";
+
+echo "<tr><td class=\"";
+if ($thisF != "groupAccess")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=groupAccess&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "Manage group access</a></td></tr>";
 
 echo "<tr><td class=\"";
 if ($thisF != "superuserAccess")
@@ -460,6 +468,10 @@ case 'userAdmin':
 	
 case 'groupAdmin':
 	printquery_groupadmin();
+	break;
+
+case 'groupAccess':
+	printquery_groupaccess();
 	break;
 
 case 'superuserAccess':
@@ -1528,7 +1540,7 @@ function printquery_groupadmin()
 		<table class="concordtable" width="100%">
 			<tr>
 				<th colspan="7" class="concordtable">
-					User groups
+					Manage user groups
 				</th>
 			</tr>
 			<tr>
@@ -1646,7 +1658,201 @@ function printquery_groupadmin()
 		<table class="concordtable" width="100%">
 			<tr>
 				<th class="concordtable">
-					User groups
+					Manage user groups
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgrey" align="center">
+					&nbsp;<br/>
+					CQPweb internal group management is not available (requires Apache web server).
+					<br/>&nbsp;
+				</th>
+			</tr>
+	
+		<?php	
+	}
+}
+
+
+function printquery_groupaccess()
+{
+	global $cqpweb_uses_apache;
+
+	if ($cqpweb_uses_apache)
+	{
+		/* we're gonna need apache */
+
+		$apache = get_apache_object('nopath');	
+
+
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th colspan="7" class="concordtable">
+					Manage user groups
+				</th>
+			</tr>
+			<tr>
+				<th class="concordtable">Group</th>
+				<th class="concordtable">Corpus access rights</th>
+				<th class="concordtable">Actions</th>
+			</tr>
+		<?php
+		
+		
+		/* create a template for a table of tickboxes for each corpus */
+		
+		$list_of_corpora = list_corpora();
+		
+		$tableform_of_corpora = '<table width="100%"><tr>';
+
+		$i = 1;
+		foreach ($list_of_corpora as $c)
+		{
+			/* setup the template */
+			$tableform_of_corpora .= '<td class="basicbox" width="25%" style="padding:0px">'
+				. '<input type="checkbox" name="hasAccessTo_'.$c.'" value="1" __CHECKVALUE__FOR__'.$c.' />&nbsp;'.$c 
+				. '</td>';
+			if ($i == 4)
+			{
+				$tableform_of_corpora .= "</tr>\n\n\n<tr>";	
+				$i = 0;
+			}
+			else
+				$i++;
+			
+			/* and get the list of groups that has access to that corpus */
+			$apache->set_path_to_web_directory("../$c");
+			$apache->load();
+			$corpus_access_rights[$c] = $apache->get_allowed_groups();
+		}
+		while ($i <= 4)
+		{
+			$tableform_of_corpora .= '<td class="basicbox" width="25%" style="padding:0px">&nbsp;</td>';
+			$i++;
+		}
+		
+		$tableform_of_corpora .= '</tr></table>'; 
+		
+		/* OK, now render a form for each group showing the current access 
+		 * rights and allowing changes to be made */
+		
+		$list_of_groups = $apache->list_groups();
+
+		foreach ($list_of_groups as $group)
+		{
+			?>
+			
+			<form action="index.php" method="get">
+				<tr>
+					<td class="concordgeneral"><strong><?php echo $group; ?></strong></td>
+					
+					<td class="concordgeneral">
+						
+						<?php 
+						
+						if ($group == "superusers")
+							echo "<center>Superusers always have access to everything.";
+						else
+						{
+							foreach($list_of_corpora as $c)
+								$translations["__CHECKVALUE__FOR__$c"] 
+									= (in_array($group, $corpus_access_rights[$c]) ? 'checked="checked"' : '');
+							
+							echo strtr($tableform_of_corpora, $translations); 
+						}
+						?>
+						
+					</td>
+					
+					<td class="concordgeneral" align="center">
+						<input type="submit" value="Update" />
+					</td>
+				</tr>
+				<input type="hidden" name="admFunction" value="accessUpdateGroupRights" />
+				<input type="hidden" name="group" value="<?php echo $group; ?>" />
+				<input type="hidden" name="uT" value="y" />
+			</form>
+						
+			<?php
+		}
+		?>
+		</table>
+		
+		
+		
+		<table class="concordtable" width="100%">
+			<tr>
+				<th colspan="3" class="concordtable">
+					Access right cloning
+				</th>
+			</tr>
+			
+			<tr>
+				<td colspan="3" class="concordgrey">
+					&nbsp;<br/>
+					IF you "clone" access rights from Group A to Group B, you overwrite all the current access
+					rights of Group B; it will have exactly the same privilenges as Group A.
+					<br/>&nbsp;
+					
+					<br/><b>DOES NOT WORK YET!!!!!!</b>
+				</td>
+			</tr>
+			
+			<?php
+			
+			$clone_group_options = '';
+			foreach ($list_of_groups as $group)
+			{
+				if ($group == 'superusers')
+					continue;
+				$clone_group_options .= "<option>$group</option>\n";
+			}
+			
+			?>
+			
+			<form action="" method="get">
+			
+				<tr>
+					<td class="concordgeneral">
+						&nbsp;<br/>
+						Clone from:
+						<select name="groupCloneFrom">
+							<?php echo $clone_group_options; ?>
+						</select>
+						<br/>&nbsp;
+					</td>
+					<td class="concordgeneral">
+						&nbsp;<br/>
+						Clone to:
+						<select name="groupCloneTo">
+							<?php echo $clone_group_options; ?>
+						</select>
+						<br/>&nbsp;
+					</td>
+					<td class="concordgeneral" align="center">
+						&nbsp;<br/>
+						<input type="submit" value="Clone access rights!" />
+						<br/>&nbsp;
+					</td>
+				</tr>
+			
+			</form>
+					 
+		</table>		
+			
+	<?php
+		
+		
+		
+	} /* endif $cqpweb_uses_apache */
+	else
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					User groups: access rights
 				</th>
 			</tr>
 			<tr>

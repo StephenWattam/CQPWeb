@@ -31,6 +31,23 @@
 
 
 
+
+
+/** returns a list of all the corpora currently in the system, as an array */
+function list_corpora()
+{
+	$list_of_corpora = array();
+	$result = do_mysql_query("select corpus from corpus_metadata_fixed");
+	while ( ($r=mysql_fetch_row($result)) !== false )
+		$list_of_corpora[] = $r[0];
+	return $list_of_corpora;
+}
+
+
+
+
+
+
 function text_metadata_table_exists()
 {
 	global $corpus_sql_name;

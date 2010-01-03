@@ -530,6 +530,16 @@ function printquery_latest()
 	
 	<ul>
 		<li>
+		<b>Version 2.11</b>, 2010-<br/>&nbsp;<br/>
+		First release of 2010! CQPweb is now two years old.
+		<br/>
+		Added improved group access management and other tweaks to make life easier for the
+		superuser.
+		<br/> 
+		Also added a big red warning that pops up when a user types an invalid character in a 
+		"letters-and-numbers-only" entry on a form.
+		<br/>&nbsp;</li>
+		<li>
 		<b>Version 2.10</b>, 2009-12-18<br/>&nbsp;<br/>
 		Added customisable mapping tables for use with CEQL tertiary-annotations.
 		<br/>&nbsp;</li>

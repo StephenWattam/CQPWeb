@@ -110,7 +110,7 @@ switch($_GET['admFunction'])
 	case 'deleteCorpus':
 		if ($_GET['sureyouwantto'] !== 'yes')
 		{
-			/* default back to non=-function-execute-mode */
+			/* default back to non-function-execute-mode */
 			foreach ($_GET as $k=>$v) unset($_GET[$k]);
 			break;
 		}
@@ -135,6 +135,27 @@ switch($_GET['admFunction'])
 			= '../' . preg_replace('/\W/', '', $_GET['corpus']) . '/index.php?thisQ=userAccess&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
+	
+	case 'accessUpdateGroupRights':
+		$_GET['function'] = 'update_group_access_rights';
+		
+		$group_update_allow = array();
+		foreach ($_GET as $k => $v)
+		{
+			if (substr($k,0,12) == 'hasAccessTo_')
+			{
+				if ( (bool)$v )
+					$group_update_allow[] = substr($k,12);
+			}
+		}
+			
+		$_GET['args'] = $_GET['group'];		
+		$_GET['args'] .= '#' . implode('|', $group_update_allow);
+		
+		$_GET['locationAfter'] = 'index.php?thisF=groupAccess&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
+		
 		
 	case 'newUser':
 		$_GET['function'] = 'add_new_user';

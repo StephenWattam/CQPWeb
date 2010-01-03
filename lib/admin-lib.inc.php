@@ -994,6 +994,29 @@ function give_group_access_to_corpus($corpus, $group)
 	$apache->save();
 }
 
+/**
+ * Function wrapping multiple calls to give_group_access_to_corpus()
+ * and deny_group_access_to_corpus().
+ * 
+ * $corpora_to_grant is a string of individual corpora, 
+ * delimited by |
+ * 
+ * Any corpus not in that list -- access is denied.
+ * 
+ */ 
+function update_group_access_rights($group, $corpora_to_grant)
+{
+	$to_grant = explode('|', $corpora_to_grant);
+	
+	foreach($to_grant as $c)
+		give_group_access_to_corpus($c, $group);
+	
+	unset($c);
+	
+	foreach(list_corpora() as $c)
+		if (!in_array($c, $to_grant))
+			deny_group_access_to_corpus($c, $group);
+}
 
 
 function get_apache_object($path_to_web_directory)
