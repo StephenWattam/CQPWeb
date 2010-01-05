@@ -69,6 +69,7 @@ function printquery_corpusoptions()
 	$settings = new CQPwebSettings('..');
 	$settings->load($corpus_sql_name);
 	$r2l = $settings->get_r2l();
+	$case_sensitive = $settings->get_case_sens();
 
 	$datadir = $settings->get_directory_override_data();
 	if ($datadir === NULL)
@@ -139,6 +140,32 @@ function printquery_corpusoptions()
 			</tr>
 			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
 			<input type="hidden" name="function" value="update_corpus_main_script_is_r2l" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+		<form action="execute.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					Corpus requires case-sensitive collation for string comparison and searches
+					<br/>&nbsp;<br/>
+					<em>
+						(note: the default, and recommended, value is &ldquo;No&rdquo;; if you change this  
+						<br/>
+						setting, you must delete and recreate all frequency lists and delete cached databases)
+					</em> 
+				</td>
+				<td class="concordgeneral" align="center">
+					<select name="args">
+						<!-- note, 0 (false) = set to false -->
+						<option value="0" <?php echo ($case_sensitive ? '' : 'selected="selected"'); ?>>No</option>
+						<option value="1" <?php echo ($case_sensitive ? 'selected="selected"' : ''); ?>>Yes</option>
+					</select>
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
+			<input type="hidden" name="function" value="update_corpus_uses_case_sensitivity" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
 		<!-- 

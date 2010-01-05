@@ -264,6 +264,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 function db_commands($dbname, $db_type, $qname)
 {
+	global $corpus_sql_collation;
 	global $max_textid_length;
 	
 	switch($db_type)
@@ -284,7 +285,10 @@ function db_commands($dbname, $db_type, $qname)
 			refnumber MEDIUMINT AUTO_INCREMENT,
 			key(refnumber),
 			key(text_id)
-			) CHARACTER SET utf8 COLLATE utf8_general_ci";
+			) CHARACTER SET utf8 COLLATE utf8_bin";
+			/* note the use of a binary collation for distribution DBs, since
+			 * they always contain text_ids, not word or tag material.
+			 */
 		break;
 	
 	
@@ -353,7 +357,7 @@ function db_commands($dbname, $db_type, $qname)
 				$create_statement .= ",
 					$att varchar(40) NOT NULL";
 		$create_statement .= "
-			) CHARACTER SET utf8 COLLATE utf8_general_ci";
+			) CHARACTER SET utf8 COLLATE $corpus_sql_collation";
 		
 		break;
 
@@ -405,7 +409,7 @@ function db_commands($dbname, $db_type, $qname)
 			endPosition int,
 			refnumber MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			key(refnumber)
-			) CHARSET=utf8 COLLATE utf8_general_ci";
+			) CHARACTER SET utf8 COLLATE $corpus_sql_collation";
 
 		break;
 	
@@ -420,7 +424,7 @@ function db_commands($dbname, $db_type, $qname)
 			category varchar(40),
 			key(refnumber),
 			key(category)
-			) CHARACTER SET utf8 COLLATE utf8_general_ci";
+			) CHARACTER SET utf8 COLLATE $corpus_sql_collation";
 		
 		break;
 

@@ -544,15 +544,19 @@ function print_keyword_line($data, $line_number, $att_for_comp, $restricts)
 	
 	/* links do not appear if restricts[1|2] == false */
 	$target = CQP::escape_metacharacters($data->item);
+	
+	/* we need to either use or not use %c depending on corpus-level settings */
+	global $corpus_cqp_query_default_flags;
+	
 	$link[1] = ( $restricts[1] !== false && $data->freq1 > 0
 		? 'href="concordance.php?theData=' 
-			. urlencode("[$att_for_comp = \"{$target}\" %c]")
+			. urlencode("[$att_for_comp=\"{$target}\"$corpus_cqp_query_default_flags]")
 			. $restricts[1] 
 			. '&qmode=cqp&uT=y"'
 		: '' ) ;
 	$link[2] = ( $restricts[2] !== false && $data->freq2 > 0
 		? 'href="concordance.php?theData=' 
-			. urlencode("[$att_for_comp = \"{$target}\" %c]")
+			. urlencode("[$att_for_comp=\"{$target}\"$corpus_cqp_query_default_flags]")
 			. $restricts[2] 
 			. '&qmode=cqp&uT=y"'
 		: '' ) ;

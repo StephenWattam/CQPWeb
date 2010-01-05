@@ -378,14 +378,22 @@ function print_freqlist_line($data, $line_number, $att, $restricts)
 	 *   ["item"]=>
 	 *   ["freq"]=>
 	 */
-	$string = CQP::escape_metacharacters($data->item);
+
+	/* case-sensitivity of the corpus affects use of flags in CQP queries, and lowercasing of wordforms */
+	global $corpus_cqp_query_default_flags;
+	global $corpus_uses_case_sensitivity;
+
+	if ($att == 'word' && ! $corpus_uses_case_sensitivity)
+		$data->item = strtolower($data->item);
+		// TODO be careful. strtolower may not be a good function. UTF8 equivalent?
+
+	$target = CQP::escape_metacharacters($data->item);
+
 	$link = 'href="concordance.php?theData=' 
-			. urlencode("[$att = \"{$string}\" %c]")
+			. urlencode("[$att=\"{$target}\"$corpus_cqp_query_default_flags]")
 			. $restricts 
 			. '&qmode=cqp&uT=y"'
 			;
-	if ($att == 'word')
-		$data->item = strtolower($data->item);
 	$string  = "<td class=\"concordgeneral\" align=\"right\"><b>$line_number</b></td>";
 	$string .= "<td class=\"concordgeneral\"><b><a $link>{$data->item}</a></b></td>";
 	$string .= "<td class=\"concordgeneral\"  align=\"center\">" 

@@ -31,6 +31,7 @@ function printquery_search()
 {
 	global $mysql_link;
 	global $corpus_sql_name;
+	global $corpus_uses_case_sensitivity;
 
 	global $default_per_page;
 	global $username;
@@ -47,7 +48,7 @@ function printquery_search()
 		)
 		$select_qmode = $_GET['insertType'];
 	else
-		$select_qmode = 'sq_nocase';
+		$select_qmode = ($corpus_uses_case_sensitivity ? 'sq_case' : 'sq_nocase');
 
 ?>
 <table class="concordtable" width="100%">
@@ -119,7 +120,7 @@ function printquery_search()
 						<option value="" selected="selected">None (search whole corpus)</option>
 						<?php
 						
-						/* create options for the Primary Classifcation */
+						/* create options for the Primary Classification */
 						
 						$sql_query = "select primary_classification_field from corpus_metadata_fixed
 							where corpus = '$corpus_sql_name'";
@@ -191,6 +192,7 @@ function printquery_restricted()
 {
 	global $default_per_page;
 	global $username;
+	global $corpus_uses_case_sensitivity;
 	
 	if (isset($_GET['insertString']))
 		$insertString = $_GET['insertString'];
@@ -204,7 +206,7 @@ function printquery_restricted()
 		)
 		$select_qmode = $_GET['insertType'];
 	else
-		$select_qmode = 'sq_nocase';
+		$select_qmode = ($corpus_uses_case_sensitivity ? 'sq_case' : 'sq_nocase');
 	
 	/* insert restrictions as checked tickboxes lower down */
 	if (isset($_GET['insertRestrictions']))

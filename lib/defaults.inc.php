@@ -111,6 +111,13 @@ if (!isset($print_debug_messages))
 if (!isset($corpus_main_script_is_r2l))
 	$corpus_main_script_is_r2l = false;
 
+if (!isset($corpus_uses_case_sensitivity))
+	$corpus_uses_case_sensitivity = false;
+
+$corpus_sql_collation = $corpus_uses_case_sensitivity ? 'utf8_bin' : 'utf8_general_ci' ;
+$corpus_cqp_query_default_flags = $corpus_uses_case_sensitivity ? '' : '%c' ; 
+
+
 if (!isset($utf8_set_required))
 	$utf8_set_required = false;
 

@@ -147,7 +147,14 @@ function update_corpus_main_script_is_r2l($newval)
 	$settings->set_r2l($newval);
 	$settings->save();
 }
-
+function update_corpus_uses_case_sensitivity($newval)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$settings->set_case_sens($newval);
+	$settings->save();
+}
 function update_corpus_directory_override($type, $newdir)
 {
 	global $corpus_sql_name;

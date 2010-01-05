@@ -7,15 +7,14 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20091217;21502300">
+	<META NAME="CHANGED" CONTENT="20100105;3401900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1 LANG="en-GB">Some very quick notes on how to set up CQPweb v 2.03
-or higher</H1>
+<H1 LANG="en-GB">Some very quick notes on how to set up CQPweb v 2.X</H1>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>What
@@ -66,15 +65,15 @@ directive
 </P>
 <P LANG="en-GB" ALIGN=LEFT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>AllowOverride
 None</B></FONT></FONT></FONT></P>
-<P LANG="en-GB">sometimes appears by default in apache config files.
-Change it to</P>
+<P LANG="en-GB" ALIGN=LEFT>sometimes appears by default in Apache
+config files. Change it to</P>
 <P LANG="en-GB" ALIGN=LEFT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>AllowOverride
 All</B></FONT></FONT></FONT></P>
 <P LANG="en-GB"><I>for the site or directory which contains the
 CQPweb web-directory</I>. Depending on how your Apache config files
-are set up, this might be set overall for the server (in
-<FONT FACE="Courier New, monospace">/etc/apache2/apache2.conf</FONT>);
-or for the particular host (in
+are set up, this might be set overall for the server (in some
+location like <FONT FACE="Courier New, monospace">/etc/apache2/apache2.conf</FONT>);
+or for the particular host (in something like
 <FONT FACE="Courier New, monospace">/etc/apache2/sites-available/{$site}.conf</FONT>).</P>
 <P LANG="en-GB"><BR><BR>
 </P>
@@ -117,7 +116,7 @@ ALL</FONT> on the new database. If you want MySQL to use file-access
 functions (this is not necessary, but may speed things up; see
 below), the new user also needs <FONT FACE="Courier New, monospace">GRANT
 FILE ON *.*</FONT></P>
-<P LANG="en-GB">Also make a note of the servername needed to access
+<P LANG="en-GB">Also make a note of the server-name needed to access
 the MySQL server by a webscript. This will probably be <FONT FACE="Courier New, monospace">localhost</FONT>,
 assuming that the MySQL server is on the same machine as the
 webscripts. (It does not absolutely need to be.)</P>
@@ -135,6 +134,21 @@ setting. For instance, if your socket is at <FONT FACE="Courier New, monospace">
 to /tmp/mysql.sock. If you edit a <FONT FACE="Courier New, monospace">php.ini</FONT>
 file, make sure it is the one used when PHP is run by the server
 (i.e. as CGI or as an Apache module).</P>
+<P LANG="en-GB"><SPAN LANG="en-GB">Another potential problem can
+arise from <A HREF="http://dev.mysql.com/doc/refman/5.5/en/binary-log.html">MySQL
+binary logging</A>. Even relatively light use of a CQPweb
+installation will make MySQL create very large binary log files,
+ultimately using up all your disk space over time, if binary logging
+is enabled. For this reason, it's recommended that you </SPAN><SPAN LANG="en-GB"><I>disable</I></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal">
+binary logging on the MySQL server that will be driving CQPweb. You
+can <A HREF="http://dev.mysql.com/doc/refman/5.5/en/replication-options-binary-log.html">disable
+binary logging</A>  by commenting out or deleting the line containing
+</SPAN></SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">log_bin</SPAN></SPAN></FONT></SPAN></FONT><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal">
+command in the MySQL configuration file, or removing the equivalent
+</SPAN></SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal">--log-bin[=base_name]</SPAN></SPAN></FONT><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal">
+directive from the command line that starts up </SPAN></SPAN></SPAN><SPAN STYLE="font-style: normal"><I>mysqld.</I></SPAN><SPAN STYLE="font-style: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">
+(In either case you'll need to </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">restart
+</SPAN></SPAN></SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal"><I>mysqld</I></SPAN></SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal">.)</SPAN></SPAN></SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting

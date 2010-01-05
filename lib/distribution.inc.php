@@ -817,7 +817,7 @@ function print_distribution_crosstabs($class_scheme_to_show, $class_desc_to_pass
 	$class_scheme_for_crosstabs, $class_desc_to_pass_for_crosstabs, $qname_for_link)
 {
 
-	/* get a list of categories for the category sopecified in %class_scheme_to_show */
+	/* get a list of categories for the category specified in $class_scheme_to_show */
 	$desclist = metadata_category_listdescs($class_scheme_to_show);
 	
 	

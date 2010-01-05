@@ -35,8 +35,9 @@ class CQPwebSettings
 	private $corpus_cqp_name;
 	private $css_path;
 	
-	/* this must be a boolean */
+	/* these ones must be boolean */
 	private $corpus_main_script_is_r2l;
+	private $corpus_uses_case_sensitivity;
 	
 	private $directory_override_reg;
 	private $directory_override_data;
@@ -70,6 +71,10 @@ class CQPwebSettings
 	public function get_r2l() { return $this->corpus_main_script_is_r2l; }
 	public function set_r2l($new_value) { $this->corpus_main_script_is_r2l = (bool) $new_value; }
 
+	public function get_case_sens() { return $this->corpus_uses_case_sensitivity; }
+	public function set_case_sens($new_value) { $this->corpus_uses_case_sensitivity = (bool) $new_value; }
+
+
 	public function get_directory_override_reg() { return $this->directory_override_reg; }
 	public function set_directory_override_reg($new_value)
 	{
@@ -88,6 +93,11 @@ class CQPwebSettings
 			$this->directory_override_data = $new_value;
 	}
 
+	/**
+	 * Constructor's sole parameter is path to the root directory of CQPweb; 
+	 * this can be absolute (beginning with '/') or relative to the script's 
+	 * working directory. Defaults to '.'.
+	 */
 	public function __construct($path = '.')
 	{
 		$this->cqpweb_root_directory_path = $path;
@@ -122,10 +132,12 @@ class CQPwebSettings
 			$this->css_path = $css_path;
 		if (isset($corpus_main_script_is_r2l))
 			$this->corpus_main_script_is_r2l = (bool)$corpus_main_script_is_r2l;
-		if (isset($this_corpus_directory_override['reg_dir']))
-			$this->directory_override_reg = $this_corpus_directory_override['reg_dir'];
-		if (isset($this_corpus_directory_override['data_dir']))
-			$this->directory_override_data = $this_corpus_directory_override['data_dir'];
+		if (isset($corpus_uses_case_sensitivity))
+			$this->corpus_uses_case_sensitivity = (bool)$corpus_uses_case_sensitivity;
+//		if (isset($this_corpus_directory_override['reg_dir']))
+//			$this->directory_override_reg = $this_corpus_directory_override['reg_dir'];
+//		if (isset($this_corpus_directory_override['data_dir']))
+//			$this->directory_override_data = $this_corpus_directory_override['data_dir'];
 		
 		
 		return 0;
@@ -149,12 +161,14 @@ class CQPwebSettings
 		$data .= "\$css_path = '{$this->css_path}';\n";
 		
 		if (isset($this->corpus_main_script_is_r2l))
-			$data .= "\$corpus_main_script_is_r2l = true;\n";
+			$data .= "\$corpus_main_script_is_r2l = " . ($this->corpus_main_script_is_r2l ? 'true' : 'false') . ";\n";
+		if (isset($this->corpus_uses_case_sensitivity))
+			$data .= "\$corpus_uses_case_sensitivity = " . ($this->corpus_uses_case_sensitivity ? 'true' : 'false') . ";\n";
 		
-		if (isset($this->directory_override_reg))
-			$data .= "\$this_corpus_directory_override['reg_dir'] = '{$this->directory_override_reg}';\n";
-		if (isset($this->directory_override_data))
-			$data .= "\$this_corpus_directory_override['data_dir'] = '{$this->directory_override_data}';\n";
+//		if (isset($this->directory_override_reg))
+//			$data .= "\$this_corpus_directory_override['reg_dir'] = '{$this->directory_override_reg}';\n";
+//		if (isset($this->directory_override_data))
+//			$data .= "\$this_corpus_directory_override['data_dir'] = '{$this->directory_override_data}';\n";
 				
 		$data .= "?>";
 		

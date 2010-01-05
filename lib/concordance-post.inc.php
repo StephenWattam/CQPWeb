@@ -513,18 +513,22 @@ class POSTPROCESS {
 		{
 			$sort_position_sql = 'before' . (-1 * $this->sort_position);
 			for ($i = (-1 * $this->sort_position) ; $i < 6 ; $i++)
-				$extra_sort_pos_sql .= ", before$i";
+				$extra_sort_pos_sql .= ", before$i COLLATE utf8_general_ci ";
 		}
 		else if ($this->sort_position == 0)
 		{
 			$sort_position_sql = 'node';
-			$extra_sort_pos_sql = ", after1, after2, after3, after4, after5";
+			$extra_sort_pos_sql = ", after1 COLLATE utf8_general_ci"
+				. ", after2 COLLATE utf8_general_ci"
+				. ", after3 COLLATE utf8_general_ci"
+				. ", after4 COLLATE utf8_general_ci"
+				. ", after5 COLLATE utf8_general_ci";
 		}
 		else if ($this->sort_position > 0)
 		{
 			$sort_position_sql .= 'after' . $this->sort_position;
 			for ($i = $this->sort_position ; $i < 6 ; $i++)
-				$extra_sort_pos_sql .= ", after$i";
+				$extra_sort_pos_sql .= ", after$i COLLATE utf8_general_ci";
 		}
 			
 
@@ -547,7 +551,7 @@ class POSTPROCESS {
 			$where_clause_temp = "$sort_position_sql " 
 								. ($this->sort_thin_str_inv ? 'NOT ' : '')
 								. "LIKE '$this->sort_thin_str%'";
-			if (isset($this->sort_thinning_sql_where))
+			if (!empty($this->sort_thinning_sql_where))
 				$this->sort_thinning_sql_where .= ' and ' . $where_clause_temp;
 			else
 				$this->sort_thinning_sql_where = 'where ' . $where_clause_temp;
@@ -556,7 +560,13 @@ class POSTPROCESS {
 		return "SELECT beginPosition, endPosition
 			FROM {$this->sort_db} 
 			$this->sort_thinning_sql_where
-			ORDER BY $sort_position_sql  $extra_sort_pos_sql  ";
+			ORDER BY $sort_position_sql COLLATE utf8_general_ci  $extra_sort_pos_sql ";
+			/* note:
+			 * we always use utf8_general_ci for the actual sorting,
+			 * even if the collation of the sort DB is actually utf8_bin 
+			 * (for purposes of frequency breakdown, restriction matching etc);
+			 * see also the creation of $extra_sort_pos_sql above
+			 */
 
 	}
 	

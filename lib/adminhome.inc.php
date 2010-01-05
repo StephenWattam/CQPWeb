@@ -1710,13 +1710,16 @@ function printquery_groupaccess()
 		foreach ($list_of_corpora as $c)
 		{
 			/* setup the template */
+			if ($i == 1)
+				$tableform_of_corpora .= '<tr>';	
+			
 			$tableform_of_corpora .= '<td class="basicbox" width="25%" style="padding:0px">'
 				. '<input type="checkbox" name="hasAccessTo_'.$c.'" value="1" __CHECKVALUE__FOR__'.$c.' />&nbsp;'.$c 
 				. '</td>';
 			if ($i == 4)
 			{
-				$tableform_of_corpora .= "</tr>\n\n\n<tr>";	
-				$i = 0;
+				$tableform_of_corpora .= "</tr>\n\n\n";	
+				$i = 1;
 			}
 			else
 				$i++;
@@ -1726,10 +1729,14 @@ function printquery_groupaccess()
 			$apache->load();
 			$corpus_access_rights[$c] = $apache->get_allowed_groups();
 		}
-		while ($i <= 4)
+		if ($i > 1)
 		{
-			$tableform_of_corpora .= '<td class="basicbox" width="25%" style="padding:0px">&nbsp;</td>';
-			$i++;
+			/* ie, if we are mid-tr */
+			while ($i <= 4)
+			{
+				$tableform_of_corpora .= '<td class="basicbox" width="25%" style="padding:0px">&nbsp;</td>';
+				$i++;
+			}
 		}
 		
 		$tableform_of_corpora .= '</tr></table>'; 

@@ -259,7 +259,7 @@ function make_cwb_freq_index()
 			`text_id` varchar(50) NOT NULL,
 			KEY `text_id` (`text_id`)
 		) 
-		CHARACTER SET utf8 COLLATE utf8_general_ci";
+		CHARACTER SET utf8 COLLATE utf8_bin";
 	do_mysql_query($creation_query);
 
 	do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$index_filename' INTO TABLE $freq_text_index");

@@ -44,6 +44,7 @@ function corpus_make_freqtables()
 	global $path_to_cwb;
 	global $cwb_registry;
 	global $corpus_sql_name;
+	global $corpus_sql_collation;
 	global $corpus_cqp_name;
 	global $mysql_link;
 	global $cqpweb_tempdir;
@@ -79,7 +80,7 @@ function corpus_make_freqtables()
 		$sql_query .= ",
 			key ($att)";
 	$sql_query .= "
-		) CHARACTER SET utf8 COLLATE utf8_general_ci";
+		) CHARACTER SET utf8 COLLATE $corpus_sql_collation";
 
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
@@ -132,7 +133,7 @@ function corpus_make_freqtables()
 			freq int(11) unsigned default NULL,
 			item varchar(210) NOT NULL,
 			primary key (item)
-			) CHARACTER SET utf8 COLLATE utf8_general_ci";
+			) CHARACTER SET utf8 COLLATE $corpus_sql_collation";
 		$result = mysql_query($sql_query, $mysql_link);
 		if ($result == false) 
 			exiterror_mysqlquery(mysql_errno($mysql_link), 
@@ -185,6 +186,7 @@ function corpus_make_freqtables()
 function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 'no_restriction')
 {
 	global $corpus_sql_name;
+	global $corpus_sql_collation;
 	global $corpus_cqp_name;
 	global $mysql_link;
 	global $mysql_LOAD_DATA_INFILE_command;
@@ -317,7 +319,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	foreach ($attribute as $att)
 		$sql_query .= ",
 			key(`$att`)";
-	$sql_query .= ") CHARACTER SET utf8 COLLATE utf8_general_ci";
+	$sql_query .= ") CHARACTER SET utf8 COLLATE $corpus_sql_collation";
 	$result = mysql_query($sql_query, $mysql_link);
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), 
@@ -348,7 +350,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 			freq int(11) unsigned default NULL,
 			item varchar(210) NOT NULL,
 			key(item)
-			) CHARACTER SET utf8 COLLATE utf8_general_ci";
+			) CHARACTER SET utf8 COLLATE $corpus_sql_collation";
 		$result = mysql_query($sql_query, $mysql_link);
 		if ($result == false) 
 			exiterror_mysqlquery(mysql_errno($mysql_link), 
