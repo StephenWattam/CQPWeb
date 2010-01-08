@@ -114,15 +114,12 @@ function make_cwb_freq_index()
 	unset($cqp);
 
 
-	/* delete any previously existing corpus of this name, or make the data directory ready */
-	if (! is_dir($datadir) )
-	{
-		mkdir($datadir);
-		chmod($datadir, 0777);
-	}
-	else
+	/* delete any previously existing corpus of this name, then make the data directory ready */
+	if (is_dir($datadir))
 		cwb_uncreate_corpus($freq_corpus_cqp_name_lc);
 
+	mkdir($datadir);
+	chmod($datadir, 0777);
 
 	/* open a pipe **from** cwb-decode and another **to** cwb-encode */
 	$cmd_decode = "/$path_to_cwb/cwb-decode -r /$cwb_registry -C $corpus_cqp_name $p_att_line -S text_id";
@@ -134,7 +131,7 @@ function make_cwb_freq_index()
 	$dest = popen($cmd_encode, 'w');
 
 	if (!is_resource($source) || !is_resource($dest) )
-		echo '<pre>one of the pipes didnae open properly </pre>';
+		echo '<pre>one of the pipes did not open properly </pre>';
 
 	/* for each line in the decoded output ... */
 	while ( ($line = fgets($source)) !== false)
@@ -190,8 +187,13 @@ function make_cwb_freq_index()
 	pclose($dest);
 	
 	/* system commands for everything else that needs to be done to make it a good corpus */
-	$cmd_makeall  = "/$path_to_cwb/cwb-makeall -M 50 -r /$cwb_registry -V $freq_corpus_cqp_name_uc ";
-	// TODO - be a bit more rigorous about the amount of RAM cwb-makeall uses. make this configurable. 50 is an ass-pull.
+	if (php_sapi_name() == 'cli')
+		$memory_flag = "-M 1000"; // allow generous memory for indexing in command-line mode
+	else
+		$memory_flag = "-M 100"; // but be stingy in the Web interface, so admins can't bring down the server accidentally
+	// TODO - make amount of RAM cwb-makeall uses configurable; previous default -M 50 was an ass-pull.
+	
+	$cmd_makeall  = "/$path_to_cwb/cwb-makeall $memory_flag -r /$cwb_registry -V $freq_corpus_cqp_name_uc ";
 	$cmd_huffcode = "/$path_to_cwb/cwb-huffcode      -r /$cwb_registry -A $freq_corpus_cqp_name_uc ";
 	$cmd_pressrdx = "/$path_to_cwb/cwb-compress-rdx  -r /$cwb_registry -A $freq_corpus_cqp_name_uc ";
 
