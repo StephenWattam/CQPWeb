@@ -52,12 +52,13 @@
 	Some of these have parameters. These are in the format:
 	~~XXXX[A~B~C]~~
 	
-	coll[dbname~att~target~from~to]
+	coll[dbname~att~target~from~to~tagfilter]
+		dbname=the database used for the collocation
 		att=the mysql handle of the att the match is to be done on
 		target=the match pattern
 		from=the minimum dist the target can occur at
 		to=the maximum dist the target can occur at
-	(dbname is not saved cos not needed to retrieve a collocation-concordance from cache)
+		tagfilter=the regex filter applied for primary-att of collocate, if any
 	
 	sort[position~thin_tag~thin_tag_inv~thin_str~thin_str_inv]
 		position=the position of the sort, in format +2, -1, +3, etc. Maximum: +/- 5.
@@ -128,6 +129,7 @@ class POSTPROCESS {
 	public $colloc_dist_to;
 	public $colloc_att;
 	public $colloc_target;
+	public $colloc_tag_filter;
 	
 	/* variables for thin */
 	public $thin_target_hit_count;
@@ -188,7 +190,8 @@ class POSTPROCESS {
 				$_GET['newPostP_collocDistFrom'],
 				$_GET['newPostP_collocDistTo'],
 				$_GET['newPostP_collocAtt'],
-				$_GET['newPostP_collocTarget']
+				$_GET['newPostP_collocTarget'],
+				$_GET['newPostP_collocTagFilter']
 				) )
 			{
 				$this->i_parsed_ok = false;
@@ -204,6 +207,9 @@ class POSTPROCESS {
 				return;
 			}
 			$this->colloc_target = mysql_real_escape_string($_GET['newPostP_collocTarget']);
+			$this->colloc_tag_filter = mysql_real_escape_string($_GET['newPostP_collocTagFilter']);
+			/* it should be safe to real-escape this, even though it may be a regex, because there
+			 * is no metacharacter meaning for ' or ". */ 
 			break;
 		
 		
@@ -352,7 +358,8 @@ class POSTPROCESS {
 		switch($this->postprocess_type)
 		{
 		case 'coll':
-			$string_to_work_on .= "~~coll[$this->colloc_db~$this->colloc_att~$this->colloc_target~$this->colloc_dist_from~$this->colloc_dist_to]";
+			$string_to_work_on .= "~~coll[$this->colloc_db~$this->colloc_att~$this->colloc_target~"
+				. "$this->colloc_dist_from~$this->colloc_dist_to~$this->colloc_tag_filter]";
 			break;
 		
 		case 'thin':
@@ -458,9 +465,58 @@ class POSTPROCESS {
 		return "SELECT beginPosition, endPosition
 			FROM {$this->colloc_db}
 			WHERE {$this->colloc_att} = '{$this->colloc_target}'
+			"  . $this->colloc_tag_filter_clause() . "
 			AND dist BETWEEN {$this->colloc_dist_from} AND {$this->colloc_dist_to}";
 	}
 	
+	function colloc_tag_filter_clause()
+	{
+		/* see also */
+		if (empty($this->colloc_tag_filter))
+			return '';
+		
+		$is_regex = (bool)preg_match('/\W/', $this->colloc_tag_filter); 
+		$op = ($is_regex ? 'REGEXP' : '=');
+		$filter = ($is_regex ? regex_add_anchors($this->colloc_tag_filter) : $this->colloc_tag_filter);
+		$tag_filter_att = get_corpus_metadata('primary_annotation');
+		
+		return "AND $tag_filter_att $op '{$filter}'";
+	}
+
+/*
+function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotation, $tag_filter)
+{
+
+	/* there may or may not be a primary_annotation filter; $tag_filter is from _GET, so check it * /
+	if (isset($tag_filter) && $tag_filter != false && $att_for_calc != $primary_annotation)
+	{
+		/* as of v2.11, tag restrictions are done with REGEXP, not = as the operator 
+		 * if there are non-Word characters in the restriction; since tags usually
+		 * are alphanumeric, defaulting to = may save procesing time.
+		 * As with CQP, anchors are automatically added. * /
+		if (preg_match('/\W/', $tag_filter))
+		{
+			$tag_filter = preg_replace('/^\^/', '', $tag_filter);
+			$tag_filter = preg_replace('/^\\A/', '', $tag_filter);
+			$tag_filter = preg_replace('/\$$/', '', $tag_filter);
+			$tag_filter = preg_replace('/\\[Zz]$/', '', $tag_filter);
+			$tag_filter = '^' . $tag_filter . '$';
+			$tag_clause_operator = 'REGEXP';
+		}
+		else
+			$tag_clause_operator = '=';
+		
+		/* tag filter is set and applies to a DIFFERENT attribute than the one being calculated * /
+		
+		return "and $dbname.$primary_annotation $tag_clause_operator '"
+			. mysql_real_escape_string($tag_filter)
+			. "' ";
+	}
+	else
+		return '';
+}*/
+
+
 	function colloc_sql_capable()
 	{
 		return ( isset($this->colloc_db, $this->colloc_dist_from, 
@@ -735,13 +791,7 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
 		/* put this newly-created query in the cache */
-		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
-
-		$insert_result = mysql_query($insert, $mysql_link);
-		if ($insert_result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		unset($insert_result);
+		do_mysql_query("insert into saved_queries (query_name) values ('$new_qname')");
 
 		update_cached_query($cache_record);
 
@@ -798,13 +848,8 @@ function run_postprocess_sort($cache_record, &$descriptor)
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);	
 
 		/* put this newly-created query in the cache */
-		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
+		do_mysql_query("insert into saved_queries (query_name) values ('$new_qname')");
 
-		$insert_result = mysql_query($insert, $mysql_link);
-		if ($insert_result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		unset($insert_result);
 
 		update_cached_query($cache_record);
 	
@@ -846,13 +891,7 @@ function run_postprocess_randomise($cache_record, &$descriptor)
 
 
 	/* put this newly-created query in the cache */
-	$insert = "insert into saved_queries (query_name) values ('$new_qname')";
-
-	$insert_result = mysql_query($insert, $mysql_link);
-	if ($insert_result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($insert_result);
+	do_mysql_query("insert into saved_queries (query_name) values ('$new_qname')");
 
 	update_cached_query($cache_record);
 
@@ -882,13 +921,7 @@ function run_postprocess_unrandomise($cache_record, &$descriptor)
 
 
 	/* put this newly-created query in the cache */
-	$insert = "insert into saved_queries (query_name) values ('$new_qname')";
-
-	$insert_result = mysql_query($insert, $mysql_link);
-	if ($insert_result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($insert_result);
+	do_mysql_query("insert into saved_queries (query_name) values ('$new_qname')");
 
 	update_cached_query($cache_record);
 
@@ -921,13 +954,7 @@ function run_postprocess_thin($cache_record, &$descriptor)
 	$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 	
 	/* put this newly-created query in the cache */
-	$insert = "insert into saved_queries (query_name) values ('$new_qname')";
-
-	$insert_result = mysql_query($insert, $mysql_link);
-	if ($insert_result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($insert_result);
+	do_mysql_query("insert into saved_queries (query_name) values ('$new_qname')");
 
 	update_cached_query($cache_record);
 
@@ -977,13 +1004,7 @@ function run_postprocess_item($cache_record, &$descriptor)
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
 		/* put this newly-created query in the cache */
-		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
-
-		$insert_result = mysql_query($insert, $mysql_link);
-		if ($insert_result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		unset($insert_result);
+		do_mysql_query("insert into saved_queries (query_name) values ('$new_qname')");
 
 		update_cached_query($cache_record);
 	}
@@ -1042,13 +1063,7 @@ function run_postprocess_dist($cache_record, &$descriptor)
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
 		/* put this newly-created query in the cache */
-		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
-
-		$insert_result = mysql_query($insert, $mysql_link);
-		if ($insert_result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		unset($insert_result);
+		do_mysql_query("insert into saved_queries (query_name) values ('$new_qname')");
 
 		update_cached_query($cache_record);
 	}
@@ -1105,13 +1120,7 @@ function run_postprocess_text($cache_record, &$descriptor)
 		$cache_record['file_size'] = cqp_file_sizeof($new_qname);
 
 		/* put this newly-created query in the cache */
-		$insert = "insert into saved_queries (query_name) values ('$new_qname')";
-
-		$insert_result = mysql_query($insert, $mysql_link);
-		if ($insert_result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		unset($insert_result);
+		do_mysql_query("insert into saved_queries (query_name) values ('$new_qname')");
 
 		update_cached_query($cache_record);
 	}
@@ -1139,8 +1148,6 @@ function run_postprocess_text($cache_record, &$descriptor)
 /* otherwise it is set to false */
 function get_highlight_position_table($qname, $postprocess_string, &$show_tags_in_highlight)
 {
-	global $mysql_link;
-	
 	if ($postprocess_string == '')
 		return false;
 
@@ -1191,6 +1198,9 @@ function get_highlight_position_table($qname, $postprocess_string, &$show_tags_i
 // $sql_query_from_coll = true;
 		break;
 
+// TODO 
+// actually, for both rand and unrand, it would be better to remove the rand or unrand, then return the results
+// of simply calling this function again.
 
 	case 'coll':
 		$sql_query_from_coll = true;
@@ -1204,19 +1214,30 @@ function get_highlight_position_table($qname, $postprocess_string, &$show_tags_i
 	/* this is out here in an IF so that three different cases can access it */
 	if ($sql_query_from_coll)
 	{
-		if (count($args) != 5)
+		if (count($args) != 6)
 			return false;
+				
+		if (empty($args[5]))
+			$tag_filter_clause = '';
+		else
+		{
+			$is_regex = (bool)preg_match('/\W/', $args[5]); 
+			$op = ($is_regex ? 'REGEXP' : '=');
+			$filter = ($is_regex ? regex_add_anchors($args[5]) : $args[5]);
+			$tag_filter_att = get_corpus_metadata('primary_annotation');	
+			$tag_filter_clause = "AND $tag_filter_att $op '{$args[5]}'";
+		}
+
 		$sql_query = "select dist from {$args[0]}
-			where {$args[1]} = '{$args[2]}'     and        dist between {$args[3]} and {$args[4]}
+			where {$args[1]} = '{$args[2]}'
+			$tag_filter_clause
+			and dist between {$args[3]} and {$args[4]}
 			$coll_order_by";
 	}
 	
 	if (isset($sql_query))
 	{
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 
 		$highlight_positions = array();
 		while ( ($r = mysql_fetch_row($result)) !== false )
@@ -1294,7 +1315,9 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 			
 		case 'coll':
 			$att_id = ($args[1] == 'word' ? '' : $annotations[$args[1]]);
-			$description .= "collocating with $att_id <em>{$args[2]}</em> $bdo_tag1("
+			$description .= "collocating with $att_id <em>{$args[2]}</em>"
+				. ( empty($args[5]) ? '' : " with tag restriction <em>{$args[5]}</em>" )
+				. " $bdo_tag1("
 				. make_thousands($hit_array[$i]) . ' hits)'. $bdo_tag2;
 			$i++;
 			break;

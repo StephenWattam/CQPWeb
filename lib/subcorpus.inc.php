@@ -695,6 +695,11 @@ function translate_restrictions_definition_string()
 	return $final_sql_string;
 }
 
+/**
+ * turns a where-clause-format set of descriptions into a URL string,
+ * with "del=begin" at the start and "&del=end" at the end. Note the lack
+ * of an ampersand at the start of the string.
+ */
 function untranslate_restrictions_definition_string($restrictions)
 {
 	if ($restrictions == 'no_restriction')

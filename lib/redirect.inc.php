@@ -140,17 +140,7 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 	/* from control box in collocation.php */
 
 	case 'rerunCollocation':
-// is this if-clause still needed?
-		if (isset($_GET['collocSpecifiedWord']) && $_GET['collocSpecifiedWord'] != '' )
-		{
-			require("../lib/library.inc.php");
-			coming_soon_page();
-			// will one day be ... colloc-solo.inc.php, which will use the same lib as collocation.inc.php
-			// colloc-solo exists, so this just needs setting
-		}
-		else
-// end of bit that I'm not sure is still needed
-			require("../lib/collocation.inc.php");
+		require("../lib/collocation.inc.php");
 		break;
 
 	case 'collocationDownload':
@@ -230,8 +220,20 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		break;
 
 	case 'concBreakdownNodeSort':
-		require("../lib/library.inc.php");
-		coming_soon_page();
+		$qname = $_GET['qname'];
+		unset($_GET);
+		$_GET['qname'] = $qname;
+		$_GET['program'] = 'sort';
+		$_GET['newPostP'] = 'sort';
+		$_GET['newPostP_sortPosition'] = 0;
+		$_GET['newPostP_sortThinTag'] = '';
+		$_GET['newPostP_sortThinTagInvert'] = 0;
+		$_GET['newPostP_sortThinString'] = '';
+		$_GET['newPostP_sortThinStringInvert'] = 0;
+		$_GET['newPostP_sortThinStringInvert'] = 0;
+		$_GET['uT'] = 'y';
+		unset($qname);
+		require("../lib/concordance.inc.php");
 		break;
 
 

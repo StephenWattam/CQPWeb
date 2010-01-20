@@ -46,7 +46,6 @@ function corpus_make_freqtables()
 	global $corpus_sql_name;
 	global $corpus_sql_collation;
 	global $corpus_cqp_name;
-	global $mysql_link;
 	global $cqpweb_tempdir;
 	global $username;
 	global $mysql_LOAD_DATA_INFILE_command;
@@ -65,11 +64,7 @@ function corpus_make_freqtables()
 	/* create a temporary table */
 	$temp_tablename = "temporary_freq_corpus_{$corpus_sql_name}";
 	$sql_query = "DROP TABLE if exists $temp_tablename";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);	
+	do_mysql_query($sql_query);
 
 	$sql_query = "CREATE TABLE $temp_tablename (
 		freq int(11) unsigned default NULL";
@@ -82,11 +77,8 @@ function corpus_make_freqtables()
 	$sql_query .= "
 		) CHARACTER SET utf8 COLLATE $corpus_sql_collation";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);	
-	unset($result);	
+	do_mysql_query($sql_query);
+	
 
 	/* for convenience, $filename is absolute */
 	$filename = "/$cqpweb_tempdir/____$temp_tablename.tbl";
@@ -102,43 +94,28 @@ function corpus_make_freqtables()
 
 
 	database_disable_keys($temp_tablename);
-	$sql_query = "$mysql_LOAD_DATA_INFILE_command '$filename' INTO TABLE $temp_tablename FIELDS ESCAPED BY ''";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link),
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);	
+	do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$filename' INTO TABLE $temp_tablename FIELDS ESCAPED BY ''");
 	database_enable_keys($temp_tablename);
 
 	unlink($filename);
 
-	/* ok - the temporary, ungrouped frequency table is in memory */
-	/* each line is a unique binary line across all the attributes */
-	/* it needs grouping differently for each attribute */
-	/* (this will also take care of putting 'the', 'The' and 'THE' together */
-	
+	/* ok - the temporary, ungrouped frequency table is in memory 
+	 * each line is a unique binary line across all the attributes
+	 * it needs grouping differently for each attribute 
+	 * (this will also take care of putting 'the', 'The' and 'THE' together */
 
 	foreach ($attribute as $att)
 	{
 		$sql_tablename = "freq_corpus_{$corpus_sql_name}_$att";
 
-		$sql_query = "DROP TABLE if exists $sql_tablename";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);	
-		unset($result);
+		do_mysql_query("DROP TABLE if exists $sql_tablename");
 
 		$sql_query = "CREATE TABLE $sql_tablename (
 			freq int(11) unsigned default NULL,
 			item varchar(210) NOT NULL,
 			primary key (item)
 			) CHARACTER SET utf8 COLLATE $corpus_sql_collation";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		unset($result);
+		do_mysql_query($sql_query);
 		
 		database_disable_keys($sql_tablename);
 		$sql_query = "
@@ -147,21 +124,12 @@ function corpus_make_freqtables()
 					from $temp_tablename
 					group by $att";
 
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		unset($result);
+		do_mysql_query($sql_query);
 		database_enable_keys($sql_tablename);
-
 	}
 
 	/* delete temporary ungrouped table */
-	$sql_query = "DROP TABLE if exists $temp_tablename";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query("DROP TABLE if exists $temp_tablename");
 }
 
 

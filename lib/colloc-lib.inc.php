@@ -148,14 +148,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 	/* the column in the db that is being collocated on */
 	$item = "$dbname.$att_for_calc";
 	
-	/* there may or may not be a primary_annotation filter; $tag_filter is from _GET, so check it */
-	if (isset($tag_filter) && $tag_filter != false && $att_for_calc != $primary_annotation)
-		/* tag filter is set and applies to a DIFFERENT attribute than the one being calculated */
-		$tag_clause = " and $dbname.$primary_annotation = '"
-			. mysql_real_escape_string($tag_filter)
-			. "' ";
-	else
-		$tag_clause = '';
+	$tag_clause = colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotation, $tag_filter);
 
 	/* number to show on one page */
 	$limit_string = ($download_mode ? '' : "LIMIT $begin_at, 50");	
@@ -356,6 +349,37 @@ function create_statistic_sql_query($stat, $soloform = '')
 }
 
 
+/* next two functions support the "create statistic" function */
+
+
+function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotation, $tag_filter)
+{
+
+	/* there may or may not be a primary_annotation filter; $tag_filter is from _GET, so check it */
+	if (isset($tag_filter) && $tag_filter != false && $att_for_calc != $primary_annotation)
+	{
+		/* as of v2.11, tag restrictions are done with REGEXP, not = as the operator 
+		 * if there are non-Word characters in the restriction; since tags usually
+		 * are alphanumeric, defaulting to = may save procesing time.
+		 * As with CQP, anchors are automatically added. */
+		if (preg_match('/\W/', $tag_filter))
+		{
+			$tag_filter = regex_add_anchors($tag_filter);
+			$tag_clause_operator = 'REGEXP';
+		}
+		else
+			$tag_clause_operator = '=';
+		
+		/* tag filter is set and applies to a DIFFERENT attribute than the one being calculated */
+		
+		return "and $dbname.$primary_annotation $tag_clause_operator '"
+			. mysql_real_escape_string($tag_filter)
+			. "' ";
+	}
+	else
+		return '';
+}
+
 
 
 
@@ -456,11 +480,13 @@ function run_script_for_solo_collocation()
 	
 	global $statistic;
 	global $soloform;
+	global $tag_filter;
 	global $calc_range_begin;
 	global $calc_range_end;
 	global $att_for_calc;
 	global $query_record;
 	global $dbname;
+	global $primary_annotation;
 	
 	global $corpus_title;
 	global $css_path;
@@ -470,6 +496,7 @@ function run_script_for_solo_collocation()
 	$bdo_tag2 = ($corpus_main_script_is_r2l ? '</bdo>' : '');
 	
 	$soloform = mysql_real_escape_string($soloform);
+	
 
 	foreach ($statistic as $s => $info)
 	{
@@ -512,10 +539,24 @@ function run_script_for_solo_collocation()
 	<body>
 	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable" colspan="2">
-	<?php
+
+	<?php	
+	/* check that soloform actually occurs at all */
+	if (empty($basis_to_show))
+	{
+		echo '<td class="concordgeneral"><strong>'
+			. "<em>$soloform</em> does not collocate with &ldquo;{$query_record['cqp_query']}&rdquo"
+			. " within a window of $calc_range_begin to $calc_range_end."
+			. '</strong></td></tr></table>';
+		return;
+	}
+
+	echo '<th class="concordtable" colspan="2">';
+	
+	$tag_description = (empty($tag_filter) ? '' : " with tag restriction <em>$tag_filter</em>");
+	
 	echo "Collocation information for the node &ldquo;{$query_record['cqp_query']}&rdquo; 
-		collocating with &ldquo;$soloform&rdquo; $bdo_tag1($basis_to_show occurrences in $basis_point)$bdo_tag2 ";
+		collocating with &ldquo;$soloform&rdquo; $tag_description $bdo_tag1($basis_to_show occurrences in $basis_point)$bdo_tag2 ";
 
 	echo "</th>
 		</tr>
@@ -570,10 +611,13 @@ function run_script_for_solo_collocation()
 			?><tr><td colspan="4"></td></tr><?php
 			continue;
 		}
-		
+
+		$tag_clause = colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotation, $tag_filter);
+
 		$sql_query = "SELECT count($att_for_calc), count(distinct(text_id)) 
 			FROM $dbname 
 			WHERE $att_for_calc = '$soloform' 
+			$tag_clause
 			AND dist = $i
 			";
 

@@ -187,15 +187,12 @@ function make_cwb_freq_index()
 	pclose($dest);
 	
 	/* system commands for everything else that needs to be done to make it a good corpus */
-	if (php_sapi_name() == 'cli')
-		$memory_flag = "-M 1000"; // allow generous memory for indexing in command-line mode
-	else
-		$memory_flag = "-M 100"; // but be stingy in the Web interface, so admins can't bring down the server accidentally
-	// TODO - make amount of RAM cwb-makeall uses configurable; previous default -M 50 was an ass-pull.
-	
-	$cmd_makeall  = "/$path_to_cwb/cwb-makeall $memory_flag -r /$cwb_registry -V $freq_corpus_cqp_name_uc ";
-	$cmd_huffcode = "/$path_to_cwb/cwb-huffcode      -r /$cwb_registry -A $freq_corpus_cqp_name_uc ";
-	$cmd_pressrdx = "/$path_to_cwb/cwb-compress-rdx  -r /$cwb_registry -A $freq_corpus_cqp_name_uc ";
+
+	$mem_flag = '-M ' . get_cwb_memory_limit();
+	$cmd_makeall  = "/$path_to_cwb/cwb-makeall $mem_flag -r /$cwb_registry -V $freq_corpus_cqp_name_uc ";
+	$cmd_huffcode = "/$path_to_cwb/cwb-huffcode          -r /$cwb_registry -A $freq_corpus_cqp_name_uc ";
+	$cmd_pressrdx = "/$path_to_cwb/cwb-compress-rdx      -r /$cwb_registry -A $freq_corpus_cqp_name_uc ";
+
 
 
 	/* make the indexes & compress */

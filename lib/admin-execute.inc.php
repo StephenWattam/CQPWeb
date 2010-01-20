@@ -249,7 +249,7 @@ switch($_GET['admFunction'])
 				);
 		}
 		$_GET['function'] = 'update_text_metadata_values_descriptions';
-		$_GET['locationAfter'] = '../' . $_GET['corpus'] .'/index.php?thisQ=manageMetadata&uT=y';
+		$_GET['locationAfter'] = '../' . $_GET['corpus'] .'/index.php?thisQ=manageCategories&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
 	

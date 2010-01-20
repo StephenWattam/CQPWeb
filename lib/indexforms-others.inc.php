@@ -530,7 +530,7 @@ function printquery_latest()
 	
 	<ul>
 		<li>
-		<b>Version 2.11</b>, 2010-<br/>&nbsp;<br/>
+		<b>Version 2.11</b>, 2010-01-20<br/>&nbsp;<br/>
 		First release of 2010! CQPweb is now two years old.
 		<br/>&nbsp;<br/>
 		Added improved group access management, and a setting allowing corpora to be processed 
@@ -539,6 +539,8 @@ function printquery_latest()
 		<br/> 
 		Also added a big red warning that pops up when a user types an invalid character in a 
 		"letters-and-numbers-only" entry on a form.
+		<br/>
+		Plus lots of bug fixes.
 		<br/>&nbsp;</li>
 		<li>
 		<b>Version 2.10</b>, 2009-12-18<br/>&nbsp;<br/>

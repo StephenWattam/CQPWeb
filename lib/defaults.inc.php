@@ -76,6 +76,18 @@ if (!isset($cqpweb_tempdir))
 $mysql_tempdir =& $cqpweb_tempdir;
 $cqp_tempdir =& $cqpweb_tempdir;
 
+/* These are defaults for the max amount of memory allowed for CWB programs that let you set this,
+ * counted in megabytes. The first is used for web-scripts, the second for CLI-scripts. */
+if (!isset($cwb_max_ram_usage))
+	$cwb_max_ram_usage = 50;
+else
+	$cwb_max_ram_usage = (int)$cwb_max_ram_usage;
+if (!isset($cwb_max_ram_usage_cli))
+	$cwb_max_ram_usage_cli = 1000;
+else
+	$cwb_max_ram_usage_cli = (int)$cwb_max_ram_usage_cli;
+/* the default allows generous memory for indexing in command-line mode,
+ * but is stingy in the Web interface, so admins can't bring down the server accidentally */
 
 /* the following stops calls to CQP::set_corpus causing an error in the "adm" scripts */
 if (!isset($corpus_cqp_name))
@@ -180,9 +192,11 @@ if (!isset($default_words_in_download_context))
 
 /* version number of CQPweb */
 define('CQPWEB_VERSION', '2.11');
-	
 
 
+/* "reserved words" that can't be used for corpus ids */
+$cqpweb_reserved_subdirs = array('adm', 'css', 'doc', 'lib');
+/* note: all reserved words are 3 lowercase letters and any new ones we add will also be three letters */
 
 
 /* SYSTEM DEFAULT SETTINGS */

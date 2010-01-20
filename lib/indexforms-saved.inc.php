@@ -247,8 +247,13 @@ function printquery_history()
 				. $row['cqp_query'] . '</a></td>';
 
 		if ($row['subcorpus'] != 'no_subcorpus')
-			// something not done here!!
-			echo '<td class="concordgeneral">Subcorpus:<br/><a href="XXXXX">' . $row['subcorpus']
+
+			echo '<td class="concordgeneral">Subcorpus:<br/><a href="index.php?thisQ=search&insertString='
+				. urlencode(($view == 'simple' && $row['simple_query'] != "") ? $row['simple_query'] : $row['cqp_query']) 
+				. '&insertType=' . ( $view == 'simple' ? $row['query_mode'] : 'cqp' ) 
+				. '&insertSubcorpus=' . $row['subcorpus'] . '&uT=y"'
+				. ' onmouseover="return escape(\'Insert query string and textual restrictions into query window\')">'
+				. $row['subcorpus']
 				. '</a></td>';
 		else if ($row['restrictions'] != 'no_restriction')
 			echo '<td class="concordgeneral"><a href="index.php?thisQ=restrict&insertString='
@@ -277,12 +282,26 @@ function printquery_history()
 			echo "<td class='concordgeneral'><center>Syntax error</center></td>";
 			break;
 		default:
-// BUG: if there is a subcorpus, this should be different!!
-			echo "<td class='concordgeneral'><center><a href=\"concordance.php?"
-				. "theData=" . urlencode($row['cqp_query']) 
-				. "&simpleQuery=" . urlencode($row['simple_query'])
-				. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
-				. $row['hits'] . "</a></center></td>";
+			if ($row['subcorpus'] != 'no_subcorpus')
+				echo "<td class='concordgeneral'><center><a href=\"concordance.php?"
+					. "theData=" . urlencode($row['cqp_query']) 
+					. "&del=begin&t=subcorpus~{$row['subcorpus']}&del=end"
+					. "&simpleQuery=" . urlencode($row['simple_query'])
+					. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+					. $row['hits'] . "</a></center></td>";
+			else if ($row['restrictions'] != 'no_restriction')
+				echo "<td class='concordgeneral'><center><a href=\"concordance.php?"
+					. "theData=" . urlencode($row['cqp_query']) 
+					. "&simpleQuery=" . urlencode($row['simple_query'])
+					. '&' . untranslate_restrictions_definition_string($row['restrictions'])
+					. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+					. $row['hits'] . "</a></center></td>";
+			else
+				echo "<td class='concordgeneral'><center><a href=\"concordance.php?"
+					. "theData=" . urlencode($row['cqp_query']) 
+					. "&simpleQuery=" . urlencode($row['simple_query'])
+					. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+					. $row['hits'] . "</a></center></td>";
 			break;
 		}
 		echo "<td class='concordgeneral'><center>" . $row['date_of_query'] . "</center></td>";

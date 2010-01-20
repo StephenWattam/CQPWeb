@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20100105;3401900">
+	<META NAME="CHANGED" CONTENT="20100120;1085000">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -139,16 +139,19 @@ arise from <A HREF="http://dev.mysql.com/doc/refman/5.5/en/binary-log.html">MySQ
 binary logging</A>. Even relatively light use of a CQPweb
 installation will make MySQL create very large binary log files,
 ultimately using up all your disk space over time, if binary logging
-is enabled. For this reason, it's recommended that you </SPAN><SPAN LANG="en-GB"><I>disable</I></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal">
-binary logging on the MySQL server that will be driving CQPweb. You
-can <A HREF="http://dev.mysql.com/doc/refman/5.5/en/replication-options-binary-log.html">disable
-binary logging</A>  by commenting out or deleting the line containing
-</SPAN></SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">log_bin</SPAN></SPAN></FONT></SPAN></FONT><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal">
-command in the MySQL configuration file, or removing the equivalent
-</SPAN></SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal">--log-bin[=base_name]</SPAN></SPAN></FONT><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal">
-directive from the command line that starts up </SPAN></SPAN></SPAN><SPAN STYLE="font-style: normal"><I>mysqld.</I></SPAN><SPAN STYLE="font-style: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">
-(In either case you'll need to </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">restart
-</SPAN></SPAN></SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal"><I>mysqld</I></SPAN></SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-style: normal">.)</SPAN></SPAN></SPAN></P>
+is enabled. For this reason, it's recommended that you </SPAN><SPAN LANG="en-GB"><I>disable</I></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">binary
+logging on the MySQL server that will be driving CQPweb. You can
+<A HREF="http://dev.mysql.com/doc/refman/5.5/en/replication-options-binary-log.html">disable
+binary logging</A> by commenting out or deleting the line containing
+</SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">log_bin</SPAN></SPAN></FONT><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">command in
+the MySQL configuration file, or removing the equivalent
+</SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">--log-bin[=base_name]</SPAN></SPAN></FONT><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">directive
+from the command line that starts up </SPAN></SPAN><SPAN LANG="en-GB"><I>mysqld.</I></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">(In either
+case you'll need to restart </SPAN></SPAN><SPAN LANG="en-GB"><I>mysqld</I></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">.)</SPAN></SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -456,7 +459,8 @@ beginning or end of any of these three paths.</P>
 = true;</SPAN></FONT></FONT> and see if it causes a problem – and
 change it if so.</P>
 <P LANG="en-GB">There are assorted settings that can be set manually,
-but not automatically. They are</P>
+but not automatically. For most CQPweb setups, they can be safely
+ignored if you don't understand exactly what they're for. They are</P>
 <UL>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$use_corpus_categories_on_homepage</FONT>
 	– this defaults to <B>false,</B> if you set it to <B>true</B> <SPAN STYLE="font-weight: normal">then
@@ -470,13 +474,13 @@ but not automatically. They are</P>
 	produces passwords of the form </SPAN><B>aaaaddaaaa</B> <SPAN STYLE="font-weight: normal">where
 	</SPAN><B>a</B> <SPAN STYLE="font-weight: normal">is a lowercase
 	letter and </SPAN><B>d</B> <SPAN STYLE="font-weight: normal">is a
-	digit. You can optionally use Lancaster University's random password
-	generator to get nicer, more-wordlike passwords: to do this, set the
-	</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">$create_password_function</SPAN></FONT>
+	digit. You can optionally use Lancaster University's web-based
+	random password generator to get nicer, more-wordlike passwords: to
+	do this, set the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">$create_password_function</SPAN></FONT>
 	<SPAN STYLE="font-weight: normal">to the quoted string
 	</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">'password_insert_lancaster'</SPAN></FONT><SPAN STYLE="font-weight: normal">.
-	</SPAN>
-	</P>
+	This will probably not work if your system needs to use a proxy
+	server to access the web, however.</SPAN></P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$mysql_has_file_access</FONT>
 	– this defaults to false, if you set it to true then this affects
 	various functions that load data from file to the MySQL server: they
@@ -491,6 +495,14 @@ but not automatically. They are</P>
 	– this defaults to true, but you can set it to false if your web
 	server is not Apache. If it is set to false, functions that depend
 	on Apache will be hidden (since they wouldn't work anyway).</P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$cwb_max_ram_usage</FONT>
+	and <FONT FACE="Courier New, monospace">$cwb_max_ram_usage_cli</FONT>
+	– some CWB programs allow a RAM usage limit to be set on their
+	activities. When CQPweb calls these programs, it sets the RAM limit
+	to the number of megabytes specified in these two variables (the
+	first applies if CQPweb is called over the web, the second if it is
+	called from the command-line). They default to 50Mb and 1000Mb
+	respectively.</P>
 </UL>
 <P LANG="en-GB">Save the edited file as “config.inc.php” and put
 it into the “lib” subdirectory of the web directory.</P>
@@ -634,6 +646,12 @@ mark. Linebreaks should be \n , not \r or \r\n .</P>
 	</P>
 </UL>
 <UL TYPE=DISC>
+	<LI><P LANG="en-GB">The following names cannot be used for installed
+	corpora, as they are the names of subdirectories that contain the
+	internal workings of CQPweb: <B>adm, css, doc, lib</B><SPAN STYLE="font-weight: normal">.
+	Any additional subdirectories we add in the future will be
+	three-letter-names as well. So to be future-proof, use four or more
+	letters/numbers in names for corpora.</SPAN></P>
 	<LI><P LANG="en-GB">CQPweb’s default P-attribute setup assumes
 	texts have Lancaster University's default annotation set, encoded
 	like the BNC (a future version of this documentation will contain

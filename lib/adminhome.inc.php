@@ -607,10 +607,6 @@ function printquery_showcorpora()
 		<tr>
 			<th class="concordtable">Corpus</th>
 			<th class="concordtable" colspan="2">Visibility</th>
-			<!--
-			<th class="concordtable">Primary classification</th>
-			<th class="concordtable">External URL</th>
-			-->
 			<th class="concordtable" colspan="4">Manage...</th>
 			<th class="concordtable">Delete</th>
 		</tr>
@@ -625,20 +621,6 @@ function printquery_showcorpora()
 			$visible_options = '<option value="1">Visible</option>
 				<option value="0" selected="selected">Invisible</option>';
 
-		// NO LONGER DONE BY THIS FORM
-		/* note the use of the setting usually set by "settings" * /
-		$corpus_sql_name = $r['corpus'];
-		$classifications = metadata_list_classifications();
-		$class_options = '';
-		
-		foreach ($classifications as &$class)
-		{
-			$class_options .= "<option value=\"{$class['handle']}\"";
-			$class_options .= ($class['handle'] === $r['primary_classification_field'] ? 'selected="selected"' : '');
-			$class_options .= '>' . $class['description'] . '</option>';
-		}
-				
-		*/
 		
 		$javalinks = ' onmouseover="corpus_box_highlight_on(\'' . $r['corpus'] 
 			. '\')" onmouseout="corpus_box_highlight_off(\'' . $r['corpus'] 
@@ -656,13 +638,6 @@ function printquery_showcorpora()
 				<td align="center" class="concordgeneral">
 					<select name="updateVisible"><?php echo $visible_options; ?></select>
 				</td>
-				
-				<!--
-				<td align="center" class="concordgeneral">
-					<select name="updatePrimaryClassification"><?php /*echo $class_options; */?></select>
-				</td>
-								
-				-->
 				
 				<td align="center" class="concordgeneral"><input type="submit" value="Update!"></td>
 				
@@ -700,7 +675,8 @@ function printquery_showcorpora()
 			</td>
 
 			<td class="concordgeneral" align="center">
-				<a class="menuItem"  href="index.php?thisF=deleteCorpus&corpus=<?php echo $r['corpus']?>&uT=y">
+				<a class="menuItem"
+				<?php echo $javalinks . ' href="index.php?thisF=deleteCorpus&corpus=' . $r['corpus']?>&uT=y">
 					[Delete corpus]
 				</a>
 			</td>		

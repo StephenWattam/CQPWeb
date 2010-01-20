@@ -572,7 +572,7 @@ function printquery_managemeta()
 								Click here to go back to the normal metadata setup form.</a>
 							<br/>&nbsp;
 						</td>
-					</tr>		
+					</tr>
 					<input type="hidden" name="admFunction" value="createMetadataFromXml" />
 					<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name; ?>" />
 					<input type="hidden" name="uT" value="y" />

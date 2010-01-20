@@ -41,12 +41,11 @@ function prepare_query_string($s)
 	/* remove whitespace */
 	$s = trim($s);
 	/* and internal line breaks / tabs */
-	$s = str_replace('%0D', ' ', $s);
-	$s = str_replace('%0A', ' ', $s);
-	$s = str_replace('%09', ' ', $s);
+	$s = str_replace("\r", ' ', $s);
+	$s = str_replace("\n", ' ', $s);
+	$s = str_replace("\t", ' ', $s);
 	$s = str_replace('  ', ' ', $s);
-	
-	// not sure if all the above are necessary ...
+	/* note we do NOT use %0D, %0A etc. because PHP htmldecodes for us. */
 	
 	return $s;
 }

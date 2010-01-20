@@ -213,12 +213,11 @@ if (isset($_GET['freqtableOverride']) )
 else
 	$freq_table_override = false;
 
-//show_var($freq_table_override);
 
 
 
 /* is this the "collocation solo" function? */
-if (isset($_GET['collocSolo']))
+if (!empty($_GET['collocSolo']))
 {
 	$soloform = $_GET['collocSolo'];
 	$solomode = true;
@@ -265,12 +264,22 @@ if (! isset($statistic[$calc_stat]) )
 
 
 /* tag_filter - the tag that displayed collocs must have */
-if ( isset($_GET['collocTagFilter'])  &&  $_GET['collocTagFilter'] != '__any')
+if ( isset($_GET['collocTagFilter'])  &&  $_GET['collocTagFilter'] != '')
 	$tag_filter = $_GET['collocTagFilter'];
 else
-	$tag_filter = false;	/* or would zero-length string, or '__any', be better? */
+	$tag_filter = false;
 /* note it comes from _GET so before use it must be escaped! various functions do this */
 
+/* do not allow a tag filter if tha collocation attribute IS the primary annotation */
+$primary_annotation = get_corpus_metadata('primary_annotation');
+
+if ($primary_annotation == $att_for_calc)
+{
+	$tag_filter = false;
+	$display_tag_filter_control = false;
+}
+else
+	$display_tag_filter_control = true;
 
 
 
@@ -287,7 +296,6 @@ else
 $att_desc = get_corpus_annotations();	
 $att_desc['word'] = 'Word';
 
-$primary_annotation = get_corpus_metadata('primary_annotation');
 
 /* validate list of p-attributes to include && get their names */
 
@@ -386,10 +394,10 @@ else if ($query_record['restrictions'] != 'no_restriction')
 			$freqtable_record = subsection_make_freqtables('no_subcorpus', $query_record['restrictions']);
 	}
 }
-/*  nb: freqtable_override is tested at the *bottom* of this if. This means that if the override is
-	set to TRUE, but by some chance the freqtable necessary does exist, the override does not kick in
-	note also, if the override is activated, $freqtable_record WON'T be set
-*/
+/* nb: freqtable_override is tested at the *bottom* of this if. This means that if the override is
+ * set to TRUE, but by some chance the freqtable necessary does exist, the override does not kick in
+ * note also, if the override is activated, $freqtable_record WON'T be set
+ */
 
 
 if ( isset($freqtable_record) && $freqtable_record != false)  /* ie (a) IF the if above was true.... */
@@ -411,9 +419,9 @@ else
 
 
 
-/* ------------------------------------------------------------ */
-/* fork off the script if it is the collocation-solo capability */
-/* ------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------- */
+/* send the script off to the separate function if it is the collocation-solo capability */
+/* ------------------------------------------------------------------------------------- */
 if ($solomode === true)
 {
 	run_script_for_solo_collocation();
@@ -502,9 +510,10 @@ else
 	/* create the TAG FILTER SELECTION BOX */
 	if (isset($colloc_atts_list) && in_array($primary_annotation, $colloc_atts_list))
 	{
-		$select_for_tag = '<select name="collocTagFilter">
-				<option value="__any"' . ($tag_filter === false ? ' selected="selected"' : '')
-				. '>no restriction</option>';
+		/* was formerly name="collocTagFilterSelect" */
+		$select_for_tag = '<select onChange="setCollocTagFilter(this);">
+				<option value="-??..__any__..??-"' . ($tag_filter === false ? ' selected="selected"' : '')
+				. '>(none)</option>';
 		
 		foreach(colloc_table_taglist($primary_annotation, $dbname) as $tag)
 			$select_for_tag .= '
@@ -516,7 +525,6 @@ else
 	{
 		$select_for_tag = '<select><option selected="selected">no restriction</option></select>';
 	}
-
 
 
 
@@ -567,11 +575,39 @@ else
 				<td class="concordgrey">Filter results by:</td>
 				<td class="concordgrey">
 					specific collocate: 
-					<input type="text" name="collocSpecifiedWord" size="15" maxlength="40"/>
+					<input type="text" name="collocSolo" size="15" maxlength="40"/>
 				</td>
 				<td class="concordgrey">
-				
-				<?php echo "and/or tag: $select_for_tag"; ?></td>
+					<?php
+					if ($display_tag_filter_control)
+					{
+						?>
+						<script type="text/javascript">
+						<!--
+						// this function only works within this <td>
+						function setCollocTagFilter(fromThisSelect)
+						{
+							var newValue = fromThisSelect.options[fromThisSelect.selectedIndex].value;
+							
+							if (newValue == "-??..__any__..??-")
+								newValue = "";
+							var target = document.getElementById('collocTagFilter');
+							target.value = newValue;
+						}
+						//-->
+						</script>
+						and/or tag: 
+						<input name="collocTagFilter" id="collocTagFilter" 
+							value="<?php echo $tag_filter;?>"
+							type="text" size="5"
+						/>
+						<?php 
+						echo "$select_for_tag";
+					}
+					else
+						echo 'tag restriction: n/a';
+					?>
+				</td>
 				<td class="concordgrey">
 					<select name="redirect">
 						<option value="rerunCollocation">Submit changed parameters</option>
@@ -636,7 +672,7 @@ else
 		$att_for_calc_tt_show = strtr($row[$att_for_calc], array("'"=>"\'", '"'=>'&quot;'));
 		
 		$solo = "<a href=\"collocation.php?collocSolo=" . $row[$att_for_calc] . '&'
-			. url_printget()
+			. url_printget(array(array('collocSolo', '')))
 			. "\" onmouseover=\"return escape('Show detailed info on <B>"
 			. $att_for_calc_tt_show . "</B>')\">{$row[$att_for_calc]}</a>";
 		
@@ -644,6 +680,7 @@ else
 			. "&newPostP_collocDistFrom=$calc_range_begin&newPostP_collocDistTo=$calc_range_end"
 			. "&newPostP_collocAtt=$att_for_calc&newPostP_collocTarget="
 			. urlencode($row[$att_for_calc])
+			. "&newPostP_collocTagFilter=" . urlencode($tag_filter)
 			. "&uT=y\" onmouseover=\"return escape('Show solutions collocating with <B>"
 			. $att_for_calc_tt_show . "</B>')\">{$row['observed']}</a>";
 		

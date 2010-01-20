@@ -41,6 +41,11 @@ function printquery_search()
 	else
 		$insertString = NULL;
 
+	if (isset($_GET['insertSubcorpus']))
+		$insertSubcorpus = $_GET['insertSubcorpus'];
+	else
+		$insertSubcorpus = '**search all**';
+
 	if	(   isset($_GET['insertType']) 
 		&&	(	   $_GET['insertType'] == 'sq_case' 
 				|| $_GET['insertType'] == 'sq_nocase' 
@@ -117,17 +122,18 @@ function printquery_search()
 				<input type="hidden" name="del" size="-1" value="begin" />
 				<td class="basicbox">
 					<select name="t">
-						<option value="" selected="selected">None (search whole corpus)</option>
+						
 						<?php
 						
-						/* create options for the Primary Classification */
+						/* first option is always whole corpus */
+						echo '<option value="" ' 
+							. ( $insertSubcorpus == '**search all**' ? 'selected="selected"' : '' )
+							. '>None (search whole corpus)</option>'; 
 						
+						/* create options for the Primary Classification */
 						$sql_query = "select primary_classification_field from corpus_metadata_fixed
 							where corpus = '$corpus_sql_name'";
-						$result = mysql_query($sql_query, $mysql_link);
-						if ($result == false) 
-							exiterror_mysqlquery(mysql_errno($mysql_link), 
-								mysql_error($mysql_link), __FILE__, __LINE__);
+						$result = do_mysql_query($sql_query);
 						$row = mysql_fetch_row($result);
 						$field = $row[0];
 						
@@ -142,10 +148,7 @@ function printquery_search()
 						
 						$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
 							where corpus = '$corpus_sql_name' and user = '$username' order by subcorpus_name";
-						$result = mysql_query($sql_query, $mysql_link);
-						if ($result == false) 
-							exiterror_mysqlquery(mysql_errno($mysql_link), 
-								mysql_error($mysql_link), __FILE__, __LINE__);
+						$result = do_mysql_query($sql_query);
 
 						while (($row = mysql_fetch_assoc($result)) != false)
 						{
@@ -154,7 +157,9 @@ function printquery_search()
 									. make_thousands($row['numwords']) . ' words in ' 
 									. make_thousands($row['numfiles']) . ' texts)</option>';
 							else
-								echo '<option value="subcorpus~' . $row['subcorpus_name'] . '">'
+								echo '<option value="subcorpus~' . $row['subcorpus_name'] . '"'
+									. ($insertSubcorpus == $row['subcorpus_name'] ? ' selected="selected"' : '')
+									. '>'
 									. 'Subcorpus: ' . $row['subcorpus_name'] . ' ('
 									. make_thousands($row['numwords']) . ' words in ' 
 									. make_thousands($row['numfiles']) . ' texts)</option>';

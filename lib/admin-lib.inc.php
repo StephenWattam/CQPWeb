@@ -58,6 +58,12 @@ class corpus_install_info
 		
 		$this->corpus_mysql_name = cqpweb_handle_enforce($_GET['corpus_mysql_name']);
 		$this->corpus_cwb_name = strtolower(cqpweb_handle_enforce($_GET['corpus_cwb_name']));
+
+		/* check for reserved words */
+		global $cqpweb_reserved_subdirs;
+		if (in_array($this->corpus_mysql_name, $cqpweb_reserved_subdirs))
+			exiterror_fullpage("The following corpus names are not allowed: " . implode(' ', $cqpweb_reserved_subdirs),
+				__FILE__, __LINE__);
 		
 		if (substr($this->corpus_cwb_name, -6) == '__freq')
 			exiterror_fullpage('Error: Corpus CWB names cannot end in __freq!!');

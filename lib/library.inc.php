@@ -131,6 +131,23 @@ function disconnect_all()
 		mysql_close($mysql_link);
 }
 
+
+
+/**
+ * returns an integer containing the RAM limit to be passed to CWB programs that
+ * allow a RAM limit to be set - note, the flag (-M or whatever) is not returned,
+ * just the number of megabytes.
+ */
+function get_cwb_memory_limit()
+{
+	global $cwb_max_ram_usage;
+	global $cwb_max_ram_usage_cli;
+	
+	return ((php_sapi_name() == 'cli') ? $cwb_max_ram_usage_cli : $cwb_max_ram_usage);
+}
+
+
+
 /**
  * note - this function should replace all direct calls to mysql_query,
  * thus avoiding duplication of error-checking code.
@@ -141,8 +158,10 @@ function do_mysql_query($sql_query)
 	global $print_debug_messages;
 
 	if ($print_debug_messages)
+	{
 		print_debug_message("About to run the following MySQL query:\n\n$sql_query\n");
-		
+		$start_time = time();
+	}	
 	$result = mysql_query($sql_query, $mysql_link);
 	
 	if ($result == false) 
@@ -150,7 +169,7 @@ function do_mysql_query($sql_query)
 			mysql_error($mysql_link), __FILE__, __LINE__);
 			
 	if ($print_debug_messages)
-		print_debug_message("The query ran successfully.\n");
+		print_debug_message("The query ran successfully in " . (time() - $start_time) . " seconds.\n");
 		
 	return $result;
 }
@@ -276,6 +295,20 @@ function import_settings_as_global($corpus)
 	global $cqp;
 	if (isset($cqp, $corpus_cqp_name))
 		$cqp->set_corpus($corpus_cqp_name);
+}
+
+
+/** 
+ * this function removes any existing start/end anchors from a regex
+ * and adds new ones.
+ */
+function regex_add_anchors($s)
+{
+	$s = preg_replace('/^\^/', '', $s);
+	$s = preg_replace('/^\\A/', '', $s);
+	$s = preg_replace('/\$$/', '', $s);
+	$s = preg_replace('/\\[Zz]$/', '', $s);
+	return '^' . $s . '$';
 }
 
 
@@ -832,24 +865,15 @@ function print_footer()
 
 
 
+/* the next two functions are really just for convenience */
 
 function database_disable_keys($arg)
 {
-	global $mysql_link;
-	$sql_query = "alter table $arg disable keys";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link),
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query("alter table $arg disable keys");
 }
 function database_enable_keys($arg)
 {
-	global $mysql_link;
-	$sql_query = "alter table $arg enable keys";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link),
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query("alter table $arg enable keys");
 }
 
 

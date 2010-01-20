@@ -501,11 +501,16 @@ function metadata_field_is_classification($field)
  * returns an array of arrays listing all the classification schemes & their descs for the current corpus 
  * 
  * Return format: array('handle'=>$the_handle,'description'=>$the_description) 
+ * 
+ * If the description is NULL or an empty string in the database, a copy of the handle is put in place of the
+ * description. This default functionality can be turned off by passing a FALSE argument.
  */
-function metadata_list_classifications()
+function metadata_list_classifications($disallow_empty_descriptions = true)
 {
 	global $mysql_link;
 	global $corpus_sql_name;
+	
+	$disallow_empty_descriptions = (bool)$disallow_empty_descriptions;
 
 	$sql_query = "SELECT handle, description FROM text_metadata_fields WHERE 
 		corpus = '$corpus_sql_name' and is_classification = 1";
@@ -518,8 +523,11 @@ function metadata_list_classifications()
 	$return_me = array();
 
 	while (($r = mysql_fetch_assoc($result)) != false)
+	{
+		if ($disallow_empty_descriptions && empty($r['description']))
+			$r['description'] = $r['handle'];
 		$return_me[] = $r;
-	
+	}
 	return $return_me;
 }
 
