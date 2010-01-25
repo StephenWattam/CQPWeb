@@ -155,6 +155,16 @@ function update_corpus_uses_case_sensitivity($newval)
 	$settings->set_case_sens($newval);
 	$settings->save();
 }
+function update_corpus_context_scope($newcount, $newunit)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$settings->set_context_scope($newcount);
+	$settings->set_context_s_attribute($newunit);
+	$settings->save();
+}
+//TODO delete following function
 function update_corpus_directory_override($type, $newdir)
 {
 	global $corpus_sql_name;

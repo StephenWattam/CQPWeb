@@ -833,19 +833,26 @@ function print_footer()
 	
 	if (isset($corpus_title))
 	{
-		$help_cell = '<td align="center" class="cqpweb_copynote">
+		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
 			<a class="cqpweb_copynote_link" href="help.php" target="_NEW">Corpus and tagset help</a>
 		</td>';
+	}
+	else
+	{
+		/* use the help cell for an admin logon link instead */
+		$help_cell = '<td align="center" class="cqpweb_copynote" align="center" width="33%">
+			<a href="adm"  class="cqpweb_copynote_link" >[Admin logon]</a>
+		</td>';	
 	}
 	?>
 	<hr/>
 	<table class="concordtable" width="100%">
 		<tr>
-			<td align="left" class="cqpweb_copynote">
+			<td align="left" class="cqpweb_copynote" width="33%">
 				CQPweb v<?php echo CQPWEB_VERSION; ?> &#169; 2008-2010
 			</td>
 			<?php echo $help_cell; ?>
-			<td align="right" class="cqpweb_copynote">
+			<td align="right" class="cqpweb_copynote" width="33%">
 				<?php
 				if ($username == '__unknown_user')
 					echo 'You are not logged in';

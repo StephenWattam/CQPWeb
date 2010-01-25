@@ -142,8 +142,11 @@ if (!isset($graph_img_path))
 if (!isset($dist_num_files_to_list))
 	$dist_num_files_to_list = 100;
 
+if (isset($context_s_attribute))
+	$context_scope_is_based_on_s = true;
+
 if (!isset($context_scope))
-	$context_scope = 12;
+	$context_scope = ( $context_scope_is_based_on_s ? 1 : 12 );
 
 if (!isset($default_per_page))
 	$default_per_page = 50;
@@ -157,15 +160,6 @@ if (!isset($default_extended_context))
 if (!isset($default_max_context))
 	$default_max_context = 1100;
 
-
-/* this allows settings.inc.php to override config.inc.php * /
-if (isset($this_corpus_directory_override['reg_dir']))
-	$cwb_registry = $this_corpus_directory_override['reg_dir'];
-if (isset($this_corpus_directory_override['data_dir']))
-	$cwb_datadir = $this_corpus_directory_override['data_dir'];
-	
-	1/12/09 : as of now we are no longer allowing directory overrides.
-	*/
 
 	
 /* collocation defaults */
@@ -184,14 +178,13 @@ if (!isset($default_collocations_per_page))
 if (!isset($collocation_warning_cutoff))
 	$collocation_warning_cutoff = 5000000; /* cutoff for going from a minor warning to a major warning */
 
-
 /* collocation download default */
 if (!isset($default_words_in_download_context))
 	$default_words_in_download_context = 10;
 
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '2.11');
+define('CQPWEB_VERSION', '2.12');
 
 
 /* "reserved words" that can't be used for corpus ids */

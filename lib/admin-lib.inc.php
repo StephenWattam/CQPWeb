@@ -1748,6 +1748,7 @@ function cqpweb_mysql_recreate_tables()
 			primary key(`id`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
 	
+	
 	$create_statements['annotation_mapping_tables'] =
 		"CREATE TABLE `annotation_mapping_tables` (
 			`id` varchar(40),
@@ -1755,6 +1756,30 @@ function cqpweb_mysql_recreate_tables()
 			`mappings` text character set utf8,
 			key(`id`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
+	
+	
+	$create_statements['user_macros'] =
+		"CREATE TABLE `user_macros` (
+			`username` varchar(20) NOT NULL default '',
+			`macro_name` varchar(50) NOT NULL,
+			`macro_num_args` int,
+			`macro_body` text,
+			key(`username`)
+	) CHARACTER SET utf8 COLLATE utf8_bin";
+
+
+	$create_statements['xml_visualisations'] =
+		"CREATE TABLE `xml_visualisations` (
+			`corpus` varchar(20) NOT NULL,
+			`element` varchar(50) NOT NULL,
+			`in_concordance` tinyint(1) NOT NULL default 1,
+			`in_context` tinyint(1) NOT NULL default 1,
+			`visualisation_code` text,
+			key(`corpus`)
+	) CHARACTER SET utf8 COLLATE utf8_bin";
+				echo '
+				<tr>
+				';
 	
 	
 	return $create_statements;

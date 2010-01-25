@@ -264,6 +264,67 @@ function parse_get_user_settings()
 }
 
 
+function user_macro_create($username, $macro_name, $macro_body)
+{
+	$username = mysql_real_escape_string($username);
+	$macro_name = mysql_real_escape_string($macro_name);
+	$macro_body = mysql_real_escape_string($macro_body);
+	
+	/* convert any \r to \n and delete multiple \n */
+	$macro_body = str_replace("\r", "\n", $macro_body);
+	$macro_body = "\n" . str_replace("\n\n", "\n", $macro_body);
+	
+	/* deduce macro_num_args by matching all strings of form $\d+ */
+	preg_match_all('|[^\\\\]\$(\d+)|', $macro_body, $m, PREG_PATTERN_ORDER);
+	
+	$top_mentioned_arg = -1;
+	
+	foreach($m[1] as $num)
+		if ($num > $top_mentioned_arg)
+			$top_mentioned_arg = $num;
+	
+	/* The $\d references count from zero so if $1 is top mentioned, num args is actually 2 */
+	$macro_num_args = $top_mentioned_arg + 1;
+	
+	/* delete macro if already exists */
+	user_macro_delete($username, $macro_name, $macro_num_args);
+	
+	$sql_query = "INSERT INTO user_macros
+		(username, macro_name, macro_num_args, macro_body)
+		values
+		('$username', '$macro_name', $macro_num_args, '$macro_body')";
+	
+	do_mysql_query($sql_query);
+	
+}
+
+function user_macro_delete($username, $macro_name, $macro_num_args)
+{
+	$username = mysql_real_escape_string($username);
+	$macro_name = mysql_real_escape_string($macro_name);
+	$macro_num_args = (int)$macro_num_args;
+	
+	do_mysql_query("delete from user_macros 
+						where username='$username' 
+						and macro_name='$macro_name'
+						and macro_num_args = $macro_num_args");
+}
+
+
+function user_macro_loadall()
+{
+	global $cqp;
+
+	$result = do_mysql_query("select * from user_macros where username='$username'");
+
+	while (false !== ($r = mysql_fetch_object($result)))
+	{
+		$block = "MACRO {$r->macro_name}({$r->macro_num_args})}\n";
+		$block .= $r->macro_body . "\n";
+		$cqp->execute($block);
+	}
+}
+
 
 
 ?>

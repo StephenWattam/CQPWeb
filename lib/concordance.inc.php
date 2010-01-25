@@ -70,6 +70,8 @@ connect_global_mysql();
 
 /* connect to CQP */
 connect_global_cqp();
+/* and load user macros! */
+user_macro_loadall();
 
 
 /* download all user settings */
@@ -694,9 +696,8 @@ if ($program == "sort")
 
 
 /* set up CQP options for the concordance display */
-
-$cqp->execute("set Context $context_scope words");
-// unannotated corpora - this is a quick fix not done in any kind of principled way
+$cqp->execute("set Context $context_scope " . ($context_scope_is_based_on_s ? $context_s_attribute : 'words'));
+/* next line allows for unannotated corpora */
 $cqp->execute('show +word ' . (empty($primary_tag_handle) ? '' : "+$primary_tag_handle "));
 $cqp->execute("set PrintStructures \"text_id\""); 
 $cqp->execute("set LeftKWICDelim '--%%%--'");

@@ -77,4 +77,107 @@ function get_xml_annotations()
 }
 
 
+function xml_visualisation_delete($corpus, $element)
+{
+	$corpus = mysql_real_escape_string($corpus);
+	$element = mysql_real_escape_string($element);
+	
+	do_mysql_query("delete from xml_visualisations 
+		where corpus=$corpus' and element = '$element'");
+}
+
+function xml_visualisation_create($corpus, $element, $code, $in_concordance = true, $in_context = true)
+{
+	$corpus = mysql_real_escape_string($corpus);
+	$element = mysql_real_escape_string($element);
+	$code = xml_visualisation_code_make_safe($code);
+	// TODO other filtering required? separate filter function?
+	
+	$in_concordance = ($in_concordance ? 1 : 0);
+	$in_context     = ($in_context     ? 1 : 0);
+	
+	do_mysql_query("insert into xml_visualisations
+		(corpus, element, in_context, in_concordance, code)
+		values
+		('$corpus', '$element', $in_context,$in_concordance, '$code')");
+}
+
+
+function xml_visualisation_use_in_context($corpus, $element, $new)
+{
+	$newval = ($new ? 1 : 0);
+	do_mysql_query("update xml_visualisations set in_context = $newval 
+		where corpus=$corpus' and element = '$element'");	
+}
+function xml_visualisation_use_in_concordance($corpus, $element, $new)
+{
+	$newval = ($new ? 1 : 0);
+	do_mysql_query("update xml_visualisations set in_concordance = $newval 
+		where corpus=$corpus' and element = '$element'");	
+}
+
+function xml_visualisation_code_make_safe($code)
+{
+	/* delete possible malignant HTML code */
+	
+	/* dangerous elements */
+	$code = preg_replace('/<script\s.*?>/', '', $code);
+	$code = preg_replace('/</script>/', '', $code);
+	$code = preg_replace('/<applet\s.*?>/', '', $code);
+	$code = preg_replace('/</applet>/', '', $code);
+	$code = preg_replace('/<embed\s.*?>/', '', $code);
+	$code = preg_replace('/</embed>/', '', $code);
+	$code = preg_replace('/<object\s.*?>/', '', $code);
+	$code = preg_replace('/</object>/', '', $code);
+	
+	/* dangerous attributes: on.* */
+	$code = preg_replace('/\bon\w+?=/', '', $code);
+	// but note that this denies functionality... but reallowing allows javascript to be execute.
+
+	// TODO !!!!
+	/*
+	 * problem: the list of potentially dangerous tags includes one or two that I would really 
+	 * rather like to allow here, namely img (And presumably <a> though the list below, which
+	 * I got off a microsoft help page, doesn't include it, it takes href which could
+	 * contain malicious javascript code).
+	 * 
+	 * This looks as if it might be rather more complex than I had hoped.
+	 * 
+	 * Issue: given CQPweb doesn't use cookies, exactly what could an exploiter get access to 
+	 * with malicious javascript that could cause a problem??
+	 * 
+	 * Assume we allow on.*= , img, a, etc.
+	 * 
+	 * And that someone got bad javascript into the src or the href or the on.*
+	 * 
+	 * Would they have access to anything dangerous?
+	 * 
+	 * They could redirect to a bad site I suppose. That would be the worst.
+	 * 
+	 * The only alternative approach I can think of is to create a subset metalanguage of HTML
+	 * for the definition of visualisations. Bu that would be complex and would not rule out
+	 * bad urls in src= or href=.
+	 */ 
+/*
+<applet>
+<body>
+<embed>
+<frame>
+<script>
+<frameset>
+<html>
+<iframe>
+<img>
+<style>
+<layer>
+<link>
+<ilayer>
+<meta>
+<object>
+plus attributes
+ src, lowsrc, style, and href
+*/
+	return mysql_real_escape_string($code);		
+}
+
 ?>

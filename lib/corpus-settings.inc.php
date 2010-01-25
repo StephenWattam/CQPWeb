@@ -39,9 +39,11 @@ class CQPwebSettings
 	private $corpus_main_script_is_r2l;
 	private $corpus_uses_case_sensitivity;
 	
-	private $directory_override_reg;
-	private $directory_override_data;
-	
+	/* context controlled by an int and a string (disallow_nonwords is used on the latter); 
+	 * if words are to be used for context, the s_attribute string is NULL */
+	private $context_scope;
+	private $context_s_attribute;
+		
 	
 	/* management variables */
 	private $cqpweb_root_directory_path;
@@ -74,6 +76,17 @@ class CQPwebSettings
 	public function get_case_sens() { return $this->corpus_uses_case_sensitivity; }
 	public function set_case_sens($new_value) { $this->corpus_uses_case_sensitivity = (bool) $new_value; }
 
+	public function get_context_scope() { return $this->context_scope; }
+	public function set_context_scope($new_value) { $this->context_scope = (int) $new_value; }
+
+	public function get_context_s_attribute() { return $this->context_s_attribute; }
+	public function set_context_s_attribute($new_value) 	
+	{
+		if ($new_value == NULL)
+			$this->context_s_attribute = NULL;
+		else
+			$this->context_s_attribute = $this->disallow_nonwords($new_value);
+	}
 
 	public function get_directory_override_reg() { return $this->directory_override_reg; }
 	public function set_directory_override_reg($new_value)
@@ -117,7 +130,7 @@ class CQPwebSettings
 		
 		include("{$this->cqpweb_root_directory_path}/{$this->corpus_sql_name}/settings.inc.php");
 		
-		/* check whether each variable is set, ifso, upload it to the private variables */
+		/* check whether each variable is set, if so, upload it to the private variables */
 
 		if (isset($corpus_sql_name))
 		{
@@ -134,11 +147,10 @@ class CQPwebSettings
 			$this->corpus_main_script_is_r2l = (bool)$corpus_main_script_is_r2l;
 		if (isset($corpus_uses_case_sensitivity))
 			$this->corpus_uses_case_sensitivity = (bool)$corpus_uses_case_sensitivity;
-//		if (isset($this_corpus_directory_override['reg_dir']))
-//			$this->directory_override_reg = $this_corpus_directory_override['reg_dir'];
-//		if (isset($this_corpus_directory_override['data_dir']))
-//			$this->directory_override_data = $this_corpus_directory_override['data_dir'];
-		
+		if (isset($context_scope))
+			$this->context_scope = (int)$context_scope;
+		if (isset($context_s_attribute))
+			$this->context_s_attribute = $context_s_attribute;
 		
 		return 0;
 	}
@@ -165,10 +177,11 @@ class CQPwebSettings
 		if (isset($this->corpus_uses_case_sensitivity))
 			$data .= "\$corpus_uses_case_sensitivity = " . ($this->corpus_uses_case_sensitivity ? 'true' : 'false') . ";\n";
 		
-//		if (isset($this->directory_override_reg))
-//			$data .= "\$this_corpus_directory_override['reg_dir'] = '{$this->directory_override_reg}';\n";
-//		if (isset($this->directory_override_data))
-//			$data .= "\$this_corpus_directory_override['data_dir'] = '{$this->directory_override_data}';\n";
+		if (isset($this->context_scope))
+			$data .= "\$context_scope = {$this->context_scope};\n";
+		if (isset($this->context_s_attribute))
+			$data .= "\$context_s_attribute = '{$this->context_s_attribute}';\n";
+		
 				
 		$data .= "?>";
 		

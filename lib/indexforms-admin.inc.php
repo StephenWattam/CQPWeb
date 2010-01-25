@@ -30,28 +30,18 @@
 function printquery_corpusoptions()
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	
 	if (isset($_GET['settingsUpdateURL']))
-	{
-		$sql_query = "update corpus_metadata_fixed set external_url = '"
-			. mysql_real_escape_string($_GET['settingsUpdateURL']) 
-			. "' where corpus = '$corpus_sql_name'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);		
-	}
+		update_corpus_metadata('external_url',$_GET['settingsUpdateURL']);
 	if (isset($_GET['settingsUpdatePrimaryClassification']))
+		update_corpus_metadata('primary_classification_field', $_GET['settingsUpdatePrimaryClassification']);
+	if (isset($_GET['settingsUpdateContextScope']))
 	{
-		$sql_query = "update corpus_metadata_fixed set primary_classification_field = '"
-			. mysql_real_escape_string($_GET['settingsUpdatePrimaryClassification']) 
-			. "' where corpus = '$corpus_sql_name'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);		
+		if ($_GET['settingsUpdateContextUnit'] == '*words*')
+			$_GET['settingsUpdateContextUnit'] = NULL;
+		update_corpus_context_scope($_GET['settingsUpdateContextScope'], $_GET['settingsUpdateContextUnit']);
 	}
+
 
 	$classifications = metadata_list_classifications();
 	$class_options = '';
@@ -71,12 +61,7 @@ function printquery_corpusoptions()
 	$r2l = $settings->get_r2l();
 	$case_sensitive = $settings->get_case_sens();
 
-	$datadir = $settings->get_directory_override_data();
-	if ($datadir === NULL)
-		$datadir = '';
-	$regdir = $settings->get_directory_override_reg();
-	if ($regdir === NULL)
-		$regdir = '';
+
 
 	?>
 	<table class="concordtable" width="100%">
@@ -103,23 +88,6 @@ function printquery_corpusoptions()
 			</tr>
 			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
 			<input type="hidden" name="function" value="update_corpus_title" />
-			<input type="hidden" name="uT" value="y" />
-		</form>
-		<form action="execute.php" method="get">
-			<tr>
-				<td class="concordgrey" align="center">
-					Stylesheet address
-					(<a href="<?php echo $settings->get_css_path(); ?>">click here to view</a>):
-				</td>
-				<td class="concordgeneral" align="center">
-					<input type="text" name="args" value="<?php echo $settings->get_css_path(); ?>" />
-				</td>
-				<td class="concordgeneral" align="center">
-					<input type="submit" value="Update" />
-				</td>
-			</tr>
-			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
-			<input type="hidden" name="function" value="update_css_path" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
 		<form action="execute.php" method="get">
@@ -180,7 +148,7 @@ function printquery_corpusoptions()
 					(NB. Empty string = use default directory)
 				</td>
 				<td class="concordgeneral" align="center">
-					<input type="text" name="arg2" value="<?php echo $regdir; ?>" />
+					<input type="text" name="arg2" value="php //echo $regdir; " />
 				</td>
 				<td class="concordgeneral" align="center">
 					<input type="submit" value="Update" />
@@ -201,7 +169,7 @@ function printquery_corpusoptions()
 					(NB. Empty string = use default directory)
 				</td>
 				<td class="concordgeneral" align="center">
-					<input type="text" name="arg2" value="<?php echo $datadir; ?>" />
+					<input type="text" name="arg2" value="php echo $datadir; " />
 				</td>
 				<td class="concordgeneral" align="center">
 					<input type="submit" value="Update" />
@@ -220,6 +188,64 @@ function printquery_corpusoptions()
 
 		<!-- ***************************************************************************** -->
 
+		<tr>
+			<th class="concordtable" colspan="3">Display settings</th>
+		</tr>
+		<form action="execute.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					Stylesheet address
+					(<a href="<?php echo $settings->get_css_path(); ?>">click here to view</a>):
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="text" name="args" value="<?php echo $settings->get_css_path(); ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
+			<input type="hidden" name="function" value="update_css_path" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+		<form action="index.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					How many words/elements of context should be shown in concordances?
+					<br/>&nbsp;<br/>
+					<em>Note: context of a hit is counted <strong>each way</strong>.
+				</td>
+				<td class="concordgeneral" align="center">
+					show
+					<input type="text" name="settingsUpdateContextScope" size="3"
+						value="<?php echo $settings->get_context_scope(); ?>" />
+					of
+					<select name="settingsUpdateContextUnit">
+						<?php
+
+						$current_scope_unit = $settings->get_context_s_attribute();
+
+						echo '<option value="*words*"' 
+							. ( is_null($current_scope_unit) ? ' selected="selected"' : '' ) 
+							. '>words</option>';
+
+						$all_elements = array_diff(get_xml_all(), get_xml_annotations(), array('text'));
+						foreach ($all_elements as $element)
+							echo "<option value=\"$element\""
+								. ($element == $current_scope_unit ? ' selected="selected"' : '')
+								. ">XML element: $element</option>";
+
+						?>
+						
+					</select>
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="thisQ" value="corpusSettings" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
 
 
 		<tr>
@@ -1575,6 +1601,155 @@ function printquery_manageannotation()
 
 
 
+
+
+function printquery_xmlvisualisation()
+{
+	global $corpus_sql_name;
+	
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th  colspan="4" class="concordtable">
+				XML visualisation
+			</th>
+		</tr>
+		<tr>
+			<td  colspan="4" class="concordgrey">
+				&nbsp;<br/>
+				Explanation here
+				<br/>&nbsp;
+			</td>
+		</tr>
+		
+		
+		<!-- display current visualisations for this corpus -->
+		<tr>
+			<th colspan="4" class="concordtable">
+				Existing XML visualisation commands
+			</th>
+		</tr>
+		<tr>
+			<th class="concordtable">XML tag</th>
+			<th class="concordtable">Visualisation code</th>
+			<th class="concordtable">Used where? (in concordances, in context, both, neither)</th>
+			<th class="concordtable">Actions (update, delete)</th>
+		</tr>
+		
+		<?php
+		
+		/* show each existing visualisation for this corpus */
+		
+		$where_values = array(
+			'in_conc' => "In concordance displays only",
+			'in_context' => "In extended context displays only",
+			'both' => "In concordance AND context displays",
+			'neither' => "Nowhere (visualisation disabled)"
+			);
+			
+		$result = do_mysql_query("select * from xml_visualisations where corpus = '$corpus_sql_name'"); 
+		
+		while (false !== ($v = mysql_fetch_object($result)))
+		{
+			echo '
+				<tr>
+				';
+			
+			echo '<td>' . $v->element . '</td>';
+			
+			echo '<td>' . $v->visualisation_code . '</td>';
+			
+			switch (true)
+			{
+				case ( $v->in_context &&  $v->in_concordance):		$checked = 'both';			break; 
+				case (!$v->in_context && !$v->in_concordance):		$checked = 'neither';		break; 
+				case (!$v->in_context &&  $v->in_concordance):		$checked = 'in_conc';		break; 
+				case ( $v->in_context && !$v->in_concordance):		$checked = 'in_context';	break; 
+			}
+			$options = "\n";
+			foreach ($where_values as $val=>$label)
+			{
+				$blob = ($checked == $val ? ' selected="selected"' : '');
+				$options .= "<option value=\"\"$blob>$label</option>\n";
+			}
+			
+			echo '<td><select name="">'
+				. $options
+				. '</select></td>';
+
+			echo '<td>'
+				. 'Update Delete'
+				. '</td>';
+			
+			
+			echo '
+				</tr>
+				';
+
+		}
+		?>
+
+	</table>
+	<table class="concordtable" width="100%">		
+		<!-- form to create new visualisation -->
+		<form action="../adm/index.php" method="get">
+			<tr>
+				<th colspan="2" class="concordtable">
+					Create new XML visualisation command
+				</th>
+			</tr>
+			
+			<tr>
+				<td class="concordgrey">
+					Select one of the XML element which does not yet have a visualisation specified:
+				</td>
+				<td class="concordgeneral">
+					<?php
+					
+					?>
+					<!-- drop down of s-attributes not in table above-->
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey">
+					Enter the HTML code to use for visualising this XML element:
+					<br/>&nbsp;<br/>
+					The following tags are not allowed:
+					applet embed object script
+				</td>
+				<td class="concordgeneral">
+					<textarea cols="40" rows="12" name="xmlVisCode"></textarea>
+				</td>
+			</tr>		
+			<tr>
+				<td class="concordgrey">Use this visualisation in concordances?</td>
+				<td class="concordgeneral">
+					<input type="radio" checked="checked" name="xmlUseInConc" value="1" /> Yes
+					<input type="radio" name="xmlUseInConc" value="0" /> No
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey">Use this visualisation in extended context display?</td>
+				<td class="concordgeneral">
+					<input type="radio" checked="checked" name="xmlUseInContext" value="1" /> Yes
+					<input type="radio" name="xmlUseInContext" value="0" /> No
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey">Click here to store this visualisation</td>
+				<td class="concordgeneral">
+					<input type="submit" value="Create XML visualisation" />
+				</td>
+			</tr>
+			
+		<input type="hidden" name="uT" value="y" />
+			
+		</form>
+	</table>
+	
+	
+	<?php	
+}
 
 
 

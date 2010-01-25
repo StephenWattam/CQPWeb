@@ -566,6 +566,7 @@ case 'keywords':
 
 case 'userSettings':
 	printquery_usersettings();
+	printquery_usermacros();
 	break;
 
 case 'history':
@@ -606,6 +607,7 @@ case 'manageCategories':
 
 case 'manageAnnotation':
 	printquery_manageannotation();
+	printquery_xmlvisualisation();
 	break;
 
 case 'cachedQueries':

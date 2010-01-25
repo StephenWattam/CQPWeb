@@ -227,6 +227,111 @@ function printquery_usersettings()
 
 
 
+function printquery_usermacros()
+{
+	global $username;
+	
+	/* add a macro? */
+	if (!empty($_GET['macroNewName']))
+		user_macro_create($_GET['macroUsername'], $_GET['macroNewName'],$_GET['macroNewBody']); 
+	
+	/* delete a macro? */
+	if (!empty($_GET['macroDelete']))
+		user_macro_delete($_GET['macroUsername'], $_GET['macroDelete'],$_GET['macroDeleteNArgs']); 
+	
+	?>
+<table class="concordtable" width="100%">
+	<tr>
+		<th class="concordtable" colspan="3">User's CQP macros</th>
+	</tr>
+	
+	<?php
+	
+	$result = do_mysql_query("select * from user_macros where username='$username'");
+	if (mysql_num_rows($result) == 0)
+	{
+		?>
+		
+		<tr>
+			<td colspan="3" align="center" class="concordgrey">
+				&nbsp;<br/>
+				You have not created any user macros.
+				<br/>&nbsp;
+			</td>
+		</tr>
+		
+		<?php
+	}
+	else
+	{
+		?>
+		
+		<th class="concordtable">Macro</th>
+		<th class="concordtable">Macro expansion</th>
+		<th class="concordtable">Actions</th>
+		
+		<?php
+		
+		while (false !== ($r = mysql_fetch_object($result)))
+		{
+			echo '<tr>';
+			
+			echo "<td class=\"concordgeneral\">{$r->macro_name}({$r->macro_num_args})</td>";
+			
+			echo '<td class="concordgrey"><pre>'
+				. $r->macro_body
+				. '</pre></td>';
+			
+			echo '<form action="index.php" method="get"><td class="concordgeneral" align="center">'
+				. '<input type="submit" value="Delete macro" /></td>'
+				. '<input type="hidden" name="macroDelete" value="'.$r->macro_name.'" />'
+				. '<input type="hidden" name="macroDeleteNArgs" value="'.$r->macro_num_args.'" />'
+				. '<input type="hidden" name="macroUsername" value="'.$username.'" />'
+				. '<input type="hidden" name="thisQ" value="userSettings" />'
+				. '<input type="hidden" name="uT" value="y" />'
+				. '</form>';
+			
+			echo '</tr>';	
+		}	
+	}
+	
+	?>
+	
+</table>
+
+<table class="concordtable" width="100%">
+	<tr>
+		<th colspan="2" class="concordtable">Create a new CQP macro</th>
+	</tr>
+	<form action="index.php" method="get">
+		<tr>
+			<td class="concordgeneral">Enter a name for the macro:</td>
+			<td class="concordgeneral">
+				<input type="text" name="macroNewName" />
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral">Enter the body of the macro:</td>
+			<td class="concordgeneral">
+				<textarea rows="25" cols="80" name="macroNewBody"></textarea>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgrey">Click here to save your macro</br>(It will be available in all CQP queries)</td>
+			<td class="concordgrey"><input type="submit" value="Create macro"/></td>
+		</tr>
+		
+		<input type="hidden" name="macroUsername" value="<?php echo $username;?>" />
+		<input type="hidden" name="thisQ" value="userSettings" />
+		<input type="hidden" name="uT" value="y" />
+		
+	</form>
+</table>
+	<?php
+
+}
+
+
 
 
 
@@ -529,6 +634,10 @@ function printquery_latest()
 	<p>&nbsp;</p>
 	
 	<ul>
+		<b>Version 2.12</b>, 2010-01-xx<br/>&nbsp;<br/>
+		Added first version of XML visualisation. Also added support for CQP macros and for configurable context
+		width in concordances (including xml-based context width as well as word-based context width).
+		<br/>&nbsp;</li>
 		<li>
 		<b>Version 2.11</b>, 2010-01-20<br/>&nbsp;<br/>
 		First release of 2010! CQPweb is now two years old.

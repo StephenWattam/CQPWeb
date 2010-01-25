@@ -121,7 +121,7 @@ foreach ($categories as $cat)
 	$corpus_list = array();
 	while ( ($x = mysql_fetch_object($result)) != false)
 		$corpus_list[] = $x;
-	//echo '<pre>';print_r($corpus_list);echo'</pre>';
+//echo '<pre>';print_r($corpus_list);echo'</pre>';
 	
 	
 	
@@ -169,7 +169,10 @@ foreach ($categories as $cat)
 }
 
 ?>
+
+			
 </table>
+
 <?php
 
 
