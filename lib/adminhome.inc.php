@@ -104,10 +104,12 @@ connect_global_mysql();
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>CQPweb Sysadmin Control Panel</title>
 <link rel="stylesheet" type="text/css" href="<?php echo $css_path_for_adminpage;?>" />
-<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
-<!-- nonstandard header includes javascript for corpus highlight function! -->
+<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script>
+
+<!-- nonstandard header includes javascript for doodads specific to the admin-interface -->
 <script type="text/javascript">
 <!--
+// functions for corpus highlighting in main table
 function corpus_box_highlight_on(corpus)
 {
 	document.getElementById("corpusCell_"+corpus).className = "concorderror";
@@ -115,6 +117,90 @@ function corpus_box_highlight_on(corpus)
 function corpus_box_highlight_off(corpus)
 {
 	document.getElementById("corpusCell_"+corpus).className = "concordgeneral";
+}
+// functions for adding extra lines to the "install corpus" forms
+function add_s_attribute_row()
+{
+	var number = document.getElementById('s_instruction_cell').rowSpan + 1;
+	document.getElementById('s_instruction_cell').rowSpan = number.toString();
+
+	var theTr = document.createElement('tr');
+	var theTd = document.createElement('td');
+	var theIn = document.createElement('input');
+	
+	theTd.setAttribute('colspan','5');
+	theTd.setAttribute('align','center');
+	theTd.setAttribute('class','concordgeneral');
+	theIn.setAttribute('type','text');
+	theIn.setAttribute('name','customS'+number);
+	theIn.setAttribute('onKeyUp','check_c_word(this)');
+	
+	theTr.appendChild(theTd);
+	theTd.appendChild(theIn);
+	
+	document.getElementById('s_att_row_1').parentNode.insertBefore(theTr,
+		document.getElementById('p_att_header_row'));
+}
+function add_p_attribute_row()
+{
+	var number = document.getElementById('p_instruction_cell').rowSpan;
+	var newRowSpan = number + 1;
+	document.getElementById('p_instruction_cell').rowSpan = newRowSpan.toString();
+
+	var theTr = document.createElement('tr');
+
+	var theTd = document.createElement('td');
+	var theIn = document.createElement('input');
+	theTd.setAttribute('align','center');
+	theTd.setAttribute('class','concordgeneral');
+	theIn.setAttribute('type','radio');
+	theIn.setAttribute('name','customPPrimary');
+	theIn.value = number;
+	theTd.appendChild(theIn);
+	theTr.appendChild(theTd);
+	
+	theTd = document.createElement('td');
+	theIn = document.createElement('input');
+	theTd.setAttribute('align','center');
+	theTd.setAttribute('class','concordgeneral');
+	theIn.setAttribute('type','text');
+	theIn.setAttribute('maxlength','15');
+	theIn.setAttribute('name','customPHandle'+number);
+	theIn.setAttribute('onKeyUp','check_c_word(this)');
+	theTd.appendChild(theIn);
+	theTr.appendChild(theTd);
+
+	theTd = document.createElement('td');
+	theIn = document.createElement('input');
+	theTd.setAttribute('align','center');
+	theTd.setAttribute('class','concordgeneral');
+	theIn.setAttribute('type','text');
+	theIn.setAttribute('maxlength','150');
+	theIn.setAttribute('name','customPDesc'+number);
+	theTd.appendChild(theIn);
+	theTr.appendChild(theTd);
+
+	theTd = document.createElement('td');
+	theIn = document.createElement('input');
+	theTd.setAttribute('align','center');
+	theTd.setAttribute('class','concordgeneral');
+	theIn.setAttribute('type','text');
+	theIn.setAttribute('maxlength','150');
+	theIn.setAttribute('name','customPTagset'+number);
+	theTd.appendChild(theIn);
+	theTr.appendChild(theTd);
+
+	theTd = document.createElement('td');
+	theIn = document.createElement('input');
+	theTd.setAttribute('align','center');
+	theTd.setAttribute('class','concordgeneral');
+	theIn.setAttribute('type','text');
+	theIn.setAttribute('maxlength','150');
+	theIn.setAttribute('name','customPurl'+number);
+	theTd.appendChild(theIn);
+	theTr.appendChild(theTd);
+	
+	document.getElementById('p_att_row_1').parentNode.appendChild(theTr);
 }
 //-->
 </script>
@@ -130,9 +216,9 @@ function corpus_box_highlight_off(corpus)
 
 
 
-/***********************/
+/* ******************* */
 /* PRINT SIDE BAR MENU */
-/***********************/
+/* ******************* */
 
 // TTD: add tool tips using onmouseOver
 
@@ -914,7 +1000,7 @@ function printquery_installcorpus_unindexed()
 			}
 			?>
 		</table>
-		<table class="concordtable" width="100%">
+		<table class="concordtable" width="100%" id="annotation_table">
 			<tr>
 				<th  colspan="6" class="concordtable">
 					Define corpus annotation
@@ -923,19 +1009,24 @@ function printquery_installcorpus_unindexed()
 			<tr>
 				<td  colspan="6" class="concordgrey">
 					You do not need to specify the <em>word</em> as a P-attribute or the <em>text</em> as
-					an S-atribute. Both are assumed and added automatically.
+					an S-attribute. Both are assumed and added automatically.
 				</td>
 			</tr>
 			<tr>
 				<th colspan="6" class="concordtable">S-attributes (XML elements)</th>
 			</tr>
-			<tr>
-				<td rowspan="6" class="concordgeneral">
+			<tr id="s_att_row_1">
+				<td rowspan="6" class="concordgeneral" id="s_instruction_cell">
 					<input type="radio" name="withDefaultSs" value="1" checked="checked"/>
 					Use default setup for S-attributes (only &lt;s&gt;)
 					<br/>
 					<input type="radio" name="withDefaultSs" value="0"/>
-					Use custom setup (specify up to 6 attributes in the boxes opposite)
+					Use custom setup (specify attributes in the boxes opposite)
+					
+					<br/>&nbsp<br/>
+					<a onClick="add_s_attribute_row()" class="menuItem">
+						[Embiggen form]
+					</a>
 				</td>
 				<?php 
 				foreach(array(1,2,3,4,5,6) as $q)
@@ -944,21 +1035,27 @@ function printquery_installcorpus_unindexed()
 					echo "<td colspan=\"5\"align=\"center\" class=\"concordgeneral\">
 							<input type=\"text\" name=\"customS$q\"  onKeyUp=\"check_c_word(this)\"/>
 						</td>
-					</tr>";
+					</tr>
+					";
 				}
 				?>
 
-			</tr>
-			<tr>
+			<!--/tr-->
+			<tr id="p_att_header_row">
 				<th colspan="6" class="concordtable">P-attributes (word tags)</th>
 			</tr>
-			<tr>
-				<td rowspan="7" class="concordgeneral">
+			<tr id="p_att_row_1">
+				<td rowspan="7" class="concordgeneral" id="p_instruction_cell">
 					<input type="radio" name="withDefaultPs" value="1" checked="checked"/>
 					Use default setup for P-attributes (pos, hw, semtag, class, lemma)
 					<br/>
 					<input type="radio" name="withDefaultPs" value="0"/>
-					Use custom setup (specify up to 6 attributes in the boxes opposite)
+					Use custom setup (specify attributes in the boxes opposite)
+					
+					<br/>&nbsp<br/>
+					<a onClick="add_p_attribute_row()" class="menuItem">
+						[Embiggen form]
+					</a>
 				</td>
 				<td class="concordgrey" align="center">Primary?</td>
 				<td class="concordgrey" align="center">Handle</td>

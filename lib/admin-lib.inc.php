@@ -52,7 +52,6 @@ class corpus_install_info
 		/* first thing: establish which mode we are dealing with */
 		$this->already_cwb_indexed = ($_GET['admFunction'] === 'installCorpusIndexed'); 
 		
-		
 		/* get each thing from GET */
 		/* *********************** */
 		
@@ -189,6 +188,7 @@ class corpus_install_info
 		else
 			$this->load_p_atts_based_on_get();
 
+
 		/* ******************* */
 
 		
@@ -202,7 +202,7 @@ class corpus_install_info
 		}
 		else
 		{
-			foreach(array(1,2,3,4,5,6) as $q)
+			for ( $q = 1 ; isset($_GET["customS$q"]) ; $q++ )
 			{
 				if (preg_match('/^\w+(:0)?(\+\w+)+$/', $_GET["customS$q"]) > 0)
 					$cand = $_GET["customS$q"];
@@ -220,7 +220,10 @@ class corpus_install_info
 
 		if ($_GET['cssCustom'] == 1)
 		{
+			// TODO
 			// I am no longer certain if this will work properly??? haven't tried yet, should do so
+			// note that this was written BEFORE we had the generalised magic-quotes-nullifying code
+			// that is found in defaults.inc.php
 			if (get_magic_quotes_gpc() == 0)
 				$_GET['cssCustomUrl'] = addcslashes($_GET['cssCustomUrl'], "'");
 			$this->css_url = addcslashes($_GET['cssCustomUrl'], "'");
@@ -275,7 +278,7 @@ class corpus_install_info
 		}
 		else
 		{
-			foreach(array(1,2,3,4,5,6) as $q)
+			for ( $q = 1 ; isset($_GET["customPHandle$q"]) ; $q++ )
 			{
 				$cand = preg_replace('/\W/', '', $_GET["customPHandle$q"]);
 				if ($cand === '')
@@ -1777,9 +1780,6 @@ function cqpweb_mysql_recreate_tables()
 			`visualisation_code` text,
 			key(`corpus`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
-				echo '
-				<tr>
-				';
 	
 	
 	return $create_statements;

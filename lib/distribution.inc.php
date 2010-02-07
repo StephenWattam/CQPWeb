@@ -86,6 +86,7 @@ echo '<title>' . $corpus_title . ' -- CQPweb showing distribution of query solut
 echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 ?>
 <script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
+<script type="text/javascript" src="../lib/javascript/cqpweb-distTableSort.js"></script> 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 </head>
@@ -704,11 +705,20 @@ function print_distribution_table($classification_handle, $classification_desc, 
 			</th>
 		</tr>
 		<tr>
-			<td class="concordgrey">Category</td>
+			<td class="concordgrey">
+				Category 
+				<a class="menuItem" onClick="distTableSort(this, 'cat')" 
+					onMouseOver="return escape('Sort by category')">[&darr;]</a>
+			</td>
 			<td class="concordgrey"><center>Words in category</center></td>
 			<td class="concordgrey"><center>Hits in category</center></td>
 			<td class="concordgrey"><center>Dispersion<br/>(no. files with 1+ hits)</center></td>
-			<td class="concordgrey"><center>Frequency<br/>per million words in category</td>
+			<td class="concordgrey"><center>
+				Frequency 
+				<a class="menuItem" onClick="distTableSort(this, 'freq')" 
+					onMouseOver="return escape('Sort by frequency per million')">[&darr;]</a>
+				<br/>per million words in category
+			</td>
 		</tr>
 	<?php
 

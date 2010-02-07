@@ -72,6 +72,8 @@ include('../lib/xml.inc.php');
 include('../lib/cwb.inc.php');
 include('../lib/cqp.inc.php');
 
+/* expand the PHP memory limit to the same generous limit allowed for CWB */
+ini_set('memory_limit', "${cwb_max_ram_usage_cli}M");
 
 /* connect to mySQL */
 connect_global_mysql();
