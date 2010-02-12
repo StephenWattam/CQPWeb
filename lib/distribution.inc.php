@@ -762,7 +762,7 @@ function print_distribution_table($classification_handle, $classification_desc, 
 		/* print a data row */
 		?>
 		<tr>
-			<td class="concordgeneral">
+			<td class="concordgeneral" id="<?php echo $c['handle'];?>">
 				<?php 
 					if ($desclist[$c['handle']] == '')
 						echo $c['handle'];

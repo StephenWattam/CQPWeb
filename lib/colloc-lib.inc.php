@@ -139,7 +139,6 @@ function create_statistic_sql_query($stat, $soloform = '')
 
 	global $begin_at;
 
-
 	/* abbreviate the name for nice-ness in this function */
 	$freq_table = $freq_table_to_use;
 	
@@ -160,6 +159,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 		$range_condition = "dist = $calc_range_end";
 	else
 		$range_condition = "dist between $calc_range_begin and $calc_range_end";
+
 
 	/* sql_endclause -- a block at the end which is the same regardless of the statistic */
 	if ($soloform === '')
@@ -245,6 +245,8 @@ function create_statistic_sql_query($stat, $soloform = '')
 			$freq_table.freq, count(distinct(text_id)) as text_id_count
 			from $bwMYSQLusertable.$dbname, $freq_table 
 			$sql_endclause";
+		/* for rank by freq, we need to sort by something other than frequency */
+		$sql = str_replace('order by significance', 'order by observed', $sql);
 		break;
 	
 	case 1:		/* Mutual information */

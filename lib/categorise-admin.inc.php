@@ -416,6 +416,7 @@ function categorise_separate()
 			hits_left,
 			time_of_query,
 			hits,
+			hit_texts,
 			file_size,
 			saved,
 			save_name
@@ -432,6 +433,7 @@ function categorise_separate()
 			'". $query_record['hits_left'] . (empty($query_record['hits_left']) ? '' : '~') . $solution_count ."',
 			" . time() . ",
 			{$query_record['hits']},
+			{$query_record['hit_texts']},
 			" . cqp_file_sizeof($newqname) . ",
 			1,
 			'$newsavename'		
