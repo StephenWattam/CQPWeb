@@ -388,7 +388,7 @@ function url_absolutify($u)
 		/* make address absolute by adding server of this script plus folder path of this URI  */
 		/* this may not be foolproof, because it assumes that the path will always lead to the */
 		/* folder in which the current php script is located -- but should work for most cases */
-		return 'http://' . $_SERVER['SERVER_NAME'] 
+		return (defined($_SERVER['HTTPS']) ? 'https://' : 'http://'). $_SERVER['SERVER_NAME'] 
 			. preg_replace('/\/[^\/]*\z/', '/', $_SERVER['REQUEST_URI']) . $u;
 }
 
