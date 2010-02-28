@@ -533,35 +533,17 @@ function check_freqtable_subcorpus($subcorpus_name)
 
 
 
-/* delete a "cluster" of freq tables relating to a particular subsection, + their saved_fts entry */
+/**
+ * delete a "cluster" of freq tables relating to a particular subsection, + their saved_fts entry 
+ */
 function delete_freqtable($freqtable_name)
 {
-	global $mysql_link;
+	do_mysql_query("delete from saved_freqtables where freqtable_name = '$freqtable_name'");
 	
-	$sql_query = "delete from saved_freqtables where freqtable_name = '$freqtable_name'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-			__FILE__, __LINE__);
-	unset($result);
-	
-	$sql_query = "show tables like '$freqtable_name%'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-			__FILE__, __LINE__);
+	$result = do_mysql_query("show tables like '$freqtable_name%'");
+
 	while ( ($r = mysql_fetch_row($result)) !== false )
-		$to_del[] = $r[0];
-	unset($result);
-	foreach ($to_del as $d)
-	{
-		$sql_query = "drop table if exists $d";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-				__FILE__, __LINE__);
-		unset($result);
-	}
+		do_mysql_query("drop table if exists ${r[0]}");
 }
 
 

@@ -494,7 +494,6 @@ function install_create_settings_file($filepath, $info)
 // TODO -- check this against cwb_uncreate_corpus and prevent duplication of functionality
 function delete_corpus_from_cqpweb($corpus)
 {
-	global $mysql_link;
 	global $cwb_registry;
 	global $cwb_datadir;
 	global $corpus_cqp_name;
@@ -502,20 +501,12 @@ function delete_corpus_from_cqpweb($corpus)
 
 	/* get the cwb name of the corpus, etc. */
 	include("../$corpus/settings.inc.php");
-// overides not allowed any mroe
-//	if (isset($this_corpus_directory_override['reg_dir']))
-//		$cwb_registry = $this_corpus_directory_override['reg_dir'];
-//	if (isset($this_corpus_directory_override['data_dir']))
-//		$cwb_datadir = $this_corpus_directory_override['data_dir'];	
 	
 	$corpus_cwb_lower = strtolower($corpus_cqp_name);
 	
 	/* check the corpus is actually there to delete */
 	$sql_query = "select corpus, cwb_external from corpus_metadata_fixed where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	if (mysql_num_rows($result) < 1)
 		return;
 	
@@ -524,53 +515,41 @@ function delete_corpus_from_cqpweb($corpus)
 	$also_delete_cwb = !( (bool)$cwb_external);
 	
 
-	/* delete all saved queries, subcorpus frequency tables, and dbs associated with this corpus */
+	/* delete all saved queries, frequency tables, and dbs associated with this corpus */
 	$sql_query = "select query_name from saved_queries where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	while (($r = mysql_fetch_row($result)) !== false)
 		delete_cached_query($r[0]);
+
 	$sql_query = "select dbname from saved_dbs where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	while (($r = mysql_fetch_row($result)) !== false)
 		delete_db($r[0]);
+
 	$sql_query = "select freqtable_name from saved_freqtables where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	while (($r = mysql_fetch_row($result)) !== false)
 		delete_freqtable($r[0]);
 	
 	/* delete the actual subcorpora */
-	$sql_query = "delete from saved_subcorpora where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);	
-
+	do_mysql_query("delete from saved_subcorpora where corpus = '$corpus'");
+	
+	/* delete main frequency tables */
+	// TODO possible bug here if someone has one corpus called XXX and another called XXX_YYY
+	// deleting freq tables for the former will take the latter with it!
+	$sql_query = "show tables like 'freq_corpus_${corpus}_%'";
+	$result = do_mysql_query($sql_query);
+	while (($r = mysql_fetch_row($result)) !== false)
+		do_mysql_query("drop table if exists ${r[0]}");
+	
+	/* delete CWB freq-index table */
+	do_mysql_query("drop table if exists freq_text_index_$corpus");
 
 	/* delete the entries from corpus_metadata_fixed / variable / annotation */
-	$sql_query = "delete from corpus_metadata_fixed where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	$sql_query = "delete from corpus_metadata_variable where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	$sql_query = "delete from annotation_metadata where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query("delete from corpus_metadata_fixed where corpus = '$corpus'");
+	do_mysql_query("delete from corpus_metadata_variable where corpus = '$corpus'");
+	do_mysql_query("delete from annotation_metadata where corpus = '$corpus'");
+
 	
 	/* clear the text metadata (see below) */
 	delete_text_metadata_for($corpus);
@@ -1206,6 +1185,36 @@ function password_insert_lancaster($n)
 
 
 /**
+ * Utility function for the create_text_metadata_for functions.
+ * Returns nothing, but deletes the text_metadata_for table and aborts the script 
+ * if there are bad text ids.
+ * 
+ * (NB - doesn't do any other cleanup e.g. temporary files).
+ * 
+ * This function should be called before any other updates are made to the database.
+ */
+function create_text_metadata_check_text_ids($corpus)
+{
+	$result = do_mysql_query("select text_id from text_metadata_for_$corpus 
+								where text_id REGEXP '[^A-Za-z0-9_]'");
+	if (mysql_num_rows($result) == 0)
+		return;
+		
+	$bad_ids = '';
+	while (($r = mysql_fetch_row($result)) !== false)
+		$bad_ids .= " '${r[0]}';";
+	
+	do_mysql_query("drop table if exists text_metadata_for_$corpus");
+	
+	$msg = "The data source you specified for the text metadata contains badly-formatted text"
+		. " ID codes, as follows: <strong>"
+		. $bad_ids
+		. "</strong> (text ids can only contain unaccented letters, numbers, and underscore).";
+	
+	exiterror_general($msg);
+}
+
+/**
  * Wrapper round create_text_metadata_for() for when we need to create the file from CQP.
  * $fields_to_show is (part of) a CQP instruction: see admin-execute.php 
  */
@@ -1355,6 +1364,7 @@ function create_text_metadata_for()
 	
 	do_mysql_query($create_statement);
 	do_mysql_query($load_statement);
+	create_text_metadata_check_text_ids($corpus);
 	
 	if ($update_statement !== '')
 		do_mysql_query($update_statement, $mysql_link);
@@ -1445,6 +1455,7 @@ function create_text_metadata_for_minimalist()
 
 	do_mysql_query($create_statement);
 	do_mysql_query($load_statement);
+	create_text_metadata_check_text_ids($corpus);
 
 	unlink($input_file);
 	

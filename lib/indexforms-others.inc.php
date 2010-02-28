@@ -634,13 +634,15 @@ function printquery_latest()
 	<p>&nbsp;</p>
 	
 	<ul>
-		<b>Version 2.12</b>, 2010-01-xx<br/>&nbsp;<br/>
+		<b>Version 2.12</b>, 2010-03-xx<br/>&nbsp;<br/>
 		Added first version of XML visualisation.
 		<br/>&nbsp;<br/>
 		Also made distribution tables sortable on frequency or category handle (latter remains the default). 
 		<br/>&nbsp;<br/>
 		Also added support for CQP macros and for configurable context
 		width in concordances (including xml-based context width as well as word-based context width).
+		<br/>&nbsp;<br/>
+		Plus many bug fixes and minor tweaks.
 		<br/>&nbsp;</li>
 		<li>
 		<b>Version 2.11</b>, 2010-01-20<br/>&nbsp;<br/>
