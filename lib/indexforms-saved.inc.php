@@ -32,7 +32,6 @@
 
 function printquery_history()
 {
-	global $mysql_link;
 	global $username;
 	global $default_history_per_page;
 	global $corpus_sql_name;
@@ -97,12 +96,7 @@ function printquery_history()
 	}
 
 
-	$result = mysql_query($sql_query, $mysql_link);
-
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-		
+	$result = do_mysql_query($sql_query);
 	
 	$linkChangeView = "&nbsp;&nbsp;&nbsp;&nbsp;(<a href=\"index.php?"
 		. url_printget(array(array('historyView', ( ($view == 'simple') ? 'cqp' : 'simple' )))) 
@@ -139,11 +133,8 @@ function printquery_history()
 					
 					$temp_sql_query = "SELECT distinct(user) FROM query_history  
 										where corpus = '$corpus_sql_name' order by user";
-					$temp_result = mysql_query($temp_sql_query, $mysql_link);
+					$temp_result = do_mysql_query($temp_sql_query);
 				
-					if ($temp_result == false)
-						exiterror_mysqlquery(mysql_errno($mysql_link), 
-							mysql_error($mysql_link), __FILE__, __LINE__);
 					while ($r = mysql_fetch_row($temp_result))
 						echo '<option value="' . $r[0] . '">' . $r[0] . '</option>';
 					unset($temp_result);
@@ -354,7 +345,6 @@ function printquery_history()
 function printquery_catqueries()
 {
 	global $username;
-	global $mysql_link;
 	global $corpus_sql_name;
 	global $default_history_per_page;
 	
@@ -372,6 +362,7 @@ function printquery_catqueries()
 		$user_to_show = $_GET['showUser'];
 	else
 		$user_to_show = $username;
+
 
 	if ($user_to_show == '__ALL')
 		$current_string = 'Currently showing history for all users';
@@ -413,11 +404,8 @@ function printquery_catqueries()
 					
 					$temp_sql_query = "SELECT distinct(user) FROM saved_catqueries 
 											where corpus = '$corpus_sql_name' order by user";
-					$temp_result = mysql_query($temp_sql_query, $mysql_link);
-				
-					if ($temp_result == false)
-						exiterror_mysqlquery(mysql_errno($mysql_link), 
-							mysql_error($mysql_link), __FILE__, __LINE__);
+					$temp_result = do_mysql_query($temp_sql_query);
+
 					while ($r = mysql_fetch_row($temp_result))
 						echo '<option value="' . $r[0] . '">' . $r[0] . '</option>';
 					unset($temp_result);
@@ -477,16 +465,12 @@ function printquery_catqueries()
 	 * the saved_catqueries table does not contain the actual info, for that we need to look up the savename etc. 
 	 * from the main query cache
 	 */
-	$user_clause = ($usercolumn ? " user='$username' and " : '');
-	$sql_query = "select catquery_name, category_list, dbname from saved_catqueries 
-					where $user_clause corpus='$corpus_sql_name'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	
+	$user_clause = ($usercolumn ? '' : " user='$user_to_show' and ");
+	$result = do_mysql_query("select catquery_name, category_list, dbname from saved_catqueries 
+								where $user_clause corpus='$corpus_sql_name'");
+
 	$catqueries_to_show = array();
-	$i = 1;
+
 	for ( $i = 1 ; true ; $i++ )
 	{
 		/* note, this loop includes some hefty mysql-ing 
@@ -500,12 +484,8 @@ function printquery_catqueries()
 			continue;
 
 		/* find out how many rows have been assigned a value */
-		$sql_query = "select count(*) from {$row[2]} where category is not NULL";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false)
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		list($n) = mysql_fetch_row($result);
+		$inner_result = do_mysql_query("select count(*) from {$row[2]} where category is not NULL");
+		list($n) = mysql_fetch_row($inner_result);
 		
 		/* assemble the info for this categorised query line */
 		$catqueries_to_show[$i] = array(
@@ -514,10 +494,7 @@ function printquery_catqueries()
 			'query_record' => check_cache_qname($row[0]),
 			'number_categorised' => $n
 			);
-		$i++;
 	}
-
-
 
 
 	/* set this up as a variable, so it doesn't have to be used every time */
@@ -648,7 +625,7 @@ function printquery_savedqueries()
 {
 	global $default_history_per_page;
 	global $username;
-	global $mysql_link;
+	global $corpus_sql_name;
 
 
 
@@ -704,12 +681,10 @@ function printquery_savedqueries()
 					
 					$temp_sql_query = "SELECT distinct(user) FROM saved_queries where saved = 1 
 										and corpus = '$corpus_sql_name' order by user";
-					$temp_result = mysql_query($temp_sql_query, $mysql_link);
+					$temp_result = do_mysql_query($temp_sql_query);
 				
-					if ($temp_result == false)
-						exiterror_mysqlquery(mysql_errno($mysql_link), 
-							mysql_error($mysql_link), __FILE__, __LINE__);
-					while ($r = mysql_fetch_row($temp_result))
+
+					while (($r = mysql_fetch_row($temp_result)) !== false)
 						echo '<option value="' . $r[0] . '">' . $r[0] . '</option>';
 					unset($temp_result);
 					
@@ -772,7 +747,6 @@ function printquery_savedqueries()
 function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_unsaved = true, $show_filesize = true)
 {
 	global $username;
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	if ($user_to_show == NULL)
@@ -802,11 +776,8 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 	if (!user_is_superuser($username))
 		$show_filesize = false;
 
-	$result = mysql_query($sql_query, $mysql_link);
+	$result = do_mysql_query($sql_query);
 
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
 	
 	?>
 	<table class="concordtable" width="100%">
