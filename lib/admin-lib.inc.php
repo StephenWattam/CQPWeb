@@ -1455,7 +1455,7 @@ function create_text_metadata_for_minimalist()
 
 	do_mysql_query($create_statement);
 	do_mysql_query($load_statement);
-	create_text_metadata_check_text_ids($corpus);
+	create_text_metadata_check_text_ids($corpus_sql_name);
 
 	unlink($input_file);
 	

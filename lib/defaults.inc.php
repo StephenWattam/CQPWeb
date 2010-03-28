@@ -184,7 +184,7 @@ if (!isset($default_words_in_download_context))
 
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '2.12');
+define('CQPWEB_VERSION', '2.13');
 
 
 /* "reserved words" that can't be used for corpus ids */

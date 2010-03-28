@@ -634,7 +634,12 @@ function printquery_latest()
 	<p>&nbsp;</p>
 	
 	<ul>
-		<b>Version 2.12</b>, 2010-03-xx<br/>&nbsp;<br/>
+		<li>
+		<b>Version 2.13</b>, 2010-043-xx<br/>&nbsp;<br/>
+		More bug fixes.
+		<br/>&nbsp;</li>
+		<li>
+		<b>Version 2.12</b>, 2010-03-19<br/>&nbsp;<br/>
 		Added first version of XML visualisation.
 		<br/>&nbsp;<br/>
 		Also made distribution tables sortable on frequency or category handle (latter remains the default). 
