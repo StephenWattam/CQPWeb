@@ -213,6 +213,7 @@ function add_p_attribute_row()
 
 <?php
 
+//show_var($_SERVER);
 
 
 
@@ -220,7 +221,7 @@ function add_p_attribute_row()
 /* PRINT SIDE BAR MENU */
 /* ******************* */
 
-// TTD: add tool tips using onmouseOver
+// TODO : add tool tips using onmouseOver
 
 ?>
 <table class="concordtable" width="100%">

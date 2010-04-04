@@ -375,20 +375,23 @@ function cqpweb_handle_check($string)
 
 
 
-/* $u will be treated as a relative address if it does not begin with "http"
-   and as an absolute address if it does 
-   */
+/**
+ * $u will be treated as a relative address if it does not begin with "http"
+ * and as an absolute address if it does.
+ * 
+ * Note, this "absolute" in the sense of having a server specified at the start, 
+ * it can still contain relativising elements such as '/../' etc.
+ */
 function url_absolutify($u)
 {
-	/// todo: change to substr to save wear and tear on the regex engine
-	if (preg_match('/\Ahttp/', $u))
+	if (preg_match('/\Ahttps?:/', $u))
 		/* address is already absolute */
 		return $u;
 	else
 		/* make address absolute by adding server of this script plus folder path of this URI  */
 		/* this may not be foolproof, because it assumes that the path will always lead to the */
 		/* folder in which the current php script is located -- but should work for most cases */
-		return ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] 
+		return ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] 
 			. preg_replace('/\/[^\/]*\z/', '/', $_SERVER['REQUEST_URI']) . $u;
 }
 

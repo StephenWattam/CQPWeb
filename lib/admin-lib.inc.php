@@ -1150,7 +1150,10 @@ function print_javascript_for_password_insert($password_function = NULL, $n = 49
  * To get nicer candidate passwords, set a different function in config.inc.php
  * 
  * (for example, password_insert_lancaster -- which, however, is subject to the
- * webpage at Lancaster that it exploits remaining as it is!)
+ * webpage at Lancaster University that it exploits being available!)
+ * 
+ * Whatever function you use must be in a source file included() in adminhome.inc.php
+ * (such as this file is). 
  * 
  */
 function password_insert_internal($n)
@@ -1171,14 +1174,19 @@ function password_insert_lancaster($n)
 {
 	$n = (int)$n;
 	
-	/* the lancs security webpage has 49 passwords per page */
+	$page = file_get_contents('https://www.lancs.ac.uk/iss/security/passwords/makepw.php?num='. $n);
+	
+	$results = explode("\n", str_replace("\r\n", "\n", $page));
+
+	/* old version based on parsing the HTML page /
 	for ($i = 0 ; $i*49 < $n ; $i++)
-		$page .= file_get_contents('http://www.lancs.ac.uk/iss/security/passwords/');
+		$page .= file_get_contents('https://www.lancs.ac.uk/iss/security/passwords/');
 
 	preg_match_all('/<TD><kbd>\s*(\w+)\s*<\/kbd><\/TD>/', $page, $m, PREG_PATTERN_ORDER);
 	
 	for ($i = 0 ; $i < $n; $i++)
 		$results[] = $m[1][$i];
+	*/
 	
 	return $results;
 }
