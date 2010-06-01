@@ -122,8 +122,11 @@ function get_ceql_script_for_perl($query, $case_sensitive)
 		
 	$result = do_mysql_query($sql_query);
 	
-	list($name_of_primary_annotation,$name_of_secondary_annotation,$name_of_tertiary_annotation,
-		$name_of_table_of_3ary_mappings,$name_of_combo_annotation)
+	list($name_of_primary_annotation,
+		$name_of_secondary_annotation,
+		$name_of_tertiary_annotation,
+		$name_of_table_of_3ary_mappings,
+		$name_of_combo_annotation)
 			= mysql_fetch_row($result);
 	
 	$string_with_table_of_3ary_mappings = lookup_tertiary_mappings($name_of_table_of_3ary_mappings);

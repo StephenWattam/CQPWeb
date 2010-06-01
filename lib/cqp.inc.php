@@ -24,24 +24,24 @@
 
 
 
-/* this file contains the CQP class, which calls CQP as a child process */
-/* and handles all interaction with that excellent program */
+/**
+ * This file contains the CQP class, which calls CQP as a child process
+ * and handles all interaction with that excellent program
+ */
 
 
 class CQP
 {
 	/* MEMBERS */
 	
-	/* for backwards compatability, all are public (as they were "var" in PHP 4.x) */
-	/* but note that many should probably be private. */
 	
 	/* handle for the process */
-	public $process;
+	private $process;
 
 	/* array for the input/output handles themselves to go in */
-	public $handle;
+	private $handle;
 	
-	/* version numbers */
+	/* version numbers for the version of CQP we actually connected to */
 	public $major_version;
 	public $minor_version;
 	public $beta_version;
@@ -49,16 +49,17 @@ class CQP
 	public $compile_date;
 
 	/* error handling */
-	public $error_handler;	/* set to name of user-defined error handler */
-							/* or to false if there isn't one */
-	public $status;	 		/* status of last executed command ('ok' or 'error') */
+	private $error_handler;	/* set to name of user-defined error handler
+							   or to false if there isn't one */
+	private $status;	 	/* status of last executed command ('ok' or 'error') */
 	public $error_message;	/* array containing string(s) produced by last error */
 
-	/* progress bar handling */
-	/* set progress_handler to name of user-defined progressbar handler */
-	/* or to false if there isn't one */
-	public $progress_handler;
+	/* progress bar handling:
+	 * set progress_handler to name of user-defined progressbar handler function,
+	 * or to false if there isn't one */
+	private $progress_handler;
 
+	/* Boolean: used to avoid multiple "shutdown" attempts. */
 	private $has_been_disconnected;
 
 
@@ -73,26 +74,36 @@ class CQP
 	const CHARSET_LATIN1 = 1;
 	
 	
+	/* the version of CWB that this class requires */
+	const VERSION_MAJOR_DEFAULT = 3;
+	const VERSION_MINOR_DEFAULT = 2;
+	const VERSION_BETA_DEFAULT = 0;
+	
 
 
 	/* METHODS */
-	
+
 
 	/**
 	 * Create a new CQP object.
 	 * 
 	 * Note that both parameters MUST be absolute paths WITHOUT the initial '/'.
 	 * 
+	 * This function calls exit() if the backend startup is unsuccessful.
+	 * 
 	 * @param $path_to_cqp  String : Directory containing the cqp executable
 	 * @param $cwb_registry String : Where to look for corpus registry files
-	 */ 
-	
-	function __construct($path_to_cqp, $cwb_registry)
+	 */
+	public function __construct($path_to_cqp, $cwb_registry)
 	{
+		/* check arguments */
+		if (! is_executable("/$path_to_cqp/cqp") )
+			exit("ERROR: CQP binary ``/$path_to_cqp/cqp'' is not executable! ");
+		if (! is_dir("/$cwb_registry") )
+			exit("ERROR: CWB registry dir ``/$cwb_registry'' seems not to exist! "); 
+		
 		/* create handles for CQP and leave CQP running in background */
 		
-
-	
 		/* array of settings for the three pipe-handles */
 		$io_settings = array(
 			0 => array("pipe", "r"), /* pipe allocated to child's stdin  */
@@ -113,8 +124,8 @@ class CQP
 		   0 => writeable handle connected to child stdin
 		   1 => readable  handle connected to child stdout
 		   2 => readable  handle connected to child stderr
-	       now that this has been done, fwrite to handle[0] passes input to  
-		   the program we called; and reading from handle[1] accesses the   
+	       now that this has been done, fwrite to $handle[0] passes input to  
+		   the program we called; and reading from $handle[1] accesses the   
 		   output from the program.
 	
 		   (EG) fwrite($handle[0], 'string to be sent to CQP');
@@ -122,8 +133,7 @@ class CQP
 			   -- latter will produce, 'whatever CQP sent back'
 		*/
 	
-		/* process and assign version numbers */
-		/* "cqp -c" should print version on startup */
+		/* process version numbers : "cqp -c" should print version on startup */
 		$version_string = fgets($this->handle[1]);
 		$version_string = rtrim($version_string, "\r\n");
 
@@ -144,7 +154,7 @@ class CQP
 				if ($matches[3][0] == 'b')
 				{
 					$this->beta_version_flagged = true;
-					$this->beta_version  = substr($matches[3], 1);
+					$this->beta_version = substr($matches[3], 1);
 				}
 				else
 				{
@@ -153,14 +163,11 @@ class CQP
 			}
 			$this->compile_date  = (isset($matches[4]) ? $matches[4] : NULL);
 			
-			/* we need cqp-2.2.b101 or newer */	
-			if (!( ($this->major_version >= 3)
-				|| ($this->major_version == 2 && $this->minor_version == 2 
-					&& $this->beta_version >= 101)
-				) )
-				exit("ERROR: CQP version too old ($version_string).\n");
-    		}
-
+			if ( ! $this->check_version() )
+				exit("ERROR: CQP version too old ($version_string). v"
+					. self::default_required_version() . 
+					" or higher required.\n");			
+    	}
 
 
 		/* set other members */
@@ -170,32 +177,32 @@ class CQP
 		$this->progress_handler = false;
 		$this->debug_mode = false;
 		$this->has_been_disconnected = false;
+		/* utf8 is the default charset, can be overridden when corpus is set. */
 		$this->corpus_charset = self::CHARSET_UTF8;
 
 		/* pretty-printing should be turned off for non-interactive use */
-		$this->execute("set PrettyPrint off"); 
-		/* so should the use of the progress bar */
+		$this->execute("set PrettyPrint off");
+		/* so should the use of the progress bar; setting a handler reactivates it */
 		$this->execute("set ProgressBar off");
-
 	}
-	/* end of constructor method CQP() */
+	/* end of constructor method */
 
 
-	function __destruct()
+	public function __destruct()
 	{
 		$this->disconnect();
 	}
 
-	/* this was originally the "fake distructor" function when this class was written for PHP 4.x  */
-	/* the shutdown code has been kept here rather than in __destruct() to avoid breaking old code */ 
+	/* This was originally the "fake distructor" function when this class was written for PHP 4.x;
+	 * the shutdown code has been kept here rather than in __destruct() to avoid breaking old code. */ 
 	function disconnect()
 	{
 		if ($this->has_been_disconnected)
 			return;
 		
-		/* the PHP manual says "It is important that you close any pipes */
-		/* before calling proc_close in order to avoid a deadlock" */
-		/* well, OK then! */
+		/* the PHP manual says "It is important that you close any pipes
+		 * before calling proc_close in order to avoid a deadlock" 
+		 * well, OK then! */
 		
 		if (isset($this->handle[0]))
 		{
@@ -207,7 +214,7 @@ class CQP
 		if (isset($this->handle[2]))
 			fclose($this->handle[2]);
 		
-		/* and finally shut down the child process so script doesn't hang*/
+		/* and finally shut down the child process so script doesn't hang */
 		if (isset($this->process))
 			proc_close($this->process);
 			
@@ -216,13 +223,26 @@ class CQP
 	/* end of method disconnect() */
 
 
+	/* ------------------------ */
+	/* Version handling methods */
+	/* ------------------------ */
+	
 
-	/* parameters: a minimum major, minor & beta version number */
-	/* latter two default to zero */
-	/* returns true if the current version is greater than the minimum */
-	function check_version($major, $minor = 0, $beta = 0)
+	/**
+	 * Is the version of CQP (and, ergo, CWB) that was connected equal to,
+	 * or greater than, a specified minimum?
+	 * 
+	 * Parameters: a minimum major, minor & beta version number. The latter two 
+	 * default to zero; if no value for major is set, the default numbers are used.
+	 * These defaults are public class constants.
+	 * 
+	 * Returns true if the current version (loaded in __construct) is greater than the minimum.
+	 */
+	function check_version($major = 0, $minor = 0, $beta = 0)
 	{
-		if (
+		if ($major == 0)
+			return $this->check_version_default();
+		if  (
 			($this->major_version > $major)
 			||
 			($this->major_version == $major && $this->minor_version > $minor)
@@ -234,6 +254,22 @@ class CQP
 		else
 			return false;
 	}
+	
+	private function check_version_default()
+	{
+		$this->check_version(
+			self::VERSION_MAJOR_DEFAULT,
+			self::VERSION_MINOR_DEFAULT,
+			self::VERSION_BETA_DEFAULT
+			);
+	}
+	
+	
+	
+	/* ---------------------------------------- */
+	/* Methods for controlling the CQP back-end */
+	/* ---------------------------------------- */
+
 	
 	/**
 	 * sets the corpus.
@@ -257,19 +293,19 @@ class CQP
 				$this->corpus_charset = self::CHARSET_LATIN1;
 				break;
 			default:
-				/* anything else gets treated as utf8: especially "ascii", "utf8" */
+				/* anything else gets treated as utf8: typically "ascii", "utf8" */
 				$this->corpus_charset = self::CHARSET_UTF8;
 				break;
 			}
 		}
 	}
 	
-	/*
+	/**
 	 * This is the same as "executing" the 'show corpora' command,
 	 * but the function sorts through the output for you and returns 
 	 * the list of corpora in a nice, whitespace-free array
 	 */
-	function available_corpora()
+	public function available_corpora()
 	{
 		$corpora = ' ' . implode("\t", $this->execute("show corpora"));
 		$corpora = preg_replace('/\s+/', ' ', $corpora);
@@ -279,8 +315,8 @@ class CQP
 	}
 		
 	
-	/* execute a CQP command & returns an array of results */
-	function execute($command, $my_line_handler = false)
+	/** execute a CQP command & returns an array of results */
+	public function execute($command, $my_line_handler = false)
 	{
 		$result = array();
 		if ( (!is_string($command)) || $command == "" )
@@ -349,9 +385,11 @@ class CQP
 
 
 
-	/* like execute(), but only allows query commands, so is safer */
-	/* returns an array of results */
-	function query($command, $my_line_handler = false)
+	/**
+	 * Like execute(), but only allows query commands, so is safer.
+	 * Returns an array of results.
+	 */
+	public function query($command, $my_line_handler = false)
 	{
 		$result = array();
 		$key = rand();
@@ -402,9 +440,11 @@ class CQP
 
 
 
-	/* wrapper for ->execute that gets the size of the named saved query         */
-	/* method has no error coding - relies on the normal ->execute error checking */
-	function querysize($name)
+	/**
+	 * wrapper for ->execute that gets the size of the named saved query.
+	 * method has no error coding - relies on the normal ->execute error checking.
+	 */
+	public function querysize($name)
 	{
 		if ((!is_string($name)) || $name == "")
 		{
@@ -427,9 +467,11 @@ class CQP
 
 
 	
-	/* dump named query result into table of corpus positions */
-	/* returns an array of results */
-	function dump($subcorpus, $from = '', $to = '')
+	/**
+	 * dump named query result into table of corpus positions.
+	 * returns an array of results 
+	 */
+	public function dump($subcorpus, $from = '', $to = '')
 	{
 		if ( !is_string($subcorpus)  || $subcorpus == ""  )
 		{
@@ -451,18 +493,20 @@ class CQP
 
 
 
-	/* undump named query result from table of corpus positions */
-	/* $cqp->undump($named_query, $matches); */
-
-	/* Construct a named query result from a table of corpus positions */
-	/* (i.e. the opposite of the <dump> method).  Each element of matches */
-	/* is an array as follows:           [match, matchend, target, keyword] */
-	/* that represents the anchor points of a single match.  The target and */
-	/* keyword anchors are optional, but every anonymous array in the arg */
-	/* list has to have the same length.  When the matches are not sorted in */
-	/* ascending order, CQP will automatically create an appropriate sort */
-	/* index for the undumped query result. */
-	function undump($subcorpus, $matches)
+	/**
+	 * undump named query result from table of corpus positions 
+	 * $cqp->undump($named_query, $matches); 
+	 *
+	 * Construct a named query result from a table of corpus positions 
+	 * (i.e. the opposite of the ->dump() method).  Each element of matches 
+	 * is an array as follows:           [match, matchend, target, keyword] 
+	 * that represents the anchor points of a single match.  The target and 
+	 * keyword anchors are optional, but every anonymous array in the arg 
+	 * list has to have the same length.  When the matches are not sorted in 
+	 * ascending order, CQP will automatically create an appropriate sort 
+	 * index for the undumped query result. 
+	 */
+	public function undump($subcorpus, $matches)
 	{
 		if ( (!is_string($subcorpus)) || $subcorpus == "" || (!is_array($matches)) )
 		{
@@ -473,7 +517,7 @@ class CQP
 		}
 
 		/* undump with target and keyword? this variable will determine it */
-		$with = "";
+		$with = '';
 		
 		/* number of matches (= remaining arguments) */
 		$n_matches = count($matches);
@@ -490,8 +534,8 @@ class CQP
 				$n_anchors = $row_anchors;
 				/* find out whether we're doing targets, keywords etc */
 				if ($n_anchors < 2 || $n_anchors > 4)
-					exit("CQP: row arrays in undump table must have between 
-						2 and 4 elements (first row has $n_anchors)");
+					exit("CQP: row arrays in undump table must have between "
+						. "2 and 4 elements (first row has $n_anchors)");
 				if ($n_anchors >= 3)
 					$with = "with target";
 				if ($n_anchors == 4)
@@ -501,9 +545,9 @@ class CQP
 			{
 				/* check that row matches */
 				if (! ($row_anchors == $n_anchors) )
-					exit("CQP: all rows in undump table must have the same 
-						length (first row = $n_anchors, 
-						this row = $row_anchors)");
+					exit("CQP: all rows in undump table must have the same "
+						. "length (first row = $n_anchors, " 
+						. "this row = $row_anchors)");
 			}						
 			$row_string = implode("\t", $row);
 			$row_string .= "\n";
@@ -515,8 +559,7 @@ class CQP
 		/* now send undump command with filename of temporary file */
 		$tempfile_name = $tempfile->get_filename();
 
-		$this->execute(
-			"undump $subcorpus $with < 'gzip -cd $tempfile_name |'");
+		$this->execute("undump $subcorpus $with < 'gzip -cd $tempfile_name |'");
 
 		/* delete temporary file */
 		$tempfile->close();
@@ -532,12 +575,17 @@ class CQP
 
 
 
-	/* compute frequency distribution over attribute values (single values  */
-	/* or pairs) using group command; note that the arguments are specified */
-	/* in the logical order, in contrast to "group" */
-	/* USAGE:  $cqp->group($named_query, "$anchor.$att", "$anchor.$att", $cutoff]);	*/
-	/* note: in this PHP version, unlike the Perl, all args are compulsory  */
-	function group($subcorpus, $spec1, $spec2, $cutoff)
+	/**
+	 * compute frequency distribution over attribute values (single values
+	 * or pairs) using group command; note that the arguments are specified
+	 * in the logical order, in contrast to "group".
+	 * 
+	 * USAGE:  $cqp->group($named_query, "$anchor.$att", "$anchor.$att", $cutoff]);
+	 * note: in this PHP version, unlike the Perl, all args are compulsory 
+	 * 
+	 * NB. Not tested yet.
+	 */
+	public function group($subcorpus, $spec1, $spec2, $cutoff)
 	{
 		if ( $subcorpus == "" || $spec1 == "")
 		{
@@ -571,7 +619,7 @@ class CQP
 		
 		$rows = array();
 		
-		$temp_returned = $this->exec($command);
+		$temp_returned = $this->execute($command);
 		
 		foreach($temp_returned as $t)
 			/* erm, I think this will work! */
@@ -587,21 +635,21 @@ class CQP
 
 
 
-	/* compute freq distribution for match strings based on sort clause */
-	function count($subcorpus, $sort_clause, $cutoff = 1)
+	/** compute freq distribution for match strings based on sort clause */
+	public function count($subcorpus, $sort_clause, $cutoff = 1)
 	{
 		if ($subcorpus == "" || $sort_clause == "")
 		{
 			$this->status = 'error';
-			$this->error_message = array_merge('ERROR: in CQP->count. USAGE:  $cqp->count($named_query,	$sort_clause [, $cutoff]);',
+			$this->error_message = array_merge('ERROR: in CQP->count. ' 
+				. 'USAGE: $cqp->count($named_query, $sort_clause [, $cutoff]);',
 				$this->error_message);
 			$this->error($this->error_message);
 		}
 		
 		$rows = array();
 		
-		$temp_returned 
-			= $this->execute("count $subcorpus $sort_clause cut $cutoff");
+		$temp_returned = $this->execute("count $subcorpus $sort_clause cut $cutoff");
 	
 		foreach($temp_returned as $t)
 		{
@@ -614,14 +662,22 @@ class CQP
 
 
 
+	/* ----------------------- */
+	/* Error-handling methods. */
+	/* ----------------------- */
+
 	
 	
-	/* checks CQP's stderr stream for error messages */
-	/* IF THERE IS AN ERROR ON STDERR, this function: */
-	/* (1) moves the error message from stderr to $this->error_message */
-	/* (2) prints an alert and the error message */
-	/* (3) returns true */
-	/* OTHERWISE, this function returns false */
+	/**
+	 * Checks CQP's stderr stream for error messages .
+	 * 
+	 * IF THERE IS AN ERROR ON THE CHILD PROCESS'S STDERR, this function: 
+	 * (1) moves the error message from stderr to $this->error_message 
+	 * (2) prints an alert and the error message (up to 1024 lines)
+	 * (3) returns true 
+	 * 
+	 * OTHERWISE, this function returns false.
+	 */
 	function checkerr()
 	{
 		$w = NULL;
@@ -631,14 +687,11 @@ class CQP
 		/* is there anything on the child STDERR? */
 		$ready = stream_select($r=array($this->handle[2]), $w, $e, 0);
 
-		while ($ready > 0)
-		{
-			/* read all available lines from CQP's stderr stream */
-			$this_error_string = fgets($this->handle[2]);
+		/* read all available lines from CQP's stderr stream */
+		while ($ready > 0 && count($error_strings < 1024))
+		{	
+			$error_strings[] = trim(fgets($this->handle[2]), "\r\n");
 			
-			$this_error_string = rtrim($this_error_string, "\r\n");
-			array_push($error_strings, $this_error_string);
-
 			/* check stream again before reiterating */
 			$ready = stream_select($r=array($this->handle[2]), $w, $e, 0);
 		}
@@ -656,15 +709,12 @@ class CQP
 		else
 			return false;
 	}
-	/* the perl original contained a readerr emthod */
-	/* but it was called from nowhere but inside checkerr */
-	/* so I have rolled it into checkerr */
 
 
 
 
-	/* method to read the CQP object's status variable */
-	function status()
+	/** method to read the CQP object's status variable */
+	public function status()
 	{
 		return $this->status;
 	}
@@ -672,9 +722,11 @@ class CQP
 	
 	
 	
-	/* simplified interface for checking for CQP errors */
-	/* returns TRUE if status is ok, otherwise FALSE */
-	function ok()
+	/** 
+	 * simplified interface for checking for CQP errors: 
+	 * returns TRUE if status is ok, otherwise FALSE 
+	 */
+	public function ok()
 	{
 		return ($this->status == 'ok');
 	}
@@ -682,26 +734,33 @@ class CQP
 
 
 	
-	/* Returns the last error reported by CQP. This is not reset */
-	/* automatically, so you need to check $cqp->status in order to find out */
-	/* whether the error message was actually produced by the last command. */
-	/* The return value is an array of error message lines sans newlines */
-	function get_error_message()
+	/**
+	 * Returns the last error reported by CQP. 
+	 * 
+	 * This is not reset automatically, so you need to check $cqp->status 
+	 * in order to find out whether the error message was actually produced 
+	 * by the last command.
+	 *  
+	 * The return value is an array of error message lines sans newlines.
+	 */
+	public function get_error_message()
 	{
 		return $this->error_message;
 	}
 
-	/* does same as above, but with all strings in the array rolled together */
-	function get_error_message_as_string()
+	/** does same as get_error_message, but with all strings in the array rolled together */
+	public function get_error_message_as_string()
 	{
-		$output = "";
-		foreach($this->error_message as $msg)
-			$output .= "$msg\n";
-		return $output;
+		// prob faster with implode... TODO delete this once it's established nothing broke.
+		//$output = '';
+		//foreach($this->error_message as $msg)
+			//$output .= "$msg\n";
+		//return $output;
+		return implode("\n", $this->error_message);
 	}
 
-	/* does same as above, but with paragraph and linebreak tags */
-	function get_error_message_as_html()
+	/** does same as get_error_message, but with paragraph and linebreak tags */
+	public function get_error_message_as_html()
 	{
 		$output = '<p class="errormessage">';
 		foreach ($this->error_message as $msg)
@@ -709,13 +768,27 @@ class CQP
 		$output .= "</p>\n";
 		return $output;
 	}
+	
+	/** 
+	 * Clears out all the error messages, returning the error message array
+	 * to its original state (contains only 1 empty string.
+	 * 
+	 * Can only be called by user, the object itself won't call it from within
+	 * another method. 
+	 */
+	public function clear_error_messages()
+	{
+		$this->error_message = array('');
+	}	
 
 
 	
 
-	/* takes as argument: 1 argument -- an array of strings */
-	/* reports errors in the object and CQP error messages */
-	function error($message)
+	/** 
+	 * takes as argument: 1 argument -- an array of strings to return to caller 
+	 * reports errors in the object and CQP error messages 
+	 */
+	private function error($message)
 	{
 		if ($this->error_handler != false)
 		{
@@ -733,8 +806,8 @@ class CQP
 
 
 
-	/* set user-defined error handler */
-	function set_error_handler($handler)
+	/** set user-defined error handler */
+	public function set_error_handler($handler)
 	{
 		$this->error_handler = $handler;
 	}
@@ -743,8 +816,8 @@ class CQP
 
 
 	
-	/* set on/off progress bar display and specify function to deal with it */
-	function set_progress_handler($handler = FALSE)
+	/** set on/off progress bar display and specify function to deal with it */
+	public function set_progress_handler($handler = FALSE)
 	{
 		if ($handler != false)
 		{
@@ -762,9 +835,11 @@ class CQP
 
 
 	
-	/* execution-pause handler to process information from the progressbar. */
-	/* Note: makes calls to $this->progress_handler, with arguments */
-	/* ($pass, $total, $progress [0 .. 100], $message) */
+	/**
+	 * execution-pause handler to process information from the progressbar. 
+	 * Note: makes calls to $this->progress_handler, with arguments 
+	 * ($pass, $total, $progress [0 .. 100], $message) 
+	 */
 	function handle_progressbar($line = "")
 	{
 		if ($this->debug)
@@ -788,8 +863,8 @@ class CQP
 
 
 
-	/* switch debug mode on or off */
-	function set_debug_mode($newstate)
+	/** switch debug mode on or off */
+	public function set_debug_mode($newstate)
 	{
 		$oldstate = $this->debug_mode;
 		
@@ -802,7 +877,18 @@ class CQP
 	}
 
 
-	/* input strings are always utf8. This method filters them to another encoding, if necessary */
+	/* --------------- */
+	/* Charset methods */
+	/* --------------- */
+
+
+	/** 
+	 * Switch the character set encoding of an input string from the caller.
+	 * 
+	 * Input strings from caller are always utf8. 
+	 * 
+	 * This method filters them to another encoding, if necessary.
+	 */
 	private function filter_input($string)
 	{
 		switch($this->corpus_charset)
@@ -813,7 +899,13 @@ class CQP
 			return utf8_decode($string);
 		}
 	}
-	/* output strings are always utf8. This method filters output in other encodings to utf8, if necessary */
+	/** 
+	 * Switch the character set encoding of an output string to be sent to the caller.
+	 * 
+	 * Output strings are always utf8. 
+	 * 
+	 * This method filters output in other encodings to utf8, if necessary.
+	 */
 	private function filter_output($string)
 	{
 		/* output may be an array of strings: in which case call this method recursively */
@@ -830,22 +922,30 @@ class CQP
 		case self::CHARSET_LATIN1:
 			return utf8_encode($string);
 		}
+		// TODO. Use the iconv function to add other Latin-X charsets, once CWB itself supports them.
 	}
+	/** 
+	 * Gets a string describing the charset of the currently loaded corpus,
+	 * or NULL if no corpus is loaded.
+	 */
 	public function get_corpus_charset()
 	{
 		switch ($this->corpus_charset)
 		{
 		case self::CHARSET_UTF8: 	return 'utf8';
 		case self::CHARSET_LATIN1:	return 'latin1';
+		default:					return NULL;
 		}
 	}
 	
 	
 	
-	
+	/* -------------- */
 	/* STATIC METHODS */
+	/* -------------- */
+
 	
-	/* backslash-escapes any CQP-syntaxmetacharacters in the argument string */
+	/** backslash-escapes any CQP-syntax metacharacters in the argument string */
 	public static function escape_metacharacters($s)
 	{
 		$replacements = array(
@@ -863,9 +963,16 @@ class CQP
 		/* call str_replace for backslash to make sure this happens first */
 		return strtr(str_replace('\\', '\\\\', $s), $replacements);
 	}
+	
+	/** Get a string containing the class's default required version of CWB. */ 
+	public static function default_required_version()
+	{
+		return self::VERSION_MAJOR_DEFAULT
+			. '.' . self::VERSION_MINOR_DEFAULT
+			. '.' . self::VERSION_BETA_DEFAULT;
+	}
 
 
-/* end of class CQP */
-}
+} /* end of class CQP */
 
 ?>

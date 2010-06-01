@@ -145,6 +145,7 @@ connect_global_mysql();
 /* connect to CQP */
 connect_global_cqp();
 
+// TODO block access to PHP builtins or else system is open to attack
 
 /* run the function */
 
@@ -187,7 +188,7 @@ Thank you for flying with execute.php.
 On behalf of CQP and all the corpora, I wish you a very good day,
 and I hope we\'ll see you again soon.
 
-CQPweb (c) 2008
+CQPweb (c) 2010
 </pre></body></html>';
 
 exit();

@@ -29,7 +29,8 @@
 
 
 
-// this shouldn't be a script on its own - should be subcorpus-admin as one of the functions 
+// this shouldn't be a script on its own - should be subcorpus-admin as one of the functions TODO
+// call it subcorpusFunction=freqtable
 
 /* ------------ */
 /* BEGIN SCRIPT */
@@ -77,23 +78,24 @@ connect_global_cqp();
 /* get "get" settings */
 
 /* subcorpus for which to create frequency lists */
-
 if (isset($_GET['compileSubcorpus']))
+{
 	$sc_to_compile = mysql_real_escape_string($_GET['compileSubcorpus']);
+	subsection_make_freqtables($sc_to_compile);
+}
 else
-	exiterror_parameter('Critical parameter "compileSubcorpus" was not defined!', __FILE__, __LINE__);
-
-
-
-
-
-
-
-
-
-/* do it */
-subsection_make_freqtables($sc_to_compile);
-
+{
+	/* are we to compile all subcorpora? */
+	if (isset($_GET['compileSubcorpusAll']) && $_GET['compileSubcorpusAll'] == '1')
+	{
+		$freqtabled_subcorpora = list_freqtabled_subcorpora();
+		foreach(get_list_of_subcorpora() as $sc)
+			if ( ! in_array($sc, $freqtabled_subcorpora) )
+				subsection_make_freqtables($sc);
+	}
+	else
+		exiterror_parameter('Critical parameter "compileSubcorpus" was not defined!', __FILE__, __LINE__);
+}
 
 
 
@@ -139,6 +141,6 @@ if (headers_sent() == false)
 
 // hey, make absolute_location() a library function
 // that does url_absolutify for you
-/// and if (headers_sent() == false)
+// and if (headers_sent() == false)
 // mebbe
 ?>

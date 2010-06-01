@@ -92,6 +92,10 @@ function printquery_subcorpus()
 			print_sc_nameform($badname_entered, 1);
 			print_sc_define_filenames();
 			break;
+		case 'invert':
+			print_sc_nameform($badname_entered, 4);
+			print_sc_define_invert();
+			break;		
 		/* if an unrecognised method is passed, it is treated as "metadata " */
 		default:
 		case 'metadata':
@@ -136,6 +140,7 @@ function print_sc_newform()
 									<option value="metadata">Corpus metadata</option>
 									<option value="metadata_scan">Scan text metadata</option>
 									<option value="manual">Manual entry of filenames</option>
+									<option value="invert">Invert an existing subcorpus</option>
 									<option value="query">Texts found in a saved query</option>
 								</select>
 							</td>
@@ -473,6 +478,89 @@ function print_sc_define_filenames()
 }
 
 
+function print_sc_define_invert()
+{
+	global $username;
+	global $corpus_sql_name;
+	
+	?>
+		<tr>
+			<td class="concordgeneral" colspan="4">
+				<center>
+					&nbsp;
+					<br/>
+					When you "invert" a subcorpus, you create a new subcorpus containing all texts from
+					the corpus, <strong>except</strong> those in the subcorpus you selected to invert. 
+					<br/>&nbsp;<br/>
+					Choose the subcorpus you want to invert from the list below. 
+					<br/>&nbsp;<br/>
+
+					<br/>
+					
+					<input type="submit" value="Create inverted subcorpus"/>
+					<br/>&nbsp;<br/>&nbsp;<br/>
+					<input type="reset" value="Clear form"/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<input name="action" type="submit" value="Cancel"/>
+					<br/>&nbsp;<br/>
+				</center>
+			</td>
+		</tr>
+		<input type="hidden" name="scriptMode" value="create_inverted"/>
+		<input type="hidden" name="thisQ" value="subcorpus"/>
+		
+		<tr>
+			<th class="concordtable">Select</th>
+			<th class="concordtable">Name of subcorpus</th>
+			<th class="concordtable">No. of texts</th>
+			<th class="concordtable">No. of words</th>
+	<?php
+
+
+	$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
+		where corpus = '$corpus_sql_name' and user = '$username' order by subcorpus_name";
+	$result = do_mysql_query($sql_query);
+
+
+	while (($row = mysql_fetch_assoc($result)) != false)
+	{
+		// TODO: alter this so Last restrictions is always at the top (non-urgent)
+		echo '<tr>';
+		
+		echo '<td class="concordgrey"><center><input name="subcorpusToInvert" type="radio" '
+			. 'value="' . $row['subcorpus_name'] . '" '
+			. ( $_GET['subcorpusToInvert'] == $row['subcorpus_name'] ? 'checked="checked" ' : '') 
+			. '/></center></td>';
+		
+		if ($row['subcorpus_name'] == '__last_restrictions')
+			echo '<td class="concordgeneral">Last restrictions</td>';
+		else
+			echo '<td class="concordgeneral">'
+			. $row['subcorpus_name'] . '</td>';
+		
+		echo '<td class="concordgeneral"><center>' . make_thousands($row['numfiles']) 
+			. '</center></td>'
+			. '<td class="concordgeneral"><center>' . make_thousands($row['numwords'])
+			. '</center></td>';
+			
+		echo "</tr>\n";
+	}
+	if (mysql_num_rows($result) == 0)
+		echo '<tr><td class="concordgrey" colspan="4" align="center">
+				&nbsp;<br/>No subcorpora were found.<br/>&nbsp;
+				</td></tr>';
+
+
+	
+	?>
+	
+			<input type="hidden" name="uT" value="y" />
+		</form>
+	</table>
+	<?php
+}
+
+
 
 function print_sc_showsubcorpora()
 {
@@ -564,6 +652,21 @@ function print_sc_showsubcorpora()
 			echo '<tr><td class="concordgrey" colspan="7" align="center">
 					&nbsp;<br/>No subcorpora were found.<br/>&nbsp;
 					</td</tr>';
+		else
+		{
+			?>
+			<tr>
+				<td colspan="7" class="concordgrey" align="center">
+					&nbsp<br/>
+					<form action="freqtable-compile.php" method="get">
+						<input type="submit" value="Compile frequency lists for all subcorpora" />
+						<input type="hidden" name="compileSubcorpusAll" value="1" />
+						<input type="hidden" name="uT" value="y" />
+					</form>
+				</td>
+			</tr>
+			<?php
+		}
 		
 		?>
 	</table>

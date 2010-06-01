@@ -36,8 +36,10 @@
 
 
 
-/* create a subcorpus from a space-delimited text list */
-/* note - no list-format checking is performed here, only sorting */
+/**
+ * create a subcorpus from a space-delimited text list.
+ * note - no list-format checking is performed here, only sorting 
+ */
 function create_subcorpus_list($subcorpus_name, $text_list)
 {
 	global $corpus_sql_name;
@@ -166,6 +168,29 @@ function create_subcorpus_query($subcorpus_name, $qname)
 
 
 
+function create_subcorpus_invert($subcorpus_name, $subcorpus_to_invert)
+{
+	global $corpus_sql_name;
+	
+	$texts_to_exclude = explode(' ', subcorpus_get_text_list($subcorpus_to_invert));
+	
+	$result = do_mysql_query("select text_id from text_metadata_for_$corpus_sql_name");
+	
+	$new_text_list = '';
+	
+	while (false !== ($r = mysql_fetch_row($result)))
+		if (!in_array($r[0], $texts_to_exclude))
+			$new_text_list .= $r[0] . ' ';
+	
+	$new_text_list = trim($new_text_list);
+	
+	if (empty($new_text_list))
+		exiterror_general("The subcorpus you have tried to create would not contain "
+			. "any texts!");
+	
+	create_subcorpus_list($subcorpus_name, $new_text_list);
+}
+
 
 
 function subcorpus_change_restrictions_to_list($subcorpus_name)
@@ -239,7 +264,7 @@ function subcorpus_remove_texts($subcorpus, $text_array)
 
 
 /** 
- * add the texts listed in the array to the specified subcorpus (if they are not already there
+ * add the texts listed in the array to the specified subcorpus (if they are not already there)
  */
 function subcorpus_add_texts($subcorpus, $text_array)
 {	
@@ -432,9 +457,25 @@ function subcorpus_sizeof($subcorpus)
  */
 function subcorpus_sizeof_update($subcorpus)
 {
-	
+	//TODO
 }
 
+
+/**
+ * Gets an array containing the names of all subcorpora belonging to the current user.
+ */ 
+function get_list_of_subcorpora()
+{
+	global $username;
+	global $corpus_sql_name;
+
+	$result = do_mysql_query("select subcorpus_name from saved_subcorpora 
+								where user='$username' and corpus='$corpus_sql_name'");
+	for ($list = array() ; false !== ($r = mysql_fetch_row($result)) ; )
+		$list[] = $r[0];
+	
+	return $list;
+}
 
 
 /* this would be a nice easy mySQL query, BUT it is also necessary to delete associated queries && */

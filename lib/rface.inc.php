@@ -212,8 +212,10 @@ class RFace
 		case 'number':
 			return load_vector_from_array_of_numbers($array);
 		case 'deduce':
-			return load_vector_from_array($array, $this->deduce_array_type($array));
-			// should deduce_array_type be a static method ? probably. actually, private static.
+			return load_vector_from_array($array, RFace::deduce_array_type($array));
+		default:
+			// TODO some error business here
+			break;
 		}	
 	}
 	
@@ -233,6 +235,57 @@ class RFace
 		return $this->execute("ls()");
 		//TODO: additional procesing of output required?	probably....
 	}
+	
+	/**
+	 * Deduces whether an array has a single "type" or not.
+	 * 
+	 * Returns a string describing the type: this is "string" if
+	 * every value in the array is a string, "number" if every value
+	 * is either an int or a float, "mixed" if a value of the type
+	 * contrary to the established type was detected, "undefined" if 
+	 * a value that is neither string nor number was detected.
+	 * 
+	 * Note: "mixed" and "undefined" are error values, and if they are
+	 * returned, it says nothign about the presence of errors of the 
+	 * *other* type further down the array.
+	 */
+	public static function deduce_array_type(&$array)
+	{
+		$type = 'UNKNOWN';
+		
+		foreach ($array as &$a)
+		{
+			/* get the type */
+			if ( is_int($a) || is_float($a) )
+				$currtype = 'number';
+			else if ( is_string($a) )
+				$currtype = 'string';
+			else
+				return 'undefined';	
+			
+			/* check the type against the type established so far */
+			if ($type == 'UNKNOWN')
+				$type = $currtype;
+			else
+			{
+				if ($type != $currtype)
+					return 'mixed';
+			}
+		}	
+		return $type;
+	}
+	
+	/**
+	 * Gets the numeric value of a string, regardless of whether it
+	 * represents a float or an int.
+	 * 
+	 * More reliable when building arrays of numebrs than a typecast!
+	 */
+	public static function num($string)
+	{
+		return 1 * $string;
+	}
+		
 	
 	
 	

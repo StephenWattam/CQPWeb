@@ -144,6 +144,8 @@ if (!isset($dist_num_files_to_list))
 
 if (isset($context_s_attribute))
 	$context_scope_is_based_on_s = true;
+else
+	$context_scope_is_based_on_s = false;
 
 if (!isset($context_scope))
 	$context_scope = ( $context_scope_is_based_on_s ? 1 : 12 );

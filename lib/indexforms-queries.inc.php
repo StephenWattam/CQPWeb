@@ -543,6 +543,7 @@ function printquery_keywords()
 	
 	/* subcorpora belonging to this user that have freqlists compiled (list of names returned) */
 	$subcorpora = list_freqtabled_subcorpora();
+	sort($subcorpora);
 
 	/* public freqlists - corpora */
 	$public_corpora = list_public_whole_corpus_freqtables();

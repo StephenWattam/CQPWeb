@@ -309,6 +309,7 @@ $empty = 'f2';
 if ($_GET['kwEmpty'] === 'f1')
 	$empty = 'f1';
 $title_bar_index = (int)substr($empty, 1, 1);
+$title_bar_index_other = ($title_bar_index == 1 ? 2 : 1);
 
 
 /* create the clause for if we want only positive or only negative keywords */
@@ -346,17 +347,17 @@ switch ($statistic)
 				({$table_name[2]}.freq * log({$table_name[2]}.freq / ({$table_total[2]} * ({$table_name[1]}.freq + {$table_name[2]}.freq) 
 						/ ({$table_total[1]} + {$table_total[2]})))))
 				as theValue 
-		from {$table_name[1]}, {$table_name[2]}
-		
-		where {$table_name[1]}.item = {$table_name[2]}.item 
-		and {$table_name[1]}.freq >= {$minfreq[1]}
-		and {$table_name[2]}.freq >= {$minfreq[2]}
-		
-		having theValue >= $threshold
-		$show_only_clause
-		order by theValue desc 
-		$limit_string
-		";
+			from {$table_name[1]}, {$table_name[2]}
+			
+			where {$table_name[1]}.item = {$table_name[2]}.item 
+			and {$table_name[1]}.freq >= {$minfreq[1]}
+			and {$table_name[2]}.freq >= {$minfreq[2]}
+			
+			having theValue >= $threshold
+			$show_only_clause
+			order by theValue desc 
+			$limit_string
+			";
 		break;
 		
 	case 'comp':
@@ -381,9 +382,6 @@ switch ($statistic)
 		exiterror_fullpage("Undefined statistic!", __FILE__, __LINE__);
 }
 
-//show_var($sql_query);
-//$g = "here!";
-//show_var($g);
 
 $result = mysql_query($sql_query, $mysql_link);
 if ($result == false) 
@@ -392,8 +390,6 @@ if ($result == false)
 
 $n = mysql_num_rows($result);
 
-//$g = "here2!";
-//show_var($g);
 
 $next_page_exists = ( $n == $per_page ? true : false );
 
@@ -408,7 +404,8 @@ case 'key':
 		. $table_desc[2];
 	break;
 case 'comp':
-	$description = 'Items which only occur in  ' . $table_desc[$title_bar_index];
+	$description = 'Items which occur in  ' . $table_desc[$title_bar_index]
+						. ' but not in ' . $table_desc[$title_bar_index_other];
 	break;
 default:
 	/* it shouldn't be able to get to here, but if it does, */
@@ -590,7 +587,8 @@ function print_keyword_line_plaintext($data, $line_number, $da)
 	
 	$string = "$line_number\t{$data->item}\t{$data->freq1}";
 	if (isset($plusminus))
-		$string .= "\t{$data->freq2}\t$plusminus\t" . round($data->theValue, 2) . $da;
+		$string .= "\t{$data->freq2}\t$plusminus\t" . round($data->theValue, 2);
+	$string .= $da;
 	
 	return $string;
 }

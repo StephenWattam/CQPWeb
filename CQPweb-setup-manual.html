@@ -7,21 +7,23 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20100120;1085000">
+	<META NAME="CHANGED" CONTENT="20100601;1151700">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1 LANG="en-GB">Some very quick notes on how to set up CQPweb v 2.X</H1>
+<H1 LANG="en-GB">Some notes on how to set up CQPweb (v 2.13 or
+higher)</H1>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>What
 you will need</B></FONT></FONT></P>
 <P LANG="en-GB">You'll need a machine with a Unix-style operating
-system (<I>CQPweb has been tested, so far, on Sun OS 5.10; Debian;
-Ubuntu; and Fedora</I>). Other software you need: 
+system (<I>CQPweb has been tested, so far, on Mac OS X; Sun OS 5.10;
+Debian; Ubuntu; and Fedora</I>). Other software you need to have
+installed: 
 </P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Apache or some other webserver (note: <I>internal
@@ -47,13 +49,143 @@ Ubuntu; and Fedora</I>). Other software you need:
 	</P>
 </UL>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB">And of course CWB (the version distributed
-	alongside BNCweb, or a more recent version from the SourceForge SVN
-	tree; see also below) .</P>
+	<LI><P LANG="en-GB">Open Corpus Workbench (at least version 3.2.0)</P>
+	<UL>
+		<LI><P LANG="en-GB"><SPAN LANG="en-GB">See
+		<A HREF="http://cwb.sourceforge.net/">http://cwb.sourceforge.net</A></SPAN></P>
+	</UL>
+	<LI><P LANG="en-GB"><SPAN LANG="en-GB">Awk</SPAN></P>
+	<UL>
+		<LI><P LANG="en-GB"><SPAN LANG="en-GB">(any version of awk
+		compatible with GNU awk (“gawk”) should be OK)</SPAN></P>
+	</UL>
 </UL>
 <P LANG="en-GB"><BR><BR>
 </P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Hardware</B></FONT></FONT>
+<FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>requirements</B></FONT></FONT></P>
+<P LANG="en-GB">It is difficult to generalise about what hardware you
+will need. Even a (relatively) low-powered computer should be able to
+run CQPweb with small-to-medium sized corpora; a modern desktop
+system should also be fine with pretty large corpora – as should
+most laptops as long as they have a big enough hard drive (see next
+three paragraphs). As a general rule, having less-than-ideal hardware
+will cause things to run slowly, rather than not run at all.</P>
+<P LANG="en-GB">One potential bottleneck is working memory for big
+database operations. For very intensive operation, MySQL requires
+lots of memory; if it can't get enough RAM, it will use hard-disk
+space as temporary storage instead; if it uses up all available
+hard-disk space, it will fall over mid-operation, possibly with a
+very uninformative error message (e.g. saying that it can't read from
+a write to a particular temporary file). These “big database
+operations” tend to be aspects of the corpus-setup procedure –
+especially frequency-table creation – rather than anything that the
+non-administrator user can set in motion. 
+</P>
+<P LANG="en-GB">How much disk space precisely MySQL might need for
+some of CQPweb's big setup procedures is difficult to say for certain
+– it depends, apart from anything else, on how far the MySQL daemon
+can get just with RAM. However, as a rule of thumb, you should aim to
+run CQPweb's MySQL database on a disk or partition which has free
+space equal to a <I>multiple</I> of the raw-text size of the corpus
+you are working with. (This will also be more than enough for cache
+space and CWB-indexing of your corpus, if the cache and data
+directories are on the same disk or partition.)</P>
+<P LANG="en-GB">For example, on one of the CQPweb development
+machines – a relatively modern server with plenty of RAM – MySQL
+needed approximately 4 GB of temporary disk space for the process of
+building frequency tables for a corpus whose raw text took up 1 GB.
+So if you are regularly dealing with corpora of that size (on the
+order of 100,000,000 words), it is a good idea to have, say, ten
+times as much space available as your raw text takes up.</P>
+<P LANG="en-GB"><BR><BR>
+</P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
+up PHP</B></FONT></FONT></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">CQPweb crucially requires the
+</SPAN><SPAN LANG="en-GB"><B>mysql</B></SPAN><SPAN LANG="en-GB">
+extension to PHP, which enables interaction between PHP and the MySQL
+database software (note: </SPAN><SPAN LANG="en-GB"><I>not</I></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">
+the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+extension</SPAN></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">,
+which is something different). In PHP v5.x, this extension is not
+enabled by default. See <A HREF="http://php.net/manual/en/mysql.installation.php">here</A>
+for information on making sure it is enabled. You may have recompile
+PHP to make the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">
+extension available. </SPAN></SPAN><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>(We
+are working on an extension to CQPweb which will make worrying about
+the availability of mysql unnecessary by allowing the system to work
+equally well with both </B></SPAN></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><I><B>mysql</B></I></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>
+and </B></SPAN></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><I><B>mysqli</B></I></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>.)</B></SPAN></SPAN></FONT></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">Certain aspects of he behaviour of
+PHP is controlled by its </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
+file (see <A HREF="http://www.php.net/manual/en/ini.php">here</A>).
+The precise settings in this file may be different depending on how
+you installed PHP (or your system administrator may have subsequently
+adjusted them). Most of them will not affect CQPweb. However, four
+directives set limits on PHP's use of system resources, and CQPweb
+has been written on the assumption that these directives are set to
+at least moderately generous values; if your system's settings are
+much less than these, you may have problems. The directives in
+question are as follows:</SPAN></P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">upload_max_file_size</SPAN></FONT>
+	needs to be quite high if you want to upload corpus files to index
+	over HTTP; we recommend <FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">20M</SPAN></FONT>
+	(for files larger than that relying on HTTP is probably a bad idea
+	anyway)</P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">post_max_size</SPAN></FONT>
+	needs to be at least as high as <FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">upload_max_file_size
+	</SPAN></FONT>
+	</P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">memory_limit</SPAN></FONT>
+	should be moderately generous as some CQPweb operations are
+	RAM-intensive (e.g. loading entire files into memory); we suggest
+	<FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">25M</SPAN></FONT>
+		</P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">max_execution_time</SPAN></FONT>
+	should be generous as well; we suggest <FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">60</SPAN></FONT>
+		</P>
+</UL>
+<P LANG="en-GB">Less “generous” limits for file size, memory use,
+and execution time may be OK if you are running CQPweb on a
+standalone computer rather than a shared web server. Once CQPweb is
+up and running, the values of these settings can be checked by
+looking at “PHP configuration” in the Admin control panel. You
+can also find out the location of the active <FONT FACE="Courier New, monospace">php.ini</FONT>
+file from this screen.</P>
+<P LANG="en-GB"><SPAN LANG="en-GB">Finally, <A HREF="http://php.net/manual/en/features.safe-mode.php">PHP
+has a “safe-mode” configuration</A>. This should, ideally, </SPAN><SPAN LANG="en-GB"><I>not</I></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">be
+activated; if it is, you may well find that some CQPweb operations do
+not work. </SPAN></SPAN>
+</P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">PHP safe-mode
+	will </SPAN><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">stop
+	CQPweb from lifting</SPAN></SPAN></FONT></FONT><FONT COLOR="#000000">
+	</FONT><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">restrictions
+	on execution time for long-running operations; these functions
+	(mostly setup functions for big corpora, but also processes like
+	collocations on queries with lots of results) will stop working. </SPAN></SPAN></FONT></FONT>
+	</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">PHP
+	safe-mode will restrict CQPweb to only</SPAN></SPAN></FONT></FONT><FONT COLOR="#000000">
+	</FONT><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">opening
+	or modifying files that CQPweb has created itself. However, some
+	operations need CQPweb to work with files which it didn’t create
+	itself but were, rather, created by the MySQL server or manually by
+	you.</SPAN></SPAN></FONT></FONT></P>
+</UL>
+<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal"><FONT COLOR="#000000"><FONT FACE="Times New Roman">Note
+that the “safe-mode” feature of PHP has, in any case, been
+deprecated as of recent versions (5.3.0 or later) of PHP – so web
+servers should ideally not be relying on it anyway.</FONT></FONT></P>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
 up Apache</B></FONT></FONT></P>
 <P LANG="en-GB">This section assumes that you are using Apache and
 that you want to use the internal username/password functions in
@@ -74,33 +206,48 @@ CQPweb web-directory</I>. Depending on how your Apache config files
 are set up, this might be set overall for the server (in some
 location like <FONT FACE="Courier New, monospace">/etc/apache2/apache2.conf</FONT>);
 or for the particular host (in something like
-<FONT FACE="Courier New, monospace">/etc/apache2/sites-available/{$site}.conf</FONT>).</P>
+<FONT FACE="Courier New, monospace">/etc/apache2/sites-available/{$site}.conf
+</FONT>).</P>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
-up the Perl elements</B></FONT></FONT></P>
-<P LANG="en-GB">You will need to install the following Perl modules
-from the CWB Perl distribution:</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT COLOR="#000000"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
+up the Perl elements</B></FONT></FONT></FONT></P>
+<P LANG="en-GB"><FONT COLOR="#000000">You will need to install the
+base module of the CWB Perl API distribution. You can download a
+release package from the links to be found here:</FONT></P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB">The CWB.pm module</P>
-	<LI><P LANG="en-GB">The CEQL.pm module that forms part of it. 
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><A HREF="http://cwb.sourceforge.net/download.php#perl">http://cwb.sourceforge.net/download.php#perl</A></FONT></P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><I>You may wish to install
+	other aspects of the CWB Perl API (CWB-CL, CWB-Web and CWB-CQi) but
+	these are not needed just to run CQPweb.</I></FONT></P>
+</UL>
+<P LANG="en-GB"><FONT COLOR="#000000">The current releases are
+version 2.2.102.</FONT></P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000">Installation instructions
+	are in the package's README file. </FONT>
 	</P>
-	<LI><P LANG="en-GB"><I>However, it is most convenient to install the
-	entire set of modules from CWB Perl, rather than just these files.</I></P>
-</UL>
-<P LANG="en-GB">Use the version of CWB.pm distributed alongside
-BNCweb v 4.2 – this is v3.0 of cwb-perl-lib.</P>
-<UL TYPE=DISC>
-	<LI><P LANG="en-GB">The Perl module files should be copied into a
-	directory on Perl's @INC path, such as
-	<FONT FACE="Courier New, monospace">/usr/local/lib/perl/{$version}/</FONT>
-	or <FONT FACE="Courier New, monospace">/usr/lib/perl5/{$version}/</FONT>
-	, depending on the details of how Perl is set up on your system.</P>
+	<UL>
+		<LI><P LANG="en-GB"><FONT COLOR="#000000">If you follow the
+		standard instructions, the Perl module files will be copied into a
+		directory on Perl's <FONT FACE="Courier New, monospace">@INC</FONT>
+		path, such as <FONT FACE="Courier New, monospace">/usr/local/lib/perl/{$version}/</FONT>
+		or <FONT FACE="Courier New, monospace">/usr/lib/perl5/{$version}/</FONT>
+		, depending on the details of how Perl is set up on your system. </FONT>
+		</P>
+		<LI><P LANG="en-GB"><FONT COLOR="#000000"><I>If for any reason you
+		wish to set up CQPweb to use a different Perl binary to your
+		system's default (i.e. </I><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">which
+		perl</SPAN></FONT><I>), you need to make sure the CWB modules are
+		accessible </I><I><U>that</U></I><I> Perl binary</I>. <SPAN STYLE="font-style: normal">If
+		you don't understand the previous sentences, ignore the preceding
+		paragraph and this one!</SPAN></FONT></P>
+	</UL>
 </UL>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
-up MySQL</B></FONT></FONT></P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT COLOR="#000000"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
+up MySQL</B></FONT></FONT></FONT></P>
 <P LANG="en-GB">You will need to create a new user and a new database
 for CQPweb to use.</P>
 <P LANG="en-GB">Make a note of the username / password of this new
@@ -302,8 +449,8 @@ access to individual programs; if it does not allow mysqld access to
 these new directories, you will not be able to run CQPweb
 successfully, </SPAN></FONT><FONT FACE="Times New Roman, serif"><I><SPAN STYLE="font-weight: normal">even
 if</SPAN></I></FONT> <FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">the
-</SPAN></FONT><FONT FACE="Times New Roman, serif"><B>mysql</B></FONT>
-<FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">username
+</SPAN></FONT><FONT FACE="Times New Roman, serif"><B>mysql</B></FONT><SPAN STYLE="font-weight: normal">
+</SPAN><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">username
 has full permissions. You fix this by doing the following (as root):</SPAN></FONT></FONT></P>
 <UL>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">edit
@@ -362,9 +509,19 @@ soon as possible.</P>
 to avoid accidentally running again. Before you take the system live,
 you should <B>delete this script</B> – <SPAN STYLE="font-weight: normal">as
 it could compromise the security of the system. (When you use the
-“restore default system security” option, one of the various
-things it does is check that this script is gone – in both its
-gzipped and non-gzipped forms – and delete it if not.)</SPAN></P>
+“restore default system security” option (see below), one of the
+various things it does is check that this script is gone – in both
+its gzipped and non-gzipped forms – and delete it if not.)</SPAN></P>
+<P LANG="en-GB"><SPAN STYLE="font-weight: normal">You may wish to
+change the configuration variables at some later point. If so, you
+need to edit the file </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">config.inc.php</SPAN></FONT><SPAN STYLE="font-weight: normal">
+in the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">lib</SPAN></FONT><SPAN STYLE="font-weight: normal">
+subdirectory of the web directory. See the following section for some
+information on what you can change manually in the config file. The
+core configuration variables </SPAN><I><SPAN STYLE="font-weight: normal">cannot
+be changed through the web interface</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">,
+even if you are logged on as a superuser. This is for security
+reasons.</SPAN></SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Creating
@@ -448,8 +605,10 @@ created (<I><B>numbers shown in the example correspond to the table
 above</B></I>).</P>
 <P LANG="en-GB">The <FONT FACE="Courier New, monospace">$path_to</FONT>
 settings specify where the perl, cwb and apache utilities binaries
-are to be found. Give them in the following format (example paths
-from a linux server):</P>
+are to be found. This allows you to specify binaries that are not in
+the system search-path for executables (e.g. if you want to use a
+different version of Perl or CWB to the default on your system). Give
+them in the following format (example paths from a linux server):</P>
 <P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$path_to_cwb
 = 'usr/local/bin';<BR>$path_to_apache_utils =
 'usr/local/bin';<BR>$path_to_perl = 'usr/bin';</FONT></FONT></P>
@@ -560,6 +719,8 @@ navigate to
 	<LI><P LANG="en-GB">Click on “Skins and colours” – and
 	“Regenerate colour schemes” 
 	</P>
+	<LI><P LANG="en-GB">Click on “Mapping tables” – and
+	“Regenerate built-in mapping tables”</P>
 </UL>
 <P LANG="en-GB"><BR><BR>
 </P>
@@ -586,7 +747,8 @@ need to set up CQPweb on an HTTPS server.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Installing
-a corpus</B></FONT></FONT></P>
+a corpus <FONT COLOR="#0000ff">[TODO: expand this to a separate
+document]</FONT></B></FONT></FONT></P>
 <P LANG="en-GB">Corpora must follow all the usual rules for CWB
 corpora and in addition there is the following requirement:</P>
 <P LANG="en-GB">Every text in the corpus must begin with</P>
@@ -612,6 +774,9 @@ allowed.</P>
 	<LI><P LANG="en-GB">A file of corpus metadata. 
 	</P>
 </UL>
+<P LANG="en-GB"><FONT COLOR="#0000ff"><B>[Add note here about maximum
+corpus size: 32 bit versus 64 bit – make this visible in the CQPweb
+admin view]</B></FONT></P>
 <P LANG="en-GB">The metadata file should be a tab-delimited database.
 The first column should be the text id-codes, with a line for each
 text. You can then have as many columns of metadata as you need.</P>
@@ -800,8 +965,8 @@ system cannot currently check this for you!</P>
 </P>
 <HR>
 <P LANG="en-GB"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
-v2.02 © 2008-2009 – documentation by Andrew Hardie,
-<A HREF="mailto:andrewhardie@sourceforge.net">andrewhardie@sourceforge.net</A>
+v2.13 © 2008-2010 – documentation by Andrew Hardie,
+<A HREF="mailto:andrewhardie@user.ssourceforge.net">andrewhardie@users.sourceforge.net</A>
 </SPAN></SPAN></SPAN></FONT></FONT></FONT>
 </P>
 </BODY>

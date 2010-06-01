@@ -2224,6 +2224,7 @@ function printquery_mappingtables()
 
 function printquery_systemsettings()
 {
+	//TODO
 	echo "lah lah!";
 }
 
@@ -2776,6 +2777,16 @@ function printquery_phpconfig()
 			</td>
 			<td class="concordgeneral">
 				<?php echo ini_get('upload_max_filesize'); ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Maximum size of HTTP post data
+				<br/>
+				<em>(NB: uploads cannot be bigger than this)</em>
+			</td>
+			<td class="concordgeneral">
+				<?php echo ini_get('post_max_size'); ?>
 			</td>
 		</tr>
 

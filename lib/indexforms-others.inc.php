@@ -227,7 +227,11 @@ function printquery_usersettings()
 
 
 
-function printquery_usermacros()
+function printquery_usermacros()//			if (!( ($this->major_version >= 3)
+//				|| ($this->major_version == 2 && $this->minor_version == 2 
+//					&& $this->beta_version >= 101)
+//				) )
+//				exit("ERROR: CQP version too old ($version_string).\n");
 {
 	global $username;
 	
@@ -365,8 +369,28 @@ function printquery_corpusmetadata()
 	$sql_query = "select * from corpus_metadata_variable where corpus = '$corpus_sql_name'";
 	$result_variable = do_mysql_query($sql_query);	
 	
+	/* number of files in corpus */
+	$result_textlist = do_mysql_query("select count(text_id) from text_metadata_for_$corpus_sql_name");
+	list($num_texts) = mysql_fetch_row($result_textlist);
+	$num_texts = make_thousands($num_texts);
+	
 	/* now get total word length of all files */
-	$words_in_all_texts = make_thousands(get_corpus_wordcount());
+	$words_in_all_texts = make_thousands($tokens = get_corpus_wordcount());
+	
+	/* work out number of types and type token ratio */
+	$result_temp = do_mysql_query("show tables like 'freq_corpus_{$corpus_sql_name}_word'");
+	if (mysql_num_rows($result_temp) > 0)
+	{
+		$result_types = do_mysql_query("select count(distinct(item)) from freq_corpus_{$corpus_sql_name}_word");
+		list($types) = mysql_fetch_row($result_types);
+		$types_in_corpus = make_thousands($types);
+		$type_token_ratio = round( ($types / $tokens) , 2) . ' types per token';
+	}
+	else
+	{
+		$types_in_corpus = 'Cannot be calculated (frequency tables not set up)';
+		$type_token_ratio = 'Cannot be calculated (frequency tables not set up)';	
+	}
 	
 	/* get a list of metadata_fields */
 	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus_sql_name'";
@@ -402,9 +426,22 @@ function printquery_corpusmetadata()
 			<td class="concordgeneral"><?php echo "$corpus_sql_name / $corpus_cqp_name"; ?></td>
 		</tr>
 		<tr>
+			<td class="concordgrey">Total number of corpus texts</td>
+			<td class="concordgeneral"><?php echo $num_texts; ?></td>
+		</tr>
+		<tr>
 			<td class="concordgrey">Total words in all corpus texts</td>
 			<td class="concordgeneral"><?php echo $words_in_all_texts; ?></td>
 		</tr>
+		<tr>
+			<td class="concordgrey">Word types in the corpus</td>
+			<td class="concordgeneral"><?php echo $types_in_corpus; ?></td>
+		</tr>
+		<tr>
+			<td class="concordgrey">Type:token ratio</td>
+			<td class="concordgeneral"><?php echo $type_token_ratio; ?></td>
+		</tr>
+
 	<?php
 	
 	
@@ -635,8 +672,14 @@ function printquery_latest()
 	
 	<ul>
 		<li>
-		<b>Version 2.13</b>, 2010-043-xx<br/>&nbsp;<br/>
-		More bug fixes.
+		<b>Version 2.13</b>, 2010-05-31<br/>&nbsp;<br/>
+		Increased required version of CWB to 3.2.0 (which has Unicode regular expression matching). This means
+		that regular expression wildcards will work properly with non-Latin alphabets.
+		<br/>&nbsp;<br/>
+		Also added a function to create an "inverted" subcorpus (one that contains all the texts in the corpus
+		except those in a specified existing subcorpus).
+		<br/>&nbsp;<br/>
+		Plis, as ever, more bug fixes and usability tweaks.
 		<br/>&nbsp;</li>
 		<li>
 		<b>Version 2.12</b>, 2010-03-19<br/>&nbsp;<br/>

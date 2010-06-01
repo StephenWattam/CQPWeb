@@ -21,7 +21,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
+/**
+ * @file
+ * 
  * IMPORTANT NOTE
  * 
  * CQPweb does not have XML support yet, but a couple of functions need ot deal with s-attributes in various ways.
@@ -107,13 +109,13 @@ function xml_visualisation_use_in_context($corpus, $element, $new)
 {
 	$newval = ($new ? 1 : 0);
 	do_mysql_query("update xml_visualisations set in_context = $newval 
-		where corpus=$corpus' and element = '$element'");	
+		where corpus='$corpus' and element = '$element'");	
 }
 function xml_visualisation_use_in_concordance($corpus, $element, $new)
 {
 	$newval = ($new ? 1 : 0);
 	do_mysql_query("update xml_visualisations set in_concordance = $newval 
-		where corpus=$corpus' and element = '$element'");	
+		where corpus='$corpus' and element = '$element'");	
 }
 
 function xml_visualisation_code_make_safe($code)
@@ -153,6 +155,8 @@ function xml_visualisation_code_make_safe($code)
 	 * Would they have access to anything dangerous?
 	 * 
 	 * They could redirect to a bad site I suppose. That would be the worst.
+	 * 
+	 * We DON'T PUT anything into cookies, so they couldn't be accessed by a bad site.
 	 * 
 	 * The only alternative approach I can think of is to create a subset metalanguage of HTML
 	 * for the definition of visualisations. Bu that would be complex and would not rule out

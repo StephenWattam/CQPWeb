@@ -21,10 +21,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file
+ * 
+ * This file contains functions used in the adminstration of CQPweb.
+ * 
+ * It should generally not be included into scripts unless the user
+ * is a sysadmin.
+ */
 
 
 
-/* just a little object to hold info on the install corpus parsed from GET */
+/**
+ * Just a little object to hold info on the install corpus parsed from GET;
+ * NOT an independent module in any way, shape or form, just a way to simplify
+ * variable parsing.
+ */
 class corpus_install_info
 {
 	public $corpus_mysql_name;
@@ -477,13 +489,6 @@ function install_create_settings_file($filepath, $info)
 		. "\$corpus_cqp_name = '" . strtoupper($info->corpus_cwb_name) . "';\n"
 		. "\$css_path = '{$info->css_url}';\n"
 		. ($info->script_is_r2l ? "\$corpus_main_script_is_r2l = true;\n" : '')
-		/*
-		 * next lines no longer needed because we have stopped allowing directory overrides
-		 */
-//		. (empty($info->directory_override['reg_dir']) ? '' : 
-//			"\$this_corpus_directory_override['reg_dir'] = '{$info->directory_override['reg_dir']}';\n")
-//		. (empty($info->directory_override['data_dir']) ? '' : 
-//			"\$this_corpus_directory_override['data_dir'] = '{$info->directory_override['data_dir']}';\n")
 		. '?>';
 	file_put_contents($filepath, $data);
 	chmod($filepath, 0775);
@@ -581,19 +586,10 @@ function delete_corpus_from_cqpweb($corpus)
 
 
 
-// TODO: move this to a different file, so I can put it in user scripts too (e.g. for uploading an annotated query
+// TODO: move this to a different file, so I can put it in user scripts too (e.g. for uploading an annotated query)
+// or should annotated query files be dealt with otherwise? e.g. in subfolder called "usr"?
 function upload_file_to_upload_area($original_name, $file_type, $file_size, $temp_path, $error_code)
 {
-	/**
-	 * CQPweb assumes the following settings in php.ini
-	 * 
-	 * upload_max_file_size = 20M
-	 * memory_limit = 25M
-	 * post_max_size = 22M
-	 * max_execution_time = 60
-	 * 
-	 */
-
 	global $cqpweb_uploaddir;
 	global $username;
 
@@ -625,7 +621,11 @@ function upload_file_to_upload_area($original_name, $file_type, $file_size, $tem
 		exiterror_fullpage("The file could not be processed! Possible file upload attack", __FILE__, __LINE__);
 }
 
-
+/**
+ * Change linebreaks in the named file in the upload area to Unix-style.
+ * 
+ * TODO -- this uses file_get_contents. A version with fgets() would be better, to save on RAM.
+ */
 function uploaded_file_fix_linebreaks($filename)
 {
 	global $cqpweb_uploaddir;
@@ -647,7 +647,7 @@ function uploaded_file_fix_linebreaks($filename)
 	unlink($path);
 
 	rename($intermed_path, $path);
-	chmod($path, 0777);
+	chmod($path, 0666);
 }
 
 
@@ -695,7 +695,7 @@ function uploaded_file_gzip($filename)
 	gzclose ($out_file);
 	
 	unlink($path);
-	chmod($zip_path, 0777);
+	chmod($zip_path, 0666);
 }
 
 
@@ -709,7 +709,7 @@ function uploaded_file_gunzip($filename)
 		exiterror_fullpage('Your request could not be completed - that file does not exist.', 
 			__FILE__, __LINE__);
 	
-	if (preg_match('/(.*)\.gz$/', $filename, $m) > 1)
+	if (preg_match('/(.*)\.gz$/', $filename, $m) < 1)
 		exiterror_fullpage('Your request could not be completed - that file does not appear to be compressed.', 
 			__FILE__, __LINE__);
 
@@ -730,7 +730,7 @@ function uploaded_file_gunzip($filename)
 	fclose ($out_file);
 			
 	unlink($path);
-	chmod($unzip_path, 0777);
+	chmod($unzip_path, 0666);
 }
 
 function uploaded_file_view($filename)
@@ -778,6 +778,10 @@ function uploaded_file_view($filename)
 	exit();
 }
 
+/**
+ * Adds default htaccess files to the root, adm, css, doc, and lib; removes
+ * the autoconfig script if it exists.
+ */
 function restore_system_security()
 {
 	/* four folders: adm, css, doc, lib; plus root folder */
@@ -1145,7 +1149,7 @@ function print_javascript_for_password_insert($password_function = NULL, $n = 49
 
 
 /**
- * password_insert_internal is the default function for CQPweb candidate passwords
+ * password_insert_internal is the default function for CQPweb candidate passwords.
  * 
  * To get nicer candidate passwords, set a different function in config.inc.php
  * 
@@ -1154,6 +1158,11 @@ function print_javascript_for_password_insert($password_function = NULL, $n = 49
  * 
  * Whatever function you use must be in a source file included() in adminhome.inc.php
  * (such as this file is). 
+ * 
+ * All password-creation functions must return an array of n candidate passwords.
+ * 
+ * CQPweb passwords can only contain the characters defined as \w in PCRE (i.e. 
+ * letters, digits, underscore).
  * 
  */
 function password_insert_internal($n)
@@ -1194,6 +1203,7 @@ function password_insert_lancaster($n)
 
 /**
  * Utility function for the create_text_metadata_for functions.
+ * 
  * Returns nothing, but deletes the text_metadata_for table and aborts the script 
  * if there are bad text ids.
  * 
@@ -1224,6 +1234,7 @@ function create_text_metadata_check_text_ids($corpus)
 
 /**
  * Wrapper round create_text_metadata_for() for when we need to create the file from CQP.
+ * 
  * $fields_to_show is (part of) a CQP instruction: see admin-execute.php 
  */
 function create_text_metadata_for_from_xml($fields_to_show)
@@ -1506,7 +1517,7 @@ function delete_text_metadata_for($corpus)
 
 
 /**
- * function to re-set the mysql setup to basic form
+ * Function to re-set the mysql setup to basic form.
  */
 function cqpweb_mysql_total_reset()
 {
@@ -1837,7 +1848,12 @@ function cqpweb_import_css_file($filename)
 
 
 
-
+/**
+ * Installs the default "skins" ie CSS colour schemes.
+ * 
+ * Note, doesn't actually specify that one of these should be used anywhere
+ * -- just makes them available.
+ */
 function cqpweb_regenerate_css_files()
 {
 $yellow_pairs = array(
@@ -1932,7 +1948,9 @@ file_put_contents('../css/CQPweb-gold.css', 	strtr($css_file, $gold_pairs));
 
 
 
-
+/**
+ * Returns the code of the default CSS file for built-in colour schemes.
+ */
 function cqpweb_css_file ()
 {
 	return <<<HERE

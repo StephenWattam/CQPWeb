@@ -298,6 +298,23 @@ case 'create_from_query':
 	exit();
 
 
+case 'create_inverted':
+
+	$subcorpus_to_invert = mysql_real_escape_string($_GET['subcorpusToInvert']);
+	if (empty($subcorpus_to_invert))
+		exiterror_general("You must specify a subcorpus to invert!");
+
+	subcorpus_admin_check_name($subcorpus_name, 
+		url_absolutify('index.php?subcorpusBadName=y&subcorpusCreateMethod='
+			. 'invert&subcorpusFunction=define_subcorpus&' 
+			. url_printget()));
+
+	create_subcorpus_invert($subcorpus_name, $subcorpus_to_invert);
+	
+	disconnect_all();
+	header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
+	exit();
+
 
 case 'copy':
 

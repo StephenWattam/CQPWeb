@@ -156,7 +156,6 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	global $corpus_sql_name;
 	global $corpus_sql_collation;
 	global $corpus_cqp_name;
-	global $mysql_link;
 	global $mysql_LOAD_DATA_INFILE_command;
 	global $cqpweb_tempdir;
 	global $instance_name;
@@ -172,8 +171,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	$attribute[] = 'word';
 	foreach (get_corpus_annotations() as $a => $junk)
 		$attribute[] = $a;
-
-	unset($junk);
+	unset($junk, $a);
 
 	/* now, we need a where-clause for all the text ids within the subsection */
 	/* we also need to work out the base-name of this set of freq tables */
@@ -191,10 +189,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 			. mysql_real_escape_string($subcorpus) . "' 
 			and corpus = '$corpus_sql_name'
 			and user   = '$username'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 		if (mysql_num_rows($result) < 1)
 			exiterror_arguments($subcorpus, 'This subcorpus doesn\'t appear to exist!',
 				__FILE__, __LINE__);
@@ -240,16 +235,16 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	
 	
 	/* get the list of being-and-end points in the specially-indexed cwb per-file freqlist corpus */
-	$sql_query = "select start, end from freq_text_index_$corpus_sql_name where $textid_whereclause";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	
+	$sql_query = "select start, end from freq_text_index_$corpus_sql_name where $textid_whereclause
+					order by start asc";
+	/* note this list must be sorted for cwb-scan-corpus to make sense of it - and it may or may
+	 * not be sorted depending on how the where-caluse was constructed... */
+	$result = do_mysql_query($sql_query);
 	while ( ($r = mysql_fetch_row($result)) !== false )
 		$regions[] = $r;
 	unset($result);
 	
+	// TODO: is this still needed? can we write the regionfile direct from mysql now? chech with Stefan. 
 	$n_regions = count($regions);
 	
 	/* store regions to be scanned in a temporary file */
@@ -270,6 +265,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 		$cmd_scancorpus .= " $att+0";
 	$cmd_scancorpus .= " > $temp_table_loadfile";
 	
+
 	/* and run it */
 	exec($cmd_scancorpus);
 	
@@ -288,23 +284,16 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 		$sql_query .= ",
 			key(`$att`)";
 	$sql_query .= ") CHARACTER SET utf8 COLLATE $corpus_sql_collation";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query($sql_query);
+
 	
 	/* import the base frequency list */
 	database_disable_keys($temp_table);
 	$sql_query = "$mysql_LOAD_DATA_INFILE_command '$temp_table_loadfile' into table $temp_table fields escaped by ''";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query($sql_query);
 	database_enable_keys($temp_table);
 	
-	unlink($temp_table_loadfile);
+//	unlink($temp_table_loadfile);
 	
 
 	/* now, create separate frequency lists for each att from the master table */
@@ -319,34 +308,23 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 			item varchar(210) NOT NULL,
 			key(item)
 			) CHARACTER SET utf8 COLLATE $corpus_sql_collation";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		unset($result);
+		do_mysql_query($sql_query);
+
 
 		/* and fill it */
 		database_disable_keys($att_sql_name);
 		$sql_query = "insert into $att_sql_name 
 			select sum(freq), $att from $temp_table
 			group by $att";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		unset($result);
+		do_mysql_query($sql_query);
 		database_enable_keys($att_sql_name);
 
 	} /* end foreach $attribute */
 	
 	/* dump temporary table */
 	$sql_query = "drop table $temp_table";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
-	
+	do_mysql_query($sql_query);
+
 	$thistime = time();
 	$thissize = get_freqtable_size($freqtables_base_name);
 
@@ -369,11 +347,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 		)";
 		/* restriction must be escaped because it contains single quotes */
 		/* no need to set `public`: it sets itself to 0 by default */
-
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 
 
 	/* NB: freqtables share the dbs' register/unregister functions, with process_type 'freqtable' */
@@ -741,8 +715,11 @@ function list_public_whole_corpus_freqtables()
 
 
 
-/* returns a list of handles of subcorpora belonging to this corpus and this user */
-/* nb -- it's not a list of assoc-array-format records - just of names - could be empty */
+/**
+ * Returns a list of handles of subcorpora belonging to this corpus and this user.
+ * 
+ * Nb -- it's not a list of assoc-array-format records - just an array of names - could be empty. 
+ */
 function list_freqtabled_subcorpora()
 {
 	global $corpus_sql_name;
