@@ -1,7 +1,7 @@
 <?php
 /**
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-10 Andrew Hardie
  *
  * See http://www.ling.lancs.ac.uk/activities/713/
  *
@@ -46,10 +46,6 @@ include ("../lib/library.inc.php");
 include ("../lib/concordance-lib.inc.php");
 include ("../lib/metadata.inc.php");
 include ("../lib/exiterror.inc.php");
-
-
-/* and because I'm using the next two modules I need to... */
-//create_pipe_handle_constants();
 include ("../lib/cwb.inc.php");
 include ("../lib/cqp.inc.php");
 
@@ -193,6 +189,11 @@ $nodeCount = count($node);
 
 $word_extraction_pattern = (empty($primary_tag_handle) ? false : '/\A(.*)\/(.*?)\z/');
 
+$line_breaker = ($corpus_main_script_is_r2l 
+							? "</bdo>\n<br/>&nbsp;<br/>\n<bdo dir=\"rtl\">" 
+							: '<br/>&nbsp;<br/>
+				');
+
 /* left context string */
 $lc_string = '';
 for ($i = 0; $i < $lcCount; $i++) 
@@ -203,13 +204,12 @@ for ($i = 0; $i < $lcCount; $i++)
 		/* don't show the first word of left context if it's just punctuation */
 		continue;
 
-	$lc_string .= $word . ( $show_tags ? $tag : '' ) . ' ';
+	$lc_string .= $word . ( $show_tags ? bdo_tags_on_tag($tag) : '' ) . ' ';
 
 
 	/* break line if this word is an end of sentence punctuation */
 	if (preg_match('/\A[.?!\x{0964}]\Z/u', $word) || $word == '...'  )
-		$lc_string .= '<br/>&nbsp;<br/>
-			';
+		$lc_string .= $line_breaker;
 }
 	
 /* node string */
@@ -218,12 +218,11 @@ for ($i = 0; $i < $nodeCount; $i++)
 {
 	list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $node[$i]);
 
-	$node_string .= $word . ( $show_tags ? $tag : '' ) . ' ';
+	$node_string .= $word . ( $show_tags ? bdo_tags_on_tag($tag) : '' ) . ' ';
 
 	/* break line if this word is an end of sentence punctuation */
 	if (preg_match('/\A[.?!\x{0964}]\Z/u', $word) || $word == '...'  )
-		$node_string .= '<br/>&nbsp;<br/>
-			';
+		$node_string .= $line_breaker;
 }
 
 /* rc string */
@@ -232,16 +231,20 @@ for ($i = 0; $i < $rcCount; $i++)
 {
 	list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $rc[$i]);
 	
-	$rc_string .= $word . ( $show_tags ? $tag : '' ) . ' ';
+	$rc_string .= $word . ( $show_tags ? bdo_tags_on_tag($tag) : '' ) . ' ';
 
 	/* break line if this word is an end of sentence punctuation */
-	// this is a BAD regex. Hopefully, PHP 6 will have some function that does it for me.
-	// potentially better version? but might be slow (see PHP PCRE manual)
+	// TODO
+	// this is a BAD regex.
+	// potentially better version? need to test it, though
 	//	if (preg_match('/\A\p{P}\Z/u', $word) || $word == '...'  )
 	if (preg_match('/\A[.?!\x{0964}]\Z/u', $word) || $word == '...'  )
-		$rc_string .= '<br/>&nbsp;<br/>
-			';
+		$rc_string .= $line_breaker;
 }
+
+/* tags for Arabic, etc.: */
+$bdo_tag1 = ($corpus_main_script_is_r2l ? '<bdo dir="rtl">' : '');
+$bdo_tag2 = ($corpus_main_script_is_r2l ? '</bdo>' : '');
 
 
 
@@ -298,15 +301,13 @@ for ($i = 0; $i < $rcCount; $i++)
 	</tr>
 	<tr>
 		<td colspan="2" class="concordgeneral">
-
 		<p class="query-match-context">
-		<?php echo $lc_string . '<b>' . $node_string . '</b>' . $rc_string ; ?>
+		<?php echo $bdo_tag1 . $lc_string . '<b>' . $node_string . '</b>' . $rc_string . $bdo_tag2; ?>
 		</p>
 	</tr>
 </table>
 
 <?php
-
 
 
 
@@ -323,4 +324,10 @@ mysql_close($mysql_link);
 /* ------------- */
 /* END OF SCRIPT */
 /* ------------- */
+
+/* Function that puts tags backl into ltr order... */
+function bdo_tags_on_tag($tag)
+{
+	return '_<bdo dir="ltr">' . substr($tag, 1) . '</bdo>';
+}
 ?>

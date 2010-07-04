@@ -145,8 +145,8 @@ class CQP
 			exit("ERROR: CQP backend startup failed");
 		else
 		{
-			$this->major_version = $matches[1];
-			$this->minor_version = $matches[2];
+			$this->major_version = (int)$matches[1];
+			$this->minor_version = (int)$matches[2];
 			$this->beta_version_flagged = false;
 			$this->beta_version = 0;
 			if (isset($matches[3]))
@@ -154,11 +154,11 @@ class CQP
 				if ($matches[3][0] == 'b')
 				{
 					$this->beta_version_flagged = true;
-					$this->beta_version = substr($matches[3], 1);
+					$this->beta_version = (int)substr($matches[3], 1);
 				}
 				else
 				{
-					$this->beta_version = $matches[3];
+					$this->beta_version = (int)$matches[3];
 				}
 			}
 			$this->compile_date  = (isset($matches[4]) ? $matches[4] : NULL);
@@ -257,7 +257,7 @@ class CQP
 	
 	private function check_version_default()
 	{
-		$this->check_version(
+		return $this->check_version(
 			self::VERSION_MAJOR_DEFAULT,
 			self::VERSION_MINOR_DEFAULT,
 			self::VERSION_BETA_DEFAULT

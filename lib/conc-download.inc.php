@@ -32,6 +32,7 @@ require("../lib/defaults.inc.php");
 /* include function library files */
 require('../lib/library.inc.php');
 require('../lib/concordance-lib.inc.php');
+require('../lib/concordance-post.inc.php');
 require('../lib/cache.inc.php');
 require('../lib/subcorpus.inc.php');
 require('../lib/exiterror.inc.php');

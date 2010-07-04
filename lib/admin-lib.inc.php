@@ -22,8 +22,6 @@
  */
 
 /**
- * @file
- * 
  * This file contains functions used in the adminstration of CQPweb.
  * 
  * It should generally not be included into scripts unless the user
@@ -460,16 +458,9 @@ function install_new_corpus()
 	
 	 
 	/* create the script files in that folder */
-	foreach (array( 'collocation', 'concordance', 'context',
-					'distribution', 'execute', 'freqlist',
-					'freqtable-compile', 'help', 'index',
-					'keywords', 'redirect', 'subcorpus-admin',
-					'textmeta') as $c)
-	{
-		file_put_contents("$newdir/$c.php", "<?php require('../lib/$c.inc.php'); ?>");
-		chmod("$newdir/$c.php", 0775);
-	}
-	
+	install_create_corpus_script_files($newdir);
+
+
 	/* write a settings.inc.php file */
 	install_create_settings_file("$newdir/settings.inc.php", $info);
 
@@ -495,6 +486,18 @@ function install_create_settings_file($filepath, $info)
 }
 
 
+function install_create_corpus_script_files($in_dir)
+{
+	foreach (array( 'api', 'collocation', 'concordance', 'context',
+					'distribution', 'execute', 'freqlist',
+					'freqtable-compile', 'help', 'index',
+					'keywords', 'redirect', 'subcorpus-admin',
+					'textmeta') as $c)
+	{
+		file_put_contents("$in_dir/$c.php", "<?php require('../lib/$c.inc.php'); ?>");
+		chmod("$in_dir/$c.php", 0775);
+	}		
+}
 
 // TODO -- check this against cwb_uncreate_corpus and prevent duplication of functionality
 function delete_corpus_from_cqpweb($corpus)
@@ -623,8 +626,6 @@ function upload_file_to_upload_area($original_name, $file_type, $file_size, $tem
 
 /**
  * Change linebreaks in the named file in the upload area to Unix-style.
- * 
- * TODO -- this uses file_get_contents. A version with fgets() would be better, to save on RAM.
  */
 function uploaded_file_fix_linebreaks($filename)
 {
@@ -636,16 +637,21 @@ function uploaded_file_fix_linebreaks($filename)
 		exiterror_fullpage('Your request could not be completed - that file does not exist.', 
 			__FILE__, __LINE__);
 	
-	$data = file_get_contents($path);
-
-	$data = str_replace("\xd\xa", "\xa", $data);
-	
 	$intermed_path = "/$cqpweb_uploaddir/__________uploaded_file_fix_linebreaks________temp_________datoa__________.___";
 	
+	/*
+	$data = file_get_contents($path);
+	$data = str_replace("\xd\xa", "\xa", $data);
 	file_put_contents($intermed_path, $data);
-
+	*/
+	$source = fopen($path, 'r');
+	$dest = fopen($intermed_path, 'w');
+	while ( false !== ($line = fgets($source)))
+		fputs($dest, str_replace("\xd\xa", "\xa", $line));
+	fclose($source);
+	fclose($dest);
+	
 	unlink($path);
-
 	rename($intermed_path, $path);
 	chmod($path, 0666);
 }
@@ -1105,8 +1111,8 @@ function delete_variable_corpus_metadata($corpus, $attribute, $value)
 
 
 /**
- * creates a javascript function with $n password candidates that will write
- * one of its candidates to id=passwordField on each call
+ * Creates a javascript function with $n password candidates that will write
+ * one of its candidates to id=passwordField on each call.
  */
 function print_javascript_for_password_insert($password_function = NULL, $n = 49)
 {
@@ -1181,23 +1187,9 @@ function password_insert_internal($n)
 
 function password_insert_lancaster($n)
 {
-	$n = (int)$n;
+	$page = file_get_contents('https://www.lancs.ac.uk/iss/security/passwords/makepw.php?num='. (int)$n);
 	
-	$page = file_get_contents('https://www.lancs.ac.uk/iss/security/passwords/makepw.php?num='. $n);
-	
-	$results = explode("\n", str_replace("\r\n", "\n", $page));
-
-	/* old version based on parsing the HTML page /
-	for ($i = 0 ; $i*49 < $n ; $i++)
-		$page .= file_get_contents('https://www.lancs.ac.uk/iss/security/passwords/');
-
-	preg_match_all('/<TD><kbd>\s*(\w+)\s*<\/kbd><\/TD>/', $page, $m, PREG_PATTERN_ORDER);
-	
-	for ($i = 0 ; $i < $n; $i++)
-		$results[] = $m[1][$i];
-	*/
-	
-	return $results;
+	return explode("\n", str_replace("\r\n", "\n", $page));
 }
 
 
@@ -1242,6 +1234,7 @@ function create_text_metadata_for_from_xml($fields_to_show)
 	global $cqp;
 	global $create_text_metadata_for_info;
 	global $cqpweb_uploaddir;
+	global $corpus_cqp_name;
 
 	$full_filename = "/$cqpweb_uploaddir/{$create_text_metadata_for_info['filename']}";
 
@@ -1490,30 +1483,354 @@ function create_text_metadata_for_minimalist()
   */
 function delete_text_metadata_for($corpus)
 {
-	global $mysql_link;
 	$corpus = mysql_real_escape_string($corpus);
 	
 	/* delete the table */
-	$sql_query = "drop table if exists text_metadata_for_$corpus";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query("drop table if exists text_metadata_for_$corpus");
 	
 	/* delete its explicator records */
-	$sql_query = "delete from text_metadata_fields where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	$sql_query = "delete from text_metadata_values where corpus = '$corpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query("delete from text_metadata_fields where corpus = '$corpus'");
+	do_mysql_query("delete from text_metadata_values where corpus = '$corpus'");
+}
+
+
+
+/** support function for the functions that create/read from dump files. */
+function dumpable_dir_basename($dump_file_path)
+{
+	if (substr($dump_file_path,	-7) == '.tar.gz')
+		return substr($dump_file_path, 0, -7);
+	else
+		return rtrim($dump_file_path, '/');
+}
+
+/** support function for the functions that create/read from dump files. 
+ *  Parameter: a directory to turn into a .tar.gz (path, WITHOUT .tar.gz at end) */
+function cqpweb_dump_targzip($dirpath)
+{
+	$dir = end(explode('/', $dirpath));
+	
+	$back_to = getcwd();
+	
+	chdir($dirpath);
+	chdir('..');
+	
+	exec("tar -cf $dir.tar $dir");
+	exec("gzip $dir.tar");
+	
+	recursive_delete_directory($dirpath);
+
+	chdir($back_to);
+}
+
+/** support function for the functions that create/read from dump files. 
+ *  Parameter: a .tar.gz to turn into a directory, but does not delete the archive. */
+function cqpweb_dump_untargzip($path)
+{
+	$back_to = getcwd();
+	
+	chdir(dirname($path));
+	
+	$file = basename($path, '.tar.gz');
+	
+	exec("gzip -d $file.tar.gz");
+	exec("tar -xf $file.tar");
+	/* put the dump file back as it was */
+	exec("gzip $file.tar");
+	
+	chdir($back_to);
+}
+
+/**
+ * A variant dump function which only dumps user-saved data.
+ * 
+ * This currently includes: 
+ * (1) cached queries which are saved; 
+ * (2) categorised queries and their database.
+ * 
+ * (possible additions: subcorpora, user CQP macros...)
+ */
+function cqpweb_dump_userdata($dump_file_path)
+{
+	global $cqpweb_tempdir;
+	
+	php_execute_time_unlimit();
+	
+	$dir = dumpable_dir_basename($dump_file_path);
+	
+	if (is_dir($dir))				recursive_delete_directory($dir);
+	if (is_file("$dir.tar"))		unlink("$dir.tar");
+	if (is_file("$dir.tar.gz"))		unlink("$dir.tar.gz");
+	
+	mkdir($dir);
+	
+	/* note that the layout is different to a snapshot - we do not have 
+	 * subdirectories or sub-contained tar.gz files */
+	
+	/* copy saved queries (status: saved or saved-for-cat) */
+	$saved_queries_dest = fopen("$dir/__SAVED_QUERIES_LINES", 'w');
+	$result = do_mysql_query("select * from saved_queries where saved > 0");
+	while (false !== ($row = mysql_fetch_row($result)))
+	{
+		/* copy any matching files to the location */
+		foreach (glob("/$cqpweb_tempdir/*:{$row[0]}") as $f)
+			if (is_file($f))
+				copy($f, "$dir/".basename($f));
+				
+		/* write this row of the saved_queries to file */
+		foreach($row as &$v)
+			if (is_null($v))
+				$v = '\N';
+				
+		fwrite($saved_queries_dest, implode("\t", $row) . "\n");
+	}
+	fclose($saved_queries_dest);
+	
+	/* write the saved_catqueries table, plus each db named in it, to file */
+	
+	$tables_to_save = array('saved_catqueries');
+	$result = do_mysql_query("select dbname from saved_catqueries");
+	while (false !== ($row = mysql_fetch_row($result)))
+		$tables_to_save[] = $row[0];
+
+	$create_tables_dest = fopen("$dir/__CREATE_TABLES_STATEMENTS", "w");
+	foreach ($tables_to_save as $table)
+	{
+		$dest = fopen("$dir/$table", "w");
+		$result = do_mysql_query("select * from $table");
+		while (false !== ($r = mysql_fetch_row($result)))
+		{
+			foreach($r as &$v)
+				if (is_null($v))
+					$v = '\N';
+			fwrite($dest, implode("\t", $r) . "\n");
+		}
+		$result = do_mysql_query("show create table $table");
+				list($junk, $create) = mysql_fetch_row(do_mysql_query("show create table $table"));
+		fwrite($create_tables_dest, $create ."\n\n~~~###~~~\n\n");
+		
+		fclose($dest);
+	}
+	fclose($create_tables_dest);
+
+	cqpweb_dump_targzip($dir);
+
+	php_execute_time_relimit();
+}
+
+/**
+ * Undump a userdata snapshot.
+ * 
+ * TODO not tested yet
+ */
+function cqpweb_undump_userdata($dump_file_path)
+{
+	global $cqpweb_tempdir;
+	global $mysql_LOAD_DATA_INFILE_command;
+
+	php_execute_time_unlimit();
+
+	$dir = dumpable_dir_basename($dump_file_path);
+	
+	cqpweb_dump_untargzip("$dir.tar.gz");
+	
+	/* copy cache files back where they came from */
+	foreach (glob("/$dir/*:*") as $f)
+		if (is_file($f))
+			copy($f, "$cqpweb_tempdir/" . basename($f));
+
+	/* load back the mysql tables */
+	foreach (explode('~~~###~~~', file_get_contents("$dir/__CREATE_TABLES_STATEMENTS")) as $create_statement)
+	{
+		if (preg_match('/CREATE TABLE `([^`]*)`/', $create_statement, $m) < 1)
+			continue;
+		if ($m[1] == 'saved_catqueries')
+			continue;
+			/* see below for what we do with saved_catqueries */
+
+		do_mysql_query("drop table if exists {$m[1]}");
+		do_mysql_query($create_statement);
+		do_mysql_query("$mysql_LOAD_DATA_INFILE_command '{$m[1]}' into table {$m[1]}");
+	}
+	
+	/* now, we need to load the data back into saved_queries  --
+	 * but we need to check for the existence of like-named save-queries and delete them first. 
+	 * Same deal for saved_catqueries. */
+	foreach (file("$dir/__SAVED_QUERIES_LINES") as $line)
+	{
+		list($qname, $junk, $corpus) = explode("\t", $line);
+		do_mysql_query("delete from saved_queries where query_name = '$qname' and corpus = '$corpus'");
+	}
+	do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$dir/__SAVED_QUERIES_LINES' into table saved_queries");
+
+	foreach (file("$dir/saved_catqueries") as $line)
+	{
+		list($qname, $junk, $corpus) = explode("\t", $line);
+		do_mysql_query("delete from saved_catqueries where catquery_name = '$qname' and corpus = '$corpus'");
+	}
+	do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$dir/saved_catqueries' into table saved_catqueries");
+
+	recursive_delete_directory($dir);
+	
+	php_execute_time_relimit();
 
 }
 
+/**
+ * Dump an entire snapshot of the CQPweb system.
+ */
+function cqpweb_dump_snapshot($dump_file_path)
+{
+	global $cqpweb_tempdir;
+	
+	php_execute_time_unlimit();
+	
+	$dir = dumpable_dir_basename($dump_file_path);
+	
+	if (is_dir($dir))				recursive_delete_directory($dir);
+	if (is_file("$dir.tar"))		unlink("$dir.tar");
+	if (is_file("$dir.tar.gz"))		unlink("$dir.tar.gz");
+	
+	mkdir($dir);
+	
+	cqpweb_mysql_dump_data("$dir/__DUMPED_DATABASE.tar.gz");
+	
+	mkdir("$dir/cache");
+	
+	/* copy the cache */
+	foreach(scandir("/$cqpweb_tempdir") as $f)
+		if (is_file("/$cqpweb_tempdir/$f"))
+			copy("/$cqpweb_tempdir/$f", "$dir/cache/$f");
+	
+	/* copy corpus setting files */
+	foreach(list_corpora() as $c)
+		copy("../$c/settings.inc.php", "$dir/$c.settings.inc.php");
+		
+	/* NOTE: we do not attempt to dump out CWB registry or data files. */
+			
+	cqpweb_dump_targzip($dir);
+	
+	php_execute_time_relimit();
+}
+
+function cqpweb_undump_snapshot($dump_file_path)
+{
+	global $cqpweb_tempdir;
+
+	php_execute_time_unlimit();
+
+	$dir = dumpable_dir_basename($dump_file_path);
+	
+	cqpweb_dump_untargzip("$dir.tar.gz");
+	
+	/* copy cache files back where they came from */
+	foreach(scandir("$dir/cache") as $f)
+		if (is_file("$dir/cache/$f"))
+			copy("$dir/cache/$f", "/$cqpweb_tempdir/$f");
+	
+	/* corpus settings: create the directory if necessary */
+	foreach (scandir("$dir") as $sf)
+	{
+		if (!is_file($sf))
+			continue;
+		list($corpus) = explode('.', $sf);
+		if (! is_dir("../$corpus"))
+			mkdir("../$corpus");
+		copy("$dir/$sf", "../$corpus/settings.inc.php");
+		/* in case these were damaged or not yet created... */
+		install_create_corpus_script_files("../$corpus");
+	}
+	
+	/* call the MySQL undump function */
+	cqpweb_mysql_undump_data("$dir/__DUMPED_DATABASE.tar.gz");
+
+	recursive_delete_directory($dir);
+	
+	php_execute_time_relimit();
+}
+
+
+/**
+ * Does a data dump of the current status of the mysql database.
+ * 
+ * The database is written to a collection of text files that are compressed
+ * into a .tar.gz file (whose location should be specified as either
+ * an absolute path or a path relative to the working directory of the script
+ * that calls this function.)
+ * 
+ * Note that the path, minus the .tar.gz extension, will be created as an
+ * intermediate directory during the dump process.
+ * 
+ * The form of the .tar is as follows: one text file per table in the database,
+ * plus one text file containing create table statements as PHP code.
+ * 
+ * If the $dump_file_path argument does not end in ".tar.gz", then that 
+ * extension will be added.
+ * 
+ * TODO not tested yet
+ */
+function cqpweb_mysql_dump_data($dump_file_path)
+{
+	$dir = dumpable_dir_basename($dump_file_path);
+		
+	if (is_dir($dir))				recursive_delete_directory($dir);
+	if (is_file("$dir.tar"))		unlink("$dir.tar");
+	if (is_file("$dir.tar.gz"))		unlink("$dir.tar.gz");
+			
+	mkdir($dir);
+		
+	$create_tables_dest = fopen("$dir/__CREATE_TABLES_STATEMENTS", "w");
+	
+	$list_tables_result = do_mysql_query("show tables");
+	while (false !== ($r = mysql_fetch_row($list_tables_result)))
+	{
+		list($junk, $create) = mysql_fetch_row(do_mysql_query("show create table {$r[0]}"));
+		fwrite($create_tables_dest, $create ."\n\n~~~###~~~\n\n");
+		
+		$dest = fopen("$dir/{$r[0]}", "w");
+		$result = do_mysql_query("select * from {$r[0]}");
+		while (false !== ($line_r = mysql_fetch_row($result)))
+		{
+			foreach($line_r as &$v)
+				if (is_null($v))
+					$v = '\N';
+			fwrite($dest, implode("\t", $line_r) . "\n");
+		}
+		fclose($dest);
+	}
+	
+	fclose($create_tables_dest);
+	
+	cqpweb_dump_targzip($dir);
+}
+
+/**
+ * Undoes the dumping of the mysql directory.
+ * 
+ * Note that this overwrites any tables of the same name that are present.
+ * 
+ * TODO NOT TESTED YET.
+ * 
+ * If the $dump_file_path argument does not end in ".tar.gz", then that 
+ * extension will be added.
+ */
+function cqpweb_mysql_undump_data($dump_file_path)
+{
+	$dir = dumpable_dir_basename($dump_file_path);
+	
+	cqpweb_dump_untargzip("$dir.tar.gz");
+	
+	foreach (explode('~~~###~~~', file_get_contents("$dir/__CREATE_TABLES_STATEMENTS")) as $create_statement)
+	{
+		if (preg_match('/CREATE TABLE `([^`]*)`/', $create_statement, $m) < 1)
+			continue;
+		do_mysql_query("drop table if exists {$m[1]}");
+		do_mysql_query($create_statement);
+		do_mysql_query("$mysql_LOAD_DATA_INFILE_command '{$m[1]}' into table {$m[1]}");
+	}
+	
+	recursive_delete_directory($dir);
+}
 
 
 /**
@@ -1523,35 +1840,25 @@ function cqpweb_mysql_total_reset()
 {
 	global $mysql_link;
 
-	foreach (array('db_', 'freq_corpus_', 'freq_sc_', 'temporary_freq_', 'text_metadata_for_') as $prefix)
+	foreach (array( 'db_', 
+					'freq_corpus_', 
+					'freq_sc_', 
+					'temporary_freq_', 
+					'text_metadata_for_'
+					)
+			as $prefix)
 	{
-		$sql_query = "show tables like \"$prefix%\"";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query("show tables like \"$prefix%\"");
 		while ( ($r = mysql_fetch_row($result)) !== false)
-		{
-			$sql_query = "drop table if exists $r";
-			if ($result == false) 
-				exiterror_mysqlquery(mysql_errno($mysql_link), 
-					mysql_error($mysql_link), __FILE__, __LINE__);			
-		}
+			do_mysql_query("drop table if exists $r");
 	}
 	
 	$array_of_create_statements = cqpweb_mysql_recreate_tables();
 
 	foreach ($array_of_create_statements as $name => &$statement)
 	{
-		$sql_query = "drop table if exists $name";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		$result = mysql_query($statement, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		do_mysql_query("drop table if exists $name");
+		do_mysql_query($statement);
 	}
 }
 

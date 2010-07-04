@@ -73,14 +73,8 @@ function cqp_file_copy($oldqname, $newqname)
 /* returns a blank associative array with named keys for each for the fields */
 function blank_cache_assoc()
 {
-// shouldn't I just create an array, to avoid the overhead of a mysql call?
-	global $mysql_link;
-	$sql_query = 'select * from saved_queries limit 1';
-
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+// TODO shouldn't I just create an array, to avoid the overhead of a mysql call?
+	$result = mysql_query('select * from saved_queries limit 1');
 
 	$blank = array();
 	$n = mysql_num_fields($result);
@@ -95,24 +89,23 @@ function blank_cache_assoc()
 
 
 
-/* makes sure that the name you are about to put into cache is unique */
+/** 
+ * Makes sure that the name you are about to put into cache is unique.
+ * Keeps adding underscores to the end of it if it is not.
+ */
 function qname_unique($qname)
 {
 	if (! is_string($qname))
 		exiterror_arguments($qname, 'qname_unique() requires a string as argument $qname!',
 			__FILE__, __LINE__);
 
-	global $mysql_link;
 	
-	while (1)
+	while (true)
 	{
 		$sql_query = 'select query_name from saved_queries where query_name = \''
 			. mysql_real_escape_string($qname) . '\' limit 1';
 	
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 
 		if (mysql_num_rows($result) == 0)
 			break;
@@ -129,13 +122,15 @@ function qname_unique($qname)
 
 
 
-/* write a query to the cache table : assumption - this query has just been run in CQP     */
-/* returns FALSE if there was some kind of error creating the cache record, otherwise TRUE */
-/* note: will not write if the cache file does not exist */
+/**
+ * Write a query to the cache table : assumption - this query has just been run in CQP.
+ * 
+ * returns FALSE if there was some kind of error creating the cache record, otherwise TRUE.
+ * note: will not write if the cache file does not exist 
+ */
 function cache_query($qname, $cqp_query, $restrictions, $subcorpus, $postprocess, 
 	$num_of_solutions, $num_of_texts, $simple_query, $qmode, $link=NULL)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	global $username;
 
@@ -149,13 +144,13 @@ function cache_query($qname, $cqp_query, $restrictions, $subcorpus, $postprocess
 	
 	/* values that are made safe here */
 	$qname = mysql_real_escape_string($qname);
+	$simple_query = mysql_real_escape_string($simple_query);
 	$cqp_query = mysql_real_escape_string($cqp_query);
 	$restrictions = mysql_real_escape_string($restrictions);
 	$subcorpus = mysql_real_escape_string($subcorpus);
 	$postprocess = mysql_real_escape_string($postprocess);
-	/* this so postoprocess can be inserted without '' below */
+	/* this so postprocess can be inserted without '' below */
 	$postprocess = ( $postprocess === '' ? 'NULL' :  "'$postprocess'" );
-	$simple_query = mysql_real_escape_string($simple_query);
 	
 	/* all others should have been checked before passing */
 
@@ -169,10 +164,7 @@ function cache_query($qname, $cqp_query, $restrictions, $subcorpus, $postprocess
 		'$simple_query', '$qmode', '$file_size', 0 )
 		";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 
 	return true;
 }
@@ -188,16 +180,10 @@ function cache_query($qname, $cqp_query, $restrictions, $subcorpus, $postprocess
 /* an ASSOCIATIVE ARRAY containing the SQL record (for printing, etc.) if the query was found */
 function check_cache_qname($qname)
 {
-	global $mysql_link;
-	
 	$sql_query = "SELECT * from saved_queries where query_name = '" 
 		. mysql_real_escape_string($qname) . "' limit 1";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) == 0)
 		return false;
@@ -211,11 +197,7 @@ function check_cache_qname($qname)
 		/* the sql record of the query with that name exists, but the file doesn't */
 		$sql_query = "DELETE FROM saved_queries where query_name = '" 
 			. mysql_real_escape_string($qname) . "'";
-		$result = mysql_query($sql_query, $mysql_link);
-
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		do_mysql_query($sql_query);
 		
 		return false;
 	}
@@ -230,7 +212,6 @@ function check_cache_qname($qname)
 /* if "postprocess" is not specified as a parameter, it assumes NULL is sought */
 function check_cache_parameters($cqp_query, $restrictions, $subcorpus, $postprocess = '')
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 
 	$cqp_query = mysql_real_escape_string($cqp_query);
@@ -249,11 +230,7 @@ function check_cache_parameters($cqp_query, $restrictions, $subcorpus, $postproc
 		and postprocess $postprocess_cond
 		limit 1";
 
-	$result = mysql_query($sql_query, $mysql_link);
-
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	if (mysql_num_rows($result) == 0)
 		return false;
@@ -267,11 +244,7 @@ function check_cache_parameters($cqp_query, $restrictions, $subcorpus, $postproc
 		/* the sql record of the query with that cqp_query exists, but the file doesn't */
 		$sql_query = "DELETE FROM saved_queries where query_name = '" 
 			. $cache_record['query_name'] . "'";
-		$result = mysql_query($sql_query, $mysql_link);
-
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 		
 		return false;
 	}
@@ -284,8 +257,6 @@ function check_cache_parameters($cqp_query, $restrictions, $subcorpus, $postproc
 
 function update_cached_query($record)
 {
-	global $mysql_link;
-
 	/* argument must be an array */
 	if (! is_array($record))
 		exiterror_arguments("'record' array", 'update_cached_query() requires an associative array as argument $record!',
@@ -321,10 +292,7 @@ function update_cached_query($record)
 	}
 	$sql_query .= " WHERE query_name = '" . mysql_real_escape_string($record['query_name']) . "'";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 
 	/* no need to return anything - the update either works, or CQPweb dies */
 }
@@ -333,25 +301,22 @@ function update_cached_query($record)
 
 
 
-/* delete a single, named query from cache */
+/* delete a single, named query from cache. Note this is a within-corpus function. */
 function delete_cached_query($qname)
 {
-	global $mysql_link;
-
+	global $corpus_sql_name;
+	
 	/* argument must be a string */
 	if (! is_string($qname))
 		exiterror_arguments($qname, 'delete_cached_query() requires a string as argument $qname!',
 			__FILE__, __LINE__);
 
-	$sql_query = 'DELETE from saved_queries where query_name = \'' 
+	$sql_query = "DELETE from saved_queries where corpus = '$corpus_sql_name' query_name = '" 
 		. mysql_real_escape_string($qname) . '\'';
 
 	cqp_file_unlink($qname);
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 
 	/* no need to return anything - the update either works, or CQPweb dies */
 }
@@ -362,8 +327,6 @@ function delete_cached_query($qname)
 
 function copy_cached_query($oldqname, $newqname)
 {
-	global $mysql_link;
-
 	/* both arguments must be a string */
 	if (! is_string($oldqname))
 		exiterror_arguments($oldqname, 'copy_cached_query() requires a string as argument $oldqname!',
@@ -410,13 +373,8 @@ function copy_cached_query($oldqname, $newqname)
 		$fieldstring .= $att;
 		$valuestring .= "'" . mysql_real_escape_string($val) . "'";
 	}
-	
-	$sql_query = "insert into saved_queries ( $fieldstring ) values ( $valuestring )";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query("insert into saved_queries ( $fieldstring ) values ( $valuestring )");
 }
 
 
@@ -429,8 +387,6 @@ function copy_cached_query($oldqname, $newqname)
 /* does nothing to the specified query, but refreshes its time_of_query / date_of_saving to = now */
 function touch_cached_query($qname)
 {
-	global $mysql_link;
-	
 	if (! is_string($qname))
 		exiterror_arguments($qname, 'touch_cached_query() requires a string as argument $qname!',
 			__FILE__, __LINE__);
@@ -438,29 +394,27 @@ function touch_cached_query($qname)
 	$time_now = time();
 	
 	$sql_query = "update saved_queries set time_of_query = $time_now where query_name = '$qname'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-			__FILE__, __LINE__);
+	do_mysql_query($sql_query);
+
 }
 
 
 
 
 
-/* note: this function works ACROSS CORPORA */
+/* delete cached queries if the (configurable) limit has been reached */
+
+/* this func refers to $cache_size_limit; this is set in defaults.inc */
+/* but can be overridden by an individual corpus's settings.inc       */
+
+/* by default, this function does not delete usersaved queries        */
+/* this can be overriden by passing it "false"                        */
+/* and is automatically overridden if enough space cannot be cleared  */
+/* just by deleting non-user-saved queries                            */
+/* note: this function works ACROSS CORPORA  
+ * (which is why we can't just use delete_cached_query() on a loop!   */
 function delete_cached_queries($protect_user_saved = true)
 {
-	/* delete cached queries if the (configurable) limit has been reached */
-	
-	/* this func refers to $cache_size_limit; this is set in defaults.inc */
-	/* but can be overridden by an individual corpus's settings.inc       */
-	
-	/* by default, this function does not delete usersaved queries        */
-	/* this can be overriden by passing it "false"                        */
-	/* and is automatically overridden if enough space cannot be cleared  */
-	/* just by deleting non-user-saved queries                            */
-
 	global $mysql_link;
 	global $cache_size_limit;
 	global $cqpweb_tempdir;
@@ -471,17 +425,14 @@ function delete_cached_queries($protect_user_saved = true)
 	
 	/* step one: how many bytes in size is the CQP cache RIGHT NOW? */
 	$sql_query = "select sum(file_size) from saved_queries";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	$row_array = mysql_fetch_array($result);
 	$current_size = $row_array[0];
 	unset($result);
 	unset($row_array);
 	
 
-	if ($current_size > $cache_size_limit) 
+	if ($current_size > $cache_size_limit)
 	{
 		/* the cache has exceeded its size limit, ergo: */
 		
@@ -493,11 +444,7 @@ function delete_cached_queries($protect_user_saved = true)
 			. ($protect_user_saved ? " where saved = 0" : "")
 			. " order by time_of_query asc";
 			
-		$del_result = mysql_query($sql_query, $mysql_link);
-		
-		if ($del_result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$del_result = do_mysql_query($sql_query);
 
 		/* step four: delete files from the list until we've deleted enough */
 		$mysql_deletelist = array();
@@ -507,6 +454,8 @@ function delete_cached_queries($protect_user_saved = true)
 			if ( ! ($current_del_row = mysql_fetch_row($del_result)) )
 				break;
 			
+			// TODO: don't use * and don't use glob. Get the actual corpus name from the DB.
+			// there is a danger here, if the same qname is used in different corpora.
 			$globbed = glob("/$cqpweb_tempdir/*:" . $current_del_row[0]);
 			$current_path_to_delete = $globbed[0];
 
@@ -517,28 +466,21 @@ function delete_cached_queries($protect_user_saved = true)
 				/* and reduce the number of bytes we still have to remove */
 				$toDelete_size = $toDelete_size - $current_del_row[1];
 			}
-			/* and add it to the mySQL deletelist regardless of whether or */
-			/* not the file was there */
+			/* and add it to the mySQL deletelist regardless of whether or 
+			   not the file was there */
 			$mysql_deletelist[] = $current_del_row[0];
 		}
 		
 		/* step five: remove the references to those files from mySQL */
 		foreach ($mysql_deletelist as $d)
-		{
-			$sql_query = "DELETE FROM saved_queries WHERE query_name = '$d'";
-			$result = mysql_query($sql_query, $mysql_link);
-			if ($result == false) 
-				exiterror_mysqlquery(mysql_errno($mysql_link), 
-					mysql_error($mysql_link), __FILE__, __LINE__);
-			unset($result);
-		}
+			do_mysql_query("DELETE FROM saved_queries WHERE query_name = '$d'");
 		
 		/* have the above deletions done the trick? */
 		if ($toDelete_size > 0)
 		{	
-			/* deleting all the queries that could be deleted didn't work! */
-			/* last ditch: if user-saved-queries were protected, unprotect them and try again. */
-			/* Note, if it doesn't work unprotected, then the self-call will abort CQPweb */
+			/* deleting all the queries that could be deleted didn't work! 
+			   last ditch: if user-saved-queries were protected, unprotect them and try again. 
+			   Note, if it doesn't work unprotected, then the self-call will abort CQPweb */
 			if ($protect_user_saved)
 			{
 				$protect_user_saved = false;
@@ -550,7 +492,7 @@ function delete_cached_queries($protect_user_saved = true)
 	} /* endif the cache has exceeded its size limit */
 	
 	/* no "else" - if the cache hasn't exceeded its size limit, */
-	/* this function just returns without doing anything        */
+	/* so this function just returns without doing anything      */
 }
 
 
@@ -559,38 +501,27 @@ function delete_cached_queries($protect_user_saved = true)
 
 
 /* nuclear option - deletes all temp files, and removes their record from the saved_queries table */
+/* delete the entire cache, plus any files in the temp directory */
+/* by default, this function does not delete usersaved queries  ;     
+ * this can be overriden by passing it "false"                        
+ * and is automatically overridden if enough space cannot be cleared  
+ * just by deleting non-user-saved queries                            
+ */
 function clear_cache($protect_user_saved = true)
 {
-	/* delete the entire cache, plus any files in the temp directory */
-		
-	/* by default, this function does not delete usersaved queries        */
-	/* this can be overriden by passing it "false"                        */
-	/* and is automatically overridden if enough space cannot be cleared  */
-	/* just by deleting non-user-saved queries                            */
-
-	global $mysql_link;
 	global $cqpweb_tempdir;
 	
 	/* this function can take a long time to run, so turn off the limits */
 	php_execute_time_unlimit();
 	
-	/* in case arg comes in as a string */
-	if ($protect_user_saved == '1' || $protect_user_saved == '0')
-		$protect_user_saved = (bool)$protect_user_saved;
-	
-	if (!is_bool($protect_user_saved))
-		exiterror_arguments($protect_user_saved, 
-			"clear_cache() needs a bool (or nothing) as its argument!", __FILE__, __LINE__);
-
+	/* in case arg comes in as a string or int */
+	$protect_user_saved = (bool)$protect_user_saved;
 	
 	/* get a list of deletable files */
 	$sql_query = "select query_name from saved_queries" 
 		. ($protect_user_saved ? " where saved = 0" : "");
 		
-	$del_result = mysql_query($sql_query, $mysql_link);
-	if ($del_result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);	
+	$del_result = do_mysql_query($sql_query);
 
 	/* delete files */
 	$mysql_deletelist = array();
@@ -610,26 +541,16 @@ function clear_cache($protect_user_saved = true)
 
 	/* remove the references to those files from mySQL */
 	foreach ($mysql_deletelist as $d)
-	{
-		$sql_query = "DELETE FROM saved_queries WHERE query_name = '$d'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-		unset($result);
-	}
+		do_mysql_query("DELETE FROM saved_queries WHERE query_name = '$d'");
+
 
 	/* are there any files left in the temp directory? */
 	foreach(glob("/$cqpweb_tempdir/*") as $file)
 	{
-		/* was this file protected on the previous pass? */
+		/* was this file protected on the previous pass? if so, it will still be in the DB*/
 		preg_match('/\A([^:]*:)(.*)\z/', $file, $m);
 
-		$sql_query = "select query_name from saved_queries where query_name = '" . $m[2] ."'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query("select query_name from saved_queries where query_name = '{$m[2]}'");
 		
 		/* if this file wasn't protected, then delete it */
 		if (mysql_num_rows($result) < 1)
@@ -648,7 +569,6 @@ function clear_cache($protect_user_saved = true)
 
 function history_insert($instance_name, $cqp_query, $restrictions, $subcorpus, $simple_query, $qmode)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	global $username;
 
@@ -662,42 +582,27 @@ function history_insert($instance_name, $cqp_query, $restrictions, $subcorpus, $
 		values ('$instance_name', '$username', '$corpus_sql_name', '$escaped_cqp_query', '$escaped_restrictions', 
 		'$escaped_subcorpus', -3, '$escaped_simple_query', '$qmode')";
 
-	$result = mysql_query($sql_query, $mysql_link);
+	do_mysql_query($sql_query);
 
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
 }
 
 
 function history_delete($instance_name)
 {
-	global $mysql_link;
-
 	$instance_name = mysql_real_escape_string($instance_name);
-	
 	$sql_query = "delete from query_history where instance_name = '$instance_name'";
-	$result = mysql_query($sql_query, $mysql_link);
-
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 
 
 function history_update_hits($instance_name, $hits)
 {
-	global $mysql_link;
-
 	if (! is_int($hits) )
 		exiterror_arguments("-->$hits<--", 'history_update_hits() requires an integer as argument $hits!',
 			__FILE__, __LINE__);
 
 	$sql_query = "update query_history SET hits = $hits where instance_name = '$instance_name'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 
 
@@ -708,7 +613,6 @@ function history_update_hits($instance_name, $hits)
 /* like the cache delete functions, it operates across usernames and across corpora */
 function delete_old_query_history($weeks = '__DEFAULT', $max = '__DEFAULT')
 {
-	global $mysql_link;
 	global $history_weekstokeep;
 	global $history_maxentries;
 
@@ -728,10 +632,7 @@ function delete_old_query_history($weeks = '__DEFAULT', $max = '__DEFAULT')
 	$stopdate = date('Ymd', time()-($weeks * 7 * 24 * 60 * 60));
 	
 	$sql_query = "delete from query_history where date_of_query < $stopdate";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 
 

@@ -387,6 +387,13 @@ else
 	echo "concordgrey\"><a class=\"menuCurrentItem\">";
 echo "System security</a></td></tr>";
 
+echo "<tr><td class=\"";
+if ($thisF != "systemSnapshots")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=systemSnapshots&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "System snapshots</a></td></tr>";
 
 ?>
 <tr>
@@ -586,6 +593,10 @@ case 'systemSecurity':
 	printquery_systemsecurity();
 	break;
 
+case 'systemSnapshots':
+	printquery_systemsnapshots();
+	break;
+
 case 'mysqlRestore':
 	printquery_mysqlsystemrestore();
 	break;
@@ -636,7 +647,7 @@ default:
 </table>
 <?php
 
-print_footer();
+print_footer(NULL);
 
 /* ... and disconnect mysql */
 mysql_close($mysql_link);
@@ -670,13 +681,8 @@ mysql_close($mysql_link);
 function printquery_showcorpora()
 {
 	global $corpus_sql_name;	/* this is not brought from global scope but inserted into it */
-	global $mysql_link;
 
-	$sql_query = "select * from corpus_metadata_fixed order by corpus asc";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query("select * from corpus_metadata_fixed order by corpus asc");
 	
 	?>
 	<table class="concordtable" width="100%">
@@ -1128,14 +1134,6 @@ function printquery_installcorpusdone()
 			<td class="concordgeneral">
 				<p>You can now:</p>
 				<ul>
-					<!-- 
-					<li>
-						<a href="../<?php echo $corpus; ?>/index.php?thisQ=manageMetadata&uT=y">
-							Go to the corpus' metadata control page
-						</a>
-						(to set up frequency lists, add corpus metadata, etc.)
-					</li>
-					-->
 					<li>
 						<a href="../<?php echo $corpus; ?>/index.php?thisQ=manageMetadata&uT=y">
 							Design and insert a text-metadata table for the corpus
@@ -1246,8 +1244,9 @@ function printquery_newupload()
 		<tr>
 			<td class="concordgeneral">
 				<form enctype="multipart/form-data" action="index.php" method="POST">
-					<!--  20 Mb maximum -->
-					<input type="hidden" name="MAX_FILE_SIZE" value="20000000" /> 
+					<!-- not necessary to set maximum size, because PHP has settings tha thandle that
+					<input type="hidden" name="MAX_FILE_SIZE" value="20000000" />
+					-->
 					Choose a file to upload: <input name="uploadedFile" type="file" />
 					<br />
 					<input type="submit" value="Upload file" />
@@ -1998,8 +1997,9 @@ function printquery_skins()
 		<tr>
 			<td class="concordgrey" colspan="4">
 				&nbsp;<br/>
-				Listed below are the CSS files currently present in the upload area which do <em>not</em> already appear in
-				the main <em>css</em> directory. Select a file and click &ldquo;Import!&rdquo; 
+				Listed below are the CSS files currently present in the upload area which do 
+				<em>not</em> already appear in the main <em>css</em> directory.
+				Select a file and click &ldquo;Import!&rdquo; 
 				to create a copy of the file in the <em>css</em> directory.  
 				<br/>&nbsp;
 			</td>
@@ -2270,6 +2270,213 @@ function printquery_systemsecurity()
 }
 
 
+function printquery_systemsnapshots()
+{
+	global $cqpweb_uploaddir;
+	
+	/* this dir needs to exist for us to scan it... */
+	if (!is_dir("/$cqpweb_uploaddir/dump"))
+		mkdir("/$cqpweb_uploaddir/dump");
+	
+	switch($_GET['snapshotFunction'])
+	{
+	case 'createSystemSnapshot':
+		cqpweb_dump_snapshot("/$cqpweb_uploaddir/dump/CQPwebFullDump-" . time());
+		break;
+	case 'createUserdataBackup':
+		cqpweb_dump_userdata("/$cqpweb_uploaddir/dump/CQPwebUserDataDump-" . time());
+		break;
+	case 'undumpSystemSnapshot':
+		/* check that the argument is an approrpiate-format undump file that exists */
+		if 	(	preg_match('/^CQPwebFullDump-\d+$/', $_GET['undumpFile']) > 0
+				&&
+				is_file($_GET['undumpFile'])
+			)
+			/* call the function */
+			cqpweb_undump_snapshot("/$cqpweb_uploaddir/dump/".$_GET['undumpFile']);
+		else
+			exiterror_parameter("Invalid filename, or file does not exist!");
+		break;
+	case 'undumpUserdataBackup':
+		/* check that the argument is an approrpiate-format undump file that exists */
+		if 	(	preg_match('/^CQPwebUserDataDump-\d+$/', $_GET['undumpFile']) > 0
+				&&
+				is_file($_GET['undumpFile'])
+			)
+			/* call the function */
+			cqpweb_undump_userdata("/$cqpweb_uploaddir/dump/".$_GET['undumpFile']);
+		else
+			exiterror_parameter("Invalid filename, or file does not exist!");
+		break;
+	default:
+		break;
+	}
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="3">
+				CQPweb system snapshots
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="3">
+				&nbsp;<br/>
+				Use the button below to create a system snapshot (a zip file containing all the data from this
+				CQPweb system's current state, <em>except</em> the CWB registry and data files).
+				<br/>&nbsp;<br/>
+				Snapshot files are create as .tar.gz files in the "dump" subdirectory of the upload area.
+				<br/>&nbsp;<br/>
+				Warning: snapshot files <em>can be very big.</em>
+				<br/>&nbsp;<br/>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral" align="center" colspan="3">
+				<form action="index.php" method="get">
+					<br/>
+					<input type="submit" value="Create a snapshot file!" />
+					<br/>
+					<input type="hidden" name="thisF" value="systemSnapshots"/>
+					<input type="hidden" name="snapshotFunction" value="createSystemSnapshot"/>
+					<input type="hidden" name="uT" value="y" />
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="3">
+				&nbsp;<br/>
+				Use the button below to create a userdata backup (a zip file containing all the 
+				<strong>irreplaceable</strong> data in the system).
+				<br/>&nbsp;<br/>
+				Currently, this means user-saved queries and categorised queries. It is assumed
+				that the corpus itself and all associated metadata is <em>not</em> irreplaceable
+				(as you will have your own backup systems in place) but that user-generated data
+				<em>is</em>.
+				<br/>&nbsp;<br/>
+				These backups are placed initially in the same location as snapshot files, but
+				you should move them as soon as possible to a backup location.
+				<br/>&nbsp;<br/>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral" align="center" colspan="3">
+				<form action="index.php" method="get">
+					<br/>
+					<input type="submit" value="Create a userdata backup file!" />
+					<br/>
+					<input type="hidden" name="thisF" value="systemSnapshots"/>
+					<input type="hidden" name="snapshotFunction" value="createUserdataBackup"/>
+					<input type="hidden" name="uT" value="y" />
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable" colspan="3">
+				The following files currently exist in the "dump" directory.
+			</th>
+		</tr>
+		<tr>
+			<th class="concordtable">Filename</th>
+			<th class="concordtable">Size (K)</th>
+			<th class="concordtable">Date modified</th>
+		</tr>
+		<?php
+		$num_files = 0;
+		$file_options = "\n";
+		$file_list = scandir("/$cqpweb_uploaddir/dump");
+		foreach ($file_list as &$f)
+		{
+			$file = "/$cqpweb_uploaddir/dump/$f";
+			
+			if (!is_file($file))
+				continue;
+			$stat = stat($file);
+			$num_files++;
+			
+			$file_options .= "\t\t\t<option>$f</option>\n";
+
+			?>
+			<tr>
+				<td class="concordgeneral" align="left">
+					<?php echo $f; ?>
+				</td>
+				
+				<td class="concordgeneral" align="right";>
+					<?php echo make_thousands(round($stat['size']/1024, 0)); ?>
+				</td>
+				
+				<td class="concordgeneral" align="center">
+					<?php echo date('Y-M-d H:i:s', $stat['mtime']); ?>
+				</td>
+			
+			</tr>
+			<?php
+		}
+		if ($num_files < 1)
+			echo "\n\n\t<tr><td class='concordgrey' align='center' colspan='3'>
+				&nbsp;<br/>This directory is currently empty.<br/>&nbsp;</td></tr>\n";
+
+		?>
+		<tr>
+			<th class="concordtable" colspan="3">
+				Undump system snapshot
+			</th>
+		<tr>
+			<td class="concordgeneral" colspan="3">
+				<strong>Warning: this function is experimental.</strong>
+				<br/>&nbsp;<br/>
+				It will overwrite the current state of the CQPweb system.
+				<br/>&nbsp;<br/>
+				Select a file from the "dump" directory:
+				
+				<form action="index.php" method="get">
+					<select name="undumpFile">
+						<?php 
+						echo ($file_options == "\n" ? '<option>No undump files available</option>' : $file_options);
+						?>
+					</select>
+					<br/>&nbsp;<br/>
+					Press the button below to overwrite CQPweb with the contents of this snapshot:
+					<br/>
+					<input type="submit" value="Undump snapshot" />
+					<input type="hidden" name="thisF" value="systemSnapshots"/>
+					<input type="hidden" name="snapshotFunction" value="undumpSystemSnapshot"/>
+					<input type="hidden" name="uT" value="y" />
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable" colspan="3">
+				Reload backed-up userdata
+			</th>
+		<tr>
+			<td class="concordgeneral" colspan="3">
+				<strong>Warning: this function is experimental.</strong>
+				<br/>&nbsp;<br/>
+				It will overwrite any queries with the same name that are in the system already.
+				<br/>&nbsp;<br/>
+				Select a file from the "dump" directory:
+				
+				<form action="index.php" method="get">
+					<select>
+						<?php 
+						echo ($file_options== "\n" ? '<option>No undump files available</option>' : $file_options);
+						?>
+					</select>
+					<br/>&nbsp;<br/>
+					Press the button below to overwrite CQPweb with the contents of this snapshot:
+					<br/>
+					<input type="submit" value="Reload user data" />
+					<input type="hidden" name="thisF" value="systemSnapshots"/>
+					<input type="hidden" name="snapshotFunction" value="undumpUserdataBackup"/>
+					<input type="hidden" name="uT" value="y" />
+				</form>
+			</td>
+		</tr>
+	</table>
+	<?php
+}
+
 
 
 function printquery_mysqlsystemrestore()
@@ -2509,7 +2716,7 @@ function printquery_tableview()
 // TODO : this, properly!
 function printquery_mysqlprocesses()
 {
-	$result= do_mysql_query('SELECT * from mysql_processes');
+	$result = do_mysql_query('SELECT * from mysql_processes');
 	?>
 	<table class="concordtable" width="100%">
 		<tr>

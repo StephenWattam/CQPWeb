@@ -220,22 +220,22 @@ function printquery_history()
 		if ($i < $begin_at)
 			continue;
 		
-		echo "<tr>\n<td class='concordgeneral'><center>$i</center></td>";
+		echo "<tr>\n<td class='concordgeneral' align='center'>$i</td>";
 		if ($usercolumn)
-			echo "<td class='concordgeneral'><center>" . $row['user'] . '</center></td>';
+			echo "<td class='concordgeneral' align='center'>" . $row['user'] . '</td>';
 		
 		if ( $view == 'simple' && $row['simple_query'] != "" )
 			echo '<td class="concordgeneral"><a href="index.php?thisQ=search&insertString=' 
 				. urlencode($row['simple_query']) . '&insertType=' . $row['query_mode'] . '&uT=y"'
 				. ' onmouseover="return escape(\'Insert query string into query window\')">' 
-				. $row['simple_query'] . '</a>'
+				. htmlspecialchars($row['simple_query']) . '</a>'
 				. ($row['query_mode'] == 'sq_case' ? " (case sensitive)" : "") . '</td>';
 		else
 			echo '<td class="concordgeneral"><a href="index.php?thisQ=search&insertString=' 
 				. urlencode($row['cqp_query']) . '&insertType=' 
 				. ( $view == 'simple' ? $row['query_mode'] : 'cqp' ) . '&uT=y"'
 				. ' onmouseover="return escape(\'Insert query string into query window\')">' 
-				. $row['cqp_query'] . '</a></td>';
+				. htmlspecialchars($row['cqp_query']) . '</a></td>';
 
 		if ($row['subcorpus'] != 'no_subcorpus')
 
@@ -263,46 +263,46 @@ function printquery_history()
 		{
 		/* maybe add links to explanations? (-3 and -1) */
 		case -3:
-			echo "<td class='concordgeneral'><center><a href=\"concordance.php?"
+			echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
 				. "theData=" . urlencode($row['cqp_query']) 
 				. "&simpleQuery=" . urlencode($row['simple_query'])
 				. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
-				. "Run error</a></center></td>";
+				. "Run error</a></td>";
 				break;
 		case -1:
-			echo "<td class='concordgeneral'><center>Syntax error</center></td>";
+			echo "<td class='concordgeneral' align='center'>Syntax error</td>";
 			break;
 		default:
 			if ($row['subcorpus'] != 'no_subcorpus')
-				echo "<td class='concordgeneral'><center><a href=\"concordance.php?"
+				echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
 					. "theData=" . urlencode($row['cqp_query']) 
 					. "&del=begin&t=subcorpus~{$row['subcorpus']}&del=end"
 					. "&simpleQuery=" . urlencode($row['simple_query'])
 					. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
-					. $row['hits'] . "</a></center></td>";
+					. $row['hits'] . "</a></td>";
 			else if ($row['restrictions'] != 'no_restriction')
-				echo "<td class='concordgeneral'><center><a href=\"concordance.php?"
+				echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
 					. "theData=" . urlencode($row['cqp_query']) 
 					. "&simpleQuery=" . urlencode($row['simple_query'])
 					. '&' . untranslate_restrictions_definition_string($row['restrictions'])
 					. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
-					. $row['hits'] . "</a></center></td>";
+					. $row['hits'] . "</a></td>";
 			else
-				echo "<td class='concordgeneral'><center><a href=\"concordance.php?"
+				echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
 					. "theData=" . urlencode($row['cqp_query']) 
 					. "&simpleQuery=" . urlencode($row['simple_query'])
 					. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
-					. $row['hits'] . "</a></center></td>";
+					. $row['hits'] . "</a></td>";
 			break;
 		}
-		echo "<td class='concordgeneral'><center>" . $row['date_of_query'] . "</center></td>";
+		echo "<td class='concordgeneral' align='center'>" . $row['date_of_query'] . "</td>";
 		
 		if ($delete_lines)
 		{
-			echo '<td class="concordgeneral"><center><a class="menuItem" href="execute.php'
+			echo '<td class="concordgeneral" align="center"><a class="menuItem" href="execute.php'
 				. '?function=history_delete&args=' . urlencode($row['instance_name'])
 				. '&locationAfter=' . urlencode( 'index.php?' . url_printget() ) . '&uT=y" '
-				. 'onmouseover="return escape(\'Delete history item\')">[x]</a></center></td>';
+				. 'onmouseover="return escape(\'Delete history item\')">[x]</a></td>';
 		}
 		echo "\n</tr>\n";
 	}
@@ -546,19 +546,19 @@ function printquery_catqueries()
 			break;
 
 		/* no. */
-		echo "<tr>\n<td class='concordgeneral'><center>$i</center></td>";
+		echo "<tr>\n<td class='concordgeneral' align='center'>$i</td>";
 		
 		/* user */
 		if ($usercolumn)
-			echo "<td class='concordgeneral'><center>" 
+			echo "<td class='concordgeneral' align='center'>" 
 				. $catqueries_to_show[$i]['query_record']['user'] 
-				. '</center></td>';
+				. '</td>';
 		
 		/* Name of set */
-		if ($row['save_name'] != '')
-			$print_name = $catqueries_to_show[$i]['qname'];
-		else
+		if (!empty($catqueries_to_show[$i]['query_record']['save_name']))
 			$print_name = $catqueries_to_show[$i]['query_record']['save_name'];
+		else
+			$print_name = $catqueries_to_show[$i]['qname'];
 		
 		echo '<td class="concordgeneral"><a href="concordance.php?program=categorise&qname='
 			. $catqueries_to_show[$i]['qname'] 
@@ -566,22 +566,22 @@ function printquery_catqueries()
 			. $print_name . '</a></td>';
 
 		/* categories */
-		echo '<td class="concordgeneral"><center>' . implode(', ', $catqueries_to_show[$i]['catlist'])
-			. '</center></td>';
+		echo '<td class="concordgeneral" align="center">' . implode(', ', $catqueries_to_show[$i]['catlist'])
+			. '</td>';
 		
 		/* number of hits */
-		echo '<td class="concordgeneral"><center>' . $catqueries_to_show[$i]['query_record']['hits'] 
-			. '</center></td>';
+		echo '<td class="concordgeneral" align="center">' . $catqueries_to_show[$i]['query_record']['hits'] 
+			. '</td>';
 		
 		/* number and %of hits categorised */
-		echo '<td class="concordgeneral"><center>' . $catqueries_to_show[$i]['number_categorised'] 
+		echo '<td class="concordgeneral" align="center"><center>' . $catqueries_to_show[$i]['number_categorised'] 
 			. ' ('
 			. round(100*$catqueries_to_show[$i]['number_categorised']/$catqueries_to_show[$i]['query_record']['hits'] , 0)
-			. '%)</center></td>';
+			. '%)</td>';
 		
 		/* date of saving */
-		echo '<td class="concordgeneral"><center>' . $catqueries_to_show[$i]['query_record']['date_of_saving'] 
-			. '</center></td>';
+		echo '<td class="concordgeneral" align="center">' . $catqueries_to_show[$i]['query_record']['date_of_saving'] 
+			. '</td>';
 		
 		/* actions */
 		echo $action_form_begin . $catqueries_to_show[$i]['qname'] . $action_form_end;

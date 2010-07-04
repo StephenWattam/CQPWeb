@@ -24,11 +24,11 @@
 
 
 
-/* This script processes the different commands that can be issued by the */
-/* "redirect box" --  little dropdown that contains commands on various pages */
+/* This script processes the different commands that can be issued by the 
+ * "redirect box" --  little dropdown that contains commands on various pages */
 
-/* NOTE that all the "gets" are still available to the included script! */
-/* so the included script just runs as per normal */
+/* NOTE that all the "gets" are still available to the included script! 
+ * so the included script just runs as per normal */
 
 
 
@@ -53,6 +53,7 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		$this_script = 'index.php';
 		require("../lib/index.inc.php");
 		break;
+	
 	
 	/* from control box in concordance.php */
 	
@@ -97,6 +98,7 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 	case 'saveHits':
 		require("../lib/savequery.inc.php");
 		break;
+
 
 	/* from control box in context.php */
 	
@@ -255,6 +257,7 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 
 
 	/* special case */
+	
 	case 'comingSoon':
 		require("../lib/library.inc.php");
 		coming_soon_page();

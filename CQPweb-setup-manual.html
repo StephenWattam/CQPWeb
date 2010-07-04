@@ -3,11 +3,11 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20100601;1151700">
+	<META NAME="CHANGED" CONTENT="20100701;22384900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -54,10 +54,11 @@ installed:
 		<LI><P LANG="en-GB"><SPAN LANG="en-GB">See
 		<A HREF="http://cwb.sourceforge.net/">http://cwb.sourceforge.net</A></SPAN></P>
 	</UL>
-	<LI><P LANG="en-GB"><SPAN LANG="en-GB">Awk</SPAN></P>
+	<LI><P LANG="en-GB">Standard Unix-style command-line tools: awk,
+	tar, and gzip</P>
 	<UL>
-		<LI><P LANG="en-GB"><SPAN LANG="en-GB">(any version of awk
-		compatible with GNU awk (“gawk”) should be OK)</SPAN></P>
+		<LI><P LANG="en-GB">Awk (any version of awk compatible with GNU awk
+		(“gawk”) should be OK)</P>
 	</UL>
 </UL>
 <P LANG="en-GB"><BR><BR>
@@ -105,18 +106,20 @@ up PHP</B></FONT></FONT></P>
 <P LANG="en-GB"><SPAN LANG="en-GB">CQPweb crucially requires the
 </SPAN><SPAN LANG="en-GB"><B>mysql</B></SPAN><SPAN LANG="en-GB">
 extension to PHP, which enables interaction between PHP and the MySQL
-database software (note: </SPAN><SPAN LANG="en-GB"><I>not</I></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">
-the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
-extension</SPAN></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">,
+database software (note: </SPAN><SPAN LANG="en-GB"><I>not</I></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">extension</SPAN></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">,
 which is something different). In PHP v5.x, this extension is not
 enabled by default. See <A HREF="http://php.net/manual/en/mysql.installation.php">here</A>
 for information on making sure it is enabled. You may have recompile
-PHP to make the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">
-extension available. </SPAN></SPAN><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>(We
+PHP to make the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">extension
+available. </SPAN></SPAN><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>(We
 are working on an extension to CQPweb which will make worrying about
 the availability of mysql unnecessary by allowing the system to work
-equally well with both </B></SPAN></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><I><B>mysql</B></I></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>
-and </B></SPAN></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><I><B>mysqli</B></I></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>.)</B></SPAN></SPAN></FONT></P>
+equally well with both </B></SPAN></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><I><B>mysql</B></I></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB">
+</SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>and
+</B></SPAN></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><I><B>mysqli</B></I></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>.)</B></SPAN></SPAN></FONT></P>
 <P LANG="en-GB"><SPAN LANG="en-GB">Certain aspects of he behaviour of
 PHP is controlled by its </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
 file (see <A HREF="http://www.php.net/manual/en/ini.php">here</A>).
@@ -216,7 +219,7 @@ up the Perl elements</B></FONT></FONT></FONT></P>
 base module of the CWB Perl API distribution. You can download a
 release package from the links to be found here:</FONT></P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><A HREF="http://cwb.sourceforge.net/download.php#perl">http://cwb.sourceforge.net/download.php#perl</A></FONT></P>
+	<LI><P LANG="en-GB"><A HREF="http://cwb.sourceforge.net/download.php#perl"><FONT COLOR="#000000"><SPAN LANG="en-GB">http://cwb.sourceforge.net/download.php#perl</SPAN></FONT></A></P>
 	<LI><P LANG="en-GB"><FONT COLOR="#000000"><I>You may wish to install
 	other aspects of the CWB Perl API (CWB-CL, CWB-Web and CWB-CQi) but
 	these are not needed just to run CQPweb.</I></FONT></P>
@@ -239,9 +242,17 @@ version 2.2.102.</FONT></P>
 		wish to set up CQPweb to use a different Perl binary to your
 		system's default (i.e. </I><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">which
 		perl</SPAN></FONT><I>), you need to make sure the CWB modules are
-		accessible </I><I><U>that</U></I><I> Perl binary</I>. <SPAN STYLE="font-style: normal">If
+		accessible to </I><I><U>that</U></I> <I>Perl binary</I>. <SPAN STYLE="font-style: normal">If
 		you don't understand the previous sentences, ignore the preceding
 		paragraph and this one!</SPAN></FONT></P>
+		<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">If you install
+		the Perl modules into a folder that is not in the normal Perl </SPAN><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">@INC</SPAN></FONT></FONT>
+		<SPAN STYLE="font-style: normal">path (which you can do by
+		specifying an alternative </SPAN><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">PREFIX</SPAN></FONT></FONT><SPAN STYLE="font-style: normal">),
+		then you will need to tell CQPweb where they are. You can do this
+		by setting the option </SPAN><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$cwb_extra_perl_directories</SPAN></FONT></FONT>
+		<SPAN STYLE="font-style: normal">in the configuration file (see
+		below).</SPAN></P>
 	</UL>
 </UL>
 <P LANG="en-GB"><BR><BR>
@@ -449,8 +460,8 @@ access to individual programs; if it does not allow mysqld access to
 these new directories, you will not be able to run CQPweb
 successfully, </SPAN></FONT><FONT FACE="Times New Roman, serif"><I><SPAN STYLE="font-weight: normal">even
 if</SPAN></I></FONT> <FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">the
-</SPAN></FONT><FONT FACE="Times New Roman, serif"><B>mysql</B></FONT><SPAN STYLE="font-weight: normal">
-</SPAN><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">username
+</SPAN></FONT><FONT FACE="Times New Roman, serif"><B>mysql</B></FONT>
+<FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">username
 has full permissions. You fix this by doing the following (as root):</SPAN></FONT></FONT></P>
 <UL>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">edit
@@ -514,11 +525,11 @@ various things it does is check that this script is gone – in both
 its gzipped and non-gzipped forms – and delete it if not.)</SPAN></P>
 <P LANG="en-GB"><SPAN STYLE="font-weight: normal">You may wish to
 change the configuration variables at some later point. If so, you
-need to edit the file </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">config.inc.php</SPAN></FONT><SPAN STYLE="font-weight: normal">
-in the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">lib</SPAN></FONT><SPAN STYLE="font-weight: normal">
-subdirectory of the web directory. See the following section for some
-information on what you can change manually in the config file. The
-core configuration variables </SPAN><I><SPAN STYLE="font-weight: normal">cannot
+need to edit the file </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">config.inc.php</SPAN></FONT>
+<SPAN STYLE="font-weight: normal">in the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">lib</SPAN></FONT>
+<SPAN STYLE="font-weight: normal">subdirectory of the web directory.
+See the following section for some information on what you can change
+manually in the config file. The core configuration variables </SPAN><I><SPAN STYLE="font-weight: normal">cannot
 be changed through the web interface</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">,
 even if you are logged on as a superuser. This is for security
 reasons.</SPAN></SPAN></P>
@@ -646,7 +657,8 @@ ignored if you don't understand exactly what they're for. They are</P>
 	may run faster. But this must only be set to true <B>if</B> (a) the
 	MySQL server is running on the same computer as CQPweb <B>and</B>
 	(b) the MySQL server actually does have access to the temporary
-	directory <B>and</B> (c) the MySQL username used by CQPweb has <FONT FACE="Courier New, monospace">GRANT
+	directory and all other locations that CQPweb writes files to <B>and</B>
+	(c) the MySQL username used by CQPweb has <FONT FACE="Courier New, monospace">GRANT
 	FILE ON *.*</FONT> permissions. It is important you get this right,
 	as CQPweb doesn't check these preconditions for you! 
 	</P>
@@ -654,6 +666,16 @@ ignored if you don't understand exactly what they're for. They are</P>
 	– this defaults to true, but you can set it to false if your web
 	server is not Apache. If it is set to false, functions that depend
 	on Apache will be hidden (since they wouldn't work anyway).</P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$cqpweb_root_url</SPAN></FONT><SPAN LANG="en-GB">
+	– you can set this to an absolute URL (in the style
+	&quot;</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">http://your-server.net/path/to/cqpweb/web/directory/</SPAN></FONT><SPAN LANG="en-GB">&quot;
+	) and this will be used internally when CQPweb redirects the user's
+	browser from one point in the system to another. If you don't set
+	it, then CQPweb will try to work out its own URL based on
+	information in PHP's global </SPAN><A HREF="http://php.net/_SERVER"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$_SERVER</SPAN></FONT></A><SPAN LANG="en-GB">
+	array. This may produce incorrect results if you are running CQPweb
+	in an environment where there is a lot of server proxying. </SPAN>
+	</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$cwb_max_ram_usage</FONT>
 	and <FONT FACE="Courier New, monospace">$cwb_max_ram_usage_cli</FONT>
 	– some CWB programs allow a RAM usage limit to be set on their
@@ -662,6 +684,17 @@ ignored if you don't understand exactly what they're for. They are</P>
 	first applies if CQPweb is called over the web, the second if it is
 	called from the command-line). They default to 50Mb and 1000Mb
 	respectively.</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$cwb_extra_perl_directories</SPAN></FONT></FONT>
+	– if this is set, it should take the form of a quoted string that
+	lists directories that you wish Perl to use as library directories
+	when called by CQPweb, with individual directory paths separated by
+	the pipe symbol (e.g. <FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">&quot;/extra/directory/1|/extra/directory/2&quot;</SPAN></FONT></FONT>.
+	All paths must be <I>absolute</I><SPAN STYLE="font-style: normal">.
+	Normally, the only reason to use this variable is to specify a
+	non-standard location for the installed CWB-Perl modules (see above)
+	thus – the name of the setting. The directories in question will
+	be passed to Perl using the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">-I</SPAN></FONT><SPAN STYLE="font-style: normal">
+	command-line option.</SPAN></P>
 </UL>
 <P LANG="en-GB">Save the edited file as “config.inc.php” and put
 it into the “lib” subdirectory of the web directory.</P>

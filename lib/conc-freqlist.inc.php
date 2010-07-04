@@ -218,7 +218,7 @@ unset($result);
 /* create the description */
 $description = "Solutions include " . make_thousands($db_types_total) . " types and  " 
 	. make_thousands($db_tokens_total) . " tokens for &ldquo;{$query_record['cqp_query']}&rdquo;. (" 
-	. create_solution_heading($query_record, false) . '.) <br/> Showing node as ' 
+	. create_solution_heading($query_record, false) . '.) <br/>Showing node as ' 
 	. $breakdown_of_info[$breakdown_of]['desc'] . '.';
 
 

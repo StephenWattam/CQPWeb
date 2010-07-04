@@ -95,6 +95,10 @@ function refresh_directory_global_cqp()
 	}
 }
 
+/**
+ * Creates a global variable $mysql_link containing a connection to the CQPweb
+ * database, using the settings in config.inc.php.
+ */
 function connect_global_mysql()
 {
 	global $mysql_link;
@@ -149,8 +153,12 @@ function get_cwb_memory_limit()
 
 
 /**
- * note - this function should replace all direct calls to mysql_query,
+ * Does a MySQL query on the CQPweb database, with error checking.
+ * 
+ * Note - this function should replace all direct calls to mysql_query,
  * thus avoiding duplication of error-checking code.
+ * 
+ * Returns the result resource.
  */ 
 function do_mysql_query($sql_query)
 {
@@ -299,7 +307,7 @@ function import_settings_as_global($corpus)
 
 
 /** 
- * this function removes any existing start/end anchors from a regex
+ * This function removes any existing start/end anchors from a regex
  * and adds new ones.
  */
 function regex_add_anchors($s)
@@ -311,7 +319,9 @@ function regex_add_anchors($s)
 	return '^' . $s . '$';
 }
 
-
+/**
+ * Converts an integer to a string with commas every three digits.
+ */
 function make_thousands($number)
 {
 	$string = "$number";
@@ -341,14 +351,18 @@ function make_thousands($number)
 /* Simple function to replicate PHP 5 behaviour - copied from php.net */
 function microtime_float()
 {
-    list($usec, $sec) = explode(" ", microtime());
-    return ((float)$usec + (float)$sec);
+//    list($usec, $sec) = explode(" ", microtime());
+//    return ((float)$usec + (float)$sec);
+// We on't need to fake it, we now need PHP5 so we can use the real get_as_float option.
+	return microtime(true);
 }
 
 
 
-/* replacement for htmlspecialcharacters which DOESN'T change & to &amp; if it is already part of */
-/* an entity; otherwise equiv to htmlspecialchars($string, ENT_COMPAT, 'UTF-8', false) */
+/**
+ * Replacement for htmlspecialcharacters which DOESN'T change & to &amp; if it is already part of
+ * an entity; otherwise equiv to htmlspecialchars($string, ENT_COMPAT, 'UTF-8', false) 
+ */
 function cqpweb_htmlspecialchars($string)
 {
 	$string = str_replace('&', '&amp;', $string);
@@ -360,14 +374,19 @@ function cqpweb_htmlspecialchars($string)
 }
 
 
-/*
- * A "handle" can only be a word character.
+/**
+ * This function removes any characters that match PCRE \W from a string.
+ *  
+ * A "handle" can only contain word characters.
  */
 function cqpweb_handle_enforce($string)
 {
 	return preg_replace('/\W/', '', $string);
 }
 
+/**
+ * Returns true iff there are no non-word characters (i.e. no \W) in the argument string.
+ */
 function cqpweb_handle_check($string)
 {
 	return (bool) preg_match('/\W/', $string);
@@ -376,35 +395,58 @@ function cqpweb_handle_check($string)
 
 
 /**
- * $u will be treated as a relative address if it does not begin with "http"
- * and as an absolute address if it does.
+ * This function creates absolute URLs from relative ones by adding the relative
+ * URL argument $u to the real URL of the directory in which the script is running.
+ * 
+ * The URL of the currently-running script's containing directory is worked out  
+ * in one of two ways. If the global configuration variable "$cqpweb_root_url" is
+ * set, this address is taken, and the corpus handle (SQL version, IE lowercase, which 
+ * is the same as the subdirectory that stores the corpus) is added. If no SQL
+ * corpus handle exists, nothing is added to $cqpweb_root_url.
+ * 
+ * If $cqpweb_root_url is not set, the function tries to work out the containing
+ * directory by extracting values from the global $_SERVER array.
+ * 
+ * $u will be treated as a relative address  (as explained above) if it does not 
+ * begin with "http" and as an absolute address if it does.
  * 
  * Note, this "absolute" in the sense of having a server specified at the start, 
  * it can still contain relativising elements such as '/../' etc.
  */
 function url_absolutify($u)
 {
+	global $cqpweb_root_url;
+	global $corpus_sql_name;
+	
 	if (preg_match('/\Ahttps?:/', $u))
 		/* address is already absolute */
 		return $u;
 	else
-		/* make address absolute by adding server of this script plus folder path of this URI  */
-		/* this may not be foolproof, because it assumes that the path will always lead to the */
-		/* folder in which the current php script is located -- but should work for most cases */
-		return ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] 
-			. preg_replace('/\/[^\/]*\z/', '/', $_SERVER['REQUEST_URI']) . $u;
+	{
+		/* make address absolute by adding server of this script plus folder path of this URI  
+		 * this may not be foolproof, because it assumes that the path will always lead to the 
+		 * folder in which the current php script is located -- but should work for most cases 
+		 */
+		if (empty($cqpweb_root_url))
+			return ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] 
+				. preg_replace('/\/[^\/]*\z/', '/', $_SERVER['REQUEST_URI']) . $u;
+		else
+			return $cqpweb_root_url . ( (!empty($corpus_sql_name)) ? $corpus_sql_name.'/' : '' ) . $u; 
+	}
 }
 
 
 
-/* url_string_is_valid() - checks whether current script has $_GET[uT] == "y" */
+/** Checks whether the current script has $_GET[uT] == "y" (terminating element of all CQPweb URIs) */
 function url_string_is_valid()
 {
-	if (! array_key_exists('uT', $_GET) )
+	/*if (! array_key_exists('uT', $_GET) )
 		return false;
 	if ($_GET['uT'] != 'y')
 		return false;
-	return true;
+	return true;*/
+	
+	return (array_key_exists('uT', $_GET) && $_GET['uT'] == 'y');
 }
 
 
@@ -465,12 +507,17 @@ function url_printget($changes = "Nope!")
 	return $string;
 }
 
-/* returns a string of "<input type="hidden" name="key" value= */
-/* changes = array of arrays */
-/* where each array consists of [0] a field name  */
-/* 						& [1] the new value */
-/* if [1] is an empty string, that pair is not included */
-/* WARNING: adds values that weren't there at the START of the string */
+/**
+ * Returns a string of "<input type="hidden" name="key" value="value" />..."
+ * 
+ * changes = array of arrays 
+ * where each array consists of [0] a field name  
+ * 						& [1] the new value 
+ * 
+ * If [1] is an empty string, that pair is not included.
+ *  
+ * WARNING: adds values that weren't there at the START of the string.
+ */
 function url_printinputs($changes = "Nope!")
 {
 	$change_me = is_array($changes);
@@ -599,12 +646,12 @@ function php_execute_time_relimit()
 }
 
 
-// THIS IS A DEBUG FUNCTION - COMMENT OUT WHEN I GO TO PRODUCTION
+/** THIS IS A DEBUG FUNCTION */
 function show_var(&$var, $scope=false, $prefix='unique', $suffix='value')
 {
 	/* some code off the web to get the variable name */
 	if($scope)	$vals = $scope;
-	else			$vals = $GLOBALS;
+	else		$vals = $GLOBALS;
 	$old = $var;
 	$var = $new = $prefix.rand().$suffix;
 	$vname = FALSE;
@@ -621,7 +668,7 @@ function show_var(&$var, $scope=false, $prefix='unique', $suffix='value')
 
 }
 
-// THIS IS A DEBUG FUNCTION - COMMENT OUT WHEN I GO TO PRODUCTION
+/** THIS IS A DEBUG FUNCTION */
 function dump_mysql_result($result)
 {
 	$s = '<table class="concordtable"><tr>';
@@ -669,15 +716,9 @@ function coming_soon_page()
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	</head>
 	<body>
-	
-	<p class="errormessage">&nbsp;<br/>
-		&nbsp; <br/>
-		We are sorry, but that part of CQPweb has not been built yet.
-	</p>
-	
-	</body>
-	</html>
+
 	<?php
+	coming_soon_finish_page();
 }
 
 
@@ -693,17 +734,6 @@ function coming_soon_finish_page()
 	</html>
 	<?php
 }
-
-
-// this shouldn't now be needed and can be deleted as cqp.inc.php does not use these constants any more
-/*
-function create_pipe_handle_constants()
-{
-	define("IN",  0);	/* stdin,  i.e. input  TO   the child * /
-	define("OUT", 1);	/* stdout, i.e. output FROM the child * /
-	define("ERR", 2);	/* stderr, i.e. errors FROM the child * /
-}
-*/
 
 
 
@@ -769,14 +799,10 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 /* returns an array of category names */
 function catquery_list_categories($qname)
 {
-	global $mysql_link;
 	$sql_query = "select category_list from saved_catqueries where catquery_name = '"
 		. mysql_real_escape_string($qname)
 		.'\'';
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	list($list) = mysql_fetch_row($result);
 	return explode('|', $list);
 }
@@ -786,8 +812,6 @@ function catquery_list_categories($qname)
 /* from and to parameters are INCLUSIVE */
 function catquery_get_categorisation_table($qname, $from, $to)
 {
-	global $mysql_link;
-	
 	/* find out the dbname from the saved_catqueries table */
 	$dbname = catquery_find_dbname($qname);
 	
@@ -795,10 +819,7 @@ function catquery_get_categorisation_table($qname, $from, $to)
 	$to = (int)$to;
 	
 	$sql_query = "select refnumber, category from $dbname where refnumber >= $from and refnumber <= $to";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 			
 	$a = array();
 	while ( ($row = mysql_fetch_row($result)) !== false)
@@ -812,40 +833,46 @@ function catquery_get_categorisation_table($qname, $from, $to)
 
 function catquery_find_dbname($qname)
 {
-	global $mysql_link;
-
 	$qname = mysql_real_escape_string($qname);
 	$sql_query = "select dbname from saved_catqueries where catquery_name ='$qname'";
-	$result = mysql_query($sql_query, $mysql_link);
+	$result = do_mysql_query($sql_query);
 	
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
 	if (mysql_num_rows($result) < 1)
-		exiterror_general("The categorised query <em>$qname</em> could nto be found in the database.", __FILE__, __LINE__);
+		exiterror_general("The categorised query <em>$qname</em> could nto be found in the database.", 
+			__FILE__, __LINE__);
 	list($dbname) = mysql_fetch_row($result);
 
 	return $dbname;
 }
 
-
-function print_footer()
+/**
+ * Creates a apge footer for CQPweb.
+ * 
+ * Pass in the string "admin" for an admin-logon link. 
+ * Default link is to a help page.
+ */ 
+function print_footer($link = 'help')
 {
 	global $username;
-	global $corpus_title;
 	
-	if (isset($corpus_title))
+	if ($link == 'help')
 	{
 		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
 			<a class="cqpweb_copynote_link" href="help.php" target="_NEW">Corpus and tagset help</a>
 		</td>';
 	}
-	else
+	else if ($link == 'admin')
 	{
 		/* use the help cell for an admin logon link instead */
-		$help_cell = '<td align="center" class="cqpweb_copynote" align="center" width="33%">
+		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
 			<a href="adm"  class="cqpweb_copynote_link" >[Admin logon]</a>
 		</td>';	
+	}
+	else
+	{
+		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
+			&nbsp;
+		</td>';
 	}
 	?>
 	<hr/>
@@ -854,7 +881,7 @@ function print_footer()
 			<td align="left" class="cqpweb_copynote" width="33%">
 				CQPweb v<?php echo CQPWEB_VERSION; ?> &#169; 2008-2010
 			</td>
-			<?php echo $help_cell; ?>
+			<?php echo $help_cell; ?> 
 			<td align="right" class="cqpweb_copynote" width="33%">
 				<?php
 				if ($username == '__unknown_user')
@@ -897,34 +924,24 @@ function database_enable_keys($arg)
 
 function add_system_message($header, $content)
 {
-	global $mysql_link;
 	global $instance_name;
 	$sql_query = "insert into system_messages set 
 		header = '" . mysql_real_escape_string($header) . "', 
 		content = '" . mysql_real_escape_string($content) . "', 
 		message_id = '$instance_name'";
 	/* timestamp is defaulted */
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-
+	do_mysql_query($sql_query);
 }
 
 function delete_system_message($message_id)
 {
-	global $mysql_link;
 	$message_id = preg_replace('/\W/', '', $message_id);
 	$sql_query = "delete from system_messages where message_id = '$message_id'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 
 function display_system_messages()
 {
-	global $mysql_link;
 	global $instance_name;
 	global $username;
 	global $this_script;
@@ -932,10 +949,7 @@ function display_system_messages()
 	$su = user_is_superuser($username);
 
 	$sql_query = "select * from system_messages order by timestamp desc";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 
 	if (mysql_num_rows($result) == 0)
@@ -989,20 +1003,20 @@ function display_system_messages()
 }
 
 
-
+/**
+ * Convenience function to delete a specified directory, plus everything in it.
+ */
 function recursive_delete_directory($path)
 {
 	$files_to_delete = scandir($path);
 	foreach($files_to_delete as &$f)
 	{
 		if ($f == '.' || $f == '..')
-			continue;
-		if (is_dir($f))
-		{
+			;
+		else if (is_dir("$path/$f"))
 			recursive_delete_directory("$path/$f");
-			continue;
-		}
-		unlink("$path/$f");
+		else
+			unlink("$path/$f");
 	}
 	rmdir($path);
 }
@@ -1018,29 +1032,22 @@ function recursive_delete_directory($path)
  * 
  * Things stored in the longvalues table are deleted when they are 5 days old.
  * 
- * The retrieval function is longvalue_retrieve
+ * The retrieval function is longvalue_retrieve().
  *  
  */
 function longvalue_store($value)
 {
 	global $instance_name;
-	global $mysql_link;
 	
 	/* clear out old longvalues */
 	$sql_query = "delete from system_longvalues where timestamp < DATE_SUB(NOW(), INTERVAL 5 DAY)";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);		
+	do_mysql_query($sql_query);
 	
 	$value = mysql_real_escape_string($value);
 	
 	$sql_query = "insert into system_longvalues (id, value) values ('$instance_name', '$value')";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);	
-	
+	do_mysql_query($sql_query);
+
 	return $instance_name;
 }
 
@@ -1049,16 +1056,11 @@ function longvalue_store($value)
  * Retrieval function for values stored with longvalue_store (q.v.)
  */
 function longvalue_retrieve($id)
-{
-	global $mysql_link;
-	
+{	
 	$id = mysql_real_escape_string($id);
 	
 	$sql_query = "select value from system_longvalues where id = '$id'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_general('The referenced values was not found in the dataabse. Please redo from scratch!', 
-			__FILE__, __LINE__);	
+	$result = do_mysql_query($sql_query);
 	
 	$r = mysql_fetch_row($result);
 		

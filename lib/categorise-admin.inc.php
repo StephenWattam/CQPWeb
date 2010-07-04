@@ -153,9 +153,7 @@ mysql_close($mysql_link);
 function categorise_create_query()
 {
 	global $username;
-	global $mysql_link;
 	global $corpus_sql_name;
-
 
 	/* get values from $_GET */
 	
@@ -176,7 +174,6 @@ function categorise_create_query()
 		$default_cat_number = 0;
 
 
-
 	/* check there is a savename for the catquery and it contains no badchars */
 	if (empty($_GET['categoriseCreateName']))
 	{
@@ -193,17 +190,13 @@ function categorise_create_query()
 	
 	/* make sure no catquery of that name already exists */
 	$sql_query = "select query_name from saved_queries where user = '$username' and save_name = '$savename'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	if (mysql_num_rows($result) > 0)
 	{
 		categorise_enter_categories('name_exists');
 		disconnect_all();
 		exit();
 	}
-
 
 	
 	$categories = array();
@@ -272,13 +265,7 @@ function categorise_create_query()
 
 	/* if there is a default category, set that default on every line */
 	if ($default_cat_number != 0)
-	{
-		$sql_query = "update $dbname set category = '{$categories[$default_cat_number]}'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-	}
+		do_mysql_query("update $dbname set category = '{$categories[$default_cat_number]}'");
 
 
 
@@ -286,10 +273,7 @@ function categorise_create_query()
 	/* create a record in saved_catqueries that links the query and the db */
 	$sql_query = "insert into saved_catqueries (catquery_name, user, corpus, dbname, category_list) 
 					values ('$newqname', '$username', '$corpus_sql_name', '$dbname', '$cat_list')";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 
 	header("Location: concordance.php?qname=$newqname&program=categorise&uT=y");
 
@@ -402,7 +386,8 @@ function categorise_separate()
 			. (empty($query_record['postprocess']) ? '' : '~~')
 			. "cat[$category]";
 		
-		
+		/* note we need to re-escape fields from the $query_record that may contain ' 
+		 * that could bring the strings here to a premature end! */ 
 		$sql_query = "insert into saved_queries (
 			query_name, 
 			user, 
@@ -425,11 +410,11 @@ function categorise_separate()
 			'$username',
 			'$corpus_sql_name',
 			'{$query_record['query_mode']}',
-			'{$query_record['simple_query']}',
-			'{$query_record['cqp_query']}',
-			'{$query_record['restrictions']}',
-			'{$query_record['subcorpus']}',
-			'{$new_pp_string}',
+			'".mysql_real_escape_string($query_record['simple_query'])."',
+			'".mysql_real_escape_string($query_record['cqp_query'])."',
+			'".mysql_real_escape_string($query_record['restrictions'])."',
+			'".mysql_real_escape_string($query_record['subcorpus'])."',
+			'".mysql_real_escape_string($new_pp_string)."',
 			'". $query_record['hits_left'] . (empty($query_record['hits_left']) ? '' : '~') . $solution_count ."',
 			" . time() . ",
 			{$query_record['hits']},

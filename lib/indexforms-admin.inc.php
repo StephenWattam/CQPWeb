@@ -1354,7 +1354,6 @@ function printquery_managecategories()
 function printquery_manageannotation()
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	
 	if ($_GET['updateMe'] === 'CEQL')
 	{
@@ -1548,11 +1547,7 @@ function printquery_manageannotation()
 		
 		<?php
 		
-		$sql_query = "select * from annotation_metadata where corpus='$corpus_sql_name'"; 
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query("select * from annotation_metadata where corpus='$corpus_sql_name'");
 		if (mysql_num_rows($result) < 1)
 			echo '<tr><td colspan="5" class="concordgrey" align="center">&nbsp;<br/>
 				This corpus has no annotation.<br/>&nbsp;</td></tr>';

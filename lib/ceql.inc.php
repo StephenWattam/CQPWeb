@@ -232,6 +232,7 @@ function process_simple_query($query, $case_sensitive)
 	global $subcorpus;
 	
 	global $path_to_perl;
+	global $cwb_extra_perl_directories;
 	
 	global $print_debug_messages;
 	
@@ -253,7 +254,11 @@ function process_simple_query($query, $case_sensitive)
 		2 => array("pipe", "w")  // stderr 
 	); 
 	
-	if (is_resource($process = proc_open("/$path_to_perl/perl", $io_settings, $handles))) 
+	$cmd = "/$path_to_perl/perl";
+	foreach($cwb_extra_perl_directories as $d)
+		$cmd .= " -I \"/$d\"";
+	
+	if (is_resource($process = proc_open($cmd, $io_settings, $handles))) 
 	{
 		/* write the script to perl's stdin */
 		fwrite($handles[0], $script);
@@ -484,7 +489,7 @@ function get_builtin_mapping_table($mapping_table_id)
 			"A" => "ADJ",
 			"ADJ" => "ADJ",
 			"SUBST" => "N",
-			"N" => "SUBST",
+			"N" => "N",
 			"V" => "VERB",
 			"VERB" => "VERB",
 			"ADV" => "ADV",

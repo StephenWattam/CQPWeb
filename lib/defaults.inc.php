@@ -89,6 +89,21 @@ else
 /* the default allows generous memory for indexing in command-line mode,
  * but is stingy in the Web interface, so admins can't bring down the server accidentally */
 
+/* Canonical form for $cwb_extra_perl_directories is an array of absolute directories without
+ * an initial / even though they are absolute; but the input format is a string of pipe-
+ * delimited directories. This bit of code converts. An empty array is used if the config
+ * string vairable is not set. */ 
+if (isset($cwb_extra_perl_directories))
+{
+	$cwb_extra_perl_directories = explode('|',$cwb_extra_perl_directories);
+	foreach($cwb_extra_perl_directories as $perldir)
+		$perldir = trim($perldir, "/ \t\r\n");
+	unset($perldir);
+}
+else
+	$cwb_extra_perl_directories = array();
+	
+
 /* the following stops calls to CQP::set_corpus causing an error in the "adm" scripts */
 if (!isset($corpus_cqp_name))
 	$corpus_cqp_name = ';';
@@ -115,6 +130,11 @@ if (!isset($cqpweb_uses_apache))
 
 if (!isset($print_debug_messages))
 	$print_debug_messages = false;
+
+/* This is not a default - it cleans up the input, so we can be sure the root
+ * URL ends in a slash. */
+if (isset($cqpweb_root_url))
+	$cqpweb_root_url = rtrim($cqpweb_root_url, '/') . '/';
 
 
 /* PER-CORPUS DEFAULT SETTINGS */
@@ -186,7 +206,7 @@ if (!isset($default_words_in_download_context))
 
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '2.13');
+define('CQPWEB_VERSION', '2.14');
 
 
 /* "reserved words" that can't be used for corpus ids */
@@ -300,14 +320,6 @@ if (get_magic_quotes_gpc())
 	}
 	unset($k, $v);
 }
-
-
-
-
-
-
-
-
 
 
 ?>

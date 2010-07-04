@@ -227,11 +227,7 @@ function printquery_usersettings()
 
 
 
-function printquery_usermacros()//			if (!( ($this->major_version >= 3)
-//				|| ($this->major_version == 2 && $this->minor_version == 2 
-//					&& $this->beta_version >= 101)
-//				) )
-//				exit("ERROR: CQP version too old ($version_string).\n");
+function printquery_usermacros()
 {
 	global $username;
 	
@@ -594,61 +590,88 @@ function printquery_who()
 <table class="concordtable" width="100%">
 
 	<tr>
+		<th class="concordtable">Publications about CQPweb</th>
+	</tr>
+
+	<tr>
+		<td class="concordgeneral">
+		
+			<p>If you use CQPweb in your published research, it would be very much appreciated if you could
+			provide readers with a reference to the following paper:</p>
+			
+			<ul>
+				<li>Hardie, A (forthcoming) <em>CQPweb - combining power, flexibility 
+					and usability in a corpus analysis tool</em>.</li>
+			</ul>
+			
+			<p>The paper itself will be made available to download as soon as it is finished!</p>	
+			
+			<p><a href="http://cwb.sourceforge.net/doc_links.php">Click here</a> for other references relating
+			to Corpus Workbench software.</p>
+			
+			<p>&nbsp;</p>
+			
+		</td>
+	</tr>
+
+	<tr>
 		<th class="concordtable">Who did it?</th>
 	</tr>
 
-	<tr><td class="concordgeneral">
-	
-		<p>CQPweb was created by Andrew Hardie (Lancaster University).</p>
+	<tr>
+		<td class="concordgeneral">
 		
-		<p>Most of the architecture, the look-and-feel, and even some of the code
-		was shamelessly half-inched from <em>BNCweb</em>.</p>
-		
-		<p>BNCweb's most recent version was written by Sebastian Hoffmann 
-		(Lancaster University) and Stefan Evert (University of 
-		Osnabr&uuml;ck). It was originally created by Hans-Martin Lehmann, 
-		Sebastian Hoffmann, and Peter Schneider.</p>
-		
-		<p>The underlying technology of CQPweb is manifold.</p>
-		
-		<ul>
-			<li>Concordancing is done using the
-				<a target="_blank" href="http://cwb.sourceforge.net/">IMS Corpus Workbench</a>		
-				with its
-				<a target="_blank" href="http://www.ims.uni-stuttgart.de/projekte/tc/TCDetails.html">
-					CQP corpus query processor</a>.
-				Thus the name.
-				<br/>&nbsp;
-			</li>
-			<li>Other functions (collocations, corpus management etc.) are powered by
-				<a target="_blank" href="http://www.mysql.com/">MySQL</a> databases.
-				<br/>&nbsp;
-			</li>
-			<li>The system uses 
-				<a target="_blank" href="http://www.cogsci.uni-osnabrueck.de/~severt/">
-					Stefan Evert</a>'s
-				Simple Query (CEQL) parser, which is written in
-				<a target="_blank" href="http://www.perl.org/">Perl</a>.
-				<br/>&nbsp;
-			</li>
-			<li>The web-scripts are written in 
-				<a target="_blank" href="http://www.php.net/">PHP</a>.
-				<br/>&nbsp;
-			</li>
-			<li>Some 
-				<a target="_blank" href="http://www.w3schools.com/JS/default.asp/">JavaScript</a>
-				is used to create interactive links and forms.
-				<br/>&nbsp;
-			</li>
-			<li>The look-and-feel relies on
-				<a target="_blank" href="http://www.w3schools.com/css/default.asp">
-					Cascading Style Sheets</a>
-				plus good old fashioned
-				<a target="_blank" href="http://www.w3schools.com/html/">HTML</a>.
-				<br/>&nbsp;
-			</li>
-		</ul>
-	</td></tr>
+			<p>CQPweb was created by Andrew Hardie (Lancaster University).</p>
+				
+			<p>Most of the architecture, the look-and-feel, and even some of the code
+			was shamelessly half-inched from <em>BNCweb</em>.</p>
+			
+			<p>BNCweb's most recent version was written by Sebastian Hoffmann 
+			(University of Trier) and Stefan Evert (University of 
+			Osnabr&uuml;ck). It was originally created by Hans-Martin Lehmann, 
+			Sebastian Hoffmann, and Peter Schneider.</p>
+			
+			<p>The underlying technology of CQPweb is manifold.</p>
+			
+			<ul>
+				<li>Concordancing is done using the
+					<a target="_blank" href="http://cwb.sourceforge.net/">IMS Corpus Workbench</a>		
+					with its
+					<a target="_blank" href="http://www.cogsci.uni-osnabrueck.de/~korpora/ws/CWBdoc/CQP_Tutorial/">
+						CQP corpus query processor</a>.
+					Thus the name.
+					<br/>&nbsp;
+				</li>
+				<li>Other functions (collocations, corpus management etc.) are powered by
+					<a target="_blank" href="http://www.mysql.com/">MySQL</a> databases.
+					<br/>&nbsp;
+				</li>
+				<li>The system uses 
+					<a target="_blank" href="http://www.cogsci.uni-osnabrueck.de/~severt/">
+						Stefan Evert</a>'s
+					Simple Query (CEQL) parser, which is written in
+					<a target="_blank" href="http://www.perl.org/">Perl</a>.
+					<br/>&nbsp;
+				</li>
+				<li>The web-scripts are written in 
+					<a target="_blank" href="http://www.php.net/">PHP</a>.
+					<br/>&nbsp;
+				</li>
+				<li>Some 
+					<a target="_blank" href="http://www.w3schools.com/JS/default.asp/">JavaScript</a>
+					is used to create interactive links and forms.
+					<br/>&nbsp;
+				</li>
+				<li>The look-and-feel relies on
+					<a target="_blank" href="http://www.w3schools.com/css/default.asp">
+						Cascading Style Sheets</a>
+					plus good old fashioned
+					<a target="_blank" href="http://www.w3schools.com/html/">HTML</a>.
+					<br/>&nbsp;
+				</li>
+			</ul>
+		</td>
+	</tr>
 </table>
 <?php
 }
@@ -672,6 +695,15 @@ function printquery_latest()
 	
 	<ul>
 		<li>
+		<b>Version 2.14</b>, 2010-xx-yy<br/>&nbsp;<br/>
+		The R interface is ready for use with this version, although it is not actually used anywhere yet, and
+		additional interface methods will be added as the need for them becomes evident.  
+		<br/>&nbsp;<br/>
+		The new Web API has been established, and the first two functions "query" and "concordance" created.
+		Documentation for the Web API is still on the to-do list...
+		<br/>&nbsp;<br/>
+		
+		<li>
 		<b>Version 2.13</b>, 2010-05-31<br/>&nbsp;<br/>
 		Increased required version of CWB to 3.2.0 (which has Unicode regular expression matching). This means
 		that regular expression wildcards will work properly with non-Latin alphabets.
@@ -679,8 +711,9 @@ function printquery_latest()
 		Also added a function to create an "inverted" subcorpus (one that contains all the texts in the corpus
 		except those in a specified existing subcorpus).
 		<br/>&nbsp;<br/>
-		Plis, as ever, more bug fixes and usability tweaks.
+		Plus, as ever, more bug fixes and usability tweaks.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.12</b>, 2010-03-19<br/>&nbsp;<br/>
 		Added first version of XML visualisation.
@@ -692,6 +725,7 @@ function printquery_latest()
 		<br/>&nbsp;<br/>
 		Plus many bug fixes and minor tweaks.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.11</b>, 2010-01-20<br/>&nbsp;<br/>
 		First release of 2010! CQPweb is now two years old.
@@ -705,14 +739,17 @@ function printquery_latest()
 		<br/>
 		Plus lots of bug fixes.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.10</b>, 2009-12-18<br/>&nbsp;<br/>
 		Added customisable mapping tables for use with CEQL tertiary-annotations.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.09</b>, 2009-12-13<br/>&nbsp;<br/>
 		New metadata-importing functions and other improvements to the internals of CQPweb.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.08</b>, 2009-11-27<br/>&nbsp;<br/>
 		Updated internal database-query interaction. As a result, CQPweb requires CWB version 2.2.101 or later.
@@ -720,23 +757,28 @@ function printquery_latest()
 		Other changes (mostly behind-the-scenes):  enabled Latin-1 corpora; accelerated concordance display 
 		by caching number of texts in a query in the database; plus assorted bug fixes.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.07</b>, 2009-09-08<br/>&nbsp;<br/>
 		Fixed a bug in context display affecting untagged corpora.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.07</b>, 2009-08-07<br/>&nbsp;<br/>
 		Enabled frequency-list comparison; fixed a bug in the sort function and another in the corpus 
 		setup procedure.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.06</b>, 2009-07-27<br/>&nbsp;<br/>
 		Added distribution-thin postprocessing function.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.05</b>, 2009-07-26<br/>&nbsp;<br/>
 		Added frequency-list-thin postprocessing function.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.04</b>, 2009-07-05<br/>&nbsp;<br/>
 		Bug fixes (thanks to Rob Malouf for spotting the bugs in question!) plus improvements to CQP interface
@@ -746,19 +788,23 @@ function printquery_latest()
 		<b>Version 2.03</b>, 2009-06-18<br/>&nbsp;<br/>
 		Added interface to install pre-indexed CWB corpus and made further tweaks to admin functions.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.02</b>, 2009-06-06<br/>&nbsp;<br/>
 		Fixed some minor bugs, added categorised corpus display to main page, 
 		added option to sort frequency lists alphabetically.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.01</b>, 2009-05-27<br/>&nbsp;<br/>
 		Added advanced subcorpus editing tools. All the most frequently-used BNCweb functionality is now replicated.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.26</b>, 2009-05-25<br/>&nbsp;<br/>
 		Added Categorise Query function.
-		<br/>&nbsp;</li>		
+		<br/>&nbsp;</li>	
+			
 		<li>
 		<b>Version 1.25</b>, 2009-04-05<br/>&nbsp;<br/>
 		Added Word lookup function.
@@ -766,11 +812,13 @@ function printquery_latest()
 		<li>
 		<b>Version 1.24</b>, 2009-03-18<br/>&nbsp;<br/>
 		Added concordance sorting.
-		<br/>&nbsp;</li>		
+		<br/>&nbsp;</li>
+			
 		<li>
 		<b>Version 1.23</b>, 2009-03-01<br/>&nbsp;<br/>
 		Minor updates to admin functions.
-		<br/>&nbsp;</li>		
+		<br/>&nbsp;</li>
+			
 		<li>
 		<b>Version 1.22</b>, 2009-01-20<br/>&nbsp;<br/>
 		Added support for right-to-left scripts (e.g. Arabic).
@@ -778,100 +826,122 @@ function printquery_latest()
 		<li>
 		<b>Version 1.21</b>, 2009-01-06<br/>&nbsp;<br/>
 		Added (a) concordance downloads and (b) concordance thinning function.
-		<br/>&nbsp;</li>		
+		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.20</b>, 2008-12-19<br/>&nbsp;<br/>
 		Added (a) improved concordance Frequency Breakdown function and (b) downloadable concordance tables.
-		<br/>&nbsp;</li>		
+		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.19</b>, 2008-11-24<br/>&nbsp;<br/>
 		New-style simple queries are now in place! This means that "lemma-tags" will now work for
 		most corpora.
-		<br/>&nbsp;</li>		
+		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.18</b>, 2008-11-20<br/>&nbsp;<br/>
 		The last bits of the Collocation function have been added in. Full BNCweb-style functionality
 		is now available. The next upgrade will be to the new version of CEQL.
-		<br/>&nbsp;</li>		
+		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.17</b>, 2008-11-12<br/>&nbsp;<br/>
 		Links have been added to collocates in collocation display, leading to full statistics for
 		each collocate (plus position breakdown).
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.16</b>, 2008-10-23<br/>&nbsp;<br/>
 		Concordance random-order button has now been activated.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.15</b>, 2008-10-11<br/>&nbsp;<br/>
 		A range of bugs have been fixed.<br/>
 		New features: a link to &ldquo;corpus and tagset help&rdquo;help on every page from the middle of the footer.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.14</b>, 2008-09-16<br/>&nbsp;<br/>
 		Not much change that the user would notice, but the admin functions have been completely overhauled.<br/>
 		The main user-noticeable change is that UTF-8 simple queries are now possible.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.13</b>, 2008-08-04<br/>&nbsp;<br/>
 		Added collocation concordances (i.e. concordances of X collocating with Y).<br/>
 		Also added system-messages function.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.12</b>, 2008-07-27<br/>&nbsp;<br/>
-		Upgrades made to databse structure to speed up collocations and keywords.
+		Upgrades made to database structure to speed up collocations and keywords.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.11</b>, 2008-07-25<br/>&nbsp;<br/>
 		Added improved user options database.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.10</b>, 2008-07-13<br/>&nbsp;<br/>
 		Added frequency list view function, plus download capability for keywords and frequency lists.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.09</b>, 2008-07-03<br/>&nbsp;<br/>
 		Added keywords, made fixes to frequency lists.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.08</b>, 2008-06-27<br/>&nbsp;<br/>
 		Added collocations (now with full functionality). Added frequency list support for subcorpora.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.07</b>, 2008-06-10<br/>&nbsp;<br/>
 		Added collocations function (beta version only).
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.06</b>, 2008-06-07<br/>&nbsp;<br/>
-		Minor (but urgent) fixes to distribution as a result of changes to mySQL database structure.
+		Minor (but urgent) fixes to distribution as a result of changes to MySQL database structure.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.05</b>, 2008-05-23<br/>&nbsp;<br/>
 		Added subcorpus functionality (not yet as extensive as BNCweb's).
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.04</b>, 2008-02-04<br/>&nbsp;<br/>
 		Added restricted queries, and successfully trialled the system on a 4M word corpus.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.03</b>, 2008-01-23<br/>&nbsp;<br/>
 		Added distribution function.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.02</b>, 2008-01-08<br/>&nbsp;<br/>
 		Added save-query function and assorted cache management features for sysadmin.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 1.01</b>, 2008-01-06<br/>&nbsp;<br/>
 		First version of CQPweb with fully working concordance function, cache management, 
 		CSS layouts, metadata view capability and basic admin functions (including 
 		username control) -- trial release with small test corpus only.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Autumn 2007</b>.<br/>&nbsp;<br/>
 		Development of core PHP scripts, the CQP interface object model and the mySQL database 
 		architecture.
 		<br/>&nbsp;</li>
+		
 	</ul>
 	</td></tr>
 

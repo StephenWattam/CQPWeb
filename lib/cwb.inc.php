@@ -22,7 +22,7 @@
  */
 
 
-
+// TODO get rid of the CWBTempFile object.
 
 
 /* CWBTempFile objects are temporary file objects 

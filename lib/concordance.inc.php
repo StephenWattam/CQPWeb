@@ -34,26 +34,26 @@
 
 /* initialise variables from settings files  */
 
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
+require_once("settings.inc.php");
+require_once("../lib/defaults.inc.php");
 
 
 /* include function library files */
-require('../lib/library.inc.php');
-require('../lib/concordance-lib.inc.php');
-require('../lib/concordance-post.inc.php');
-require('../lib/ceql.inc.php');
-require('../lib/metadata.inc.php');
-require('../lib/exiterror.inc.php');
-require('../lib/cache.inc.php');
-require('../lib/subcorpus.inc.php');
-require('../lib/db.inc.php');
-require('../lib/user-settings.inc.php');
+require_once('../lib/library.inc.php');
+require_once('../lib/concordance-lib.inc.php');
+require_once('../lib/concordance-post.inc.php');
+require_once('../lib/ceql.inc.php');
+require_once('../lib/metadata.inc.php');
+require_once('../lib/exiterror.inc.php');
+require_once('../lib/cache.inc.php');
+require_once('../lib/subcorpus.inc.php');
+require_once('../lib/db.inc.php');
+require_once('../lib/user-settings.inc.php');
 
 /* and because I'm using the next two modules I need to... */
 //create_pipe_handle_constants();
-require("../lib/cwb.inc.php"); /* NOT TESTED YET - used by dump and undump, I think */
-require("../lib/cqp.inc.php");
+require_once("../lib/cwb.inc.php"); /* TODO NOT TESTED YET - used by dump and undump, I think */
+require_once("../lib/cqp.inc.php");
 
 
 /* write progressively to output in case of long loading time */

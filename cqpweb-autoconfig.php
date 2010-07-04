@@ -75,7 +75,7 @@ $superuser_username = trim($superuser_username, '|');
 
 
 
-
+//TODO use a call to "which" to pre-guess these, but still ask for manual confirmation.
 $path_to_cwb = get_variable_path("the path to the directory containing the cwb executables");
 $path_to_apache_utils = get_variable_path("the path to the directory containing the apache passwd utilities");
 $path_to_perl = get_variable_path("the path to the directory containing the perl executable");
