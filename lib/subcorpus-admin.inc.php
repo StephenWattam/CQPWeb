@@ -316,6 +316,20 @@ case 'create_inverted':
 	exit();
 
 
+case 'create_text_id':
+	$text_list = corpus_list_texts($corpus_sql_name);
+	
+	if (count($text_list) > 100)
+		exiterror_fullpage('This corpus contains more than 100 texts, so you cannot use the one-subcorpus-per-text function!');
+	
+	foreach($text_list as $id)
+		create_subcorpus_list($id, $id);
+		
+	disconnect_all();
+	header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
+	exit();
+
+
 case 'copy':
 
 

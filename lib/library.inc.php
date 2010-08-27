@@ -173,8 +173,7 @@ function do_mysql_query($sql_query)
 	$result = mysql_query($sql_query, $mysql_link);
 	
 	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link));
+		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
 			
 	if ($print_debug_messages)
 		print_debug_message("The query ran successfully in " . (time() - $start_time) . " seconds.\n");

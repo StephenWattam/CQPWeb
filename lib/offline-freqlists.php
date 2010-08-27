@@ -71,6 +71,9 @@ include('../lib/xml.inc.php');
 include('../lib/cwb.inc.php');
 include('../lib/cqp.inc.php');
 
+/* keep a note of when we started */
+$start_time = @date(DATE_RSS);
+
 /* expand the PHP memory limit to the same generous limit allowed for CWB */
 ini_set('memory_limit', "${cwb_max_ram_usage_cli}M");
 
@@ -83,7 +86,7 @@ connect_global_cqp();
 $print_debug_messages = true;
 
 /* set up some variables for the offline code */
-$corpus = $corpus_sql_name; /* code below was copied from subroutine with argument $corpus -- is the MySQL name correct? */
+$corpus = $corpus_sql_name; /* code below was copied from subroutine with argument $corpus */
 $superuser_list = explode('|', $superuser_username); /* only superusers are allowed to create frequency tables, so pretend we're one */
 $username = $superuser_list[0];
 
@@ -119,14 +122,18 @@ else
 /* do unconditionally */
 echo "About to run the function creating frequency tables.\n\n";	
 corpus_make_freqtables();
-echo "Done creating frequency tables...\n\n";	
+echo "Done creating frequency tables...\n\n";
 
 disconnect_all();
 
-
+$end_time = @date(DATE_RSS);
 echo "
 
 Frequency-list setup for corpus $corpus_sql_name is now complete.
+
+Began at: $start_time
+
+Finished at: $end_time
 
 ";
 

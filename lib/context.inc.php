@@ -150,7 +150,10 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 $primary_tag_handle = get_corpus_metadata('primary_annotation');
 
 $cqp->execute("set Context $context_size words");
-$cqp->execute("show +word" . (isset($primary_tag_handle) ? " +$primary_tag_handle" : '') );
+if ($visualise_gloss_in_context)
+	$cqp->execute("show +word +$visualise_gloss_annotation ");
+else
+	$cqp->execute('show +word ' . (empty($primary_tag_handle) ? '' : "+$primary_tag_handle "));
 $cqp->execute("set PrintStructures \"text_id\""); 
 $cqp->execute("set LeftKWICDelim '--%%%--'");
 $cqp->execute("set RightKWICDelim '--%%%--'");
@@ -187,7 +190,7 @@ $lcCount = count($lc);
 $rcCount = count($rc);
 $nodeCount = count($node);
 
-$word_extraction_pattern = (empty($primary_tag_handle) ? false : '/\A(.*)\/(.*?)\z/');
+//$word_extraction_pattern = (empty($primary_tag_handle) ? false : '/\A(.*)\/(.*?)\z/');
 
 $line_breaker = ($corpus_main_script_is_r2l 
 							? "</bdo>\n<br/>&nbsp;<br/>\n<bdo dir=\"rtl\">" 
@@ -198,9 +201,9 @@ $line_breaker = ($corpus_main_script_is_r2l
 $lc_string = '';
 for ($i = 0; $i < $lcCount; $i++) 
 {
-	list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $lc[$i]);
+	list($word, $tag) = extract_cqp_word_and_tag($lc[$i]);
 
-	if ($i == 0 && preg_match('/\A[.,;:?\-!"\x{0964}]\Z/u', $word))
+	if ($i == 0 && preg_match('/\A[.,;:?\-!"\x{0964}\x{0965}]\Z/u', $word))
 		/* don't show the first word of left context if it's just punctuation */
 		continue;
 
@@ -216,7 +219,7 @@ for ($i = 0; $i < $lcCount; $i++)
 $node_string = '';
 for ($i = 0; $i < $nodeCount; $i++) 
 {
-	list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $node[$i]);
+	list($word, $tag) = extract_cqp_word_and_tag($node[$i]);
 
 	$node_string .= $word . ( $show_tags ? bdo_tags_on_tag($tag) : '' ) . ' ';
 
@@ -229,7 +232,7 @@ for ($i = 0; $i < $nodeCount; $i++)
 $rc_string = "";
 for ($i = 0; $i < $rcCount; $i++) 
 {
-	list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $rc[$i]);
+	list($word, $tag) = extract_cqp_word_and_tag($rc[$i]);
 	
 	$rc_string .= $word . ( $show_tags ? bdo_tags_on_tag($tag) : '' ) . ' ';
 
@@ -325,7 +328,8 @@ mysql_close($mysql_link);
 /* END OF SCRIPT */
 /* ------------- */
 
-/* Function that puts tags backl into ltr order... */
+/* Function that puts tags back into ltr order... */
+
 function bdo_tags_on_tag($tag)
 {
 	return '_<bdo dir="ltr">' . substr($tag, 1) . '</bdo>';

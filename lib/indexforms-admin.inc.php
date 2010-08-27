@@ -1597,6 +1597,339 @@ function printquery_manageannotation()
 
 
 
+function printquery_visualisation()
+{
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th  colspan="2" class="concordtable">
+				Query result and context-view visualisation
+			</th>
+		</tr>
+	</table>
+	<?php
+
+	/* FIRST SECTION --- GLOSS VISUALIASATION */
+	/* process incoming */
+	
+	global $visualise_gloss_in_concordance;
+	global $visualise_gloss_in_context;
+	global $visualise_gloss_annotation;
+	$annotations = get_corpus_annotations();
+	
+	if (isset($_GET['settingsUpdateGlossAnnotation']))
+	{
+		switch($_GET['settingsUpdateGlossShowWhere'])
+		{
+		case 'both':
+			$visualise_gloss_in_context = true;
+			$visualise_gloss_in_concordance = true;
+			break;
+		case 'concord':
+			$visualise_gloss_in_context = false;
+			$visualise_gloss_in_concordance = true;
+			break;
+		case 'context':
+			$visualise_gloss_in_context = true;
+			$visualise_gloss_in_concordance = false;
+			break;
+		default:
+			$visualise_gloss_in_context = false;
+			$visualise_gloss_in_concordance = false;
+			break;			
+		}
+		if ($_GET['settingsUpdateGlossAnnotation'] == '~~none~~')
+			$_GET['settingsUpdateGlossAnnotation'] = NULL;
+		if (array_key_exists($_GET['settingsUpdateGlossAnnotation'], $annotations) 
+				|| $_GET['settingsUpdateGlossAnnotation'] == NULL)
+		{
+			$visualise_gloss_annotation = $_GET['settingsUpdateGlossAnnotation'];
+			update_corpus_visualisation_gloss($visualise_gloss_in_concordance, $visualise_gloss_in_context, 
+												$visualise_gloss_annotation);
+		}
+		else
+			exiterror_parameter("A non-existent annotation was specified to be used for glossing.");
+	}
+	
+	/* set up option strings for first form  */
+	
+	$opts = array(	'neither'=>'Don\'t show anywhere', 
+					'concord'=>'Concordance only', 
+					'context'=>'Context only', 
+					'both'=>'Both concordance and context'
+					);
+	if ($visualise_gloss_in_concordance)
+		if ($visualise_gloss_in_context)
+			$show_gloss_curr_opt = 'both';
+		else
+			$show_gloss_curr_opt = 'concord';
+	else
+		if ($visualise_gloss_in_context)
+			$show_gloss_curr_opt = 'context';
+		else
+			$show_gloss_curr_opt = 'neither';
+	
+	$show_gloss_options = '';
+	foreach ($opts as $o => $d)
+		$show_gloss_options .= "\t\t\t\t\t\t<option value=\"$o\""
+							. ($o == $show_gloss_curr_opt ? ' selected="selected"' : '')
+							. ">$d</option>\n";
+
+	$gloss_annotaton_options = "\t\t\t\t\t\t<option value=\"~~none~~\""
+								. (isset($visualise_gloss_annotation) ? '' : ' selected="selected"')
+								. ">No annotation selected</option>";		
+	foreach($annotations as $h => $d)
+		$gloss_annotaton_options .= "\t\t\t\t\t\t<option value=\"$h\""
+							. ($h == $visualise_gloss_annotation ? ' selected="selected"' : '')
+							. ">$d</option>\n";
+		
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th  colspan="2" class="concordtable">
+				(1) Interlinear gloss
+			</th>
+		</tr>
+		<tr>
+			<td  colspan="2" class="concordgrey">
+				&nbsp;<br/>
+				You can select an annotation to be treated as the "gloss" and displayed in
+				query results and/or extended context display.
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<form id="formSetGlossOptions" action="index.php" method="get">
+			<tr>
+				<td class="concordgrey">Use annotation:</td>
+				<td class="concordgeneral">
+					<select name="settingsUpdateGlossAnnotation">
+						<?php echo $gloss_annotaton_options; ?>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<!-- at some point, it might be nice to allow users to set this for themselves. -->
+				<td class="concordgrey">Show gloss in:</td>
+				<td class="concordgeneral">
+					<select name="settingsUpdateGlossShowWhere">
+						<?php echo $show_gloss_options; ?>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="center" class="concordgeneral">
+					<input type="submit" value="Update settings" />
+					<input type="hidden" name="thisQ" value="manageVisualisation" />
+					<input type="hidden" name="uT" value="y" />
+				</td>
+			</tr>
+		</form>
+	</table>
+	
+	<?php
+	/* SECOND SECTION --- TRANSLATION VISUALIASATION */
+	/* process incoming */
+	
+	global $visualise_translate_in_concordance;
+	global $visualise_translate_in_context;
+	global $visualise_translate_s_att;
+	$s_attributes = get_xml_annotations();
+	
+	if (isset($_GET['settingsUpdateTranslateXML']))
+	{	
+		switch($_GET['settingsUpdateTranslateShowWhere'])
+		{
+		case 'both':
+			$visualise_translate_in_context = true;
+			$visualise_translate_in_concordance = true;
+			break;
+		case 'concord':
+			$visualise_translate_in_context = false;
+			$visualise_translate_in_concordance = true;
+			break;
+		case 'context':
+			$visualise_translate_in_context = true;
+			$visualise_translate_in_concordance = false;
+			break;
+		default:
+			$visualise_translate_in_context = false;
+			$visualise_translate_in_concordance = false;
+			break;			
+		}
+		if ($_GET['settingsUpdateTranslateXML'] == '~~none~~')
+			$_GET['settingsUpdateTranslateXML'] = NULL;
+		if (in_array($_GET['settingsUpdateTranslateXML'], $s_attributes) 
+				|| $_GET['settingsUpdateTranslateXML'] == NULL)
+		{
+			$visualise_translate_s_att = $_GET['settingsUpdateTranslateXML'];
+			update_corpus_visualisation_translate($visualise_translate_in_concordance, $visualise_translate_in_context, 
+												  $visualise_translate_s_att);
+		}
+		else
+			exiterror_parameter("A non-existent s-attribute was specified to be used for translation.");
+	}
+	
+	/* set up option string for second form */
+
+	/* note that $opts array already exists */
+	if ($visualise_translate_in_concordance)
+		if ($visualise_translate_in_context)
+			$show_translate_curr_opt = 'both';
+		else
+			$show_translate_curr_opt = 'concord';
+	else
+		if ($visualise_translate_in_context)
+			$show_translate_curr_opt = 'context';
+		else
+			$show_translate_curr_opt = 'neither';
+	
+	$show_translate_options = '';
+	foreach ($opts as $o => $d)
+		$show_translate_options .= "\t\t\t\t\t\t<option value=\"$o\""
+							. ($o == $show_translate_curr_opt ? ' selected="selected"' : '')
+							. ">$d</option>\n";
+	$translate_XML_options = "\t\t\t\t\t\t<option value=\"~~none~~\""
+								. (isset($visualise_translate_s_att) ? '' : ' selected="selected"')
+								. ">No XML element-attribute selected</option>";		
+	foreach($s_attributes as $s)
+		$translate_XML_options .= "\t\t\t\t\t\t<option value=\"$s\""
+							. ($s == $visualise_translate_s_att ? ' selected="selected"' : '')
+							. ">$s</option>\n";
+	
+	?>
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th  colspan="2" class="concordtable">
+				(2) Free translation
+			</th>
+		</tr>
+		<tr>
+			<td  colspan="2" class="concordgrey">
+				&nbsp;<br/>
+				You can select an XML element/attribute to be used to provide whole-sentence or
+				whole-utterance translation.
+				<br/>&nbsp;<br/>
+				Note that if this setting is enabled, it <b>overrides</b> the context setting.
+				The context is automatically set to "one of whatever XML attribute you are using".
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<form id="formSetTranslateOptions" action="index.php" method="get">
+			<tr>
+				<td class="concordgrey">Select XML element/attribute to get the translation from:</td>
+				<td class="concordgeneral">
+					<select name="settingsUpdateTranslateXML">
+						<?php echo $translate_XML_options; ?>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<!-- at some point, it might be nice to allow users to set this for themselves. -->
+				<td class="concordgrey">Show free translation in:</td>
+				<td class="concordgeneral">
+					<select name="settingsUpdateTranslateShowWhere">
+						<?php echo $show_translate_options; ?>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="center" class="concordgeneral">
+					<input type="submit" value="Update settings" />
+					<input type="hidden" name="thisQ" value="manageVisualisation" />
+					<input type="hidden" name="uT" value="y" />
+				</td>
+			</tr>
+		</form>
+	</table>
+
+	<!-- 
+	
+	
+	
+	TODO from here on down.....
+	
+	
+	note, way down the road, it would be nice if auto-transliteration
+	could affect database-derived tables as well
+	- and, of course, be configurable on a per-user basis.
+	
+	
+	
+	-->
+
+	<?php
+	
+	// for now, don't display
+	return;
+	
+	/* THIRD SECTION --- TRANSLITERATION VISUALIASATION */
+	/* process incoming */
+
+	
+	
+	?>
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th  colspan="2" class="concordtable">
+				(3) Transliteration
+			</th>
+		</tr>
+		<tr>
+			<td  colspan="2" class="concordgrey">
+				&nbsp;<br/>
+				You can have the "word" attribute automatically transliterated into the Latin
+				alphabet, as long as you have added an appropriate transliterator plugin to CQPweb
+				(or are happy to use the default).
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<form action="" method="get">
+			<tr>
+				<td class="concordgrey">Select transliterator:</td>
+				<td class="concordgeneral">
+					
+				</td>
+			</tr>
+			<tr>
+				<!-- at some point, it might be nice to allow users to set this for themselves. -->
+				<td class="concordgrey">Autotransliterate in:</td>
+				<td class="concordgeneral">
+					<select>
+						<option>Concordance only</option>
+						<option>Context only</option>
+						<option>Both concordance and context</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<!-- at some point, it might be nice to allow users to set this for themselves. -->
+				<td class="concordgrey">Show:</td>
+				<td class="concordgeneral">
+					<select>
+						<option>Original script only</option>
+						<option>Autotransliterated text only</option>
+						<option>Original and autotransliterated text</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="center" class="concordgeneral">
+					<input type="submit" value="Update settings" />
+					<input type="hidden" name="uT" value="y" />
+				</td>
+			</tr>
+		</form>
+	</table>
+
+	<?php
+
+}
+
+
+
+
 
 function printquery_xmlvisualisation()
 {

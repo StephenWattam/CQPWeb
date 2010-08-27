@@ -640,6 +640,8 @@ function run_script_for_solo_collocation()
 				. "&newPostP_collocDB=$dbname&newPostP_collocDistFrom=$i&newPostP_collocDistTo=$i"
 				. "&newPostP_collocAtt=$att_for_calc&newPostP_collocTarget="
 				. urlencode($soloform)
+				. "&newPostP_collocTagFilter="
+				. urlencode($tag_filter)
 				. "&uT=y\" onmouseover=\"return escape('Show solutions collocating with "
 				. "<B>$soloform</B> at position <B>$i</B>')\">$i</a>";
 			$n_hits = make_thousands($row[0]);

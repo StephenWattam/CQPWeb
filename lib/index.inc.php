@@ -26,17 +26,19 @@
 
 
 
-/* index.inc.php */
+/* index.inc.php --- this file contains the code that renders 
+ * various search screens and other front-page stuff (basically
+ * everything you access from the mainpage side-menu).
+ */
 
-/* this file contains the code that renders the various search screens */
-
-/* inputs for forms that access this script:
-
-   thisQ - specify the type of query you want to pop up
-   
-   other inputs vary depdning on function
-
-*/
+/* The main paramater for forms that access this script:
+ *
+ * thisQ - specify the type of query you want to pop up
+ * 
+ * Each different thisQ effectively runs a separate interface.
+ * Some of the forms etc. that are created lead to other parts of 
+ * CQPweb; some, if they're easy to process, are dealt with here.
+ */
 
 
 /* ------------ */
@@ -427,6 +429,16 @@ if (user_is_superuser($username))
 
 
 	echo "<tr><td class=\"";
+	if ($thisQ != "manageVisualisation")
+		echo "concordgeneral\"><a class=\"menuItem\" 
+			href=\"index.php?thisQ=manageVisualisation&uT=y\">";
+	else 
+		echo "concordgrey\"><a class=\"menuCurrentItem\">";
+	echo "Manage visualisations</a></td></tr>";
+
+
+
+	echo "<tr><td class=\"";
 	if ($thisQ != "cachedQueries")
 		echo "concordgeneral\"><a class=\"menuItem\" 
 			href=\"index.php?thisQ=cachedQueries&uT=y\">";
@@ -607,7 +619,12 @@ case 'manageCategories':
 
 case 'manageAnnotation':
 	printquery_manageannotation();
-	printquery_xmlvisualisation();
+	break;
+
+case 'manageVisualisation':
+	printquery_visualisation();
+	// TODO this comment out is only temporary (1st wk in September 2010 for release of 2.14)
+	// printquery_xmlvisualisation();
 	break;
 
 case 'cachedQueries':

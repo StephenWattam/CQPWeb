@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20100701;22384900">
+	<META NAME="CHANGED" CONTENT="20100716;11214900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -164,6 +164,12 @@ activated; if it is, you may well find that some CQPweb operations do
 not work. </SPAN></SPAN>
 </P>
 <UL TYPE=DISC>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">PHP safe mode
+	may not allow CQPweb to run CQP and Perl as separate child processes
+	if the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">cqp</SPAN></FONT><SPAN STYLE="font-style: normal">
+	and </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">perl</SPAN></FONT><SPAN STYLE="font-style: normal">
+	executables are not in its “safe” directories – in which case,
+	</SPAN><I>nothing</I><SPAN STYLE="font-style: normal"> will work.</SPAN></P>
 	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">PHP safe-mode
 	will </SPAN><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">stop
 	CQPweb from lifting</SPAN></SPAN></FONT></FONT><FONT COLOR="#000000">
@@ -555,7 +561,7 @@ and edit it. It looks like this:</P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
 			adminstrators' usernames, separated by | (as in BNCweb) */</FONT></FONT></P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>$superuser_username
-			= 'bob|jeff';</FONT></FONT></P>
+			= 'bob|jill';</FONT></FONT></P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><BR><BR>
 			</P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
@@ -693,8 +699,8 @@ ignored if you don't understand exactly what they're for. They are</P>
 	Normally, the only reason to use this variable is to specify a
 	non-standard location for the installed CWB-Perl modules (see above)
 	thus – the name of the setting. The directories in question will
-	be passed to Perl using the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">-I</SPAN></FONT><SPAN STYLE="font-style: normal">
-	command-line option.</SPAN></P>
+	be passed to Perl using the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">-I</SPAN></FONT>
+	<SPAN STYLE="font-style: normal">command-line option.</SPAN></P>
 </UL>
 <P LANG="en-GB">Save the edited file as “config.inc.php” and put
 it into the “lib” subdirectory of the web directory.</P>
@@ -703,15 +709,26 @@ it into the “lib” subdirectory of the web directory.</P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
 up administrator users</B></FONT></FONT></P>
 <P LANG="en-GB"><I><U>If you have used the autoconfig, then this is
-done automatically for you.</U></I> Otherwise...</P>
+done automatically for you.</U></I> Otherwise, you need to manually
+set up the administrator accounts <I>simply in order to get into
+CQPweb</I> to complete the rest of the setup procedure...</P>
 <P LANG="en-GB">Using a text editor, create a file called <B>.htgroup</B>
 in directory (2) as described above. It should look like this:</P>
 <P LANG="en-GB" ALIGN=LEFT><FONT FACE="Courier New"><B>superusers:
-bob jeff</B></FONT></P>
+bob jill</B></FONT></P>
 <P LANG="en-GB">but with the usernames changed to match the ones in
-your configuration file. Once CQPweb is up and running, use the
-“create user / reset password” function to actually create the
-accounts (see below).</P>
+your configuration file.</P>
+<P LANG="en-GB">Now, use the Apache htpasswd utility to actually
+create these user accounts, with the following commands:</P>
+<P LANG="en-GB" ALIGN=LEFT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><SPAN LANG="en-GB"><B>htpasswd
+-bc </B></SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>/</B></FONT></FONT></FONT><FONT COLOR="#800000"><FONT FACE="Courier New"><FONT SIZE=3><B>$cqpweb_accessdir</B></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>/.htpasswd
+bob  bobspassword<BR>htpasswd -b  /</B></FONT></FONT></FONT><FONT COLOR="#800000"><FONT FACE="Courier New"><FONT SIZE=3><B>$cqpweb_accessdir</B></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>/.htpasswd
+jill jillspassword</B></FONT></FONT></FONT></P>
+<P LANG="en-GB">… where <FONT FACE="Courier New, monospace">$cqpweb_accessdir</FONT>
+is directory (2) above (if you <FONT FACE="Courier New, monospace">cd</FONT>
+to the directory in question, you can just use the <FONT FACE="Courier New, monospace">.htpasswd</FONT>
+filename, of course). 
+</P>
 <P LANG="en-GB">You'll also need to create a <B>.htaccess</B> file
 for the <B>./adm</B> directory. It should look like this:</P>
 <P LANG="en-GB" ALIGN=LEFT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>AuthUserFile
@@ -721,6 +738,9 @@ CQPweb<BR>AuthType Basic<BR>deny from all<BR>require group
 superusers<BR>satisfy any</B></FONT></FONT></FONT></P>
 <P LANG="en-GB">… <SPAN LANG="en-GB">but with the appropriate
 directories substituted, as in the configuration file.</SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB"><SPAN LANG="en-GB">Once CQPweb is
+up and running, you can use the “create user / reset password”
+function to change superuser account passwords if necessary.</SPAN></SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Getting
@@ -733,11 +753,10 @@ navigate to
 <P LANG="en-GB">You should see an admin menu. 
 </P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB">Click on “manage users”. Create usernames
-	for AT LEAST the superusers (<I><B>if you used the autoconfig
-	script, this has been done for you already, but you will need to
-	reset the passwords at some point</B></I>). You can add other user
-	accounts later. 
+	<LI><P LANG="en-GB">Click on “manage users”. Set secure
+	passwords for AT LEAST the superusers (<I><B>if you used the
+	autoconfig script, superuser passwords have been set to the same as
+	the usernames</B></I>). You can add other user accounts later. 
 	</P>
 	<LI><P LANG="en-GB">Click on “Reset MySQL Database” – and do
 	it 
@@ -769,14 +788,15 @@ usernames</B></FONT></FONT></P>
 	like. Use “Manage groups” for this. 
 	</P>
 </UL>
-<P LANG="en-GB">CQPweb passwords are transmitted in plaintext via
-HTTP. <B>User accounts are thus not secure</B>, the security is all
-based on the fact that even if someone manages to hack in, they can’t
-do anything other than break CQPweb itself. For this reason, I
-usually select passwords for my users, to make sure that they don’t
-re-use on CQPweb the secure passwords that they use for other
-purposes. If you really want secure username/password access, you
-need to set up CQPweb on an HTTPS server.</P>
+<P LANG="en-GB">If you're using a normal web server, CQPweb passwords
+are transmitted in plaintext via HTTP. <B>User accounts are thus not
+secure</B>, the security is all based on the fact that even if
+someone manages to hack in, they can’t do anything other than break
+CQPweb itself. For this reason, I usually select passwords for my
+users, to make sure that they don’t re-use on CQPweb the secure
+passwords that they use for other purposes. If you really want secure
+username/password access, you need to set up CQPweb on an HTTPS
+server.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Installing
@@ -967,16 +987,16 @@ server system that results in the username being part of the HTTP
 request can be used with CQPweb.</P>
 <P LANG="en-GB">CQPweb puts each corpus in a separate directory in
 its root web-directory, so that you can set access rights for each
-corpus separately, if you wish. But if you are no using Apache, <I>you
+corpus separately, if you wish. But if you are not using Apache, <I>you
 will have to manage this yourself</I>. 
 </P>
 <P LANG="en-GB">With Apache, this works as follows: (a) the
-web-folder of each corpus has an .htaccess file in which are listed
-the groups that have access to that corpus; (b) the list of members
-in each group is in the .htgroup file in CQPweb's “access”
-directory (and the .htpasswd file is there as well). How exactly you
-simulate this will depend on the details of the alternative web
-server you are using.</P>
+web-folder of each corpus has an <FONT FACE="Courier New, monospace">.htaccess</FONT>
+file in which are listed the groups that have access to that corpus;
+(b) the list of members in each group is in the .htgroup file in
+CQPweb's “access” directory (and the <FONT FACE="Courier New, monospace">.htpasswd</FONT>
+file is there as well). How exactly you simulate this will depend on
+the details of the alternative web server you are using.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Using

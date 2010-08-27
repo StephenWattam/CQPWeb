@@ -22,7 +22,12 @@
  */
 
 
-
+/*
+ * TODO
+ * 
+ * A lot of the functions in this file could do with renaming in a way that at least AIMS
+ * to be systematic.
+ */
 
 
 /* --------------------------------------------- */
@@ -219,6 +224,7 @@ function print_control_row()
 	global $reverseViewButtonText;
 	global $postprocess;
 	global $program;
+	global $visualise_translate_in_concordance;
 
 	/* this is the variable to which everything is printed */
 	$final_string = '<tr>';
@@ -280,17 +286,24 @@ function print_control_row()
 	/* ----------------------- */
 	/* create change view form */
 	/* ----------------------- */
-	$final_string .= "<form action=\"concordance.php\" method=\"get\"><td align=\"center\" width=\"20%\" class=\"concordgrey\" nowrap=\"nowrap\">&nbsp;";
-	
-	$final_string .= "<input type=\"submit\" value=\"$reverseViewButtonText\"/>";
+	if ($visualise_translate_in_concordance)
+	{
+		$final_string .= "<td align=\"center\" width=\"20%\" class=\"concordgrey\" nowrap=\"nowrap\">(Line view only)</td>";
+	}
+	else
+	{
+		$final_string .= "<form action=\"concordance.php\" method=\"get\"><td align=\"center\" width=\"20%\" class=\"concordgrey\" nowrap=\"nowrap\">&nbsp;";
 		
-	$final_string .= '&nbsp;</td>';
-	
-	$final_string .= url_printinputs(array(
-		array('uT', ''), array('viewMode', "$reverseViewMode"), array('qname', $qname)
-		));
-	
-	$final_string .= '<input type="hidden" name="uT" value="y"/></form>';
+		$final_string .= "<input type=\"submit\" value=\"$reverseViewButtonText\"/>";
+			
+		$final_string .= '&nbsp;</td>';
+		
+		$final_string .= url_printinputs(array(
+			array('uT', ''), array('viewMode', "$reverseViewMode"), array('qname', $qname)
+			));
+		
+		$final_string .= '<input type="hidden" name="uT" value="y"/></form>';
+	}
 	
 
 
@@ -567,121 +580,113 @@ function print_categorise_control()
 
 
 
-/* postprocesses a line from CQP's output_for display */
-/* returns: a string containing the 3 or 5 cells */
-/* WITHOUT <tr> or </tr> - so other things can be added */
-/* for no highlight, set $highlight_position to a ridiculously large number (1000000 etc.) */
+/**
+ * Processes a line of CQP output for display in the CQPweb concordance table.
+ * 
+ * This is done with regard to certain rendering-control variables esp. related to gloss
+ * visualisation.
+ * 
+ * Returns a line of 3 or 5 td's that can be wrapped in a pair of tr's, or have other
+ * cells added (e.g. for categorisation).
+ * 
+ * Note no tr's are added at this point.
+ * 
+ * In certain display modes, these td' may have other smaller tables within them.
+ * 
+ * @param cqp_line				A line of output from CQP.
+ * @param position_table		I have no idea what this is for.
+ * @param line_number			The line number to be PRINTED (counted from 1)
+ * @param highlight_position	The entry in left or right context to be highlit. 
+ * 								Set to a ridiculously large number (such as 10000000)
+ * 								to get no highlight.
+ * @param highlight_show_pos	Boolean: show the primary annotation of the highlit
+ * 								item in-line.  
+ */
 function print_concordance_line($cqp_line, $position_table, $line_number, 
 	$highlight_position, $highlight_show_pos = false)
 {
-	global $qname;
 	global $viewMode;
 	global $primary_tag_handle;
+	global $visualise_gloss_in_concordance;
+	global $visualise_translate_in_concordance;
 
-	/* corpus positions of query anchors (see CQP tutorial) */
-//	$match_p = $position_table[$i][0];
-//	$matchend_p = $position_table[$i][1];
-//	$target_p = $position_table[$i][2];
-//	$keyword_p = $position_table[$i][3];
-//// /* I'm not actually using these at the moment ? */
-// list () would be briefer
+	/* corpus positions of query anchors (see CQP tutorial) * /
+	// list () would be briefer
+	$match_p = $position_table[$i][0];
+	$matchend_p = $position_table[$i][1];
+	$target_p = $position_table[$i][2];
+	$keyword_p = $position_table[$i][3];
+	/* I'm not actually using these at the moment ? */
+
+	/* get URL of the extra-context page right at the beginning, 
+	 * becaise we don't know when we may need it */
+	$context_url = concordance_line_get_context_url($line_number);
+
+	if ($visualise_translate_in_concordance)
+	{
+		global $visualise_translate_s_att;
+		/* extract the translation content, which will be BEFORE the text_id */
+		preg_match("/<$visualise_translate_s_att (.*?)><text_id/", $cqp_line, $m);
+		$translation_content = $m[1];
+		$cqp_line = preg_replace("/<$visualise_translate_s_att .*?><text_id/", '<text_id', $cqp_line);
+	}
 
 	/* extract the text_id and delete that first bit of the line */
 	preg_match("/\A\s*\d+: <text_id (\w+)>:/", $cqp_line, $m);
 	$text_id = $m[1];
 	$cqp_line = preg_replace("/\A\s*\d+: <text_id \w+>:/", '', $cqp_line);
-
+	
 	/* divide up the CQP line */
 	list($kwic_lc, $kwic_match, $kwic_rc) = explode('--%%%--', $cqp_line);	
 
-	/* just in case of unwanted spaces (there will deffo be some on the left) ... */
-	$kwic_rc = trim($kwic_rc);
-	$kwic_lc = trim($kwic_lc);
-	$kwic_match = trim($kwic_match);
-	
-	/* create arrays of words from the incoming variables: split at space */	
+	/* create arrays of words from the incoming variables: split at space * /	
 	$lc = explode(' ', $kwic_lc);
 	$rc = explode(' ', $kwic_rc);
 	$node = explode(' ', $kwic_match);
 	
-	/* how many words in each array? */
-	$lcCount = count($lc);
-	$rcCount = count($rc);
-	$nodeCount = count($node);
+	/* how many words in each array? * /
+	$lcCount = ($lc[0] == '' ? 0 : count($lc));
+	$rcCount = ($rc[0] == '' ? 0 : count($rc));
+	$nodeCount = ($node[0] == '' ? 0 : count($node));
+	*/
 
-
-	/* forward slash can be part of a word, but not part of a tag */
-	$word_extraction_pattern = (empty($primary_tag_handle) ? false : '/\A(.*)\/(.*?)\z/');
 
 	/* left context string */
-	$lc_string = '';
-	$lc_tool_string = '';
-	for ($i = 0; $i < $lcCount; $i++) 
-	{
-		list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $lc[$i]);
-		
-		if ($i == 0 && preg_match('/\A[.,;:?\-!"]\Z/', $word))
-			/* don't show the first word of left context if it's just punctuation */
-			continue;
+	list($lc_string, $lc_tool_string) 
+		= concordance_line_blobprocess($kwic_lc, 'left', $highlight_position, $highlight_show_pos);
 
-		if ($highlight_position == ($i - $lcCount)) /* if this word is the word being sorted on / collocated etc. */
-		{
-			$lc_string .= '<span class="contexthighlight">' . $word . ($highlight_show_pos ? $tag : '') . '</span> ';
-			$lc_tool_string .= '<B>' . $word . $tag . '</B> ';
-		}
-		else
-		{
-			$lc_string .= $word . ' ';
-			$lc_tool_string .= $word . $tag . ' ';
-		}
-	}
+	list($node_string, $node_tool_string) 
+		= concordance_line_blobprocess($kwic_match, 'node', $highlight_position, $highlight_show_pos, $context_url);
 
-	/* node string */
-	$node_string = '';
-	$node_tool_string = '';
-	for ($i = 0; $i < $nodeCount; $i++) 
-	{
-		list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $node[$i]);
-
-
-		/* if this word is the word being sorted on / collocated etc. */
-		/* the only thing that is different is the possibility of the tag being shown */
-		/* there is no extra highlighting beyong what the node has already */
-		$node_string .= $word . (($highlight_position == 0 && $highlight_show_pos) ? $tag : '') . ' ';
-		
-		$node_tool_string .= $word . $tag . ' ';
-	}
-	/* extra step needed because otherwise a space may get linkified */
-	$node_string = trim($node_string);
-	
 	/* right context string */
-	$rc_string = '';
-	$rc_tool_string = '';
-	for ($i = 0; $i < $rcCount; $i++) 
-	{
-		list($word, $tag) = extract_cqp_word_and_tag($word_extraction_pattern, $rc[$i]);
-		
-		if ($highlight_position == $i+1) /* if this word is the word being sorted on / collocated etc. */
-		{
-			$rc_string .= '<span class="contexthighlight">' . $word . ($highlight_show_pos ? $tag : '') . '</span> ';
-			$rc_tool_string .= '<B>' . $word . $tag . '</B> ';
-		}
-		else
-		{
-			$rc_string .= $word . ' ';
-			$rc_tool_string .= $word . $tag . ' ';
-		}
-	}
+	list($rc_string, $rc_tool_string) 
+		= concordance_line_blobprocess($kwic_rc, 'right', $highlight_position, $highlight_show_pos);
 
-	$full_tool_tip = "onmouseover=\"return escape('"
-		. str_replace('\'', '\\\'', $lc_tool_string . '<FONT COLOR=&quot;#DD0000&quot;>'
-			. $node_tool_string . '</FONT> ' . $rc_tool_string)	
-		. "')\"";
-		// BNC web has a font reset instead of </FONT>, namely "<FONT COLOR=&quot;#000066&quot;>"
+	/* if the corpus is r-to-l, this function will spot it and handle things for us */
+	right_to_left_adjust($lc_string, $lc_tool_string, $rc_string,$rc_tool_string); 
+
+
+
+	/* create final contents for putting in the cells */
+	if ($visualise_gloss_in_concordance)
+	{
+		$lc_final   = build_glossbox('left', $lc_string, $lc_tool_string);
+		$node_final = build_glossbox('node', $node_string, $node_tool_string);
+		$rc_final   = build_glossbox('right', $rc_string, $rc_tool_string);
+	}
+	else
+	{
+		$lc_final = $lc_string;
+		$rc_final = $rc_string;
 		
-	
-	/* last pre-built component is the URL of the extra-context page */
-	$context_url = 'context.php?batch=' . ($line_number-1) . '&qname=' . $qname . '&uT=y';
+		/* the untidy HTML here is inherited from BNCweb. */
+		$full_tool_tip = "onmouseover=\"return escape('"
+			. str_replace('\'', '\\\'', $lc_tool_string . '<FONT COLOR=&quot;#DD0000&quot;>'
+				. $node_tool_string . '</FONT> ' . $rc_tool_string)	
+			. "')\"";
+		$node_final = '<b><a class="nodelink" href="' . $context_url . '" '
+				. $full_tool_tip . '>' . $node_string . '</a></b>';
+	}
 
 
 	/* print cell with line number */
@@ -692,33 +697,26 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	
 	if ($viewMode == 'kwic') 
 	{
-		/* we need to check for left-to-right vs. right-to-left */
-		global $corpus_main_script_is_r2l;
-		if ($corpus_main_script_is_r2l)
-		{
-			$temp_r2l_string = $lc_string;
-			$lc_string = $rc_string;
-			$rc_string = $temp_r2l_string;
-		}
-	
 		/* print three cells - kwic view */
-		$final_string .= '<td class="before" nowrap="nowrap">' . $lc_string . '</td>';
+		$final_string .= '<td class="before" nowrap="nowrap">' . $lc_final . '</td>';
+
+		$final_string .= '<td class="node" nowrap="nowrap">'. $node_final . '</td>';
 		
-		$final_string .= '<td class="node" nowrap="nowrap"><b>'
-			. '<a class="nodelink" href="' . $context_url . '" '
-			. $full_tool_tip . '>' . $node_string . '</a></b></td>';
-		
-		$final_string .= '<td class="after" nowrap="nowrap">' . $rc_string . '</td>';
+		$final_string .= '<td class="after" nowrap="nowrap">' . $rc_final . '</td>';
 	}
 	else
 	{
 		/* print one cell - line view */
-		$final_string .= '<td class="lineview">' . $lc_string . ' ';
-		$final_string .= '<b><a class="nodelink" href="' . $context_url . '" '
-			. $full_tool_tip . '>' . $node_string . '</a></b>';
-		$final_string .= ' ' . $rc_string . '</td>';
+		
+		/* glue it all togeer, then wrap the translation if need be */
+		$subfinal_string =  $lc_final . ' ' . $node_final . ' ' . $rc_final;
+		if ($visualise_translate_in_concordance)
+			$subfinal_string = concordance_wrap_translationbox($subfinal_string, $translation_content);
+		
+		/* and add to the final string */
+		$final_string .= '<td class="lineview">' . $subfinal_string . '</td>';
 	}
-	
+
 	$final_string .= "\n";
 
 	return $final_string;
@@ -726,15 +724,277 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 
 
 
+
+/**
+ * Converts a node-or-right-or-left context string from CQP output into
+ * two strings ready for printing in CQPweb.
+ * 
+ * The FIRST string is the "main" string; the one that is the principle
+ * readout. The SECOND string is the "other" string: either for a 
+ * tag-displaying tooltip, or for the gloss-line when the gloss is visible.
+ * 
+ * This function gets called 3 times per hit, obviously.
+ * 
+ * Note: we do not apply links here in normal mode, but if we are visualising
+ * a gloss, then we have to (because the node gets buried in the table
+ * otherwise).
+ */
+function concordance_line_blobprocess($lineblob, $type, $highlight_position, $highlight_show_pos = false, $context_url = '')
+{
+	global $visualise_gloss_in_concordance;
+	
+	/* all string literals (other than empty strings or spacers) must be here 
+	 * so they can be conditionally set. */
+	if ($type == 'node')
+	{
+		$main_begin_high = '';
+		$main_end_high = '';
+		$other_begin_high = '';
+		$other_end_high = '';
+		$glossbox_nodelink_begin = '<b><a class="nodelink" href="' . $context_url . '" >';
+		$glossbox_nodelink_end = '</a></b>';
+	}
+	else
+	{
+		$main_begin_high = '<span class="contexthighlight">';
+		$main_end_high = '</span> ';
+		$other_begin_high = '<B>';
+		$other_end_high = '</B> ';
+		$glossbox_nodelink_begin = '';
+		$glossbox_nodelink_end = '';
+	}
+	/* every glossbox will contain a bolded link, if it is a node; otherwise not */
+	$glossbox_line1_cell_begin = "<td class=\"glossbox-$type-line1\" nowrap=\"nowrap\">$glossbox_nodelink_begin";
+	$glossbox_line2_cell_begin = "<td class=\"glossbox-$type-line2\" nowrap=\"nowrap\">$glossbox_nodelink_begin";
+	$glossbox_end = $glossbox_nodelink_end . '</td>';
+	/* end of string-literals-into-variables section */
+
+	
+	/* the "trim" is just in case of unwanted spaces (there will deffo be some on the left) ... */
+	$token_array = explode(' ', trim($lineblob));
+
+	$n = ($token_array[0] == '' ? 0 : count($token_array));
+	
+	/* these are the strings we will build up */
+	$main_string = '';
+	$other_string = '';
+	
+	for ($i = 0; $i < $n; $i++) 
+	{
+		list($word, $tag) = extract_cqp_word_and_tag($token_array[$i]);
+
+		if ($type == 'left' && $i == 0 && preg_match('/\A[.,;:?\-!"]\Z/', $word))
+			/* don't show the first word of left context if it's just punctuation */
+			continue;
+	
+		if (!$visualise_gloss_in_concordance)
+		{
+			/* the default case: we are buiilding a concordance line and a tooltip */
+			if ($highlight_position == $i+1) /* if this word is the word being sorted on / collocated etc. */
+			{
+				$main_string .= $main_begin_high . $word . ($highlight_show_pos ? $tag : '') . $main_end_high;
+				$other_string .= $other_begin_high . $word . $tag . $other_end_high;
+			}
+			else
+			{
+				$main_string .= $word . ' ';
+				$other_string .= $word . $tag . ' ';
+			}
+		}
+		else
+		{
+			/* build a gloss-table instead;
+			 * other_string will be the second line of the gloss table instead of a tooltip */
+			if ($highlight_position == $i+1)
+			{
+				$main_string .= $glossbox_line1_cell_begin . $main_begin_high 
+					. $word 
+					. $main_end_high . $glossbox_end;
+				$other_string .= $glossbox_line2_cell_begin . $main_begin_high 
+					. $tag 
+					. $main_end_high . $glossbox_end;
+			}
+			else
+			{
+				$main_string .= $glossbox_line1_cell_begin . $word . $glossbox_end;
+				$other_string .= $glossbox_line2_cell_begin . $tag . $glossbox_end;
+			}	
+		}
+	}
+	if ($main_string == '')
+		$main_string = '&nbsp;';
+
+	/* extra step needed because otherwise a space may get linkified */
+	if ($type == 'node')
+		$main_string = trim($main_string);
+
+	return array($main_string, $other_string);
+}
+
+/** Pass in the (printed) line number, get back a relative URL to the context page. */
+function concordance_line_get_context_url($line_number)
+{
+	global $qname;
+	return 'context.php?batch=' . ($line_number-1) . '&qname=' . $qname . '&uT=y';
+}
+
+/** 
+ * Switches around the contents of the left/right strings, if necessary, 
+ * to support L2R scripts. 
+ * 
+ * All parameters are passed by reference.
+ */
+function right_to_left_adjust(&$lc_string,   &$lc_tool_string, 
+                              &$node_string, &$node_tool_string, 
+                              &$rc_string,   &$rc_tool_string)
+{
+	global $viewMode;
+	global $corpus_main_script_is_r2l;
+	global $visualise_gloss_in_concordance;
+
+	if ($corpus_main_script_is_r2l)
+	{
+		/* ther are two entirely different styles of reordering.
+		 * (1) if we are using glosses (strings of td's all over the shop)
+		 * (2) if we have the traditional string-o'-words
+		 */ 
+		if ($visualise_gloss_in_concordance)
+		{
+			/* invert the order of table cells in each string. */
+			$lc_string        = concordance_invert_tds($lc_string);
+			$lc_tool_string   = concordance_invert_tds($lc_tool_string);
+			$node_string      = concordance_invert_tds($node_string);
+			$node_tool_string = concordance_invert_tds($node_tool_string);
+			$rc_string        = concordance_invert_tds($rc_string);
+			$rc_tool_string   = concordance_invert_tds($rc_tool_string);
+			/* note this is done regardless of whether we are in kwic or line */	
+			/* similarly, regardless of whether we are in kwic or line, we need to flip lc and rc */
+			$temp_r2l_string = $lc_string;
+			$lc_string = $rc_string;
+			$rc_string = $temp_r2l_string;
+			/* we need ot do the same with the tooltips too */
+			$temp_r2l_string = $lc_tool_string;
+			$lc_tool_string = $rc_tool_string;
+			$rc_tool_string = $temp_r2l_string;
+		}
+		else
+		{
+			/* we only need to worry in kwic. In line mode, the flow of th
+			 * text and the normal text-directionality systems in the browser
+			 * will deal wit it for us.*/
+			if ($viewMode == 'kwic')
+			{
+				$temp_r2l_string = $lc_string;
+				$lc_string = $rc_string;
+				$rc_string = $temp_r2l_string;
+			}
+		}
+	}
+	/* else it is an l-to-r script, so do nothing. */
+}
+
+/**
+ * Build a two-line (or three line?) glosbox table from a 
+ * two provided sequences of td's.
+ * 
+ * $type must be left, node, or right (as a string). Anything
+ * else will be treated as if it was "node".
+ */
+function build_glossbox($type, $line1, $line2, $line3 = false)
+{
+	global $corpus_main_script_is_r2l;
+	global $viewMode;
+	if ($viewMode =='kwic')
+	{
+		switch($type)
+		{
+			case 'left':	$align = 'right';	break;
+			case 'right':	$align = 'left';	break;
+			default:		$align = 'center';	break;
+		}
+	}
+	else
+		$align = ($corpus_main_script_is_r2l ? 'right' : 'left');
+	return 	'<table class="glossbox" align="' . $align . '"><tr>'
+			. $line1
+			. '</tr><tr>' 
+			. $line2
+			. '</tr>'
+			. ($line3 ? '' : '')
+			. '</table>';
+}
+
+function concordance_wrap_translationbox($concordance, $translation)
+{
+	return 
+		'<table class="transbox"><tr><td class="transbox-top">'
+		. $concordance
+		. '</td></tr><tr><td class="transbox-bottom">'
+		. $translation
+		. "\n</td></tr></table>\n";
+			
+}
+
+/**
+ * Takes a string consisting of a sequence of td's.
+ * 
+ * Returns the same string of td's, in the opposite order.
+ * Note - if there is material outside the td's, results may
+ * be unexpected. Should not be used outside the concordance
+ * line rendering module.
+ */
+function concordance_invert_tds($string)
+{
+	$stack = explode('</td>', $string);
+	
+	$newstring = '';
+	
+	while (! is_null($popped = array_pop($stack)))
+	{
+		/* there will prob be an empty string at the end,
+		 * from after the last end-td. We don't want to add this.
+		 * But all the other strings in $stack should be "<td>...".
+		 */ 
+		if (!empty($popped))
+			$newstring .= $popped . '</td>';	
+	}
+	
+	return $newstring;
+}
+
+
 /* used by print_concordance_line above and also by context.inc.php */
 /* returns an array of word, tag */
-function extract_cqp_word_and_tag(&$word_extraction_pattern, &$cqp_source_string)
+function extract_cqp_word_and_tag(&$cqp_source_string)
 {
+	global $visualise_gloss_in_concordance;
+	
+	static $word_extraction_pattern = NULL;
+	if (is_null($word_extraction_pattern))
+	{ 
+		/* on the first call only: only deduce the pattern once per run of the script */
+		global $primary_tag_handle;
+		global $visualise_gloss_in_concordance;
+		
+		/* OK, this is how it works: if EITHER a primary tag is set, OR we are visualising 
+		 * glosses, then we must split the token into word and tag using a regex.
+		 * 
+		 * If NEITHER of these things is the case, then we don't use a regex.
+		 * 
+		 * Note that we assume that forward slash can be part of a word, but not part of a 
+		 * (primary) tag.
+		 * 
+		 * [TODO: note this in the manual] 
+		 */
+		$word_extraction_pattern = 
+			(  (empty($primary_tag_handle)&&!$visualise_gloss_in_concordance) ? false : '/\A(.*)\/(.*?)\z/' );
+	}
+	
 	if ($word_extraction_pattern)
 	{
 		preg_match($word_extraction_pattern, cqpweb_htmlspecialchars($cqp_source_string), $m);
 		$word = $m[1];
-		$tag = '_' . $m[2];
+		$tag = ($visualise_gloss_in_concordance ? '' : '_') . $m[2];
 	}
 	else
 	{

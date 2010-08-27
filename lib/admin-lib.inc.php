@@ -348,14 +348,12 @@ function install_new_corpus()
 	global $cwb_datadir;
 	global $cwb_registry;
 	
-	global $mysql_link;
-	
 	$info = new corpus_install_info;
 
 	$at_least_one_P = ( empty($info->p_attributes) ? '' : ' -P ');
 	/* don't need the equiv for S because there always is one: text:0+id */
 
-	
+	/* we need both case versions here */
 	$corpus = $info->corpus_cwb_name;
 	$CORPUS = strtoupper($corpus);
 
@@ -365,17 +363,9 @@ function install_new_corpus()
 	if (! empty($info->p_attributes_mysql_insert))
 	{
 		foreach ($info->p_attributes_mysql_insert as &$s)
-		{
-			$result = mysql_query($s, $mysql_link);
-			if ($result == false) 
-				exiterror_mysqlquery(mysql_errno($mysql_link), 
-					mysql_error($mysql_link), __FILE__, __LINE__);
-		}
+			do_mysql_query($s);
 	}
-	$result = mysql_query($info->corpus_metadata_fixed_mysql_insert, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($info->corpus_metadata_fixed_mysql_insert);
 
 
 	if ($info->already_cwb_indexed)
@@ -410,11 +400,10 @@ function install_new_corpus()
 		
 		exec("/$path_to_cwb/cwb-makeall -r /$cwb_registry -V $CORPUS > $make_output_file");
 	
-	
 		$huffcode_output_file = "/$cqpweb_tempdir/{$corpus}__php-cwb-huffcode.txt";
 		
-		exec("/$path_to_cwb/cwb-huffcode -A $CORPUS > $huffcode_output_file");
-		exec("/$path_to_cwb/cwb-compress-rdx -A $CORPUS >> $huffcode_output_file" );
+		exec("/$path_to_cwb/cwb-huffcode     -A $CORPUS >  $huffcode_output_file");
+		exec("/$path_to_cwb/cwb-compress-rdx -A $CORPUS >> $huffcode_output_file");
 	
 	
 		$huffblob = file_get_contents($huffcode_output_file);
@@ -425,13 +414,12 @@ function install_new_corpus()
 			unlink($del);
 	
 		/* clear the trash */
-	
 		unlink($encode_output_file);
 		unlink($make_output_file);
 		unlink($huffcode_output_file);
 	}
 
-		
+	
 	
 		
 	/* make a web dir and set up with superuser access */
@@ -454,7 +442,6 @@ function install_new_corpus()
 	$settings->allow_group('superusers');
 	$settings->save();
 	chmod("$newdir/.htaccess", 0664);
-	
 	
 	 
 	/* create the script files in that folder */
@@ -601,8 +588,8 @@ function upload_file_to_upload_area($original_name, $file_type, $file_size, $tem
 	if ($error_code !== UPLOAD_ERR_OK)
 		exiterror_fullpage('The file did not upload correctly! Please try again.', __FILE__, __LINE__);
 	
-	/* only superusers can upload REALLY BIG files */
-	/* maybe make this variable - a user setting? */
+	/* only superusers can upload REALLY BIG files
+	 * TODO maybe make this variable - a user setting? */
 	if (!user_is_superuser($username))
 	{
 		/* normal user limit is 2MB */
@@ -765,6 +752,7 @@ function uploaded_file_view($filename)
 	
 	$data = htmlspecialchars($data);
 	
+	// TODO call header() with char encoding here 
 	?>
 	<html>
 		<head>
@@ -1039,7 +1027,6 @@ function get_apache_object($path_to_web_directory)
 function update_text_metadata_values_descriptions()
 {
 	global $update_text_metadata_values_descriptions_info;
-	global $mysql_link;
 
 	foreach($update_text_metadata_values_descriptions_info['actions'] as &$current_action)
 	{
@@ -1047,10 +1034,7 @@ function update_text_metadata_values_descriptions()
 			where corpus = '{$update_text_metadata_values_descriptions_info['corpus']}' 
 			and field_handle = '{$current_action['field_handle']}'
 			and handle = '{$current_action['value_handle']}'";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		do_mysql_query($sql_query);
 	}
 }
 
@@ -1059,7 +1043,6 @@ function update_text_metadata_values_descriptions()
 function update_corpus_metadata_fixed()
 {
 	global $update_corpus_metadata_info;
-	global $mysql_link;
 	
 	$sql_query = "update corpus_metadata_fixed set ";
 	$first = true;
@@ -1076,10 +1059,7 @@ function update_corpus_metadata_fixed()
 	
 	$sql_query .= " where corpus = '{$update_corpus_metadata_info['corpus']}'";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 
 
@@ -1275,9 +1255,12 @@ function create_text_metadata_for()
 
 	$input_file = "/$cqpweb_tempdir/___install_temp_{$create_text_metadata_for_info['filename']}";
 	
-	$data = file_get_contents($file);
-	$data = str_replace("\n", "\t0\t0\t0\n", $data);
-	file_put_contents($input_file, $data);
+	$source = fopen($file, 'r');
+	$dest = fopen($input_file, 'w');
+	while (false !== ($line = fgets($source)))
+		fputs($dest, rtrim($line, "\r\n") . "\t0\t0\t0\n");
+	fclose($source);
+	fclose($dest);
 
 	/* cleanup the original file if we were asked to */
 	if ($create_text_metadata_for_info['file_should_be_deleted'])
@@ -2145,9 +2128,7 @@ function cqpweb_import_css_file($filename)
 	if (is_file($orig))
 	{
 		if (is_file($new))
-		{
 			exiterror_general("A CSS file of that name already exists ($new). File not copied.");
-		}
 		else
 			copy($orig, $new);
 	}

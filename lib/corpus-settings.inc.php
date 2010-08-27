@@ -25,9 +25,7 @@
 
 
 class CQPwebSettings
-{
-	/* currently only seven variables are supported */
-	
+{	
 	
 	/* these four must be strings: disallow_nonwords is used on SQL name and CQP name of corpus */
 	private $corpus_title;
@@ -43,7 +41,16 @@ class CQPwebSettings
 	 * if words are to be used for context, the s_attribute string is NULL */
 	private $context_scope;
 	private $context_s_attribute;
+	
+	
+	/* visualisation control variables (two bools and a string for each) */
+	private $visualise_gloss_in_concordance;
+	private $visualise_gloss_in_context;
+	private $visualise_gloss_annotation; 
 		
+	private $visualise_translate_in_concordance;
+	private $visualise_translate_in_context;
+	private $visualise_translate_s_att; 
 	
 	/* management variables */
 	private $cqpweb_root_directory_path;
@@ -105,6 +112,31 @@ class CQPwebSettings
 		else if (is_dir($new_value))
 			$this->directory_override_data = $new_value;
 	}
+	
+	public function get_visualise_gloss_in_concordance() { return $this->visualise_gloss_in_concordance; }
+	public function set_visualise_gloss_in_concordance($new_value) { $this->visualise_gloss_in_concordance = (bool) $new_value; }
+	public function get_visualise_gloss_in_context() { return $this->visualise_gloss_in_context; }
+	public function set_visualise_gloss_in_context($new_value) { $this->visualise_gloss_in_context = (bool) $new_value; }
+	public function set_visualise_gloss_annotation($new_value) 	
+	{
+		if ($new_value == NULL)
+			$this->visualise_gloss_annotation = NULL;
+		else
+			$this->visualise_gloss_annotation = $this->disallow_nonwords($new_value);
+	}
+
+
+	public function get_visualise_translate_in_concordance() { return $this->visualise_translate_in_concordance; }
+	public function set_visualise_translate_in_concordance($new_value) { $this->visualise_translate_in_concordance = (bool) $new_value; }
+	public function get_visualise_translate_in_context() { return $this->visualise_translate_in_context; }
+	public function set_visualise_translate_in_context($new_value) { $this->visualise_translate_in_context = (bool) $new_value; }
+	public function set_visualise_translate_s_att($new_value) 	
+	{
+		if ($new_value == NULL)
+			$this->visualise_translate_s_att = NULL;
+		else
+			$this->visualise_translate_s_att = $this->disallow_nonwords($new_value);
+	}
 
 	/**
 	 * Constructor's sole parameter is path to the root directory of CQPweb; 
@@ -151,7 +183,18 @@ class CQPwebSettings
 			$this->context_scope = (int)$context_scope;
 		if (isset($context_s_attribute))
 			$this->context_s_attribute = $context_s_attribute;
-		
+		if (isset($visualise_gloss_in_concordance))
+			$this->visualise_gloss_in_concordance = (bool)$visualise_gloss_in_concordance;
+		if (isset($visualise_gloss_in_context))
+			$this->visualise_gloss_in_context = (bool)$visualise_gloss_in_context;
+		if (isset($visualise_gloss_annotation))
+			$this->visualise_gloss_annotation = $visualise_gloss_annotation;
+		if (isset($visualise_translate_in_concordance))
+			$this->visualise_translate_in_concordance = (bool)$visualise_translate_in_concordance;
+		if (isset($visualise_translate_in_context))
+			$this->visualise_translate_in_context = (bool)$visualise_translate_in_context;
+		if (isset($visualise_translate_s_att))
+			$this->visualise_translate_s_att = $visualise_translate_s_att;
 		return 0;
 	}
 	
@@ -167,11 +210,13 @@ class CQPwebSettings
 		
 		$data = "<?php\n\n";
 		
+		/* variables that must be written */
 		$data .= "\$corpus_title = '{$this->corpus_title}';\n";
 		$data .= "\$corpus_sql_name = '{$this->corpus_sql_name}';\n";
 		$data .= "\$corpus_cqp_name = '{$this->corpus_cqp_name}';\n";
 		$data .= "\$css_path = '{$this->css_path}';\n";
 		
+		/* variables that are only written if they are present */
 		if (isset($this->corpus_main_script_is_r2l))
 			$data .= "\$corpus_main_script_is_r2l = " . ($this->corpus_main_script_is_r2l ? 'true' : 'false') . ";\n";
 		if (isset($this->corpus_uses_case_sensitivity))
@@ -182,6 +227,19 @@ class CQPwebSettings
 		if (isset($this->context_s_attribute))
 			$data .= "\$context_s_attribute = '{$this->context_s_attribute}';\n";
 		
+		if (isset($this->visualise_gloss_in_concordance))
+			$data .= "\$visualise_gloss_in_concordance = " . ($this->visualise_gloss_in_concordance ? 'true' : 'false') . ";\n";
+		if (isset($this->visualise_gloss_in_context))
+			$data .= "\$visualise_gloss_in_context = " . ($this->visualise_gloss_in_context ? 'true' : 'false') . ";\n";
+		if (isset($this->visualise_gloss_annotation))
+			$data .= "\$visualise_gloss_annotation = '{$this->visualise_gloss_annotation}';\n";
+				
+		if (isset($this->visualise_translate_in_concordance))
+			$data .= "\$visualise_translate_in_concordance = " . ($this->visualise_translate_in_concordance ? 'true' : 'false') . ";\n";
+		if (isset($this->visualise_translate_in_context))
+			$data .= "\$visualise_translate_in_context = " . ($this->visualise_translate_in_context ? 'true' : 'false') . ";\n";
+		if (isset($this->visualise_translate_s_att))
+			$data .= "\$visualise_translate_s_att = '{$this->visualise_translate_s_att}';\n";
 				
 		$data .= "?>";
 		

@@ -695,12 +695,23 @@ function printquery_latest()
 	
 	<ul>
 		<li>
-		<b>Version 2.14</b>, 2010-xx-yy<br/>&nbsp;<br/>
+		<b>Version 2.14</b>, 2010-08-27<br/>&nbsp;<br/>
+		Quite a few new features this time. First, finer control over concordance display has been added;
+		if you have the data, you can how have concordance results rendered as three-line-examples (field
+		data or typology style with interlinear glosses).
+		<br/>&nbsp;<br/>
 		The R interface is ready for use with this version, although it is not actually used anywhere yet, and
-		additional interface methods will be added as the need for them becomes evident.  
+		additional interface methods will be added as the need for them becomes evident. It goes without saying 
+		that you need R installed in order to do anything with this.
 		<br/>&nbsp;<br/>
 		The new Web API has been established, and the first two functions "query" and "concordance" created.
 		Documentation for the Web API is still on the to-do list...
+		<br/>&nbsp;<br/>
+		Plus, a new function for creating snapshots of the system (useful for making backups); a "diagnostic"
+		interface for checking out common problems in setting up CQP (incomplete as yet); and some improvements
+		to the documentation for system administrators.
+		<br/>&nbsp;<br/>
+		Also added a new subcorpus creation function which makes one subcorpus for every text in the corpus.
 		<br/>&nbsp;<br/>
 		
 		<li>
@@ -784,6 +795,7 @@ function printquery_latest()
 		Bug fixes (thanks to Rob Malouf for spotting the bugs in question!) plus improvements to CQP interface
 		object model.
 		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 2.03</b>, 2009-06-18<br/>&nbsp;<br/>
 		Added interface to install pre-indexed CWB corpus and made further tweaks to admin functions.

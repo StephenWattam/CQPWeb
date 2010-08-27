@@ -1,7 +1,7 @@
 <?php
 /**
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-10 Andrew Hardie
  *
  * See http://www.ling.lancs.ac.uk/activities/713/
  *
@@ -182,6 +182,37 @@ if (!isset($default_extended_context))
 if (!isset($default_max_context))
 	$default_max_context = 1100;
 
+/* interlinear glossing default off */
+if (!isset($visualise_gloss_in_concordance))
+	$visualise_gloss_in_concordance = false;
+if (!isset($visualise_gloss_in_context))
+	$visualise_gloss_in_context = false;
+if ($visualise_gloss_in_concordance || $visualise_gloss_in_context)
+	if (!isset($visualise_gloss_annotation))
+		$visualise_gloss_annotation = 'word'; 
+
+/* supply translations default off */
+if (!isset($visualise_translate_in_concordance))
+	$visualise_translate_in_concordance = false;
+if (!isset($visualise_translate_in_context))
+	$visualise_translate_in_context = false;
+if (!isset($visualise_translate_s_att))
+{
+	/* we can't default this one: we'll have to switch off these variables */
+	$visualise_translate_in_context = false;
+	$visualise_translate_in_concordance = false;
+}
+else
+{
+	/* we override $context_scope etc... if this is to be used in concordance */
+	if ($visualise_translate_in_concordance)
+	{
+		$context_s_attribute = $visualise_translate_s_att;
+		$context_scope_is_based_on_s = true;
+		$context_scope = 1;
+	}
+}
+ 
 
 	
 /* collocation defaults */

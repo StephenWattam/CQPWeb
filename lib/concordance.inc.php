@@ -231,7 +231,10 @@ if (isset($_GET['viewMode']))
 	$viewMode = $_GET['viewMode'];
 else
 	$viewMode = ( (bool) $user_settings->conc_kwicview ? 'kwic' : 'line' ) ;
-
+	
+/* there is an override... when translation is showing, only line mode is possible */
+if ($visualise_translate_in_concordance)
+	$viewMode = 'line';
 
 
 /* set kwic variables */
@@ -249,7 +252,7 @@ else
 
 
 
-/* the program variable */
+/* the program variable: filtered by a switch to admit only OK values */
 /* note this is only used for the RENDERING of the query */
 switch($_GET['program'])
 {
@@ -281,7 +284,7 @@ default:
 /* --------------------- */
 
 /* determine, for this user, whether or not tooltips are to be displayed */
-// not done yet
+// TODO not done yet
 
 
 
@@ -297,8 +300,9 @@ $primary_tag_handle = get_corpus_metadata('primary_annotation');
 
 
 
+
 /* ----------------------------------------------------------------------------- */
-/* Start of section which runs two separate tracks                               */
+/* This is the section which runs two separate tracks                            */
 /* a track for a query that is in cache and another track for a query that isn't */
 /* ----------------------------------------------------------------------------- */
 
@@ -313,6 +317,11 @@ $run_new_query = false;
 /* and set $num_of_solutions so it fails-safe to 0   */
 $num_of_solutions = 0;
 
+
+
+/* ------------------------------------------------------------------------ */
+/* START OF CHUNK THAT CHECKS THE CACHE AND PREPARES THE QUERY IF NO RESULT */
+/* ------------------------------------------------------------------------ */
 
 
 if ( $incoming_qname_specified )
@@ -344,11 +353,8 @@ if ( $incoming_qname_specified )
 		if ($cache_record['saved'] == 0)
 			touch_cached_query($qname);
 		
-		/* take info from the cache record, and copy it to script variables & _GET */
+		/* take info from the cache record, and copy it to script variables */
 		$qmode = $cache_record['query_mode'];
-		// better just to unset, surely?
-//		if (isset($_GET['qmode']))
-//			$_GET['qmode'] = $qmode;
 		unset($_GET['qmode']);
 			
 		$cqp_query = $cache_record['cqp_query'];
@@ -356,15 +362,11 @@ if ( $incoming_qname_specified )
 		$simple_query = $cache_record['simple_query'];
 		
 		$subcorpus = ($cache_record['subcorpus'] == 'NULL' ? 'no_subcorpus' : $cache_record['subcorpus']);
-		// better just to unset, surely?
-//		if (isset($_GET['subcorpus']))
-//			$_GET['subcorpus'] = $subcorpus;
 		unset($_GET['subcorpus']);
 			
 		$restrictions = ($cache_record['restrictions'] == 'NULL' ? 'no_restriction' : $cache_record['restrictions']);
 		
 		$postprocess = $cache_record['postprocess'];
-//show_var($cache_record);
 		unset($theData);
 		
 		/* next stop on this track is POSTPROCESS then DISPLAYING THE QUERY */
@@ -375,6 +377,8 @@ if ( $incoming_qname_specified )
 /* this can't be an ELSE, because of the possibility of a track switch in preceding IF */
 if ( ! $incoming_qname_specified )
 {
+	/* TRACK FOR A QUERY WHERE THE QNAME WAS NOT SPECIFIED */
+	
 	/* derive the $cqp_query and $simple_query variables and put the query into history */
 	if ($qmode == 'cqp')
 	{
@@ -386,7 +390,6 @@ if ( ! $incoming_qname_specified )
 		/* keep a record of the simple query */
 		$simple_query = $theData;
 		/* convert the simple query to a CQP query */
-		//$theData = $cqp_query = process_simple_query($theData, $case_sensitive);	
 		$cqp_query = process_simple_query($theData, $case_sensitive);
 		
 		if ($simple_query == $cqp_query)
@@ -438,8 +441,9 @@ if ( ! $incoming_qname_specified )
 	}
 }
 
-/* we now know if it's a new query, and can check whether to apply the user's auto-randomise function */
-/* but this is only applied if no other postprocess has been asked for */
+
+/* we now know if it's a new query, and can check whether to apply the user's auto-randomise function
+ * but this is only applied if no other postprocess has been asked for */
 if ($run_new_query && ! $new_postprocess && ! $user_settings->conc_corpus_order)
 {
 	$_GET['newPostP'] = 'rand';
@@ -483,14 +487,14 @@ if ($run_new_query)
 		say_sorry($instance_name); /* note that this exits() the script! */
 	
 	$num_of_texts = count( $cqp->execute("group $qname match text_id") );
-	/* note that this field in the record always refers to the ORIGINAL num of texts */
-	/* so, it is OK to set it here and not anywhere else (as postprocesses don't affect it) */
+	/* note that this field in the record always refers to the ORIGINAL num of texts
+	 * so, it is OK to set it here and not anywhere else (as postprocesses don't affect it) */
 
 	/* put the query in the cache */
 	cache_query($qname, $cqp_query, $restrictions, $subcorpus, '',
 		$num_of_solutions, $num_of_texts, $simple_query, $qmode);
-	/* no need to check this call - if there is some kind of cockup,     */
-	/* it will be caught when the query is revisited by this very script */
+	/* no need to check this call - if there is some kind of cockup,
+	 * it will be caught when the query is revisited by this very script */
 	
 	/* finally, create a query cache record. This array can be passed to functions that require
 	 * a big bag o' info about the query (e.g. postprocess functions, the heading creator) */
@@ -562,7 +566,6 @@ if ($new_postprocess)
 	{
 		$post_function = $new_postprocess->get_run_function_name();
 		
-		
 		$cache_record = $post_function($cache_record, $new_postprocess);
 		/* the postprocess functions all re-set cr['postprocess'] and cr['hits_left'] etc. */
 		/* in the new query that is created */
@@ -579,8 +582,8 @@ if ($new_postprocess)
 /* get the highlight-positions table */
 $highlight_positions_array = get_highlight_position_table($qname, $postprocess, $highlight_show_tag);
 
-/* even if tags are to be shown, don't do so if no primary annotation is specified */
-$highlight_show_tag = ( (! empty($primary_tag_handle) ) && $highlight_show_tag);
+/* even if tags are to be shown, don't do so if no primary annotation is specified, or if we are lgossing the text */
+$highlight_show_tag = ( (! empty($primary_tag_handle) ) && $highlight_show_tag && !$visualise_gloss_in_concordance);
 
 
 /* --------------------- */
@@ -603,9 +606,10 @@ $_GET['qname'] = $qname;
 
 
 
-/* whatever happened above, $num_of_solutions contains the number of solutions in the original query */
-/* BUT a postprocess can reduce the num of solutions that get rendered and thus the number of pages */
-/* num_of_solutions_final == the number of solutions all AFTER postprocessing */
+/* whatever happened above, $num_of_solutions contains the number of solutions in the original query.
+ * BUT a postprocess can reduce the num of solutions that get rendered and thus the number of pages.
+ * num_of_solutions_final == the number of solutions all AFTER postprocessing.
+ */
 
 $num_of_solutions_final = (
 		($cache_record['hits_left'] == '' || $cache_record['hits_left'] === NULL) 
@@ -698,8 +702,14 @@ if ($program == "sort")
 /* set up CQP options for the concordance display */
 $cqp->execute("set Context $context_scope " . ($context_scope_is_based_on_s ? $context_s_attribute : 'words'));
 /* next line allows for unannotated corpora */
-$cqp->execute('show +word ' . (empty($primary_tag_handle) ? '' : "+$primary_tag_handle "));
-$cqp->execute("set PrintStructures \"text_id\""); 
+
+if ($visualise_gloss_in_concordance)
+	$cqp->execute("show +word +$visualise_gloss_annotation ");
+else
+	$cqp->execute('show +word ' . (empty($primary_tag_handle) ? '' : "+$primary_tag_handle "));
+$cqp->execute("set PrintStructures \"" 
+				. ($visualise_translate_in_concordance ? "$visualise_translate_s_att " : '') 
+				. "text_id\""); 
 $cqp->execute("set LeftKWICDelim '--%%%--'");
 $cqp->execute("set RightKWICDelim '--%%%--'");
 

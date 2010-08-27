@@ -75,9 +75,13 @@ class CQP
 	
 	
 	/* the version of CWB that this class requires */
-	const VERSION_MAJOR_DEFAULT = 3;
+	const VERSION_MAJOR_DEFAULT = 2;
 	const VERSION_MINOR_DEFAULT = 2;
-	const VERSION_BETA_DEFAULT = 0;
+	const VERSION_BETA_DEFAULT = 100;
+//	const VERSION_MAJOR_DEFAULT = 3;
+//	const VERSION_MINOR_DEFAULT = 2;
+//	const VERSION_BETA_DEFAULT = 0;
+//	temporary reversion while I work out build issues with 3.2.0
 	
 
 
@@ -751,7 +755,7 @@ class CQP
 	/** does same as get_error_message, but with all strings in the array rolled together */
 	public function get_error_message_as_string()
 	{
-		// prob faster with implode... TODO delete this once it's established nothing broke.
+		//TODO delete commented-out old version once it's established nothing broke.
 		//$output = '';
 		//foreach($this->error_message as $msg)
 			//$output .= "$msg\n";
@@ -759,7 +763,7 @@ class CQP
 		return implode("\n", $this->error_message);
 	}
 
-	/** does same as get_error_message, but with paragraph and linebreak tags */
+	/** does same as get_error_message, but with (X)HTML paragraph and linebreak tags */
 	public function get_error_message_as_html()
 	{
 		$output = '<p class="errormessage">';
@@ -817,7 +821,7 @@ class CQP
 
 	
 	/** set on/off progress bar display and specify function to deal with it */
-	public function set_progress_handler($handler = FALSE)
+	public function set_progress_handler($handler = false)
 	{
 		if ($handler != false)
 		{
@@ -842,7 +846,7 @@ class CQP
 	 */
 	function handle_progressbar($line = "")
 	{
-		if ($this->debug)
+		if ($this->debug_mode)
 			echo "CQP $line\n";
 		if ($this->progress_handler == false)
 			return;
@@ -863,15 +867,21 @@ class CQP
 
 
 
-	/** switch debug mode on or off */
-	public function set_debug_mode($newstate)
+	/** 
+	 * Switch debug mode on or off, and return the FORMER state (whatever it was).
+	 * 
+	 * Note that if a NULL argument or no argument is passed in, then debug_mode
+	 * will not be changed -- only its value will be returned. 
+	 * 
+	 * The argument should be a Boolean. If it isn't, it will be typecast to
+	 * bool according to the usual PHP rules.
+	 */
+	public function set_debug_mode($newstate = NULL)
 	{
 		$oldstate = $this->debug_mode;
 		
-		if ($newstate == 1 || $newstate == true || $newstate == 'true')
-			$this->debug_mode = true;
-		if ($newstate == 0 || $newstate == false || $newstate == 'false')
-			$this->debug_mode = false;
+		if (!is_null($newstate))
+			$this->debug_mode = (bool)$newstate;
 
 		return $oldstate;
 	}
@@ -902,25 +912,32 @@ class CQP
 	/** 
 	 * Switch the character set encoding of an output string to be sent to the caller.
 	 * 
-	 * Output strings are always utf8. 
+	 * Output strings from the CQP object are always utf8.
 	 * 
 	 * This method filters output in other encodings to utf8, if necessary.
+	 * 
+	 * The function can also cope with an array of strings. 
 	 */
 	private function filter_output($string)
 	{
-		/* output may be an array of strings: in which case call this method recursively */
-		if (is_array($string))
-		{
-			foreach($string as $k => &$v)
-				$string[$k] = $this->filter_output($v);
-			return $string;
-		}
+		/* output may be an array of strings: in which case map across all strings within it
+		 * this is done WITHIN the switch, rather than by calling this function recursively,
+		 * to save function call overhead in the (most common) case where the underlying
+		 * corpus is UTF8. 
+		 */
 		switch($this->corpus_charset)
 		{
 		case self::CHARSET_UTF8:
 			return $string;
 		case self::CHARSET_LATIN1:
-			return utf8_encode($string);
+			if (is_array($string))
+			{
+				foreach($string as $k => &$v)
+					$string[$k] = utf8_encode($string);
+				return $string;
+			}
+			else
+				return utf8_encode($string);
 		}
 		// TODO. Use the iconv function to add other Latin-X charsets, once CWB itself supports them.
 	}
@@ -972,6 +989,118 @@ class CQP
 			. '.' . self::VERSION_BETA_DEFAULT;
 	}
 
+	/**
+	 * Runs the connection procedure as in __construct(), but does it 
+	 * with positively paranoid safety checks at every stage.
+	 * 
+	 * The results of every safety check are collected together in a
+	 * string which is the return value.
+	 * 
+	 * No class variables are set (obviously since this is a static 
+	 * function) and the process is shut down at the end, regardless
+	 * of success or failure.
+	 */
+	public static function diagnose_connection($path_to_cqp, $cwb_registry)
+	{
+		$infoblob = '';
+		
+		$infoblob .= "Beginning diagnostics on CQP child process connection.\n\n";
+		$infoblob .= "Using following configuration variables:\n";
+		$infoblob .= "    \$path_to_cqp = ``$path_to_cqp''\n";
+		$infoblob .= "    \$cwb_registry = ``$cwb_registry''\n";
+		$infoblob .= "\n";
+		
+		/* all checks are wrapped in a do ... while(false) to allow a break to go straight to shutdown */
+		/* goto shutdown would be nice as well but we don't want to count on PHP 5.3+ */
+		do {
+			/* check path to cqp is a real directory */
+			$infoblob .= "Checking that /$path_to_cqp exists... ";
+			if (!is_dir("/$path_to_cqp"))
+			{
+				$infoblob .= "\n    CHECK FAILED. Check that /$path_to_cqp exists"
+					. " and contains the CQP executable.\n";
+				break;
+			}
+			else
+				$infoblob .= " yes it does!\n\n";
+			
+			// check that this user has read/execute permissions to it TODO
+			
+			/* check that cqp exists within it */
+			$infoblob .= "Checking that CQP program exists... ";
+			if (!is_file("/$path_to_cqp/cqp"))
+			{
+				$infoblob .= "\n    CHECK FAILED. Check that /$path_to_cqp"
+					. " contains the CQP executable.\n";
+				break;
+			}
+			else
+				$infoblob .= " yes it does!\n\n";
+			
+			/* check that cqp is executable TODO */
+			$infoblob .= "Checking that CQP program is executable by this user... ";
+			if (!is_executable("/$path_to_cqp/cqp"))
+			{
+				$infoblob .= "\n    CHECK FAILED. Check that /$path_to_cqp/cqp"
+					. " is executable by the username this script is running under.\n";
+				break;
+			}
+			else
+				$infoblob .= " yes it is!\n\n";
+
+			/* check that cwb_registry is a real directory */
+			$infoblob .= "Checking that /$cwb_registry exists... ";
+			if (!is_dir("/$cwb_registry"))
+			{
+				$infoblob .= "\n    CHECK FAILED. Check that /$cwb_registry exists"
+					. " and contains the CQP executable.\n";
+				break;
+			}
+			else
+				$infoblob .= " yes it does!\n\n";
+			
+			// check that this user has read/execute permissions to it TODO
+			$infoblob .= "Checking that CWB registry is readable by this user... ";
+			if (!is_readable("/$cwb_registry"))
+			{
+				$infoblob .= "\n    CHECK FAILED. Check that /$cwb_registry"
+					. " is readable by the username this script is running under.\n";
+				break;
+			}
+			else
+				$infoblob .= " yes it is!\n\n";
+			
+			// do an experimental startup TODO
+			
+			// call proc_ get_ status() and check each field is as it should be TODO
+			
+			// get the version info TODO
+			
+			// check the version info TODO
+			
+			// write an experimental line to the process in
+			// and check the process out (use EOL command) TODO
+			
+			/* if all that is working then the diagnostic is complete */ 
+			$infoblob .= "The connection to the CQP child process was successful.\n";
+
+		} while (false);
+		
+		/* if the process was not created successfully, we do not need ot close it */
+		if (is_resource($process))
+		{
+			$infoblob .= "\nAttempting to shut down test process...\n";
+		
+			// shutdown procedure here.
+			// TODO
+			if (false)
+				;
+			else
+				$infoblob .= "Process shutdown was successful.\n";
+		}
+		
+		return $infoblob;
+	}
 
 } /* end of class CQP */
 

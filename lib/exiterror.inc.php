@@ -151,6 +151,22 @@ function exiterror_mysqlquery($errornumber, $errormessage, $script=NULL, $line=N
 	exit();
 }
 
+function exiterror_mysqlquery_show($errornumber, $errormessage, $origquery, $script=NULL, $line=NULL)
+{
+	?>
+	<p class="errormessage">A mySQL query did not run successfully!</p>
+	<?php
+	echo "<p class=\"errormessage\">Error # $errornumber: <br/>";
+	echo "$errormessage </p>";
+	echo "<p class=\"errormessage\">Original query: <br/>";
+	echo "$origquery</p>";
+	if (isset($script, $line))
+		echo "<p class=\"errormessage\">... in file <b>$script</b> line <b>$line</b>.</p>";
+	print_footer();
+	disconnect_all();
+	exit();
+}
+
 function exiterror_parameter($errormessage, $script=NULL, $line=NULL)
 {
 	?>

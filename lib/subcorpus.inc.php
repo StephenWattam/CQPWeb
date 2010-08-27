@@ -24,21 +24,24 @@
 
 
 
+/**
+ * this file contains functions dealing with the creation and management of subcorpora 
+ * and restrictions 
 
-/* this file contains functions dealing with the creation and management of subcorpora */
-/* and restrictions */
+ * note that a RESTRICTION is a where-clause that can be used to select files in the text_metadata 
+ * table for this corpus; a SUBCORPUS can be based on a restriction or may be a list of text names 
 
-/* note that a RESTRICTION is a where-clause that can be used to select files in the text_metadata */
-/* table for this corpus; a SUBCORPUS can be based on a restriction or may be a list of text names */
-
-/* if both restrictions and text list are present for a subcorpus, restrictions overrule file list */
+ * if both restrictions and text list are present for a subcorpus, restrictions overrule file list 
+ */
 
 
 
 
 /**
  * create a subcorpus from a space-delimited text list.
- * note - no list-format checking is performed here, only sorting 
+ * note - no list-format checking is performed here, only sorting.
+ * 
+ * Any existing subcorpus of the same name is overwritten.
  */
 function create_subcorpus_list($subcorpus_name, $text_list)
 {
@@ -48,14 +51,10 @@ function create_subcorpus_list($subcorpus_name, $text_list)
 
 	$text_list = alphabetise_textlist($text_list);
 	$whereclause = translate_textlist_to_where($text_list);
-
 	
 	$sql_query = "SELECT count(*), sum(words) FROM text_metadata_for_$corpus_sql_name 
 		WHERE $whereclause";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query, $mysql_link);
 	list($numfiles, $numwords) = mysql_fetch_row($result);
 			
 	unset($result);
@@ -67,22 +66,14 @@ function create_subcorpus_list($subcorpus_name, $text_list)
 		WHERE subcorpus_name = '$subcorpus_name'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-			
-	unset($result);
-	
-	$file_list = mysql_real_escape_string($text_list);
+	do_mysql_query($sql_query, $mysql_link);
+
+	$text_list = mysql_real_escape_string($text_list);
 	
 	$sql_query = "INSERT INTO saved_subcorpora (subcorpus_name, corpus, user, text_list, numfiles, numwords)
 		values 
 		('$subcorpus_name', '$corpus_sql_name', '$username', '$text_list', '$numfiles', '$numwords')";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query, $mysql_link);
 }
 
 

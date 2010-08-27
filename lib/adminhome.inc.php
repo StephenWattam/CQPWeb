@@ -70,6 +70,7 @@ require ("../lib/admin-lib.inc.php");
 require ("../lib/exiterror.inc.php");
 require ("../lib/metadata.inc.php");
 require ("../lib/ceql.inc.php");
+require ("../lib/cqp.inc.php");
 
 
 if (!user_is_superuser($username))
@@ -395,6 +396,13 @@ else
 	echo "concordgrey\"><a class=\"menuCurrentItem\">";
 echo "System snapshots</a></td></tr>";
 
+echo "<tr><td class=\"";
+if ($thisF != "systemDiagnostics")
+	echo "concordgeneral\"><a class=\"menuItem\" 
+		href=\"index.php?thisF=systemDiagnostics&uT=y\">";
+else 
+	echo "concordgrey\"><a class=\"menuCurrentItem\">";
+echo "System diagnostics</a></td></tr>";
 ?>
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">Misc</a></th>
@@ -446,7 +454,7 @@ echo "PHP configuration</a></td></tr>";
 ?>
 
 
-<!--  everythign below this poitn NEEDS INTEGRATING -->
+<!--  everything below this point NEEDS INTEGRATING -->
 
 
 <tr>
@@ -597,6 +605,10 @@ case 'systemSnapshots':
 	printquery_systemsnapshots();
 	break;
 
+case 'systemDiagnostics':
+	printquery_systemdiagnostics();
+	break;
+
 case 'mysqlRestore':
 	printquery_mysqlsystemrestore();
 	break;
@@ -721,12 +733,20 @@ function printquery_showcorpora()
 		
 		?>
 		<tr>
+			<td class="concordgeneral" <?php echo "id=\"corpusCell_{$r['corpus']}\""; ?>>
+				<a class="menuItem" href="../<?php echo $r['corpus']; ?>">
+					<strong><?php echo $r['corpus']; ?></strong>
+				</a>
+			</td>
+			<!-- odd quirk on latest version of chromium 13-08-2010 (linux):
+			     the "form" opening tag uses up a column in the table. 
+			     
+			     Bizarre.
+			     
+			     Gives a 9-column effect not an 8-column effect.
+			     
+			     Not happening in Firefox. -->
 			<form action="index.php" method="get">
-				<td class="concordgeneral" <?php echo "id=\"corpusCell_{$r['corpus']}\""; ?>>
-					<a class="menuItem" href="../<?php echo $r['corpus']; ?>">
-						<strong><?php echo $r['corpus']; ?></strong>
-					</a>
-				</td>
 				
 				<td align="center" class="concordgeneral">
 					<select name="updateVisible"><?php echo $visible_options; ?></select>
@@ -2477,6 +2497,93 @@ function printquery_systemsnapshots()
 	<?php
 }
 
+
+function printquery_systemdiagnostics()
+{
+	global $path_to_cwb;
+	global $cwb_registry;
+	/* every case of this switch should print an entire table, then return */
+	switch ($_GET['runDiagnostic'])
+	{
+	case 'general':
+		//TODO
+		return;
+		
+	case 'cqp':
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					Diagnosing connection to child process for CQP back-end
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgrey">
+					<pre>
+					<?php echo "\n" . CQP::diagnose_connection($path_to_cwb, $cwb_registry) . "\n"; ?>
+					</pre>
+				</td>
+			</tr>
+		</table>
+		<?php
+		return;
+		
+	default:
+		/* this is the only route to the rest of the function */
+		break;
+	}
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">
+				CQPweb system diagnostics
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgrey">
+				&nbsp;<br/>
+				Use the controls below to run diagnostics for parts of CQPweb that aren't working properly.
+				<br/><b>UNDER DEVELOPMENT -- DO NOT WORK YET</b>
+				<br/>&nbsp;<br/>
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable">
+				Generalised problem check
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral" align="center" colspan="3">
+				<form action="index.php" method="get">
+					<br/>
+					<input type="submit" value="Run general check for common problems" />
+					<br/>
+					<input type="hidden" name="thisF" value="systemDiagnostics"/>
+					<input type="hidden" name="runDiagnostic" value="general"/>
+					<input type="hidden" name="uT" value="y" />
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable">
+				Check CQP back-end
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral" align="center" colspan="3">
+				<form action="index.php" method="get">
+					<br/>
+					<input type="submit" value="Run a system check on the CQP back-end process connection" />
+					<br/>
+					<input type="hidden" name="thisF" value="systemDiagnostics"/>
+					<input type="hidden" name="runDiagnostic" value="cqp"/>
+					<input type="hidden" name="uT" value="y" />
+				</form>
+			</td>
+		</tr>
+	</table>
+	<?php
+}
 
 
 function printquery_mysqlsystemrestore()

@@ -95,7 +95,11 @@ function printquery_subcorpus()
 		case 'invert':
 			print_sc_nameform($badname_entered, 4);
 			print_sc_define_invert();
-			break;		
+			break;
+		case 'text_id':
+			/* no nameform ! */
+			print_sc_define_text_id();
+			break;
 		/* if an unrecognised method is passed, it is treated as "metadata " */
 		default:
 		case 'metadata':
@@ -142,6 +146,7 @@ function print_sc_newform()
 									<option value="manual">Manual entry of filenames</option>
 									<option value="invert">Invert an existing subcorpus</option>
 									<option value="query">Texts found in a saved query</option>
+									<option value="text_id">Create a subcorpus for every text</option>
 								</select>
 							</td>
 							<td class="basicbox">
@@ -162,7 +167,7 @@ function print_sc_newform()
 
 
 
-/* this function STARTS the create form */
+/* this function STARTS the create form; other functions must finish it */
 function print_sc_nameform($badname_entered, $colspan)
 {
 	if ($colspan == 1 || $colspan == 0)
@@ -560,6 +565,46 @@ function print_sc_define_invert()
 	<?php
 }
 
+
+/**
+ * Note that this function DOESN'T require a name form -- names are auto-generated.
+ */
+function print_sc_define_text_id()
+{
+	?>
+	<table class="concordtable" width="100%">
+	<form action="subcorpus-admin.php" method="get">
+		<tr>
+			<th class="concordtable"<?php echo $colspan_text; ?>>Design a new subcorpus</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				<center>
+					&nbsp;
+					<br/>
+					Click below to turn every text into a subcorpus. 
+					<br/>&nbsp;<br/>
+					Note that this function is currently only available for corpora with 100 or less texts. 
+					<br/>&nbsp;<br/>
+
+					<br/>
+					
+					<input type="submit" value="Create one subcorpus per text"/>
+					<br/>&nbsp;<br/>&nbsp;<br/>
+					<input type="reset" value="Clear form"/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<input name="action" type="submit" value="Cancel"/>
+					<br/>&nbsp;<br/>
+				</center>
+			</td>
+		</tr>
+		<input type="hidden" name="scriptMode" value="create_text_id"/>
+		<input type="hidden" name="thisQ" value="subcorpus"/>
+		<input type="hidden" name="uT" value="y" />
+	</form>
+	</table>
+	<?php
+}
 
 
 function print_sc_showsubcorpora()

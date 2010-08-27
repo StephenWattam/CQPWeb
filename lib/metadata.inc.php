@@ -43,7 +43,15 @@ function list_corpora()
 	return $list_of_corpora;
 }
 
-
+/** returns a list of all the texts in the specified corpus, as an array */
+function corpus_list_texts($corpus)
+{
+	$list_of_texts = array();
+	$result = do_mysql_query("select text_id from text_metadata_for_" . mysql_real_escape_string($corpus));
+	while ( ($r=mysql_fetch_row($result)) !== false )
+		$list_of_texts[] = $r[0];
+	return $list_of_texts;
+}
 
 
 
@@ -165,6 +173,7 @@ function update_corpus_context_scope($newcount, $newunit)
 	$settings->save();
 }
 //TODO delete following function
+/*
 function update_corpus_directory_override($type, $newdir)
 {
 	global $corpus_sql_name;
@@ -176,7 +185,29 @@ function update_corpus_directory_override($type, $newdir)
 		$settings->set_directory_override_data($newdir);
 	$settings->save();	
 }
+*/
 
+function update_corpus_visualisation_gloss($in_concordance, $in_context, $annot)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$settings->set_visualise_gloss_in_concordance($in_concordance);
+	$settings->set_visualise_gloss_in_context($in_context);
+	$settings->set_visualise_gloss_annotation($annot);
+	$settings->save();	
+}
+
+function update_corpus_visualisation_translate($in_concordance, $in_context, $s_att)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$settings->set_visualise_translate_in_concordance($in_concordance);
+	$settings->set_visualise_translate_in_context($in_context);
+	$settings->set_visualise_translate_s_att($s_att);
+	$settings->save();	
+}
 function update_corpus_metadata($field, $value)
 {
 	global $mysql_link;
@@ -400,6 +431,8 @@ function metadata_of_text($text_id)
 
 /**
  * returns an onmouseover string for links to the specified text_id
+ * 
+ * TODO: this should probably be in concordance-lib
  */
 function metadata_tooltip($text_id)
 {
