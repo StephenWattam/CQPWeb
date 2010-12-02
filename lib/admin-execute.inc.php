@@ -157,6 +157,15 @@ switch($_GET['admFunction'])
 		exit();
 		
 		
+	case 'accessCloneGroupRights':
+		$_GET['function'] = 'clone_group_access_rights';
+		$_GET['args'] = $_GET['groupCloneFrom'] . '#' . $_GET['groupCloneTo'];
+		$_GET['locationAfter'] = 'index.php?thisF=groupAccess&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
+	
+		
+		
 	case 'newUser':
 		$_GET['function'] = 'add_new_user';
 		$_GET['args'] = trim($_GET['newUsername']) .'#'. trim($_GET['newPassword']) .'#'. trim($_GET['newEmail']) ;

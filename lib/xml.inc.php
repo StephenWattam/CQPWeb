@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-10 Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -26,10 +26,11 @@
  * 
  * IMPORTANT NOTE
  * 
- * CQPweb does not have XML support yet, but a couple of functions need ot deal with s-attributes in various ways.
+ * CQPweb does not have full XML support yet, but rather a couple of functions need to deal with 
+ * s-attributes in various ways.
  * 
- * When XML support is added, most of these functions should be rewritten to query a mysql table instead of crudely yanking the
- * registry file into memory.
+ * When XML support is added, most of these functions should be rewritten to query a mysql table 
+ * instead of crudely yanking the registry file into memory.
  * 
  * Other functions will appear in this file eventually!
  */
@@ -43,6 +44,7 @@ function get_xml_all()
 	global $cwb_registry;
 	global $corpus_cqp_name;
 	
+	// TODO note use of strtolower is almost certainly THE WRONG THING
 	$data = file_get_contents("/$cwb_registry/" . strtolower($corpus_cqp_name));
 	
 	preg_match_all("/STRUCTURE\s+(\w+)\s*[#\n]/", $data, $m, PREG_PATTERN_ORDER);
@@ -85,7 +87,7 @@ function xml_visualisation_delete($corpus, $element)
 	$element = mysql_real_escape_string($element);
 	
 	do_mysql_query("delete from xml_visualisations 
-		where corpus=$corpus' and element = '$element'");
+		where corpus='$corpus' and element = '$element'");
 }
 
 function xml_visualisation_create($corpus, $element, $code, $in_concordance = true, $in_context = true)
@@ -104,13 +106,19 @@ function xml_visualisation_create($corpus, $element, $code, $in_concordance = tr
 		('$corpus', '$element', $in_context,$in_concordance, '$code')");
 }
 
-
+/**
+ * Turn on/off the use of an XML visualisation in context display.
+ */
 function xml_visualisation_use_in_context($corpus, $element, $new)
 {
 	$newval = ($new ? 1 : 0);
 	do_mysql_query("update xml_visualisations set in_context = $newval 
 		where corpus='$corpus' and element = '$element'");	
 }
+
+/**
+ * Turn on/off the use of an XML visualisation in concordance display.
+ */
 function xml_visualisation_use_in_concordance($corpus, $element, $new)
 {
 	$newval = ($new ? 1 : 0);
@@ -118,6 +126,11 @@ function xml_visualisation_use_in_concordance($corpus, $element, $new)
 		where corpus='$corpus' and element = '$element'");	
 }
 
+/**
+ * Unfinished HTML-sanitiser for XML visualisations.
+ * 
+ * TODO.
+ */
 function xml_visualisation_code_make_safe($code)
 {
 	/* delete possible malignant HTML code */
@@ -134,7 +147,7 @@ function xml_visualisation_code_make_safe($code)
 	
 	/* dangerous attributes: on.* */
 	$code = preg_replace('/\bon\w+?=/', '', $code);
-	// but note that this denies functionality... but reallowing allows javascript to be execute.
+	// but note that this denies functionality... but reallowing allows arbitrary javascript to be executed.
 
 	// TODO !!!!
 	/*

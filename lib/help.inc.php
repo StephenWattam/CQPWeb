@@ -26,7 +26,12 @@
 
 /* help.inc.php */
 
-/* this file is a trimmed down chunk of the idnex providing help */
+/* this file is a trimmed down chunk of the index providing help */
+
+// note this entire file is one massive TODO. A much better help system is needed, maybe using either a function
+// or members of an object to provide the strings of the help-chunks.
+// the trimmed-down index is a stopgap.
+
 
 /* ------------ */
 /* BEGIN SCRIPT */

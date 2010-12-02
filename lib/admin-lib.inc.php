@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-10 Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -350,8 +350,6 @@ function install_new_corpus()
 	
 	$info = new corpus_install_info;
 
-	$at_least_one_P = ( empty($info->p_attributes) ? '' : ' -P ');
-	/* don't need the equiv for S because there always is one: text:0+id */
 
 	/* we need both case versions here */
 	$corpus = $info->corpus_cwb_name;
@@ -387,9 +385,9 @@ function install_new_corpus()
 		$encode_command =  "/$path_to_cwb/cwb-encode -xsB -c {$info->encode_charset} -d $datadir -f " 
 			. implode(' -f ', $info->file_list)
 			. " -R /$cwb_registry/$corpus "
-			. $at_least_one_P
-			. (empty($info->p_attributes) ? '' : implode(' -P ', $info->p_attributes))
+			. ( empty($info->p_attributes) ? '' : (' -P ' . implode(' -P ', $info->p_attributes)) )
 			. ' -S ' . implode(' -S ', $info->s_attributes)
+					/* NB don't need possibility of no S-atts because there is always text:0+id */
 			. " > $encode_output_file";
 	
 		exec($encode_command);
@@ -1002,6 +1000,33 @@ function update_group_access_rights($group, $corpora_to_grant)
 	foreach(list_corpora() as $c)
 		if (!in_array($c, $to_grant))
 			deny_group_access_to_corpus($c, $group);
+}
+
+function clone_group_access_rights($from_group, $to_group)
+{
+	/* checks for group validity */
+	if ($from_group == $to_group)
+		return;
+	$apache = get_apache_object('nopath');
+	$group_list = $apache->list_groups();
+	if (!in_array($from_group, $group_list))
+		return;
+	if (!in_array($to_group, $group_list))
+		return;
+	
+	$list_of_corpora = list_corpora();
+	foreach ($list_of_corpora as $c)
+	{
+		$apache->set_path_to_web_directory("../$c");
+		$apache->load();
+		if ( in_array($from_group, $apache->get_allowed_groups()) )
+			/* allow */
+			$apache->allow_group($to_group);
+		else
+			/* deny */
+			$apache->disallow_group($to_group);
+		$apache->save();
+	}
 }
 
 

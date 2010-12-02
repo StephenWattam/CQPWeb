@@ -288,7 +288,7 @@ function print_control_row()
 	/* ----------------------- */
 	if ($visualise_translate_in_concordance)
 	{
-		$final_string .= "<td align=\"center\" width=\"20%\" class=\"concordgrey\" nowrap=\"nowrap\">(Line view only)</td>";
+		$final_string .= "<td align=\"center\" width=\"20%\" class=\"concordgrey\" nowrap=\"nowrap\">No KWIC view available</td>";
 	}
 	else
 	{
@@ -663,7 +663,7 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 		= concordance_line_blobprocess($kwic_rc, 'right', $highlight_position, $highlight_show_pos);
 
 	/* if the corpus is r-to-l, this function will spot it and handle things for us */
-	right_to_left_adjust($lc_string, $lc_tool_string, $rc_string,$rc_tool_string); 
+	right_to_left_adjust($lc_string, $lc_tool_string, $node_string, $node_tool_string, $rc_string,$rc_tool_string); 
 
 
 
@@ -821,8 +821,9 @@ function concordance_line_blobprocess($lineblob, $type, $highlight_position, $hi
 			}	
 		}
 	}
-	if ($main_string == '')
+	if ($main_string == '' && !$visualise_gloss_in_concordance)
 		$main_string = '&nbsp;';
+	
 
 	/* extra step needed because otherwise a space may get linkified */
 	if ($type == 'node')
@@ -915,6 +916,10 @@ function build_glossbox($type, $line1, $line2, $line3 = false)
 	}
 	else
 		$align = ($corpus_main_script_is_r2l ? 'right' : 'left');
+	
+	if (empty($line1) && empty($line2))
+		return '';
+		
 	return 	'<table class="glossbox" align="' . $align . '"><tr>'
 			. $line1
 			. '</tr><tr>' 

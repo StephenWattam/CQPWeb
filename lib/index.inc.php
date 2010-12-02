@@ -75,7 +75,7 @@ if (user_is_superuser($username))
 	require_once('../lib/apache.inc.php');
 	require_once('../lib/admin-lib.inc.php');
 	require_once('../lib/corpus-settings.inc.php');
-	require_once("../lib/xml.inc.php");		// future this may need moving to the main section
+	require_once('../lib/xml.inc.php');		// TODO move to main section if users need XML functions
 }
 
 
@@ -93,18 +93,13 @@ require_once("../lib/indexforms-others.inc.php");
 
 /* initialise variables from $_GET */
 
-/* in the case of index.php, we can allow there not to be any arguments, and set
-   them manually */
+/* in the case of index.php, we can allow there not to be any arguments, and supply a default;
+ * so don't check for presence of uT=y */
 
-
-if (! isset($_GET["thisQ"]) )
-	$thisQ = "search";
-else 
-	$thisQ = $_GET["thisQ"];
+/* thisQ: the query whose interface page is to be displayed on the right-hand-side. */
+$thisQ = ( isset($_GET["thisQ"]) ? $_GET["thisQ"] : 'search' );
 	
-	
-/* NOTE: some particular ptinquery_ functions will demand other arguments */
-
+/* NOTE: some particular printquery_.* functions will demand other $_GET variables */
 
 
 
@@ -145,8 +140,6 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 /* PRINT SIDE BAR MENU */
 /* ******************* */
 
-// TODO: add tool tips using onmouseOver
-
 ?>
 <table class="concordtable" width="100%">
 	<tr>
@@ -159,176 +152,58 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">Corpus queries</a></th>
 </tr>
+
 <?php
-
-
-/* SIMPLE QUERY */
-echo "<tr><td class=\"";
-if ($thisQ != "search")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=search&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Standard query</a></td></tr>";
-
-
-/* RESTRICTED QUERY */
-echo "<tr><td class=\"";
-if ($thisQ != "restrict")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=restrict&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Restricted query</a></td></tr>";
-
-
-/* WORDLOOKUP QUERY */
-echo "<tr><td class=\"";
-if ($thisQ != "lookup")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=lookup&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Word lookup</a></td></tr>";
-
-//
-// NB - is distinction between Word lists and Frequncy lists BNC-specific? 
-// if not, what is it?
-//
-
-/* FREQLIST QUERY */
-echo "<tr><td class=\"";
-if ($thisQ != "freqList")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=freqList&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Frequency lists</a></td></tr>";
-
-
-/* KEYWORDS QUERY */
-echo "<tr><td class=\"";
-if ($thisQ != "keywords")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=keywords&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Keywords</a></td></tr>";
-
-
-/* BROWSE FILE * /
-/* am I even going to bother with this? Prob can't wihout fulltext * /
-echo "<tr><td class=\"";
-if ($thisQ != "browse")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=browse&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Browse a file</a></td></tr>";
+echo print_menurow_index('search', 'Standard query');
+echo print_menurow_index('restrict', 'Restricted query');
+/* TODO
+   note for future: "Restrict query by text" vs "Restrict quey by XML"
+   OR: Restrict query (by XXXX) to be part of the configuration in the DB?
+   with a row for every XXXX that is an XML in the db that has been set up
+   for restricting-via? 
+   and the normal "Restricted query" is jut a special case for text / text_id
+   */
+echo print_menurow_index('lookup', 'Word lookup');
+echo print_menurow_index('freqList', 'Frequency lists');
+echo print_menurow_index('keywords', 'Keywords');
+/* At least for the moment, CQPweb is not bothering with this function from BNCweb
+echo print_menurow_index('browse', 'Browse a file');
 */
-
-/* The next two are nto needed - they are actually subsections of "create subcorpus * /
-echo "<tr><td class=\"";
-if ($thisQ != "metadata")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=metadata&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Search metadata</a></td></tr>";
-
-
-echo "<tr><td class=\"";
-if ($thisQ != "textClasses")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=textClasses&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Explore text classes</a></td></tr>";
-
-*/
-
-
 ?>
+
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">User controls</a></th>
 </tr>
+
 <?php
-/* note, it is not necessary to put the username in the URL for the following 
-   options cos the script derives it from the environment anyway */
-
-
-/* USER SETTINGS */
-echo "<tr><td class=\"";
-if ($thisQ != "userSettings")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=userSettings&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "User settings</a></td></tr>";
-
-
-/* QUERY HIST */
-echo "<tr><td class=\"";
-if ($thisQ != "history")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=history&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Query history</a></td></tr>";
-
-
-/* SAVED QUERIES */
-echo "<tr><td class=\"";
-if ($thisQ != "savedQs")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=savedQs&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Saved queries</a></td></tr>";
-
-
-/* CATEGORISED QUERIES */
-echo "<tr><td class=\"";
-if ($thisQ != "categorisedQs")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=categorisedQs&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Categorised queries</a></td></tr>";
-
-
-/* CREATE/EDIT SUBCORPORA */
-echo "<tr><td class=\"";
-if ($thisQ != "subcorpus")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=subcorpus&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Create/edit subcorpora</a></td></tr>";
-
-
+echo print_menurow_index('userSettings', 'User settings');
+echo print_menurow_index('history', 'Query history');
+echo print_menurow_index('savedQs', 'Saved queries');
+echo print_menurow_index('categorisedQs', 'Categorised queries');
+echo print_menurow_index('subcorpus', 'Create/edit subcorpora');
 ?>
+
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">Corpus info</a></th>
 </tr>
-<?php
 
+<?php
+/* note that most of this section is links-out, so we can't use the print-row function */
 
 /* SHOW CORPUS METADATA */
-echo "<tr><td class=\"";
+echo "<tr>\n\t<td class=\"";
 if ($thisQ != "corpusMetadata")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=corpusMetadata&uT=y\" 
-		onmouseover=\"return escape('View CQPweb\'s database of information about this corpus')\">";
+	echo "concordgeneral\">\n\t\t<a class=\"menuItem\" " 
+		. "href=\"index.php?thisQ=corpusMetadata&uT=y\" "
+		. "onmouseover=\"return escape('View CQPweb\'s database of information about this corpus')\">";
 else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "View corpus metadata</a></td></tr>";
-
+	echo "concordgrey\">\n\t\t<a class=\"menuCurrentItem\">";
+echo "View corpus metadata</a>\n\t</td>\n</tr>";
 
 
 /* print a link to a corpus manual, if there is one */
-$sql_query = "select external_url from corpus_metadata_fixed where corpus = '"
-	. $corpus_sql_name . "' and external_url IS NOT NULL";
+$sql_query = "select external_url from corpus_metadata_fixed "
+	. "where corpus = '$corpus_sql_name' and external_url IS NOT NULL";
 $result = do_mysql_query($sql_query);
 if (mysql_num_rows($result) < 1)
 	echo '<tr><td class="concordgeneral"><a class="menuCurrentItem">Corpus documentation</a></tr></td>';
@@ -344,11 +219,9 @@ unset($row);
 
 
 /* print a link to each tagset for which an external_url is declared in metadata */
-$sql_query = "select description, tagset, external_url from annotation_metadata where corpus = '"
-	. $corpus_sql_name . "' and external_url IS NOT NULL";
+$sql_query = "select description, tagset, external_url from annotation_metadata "
+	. "where corpus = '$corpus_sql_name' and external_url IS NOT NULL";
 $result = do_mysql_query($sql_query);
-
-
 
 while (($row = mysql_fetch_assoc($result)) != false)
 {
@@ -366,6 +239,7 @@ unset($row);
 if (user_is_superuser($username))
 {
 	?>
+	
 	<tr>
 		<th class="concordtable">
 			<a class="menuHeaderItem">Admin tools</a>
@@ -377,100 +251,19 @@ if (user_is_superuser($username))
 		</td>
 	</tr>
 	<?php
-
-	echo "<tr><td class=\"";
-	if ($thisQ != "corpusSettings")
-		echo "concordgeneral\"><a class=\"menuItem\" 
-			href=\"index.php?thisQ=corpusSettings&uT=y\">";
-	else 
-		echo "concordgrey\"><a class=\"menuCurrentItem\">";
-	echo "Corpus settings</a></td></tr>";
-
-	if ($cqpweb_uses_apache)
-	{
-		echo "<tr><td class=\"";
-		if ($thisQ != "userAccess")
-			echo "concordgeneral\"><a class=\"menuItem\" 
-				href=\"index.php?thisQ=userAccess&uT=y\">";
-		else 
-			echo "concordgrey\"><a class=\"menuCurrentItem\">";
-		echo "Manage access</a></td></tr>";
-	}
 	
-
-	echo "<tr><td class=\"";
-	if ($thisQ != "manageMetadata")
-		echo "concordgeneral\"><a class=\"menuItem\" 
-			href=\"index.php?thisQ=manageMetadata&uT=y\">";
-	else 
-		echo "concordgrey\"><a class=\"menuCurrentItem\">";
-	echo "Manage metadata</a></td></tr>";
-
-
-
-	echo "<tr><td class=\"";
-	if ($thisQ != "manageCategories")
-		echo "concordgeneral\"><a class=\"menuItem\" 
-			href=\"index.php?thisQ=manageCategories&uT=y\">";
-	else 
-		echo "concordgrey\"><a class=\"menuCurrentItem\">";
-	echo "Manage text categories</a></td></tr>";
-
-
-
-	echo "<tr><td class=\"";
-	if ($thisQ != "manageAnnotation")
-		echo "concordgeneral\"><a class=\"menuItem\" 
-			href=\"index.php?thisQ=manageAnnotation&uT=y\">";
-	else 
-		echo "concordgrey\"><a class=\"menuCurrentItem\">";
-	echo "Manage annotation</a></td></tr>";
-
-
-
-	echo "<tr><td class=\"";
-	if ($thisQ != "manageVisualisation")
-		echo "concordgeneral\"><a class=\"menuItem\" 
-			href=\"index.php?thisQ=manageVisualisation&uT=y\">";
-	else 
-		echo "concordgrey\"><a class=\"menuCurrentItem\">";
-	echo "Manage visualisations</a></td></tr>";
-
-
-
-	echo "<tr><td class=\"";
-	if ($thisQ != "cachedQueries")
-		echo "concordgeneral\"><a class=\"menuItem\" 
-			href=\"index.php?thisQ=cachedQueries&uT=y\">";
-	else 
-		echo "concordgrey\"><a class=\"menuCurrentItem\">";
-	echo "Cached queries</a></td></tr>";
-
-
-
-	echo "<tr><td class=\"";
-	if ($thisQ != "cachedDatabases")
-		echo "concordgeneral\"><a class=\"menuItem\" 
-			href=\"index.php?thisQ=cachedDatabases&uT=y\">";
-	else 
-		echo "concordgrey\"><a class=\"menuCurrentItem\">";
-	echo "Cached databases</a></td></tr>";
-
-
-	echo "<tr><td class=\"";
-	if ($thisQ != "cachedFrequencyLists")
-		echo "concordgeneral\"><a class=\"menuItem\" 
-			href=\"index.php?thisQ=cachedFrequencyLists&uT=y\">";
-	else 
-		echo "concordgrey\"><a class=\"menuCurrentItem\">";
-	echo "Cached frequency lists</a></td></tr>";
-
-
+	echo print_menurow_index('corpusSettings', 'Corpus settings');
+	if ($cqpweb_uses_apache)
+		echo print_menurow_index('userAccess', 'Manage access');
+	echo print_menurow_index('manageMetadata', 'Manage metadata');
+	echo print_menurow_index('manageCategories', 'Manage text categories');
+	echo print_menurow_index('manageAnnotation', 'Manage annotation');
+	echo print_menurow_index('manageVisualisation', 'Manage visualisations');
+	echo print_menurow_index('cachedQueries', 'Cached queries');
+	echo print_menurow_index('cachedDatabases', 'Cached databases');
+	echo print_menurow_index('cachedFrequencyLists', 'Cached frequency lists');
+	
 } /* end of "if user is a superuser" */
-
-
-
-
 
 ?>
 <tr>
@@ -494,36 +287,9 @@ if (user_is_superuser($username))
 	</td>
 </tr>
 <?php
-
-/* WHO */
-echo "<tr><td class=\"";
-if ($thisQ != "who_the_hell")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=who_the_hell&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Who did it?</a></td></tr>";
-
-
-/* LATEST NEWS */
-echo "<tr><td class=\"";
-if ($thisQ != "latest")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=latest&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Latest news</a></td></tr>";
-
-
-/* Bugs */
-echo "<tr><td class=\"";
-if ($thisQ != "bugs")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisQ=bugs&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Report bugs</a></td></tr>";
-
+echo print_menurow_index('who_the_hell', 'Who did it?');
+echo print_menurow_index('latest', 'Latest news');
+echo print_menurow_index('bugs', 'Report bugs');
 
 
 ?>
@@ -623,8 +389,7 @@ case 'manageAnnotation':
 
 case 'manageVisualisation':
 	printquery_visualisation();
-	// TODO this comment out is only temporary (1st wk in September 2010 for release of 2.14)
-	// printquery_xmlvisualisation();
+	printquery_xmlvisualisation();
 	break;
 
 case 'cachedQueries':
@@ -665,8 +430,6 @@ default:
 
 
 
-
-
 /* finish off the page */
 ?>
 
@@ -677,13 +440,11 @@ default:
 
 print_footer();
 
-/* ... and disconnect mysql */
-mysql_close($mysql_link);
+disconnect_global_mysql();
 
 /* ------------- */
 /* END OF SCRIPT */
 /* ------------- */
-
 
 
 ?>

@@ -594,16 +594,12 @@ function delete_db($dbname)
  */
 function delete_saved_dbs()
 {
-	global $mysql_link;
 	global $mysql_db_size_limit;
 	
 	/* step one: how many bytes in size is the db cache RIGHT NOW? */
 	$sql_query = "select sum(db_size) from saved_dbs";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	$row_array = mysql_fetch_array($result);
+	$result = do_mysql_query($sql_query);
+	$row_array = mysql_fetch_row($result);
 	$current_size = $row_array[0];
 	unset($result);
 	unset($row_array);
@@ -611,19 +607,15 @@ function delete_saved_dbs()
 	if ($current_size <= $mysql_db_size_limit)
 		return;
 	
-	/* step 2 : get a list of deletable tables */
-	/* note that catquery dbnames are excluded */
-	/* they must be deleted via their special table */
-	/* because otherwise entres are left in that table */
+	/* step 2 : get a list of deletable tables 
+	 * note that catquery dbnames are excluded 
+	 * they must be deleted via their special table 
+	 * because otherwise entres are left in that table */
 	$sql_query = "select dbname, db_size from saved_dbs 
 		where saved = 0 
 		and dbname not like 'db_catquery%'
 		order by create_time asc";
-	$del_result = mysql_query($sql_query, $mysql_link);
-	if ($del_result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-
+	$del_result = do_mysql_query($sql_query);
 
 	while ($current_size > $mysql_db_size_limit)
 	{
@@ -645,17 +637,12 @@ function delete_saved_dbs()
  */
 function clear_dbs($type = '__NOTYPE')
 {
-	global $mysql_link;
 	
 	$sql_query = "select dbname from saved_dbs";
 	if ($type != '__NOTYPE')
 		$sql_query .= " where db_type = '" . mysql_real_escape_string($type) . "'";
 
-	$del_result = mysql_query($sql_query, $mysql_link);
-
-	if ($del_result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$del_result = do_mysql_query($sql_query);
 
 	while ($current_db_to_delete = mysql_fetch_assoc($del_result))
 		delete_db($current_db_to_delete['dbname']);

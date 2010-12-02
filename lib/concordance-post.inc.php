@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -159,8 +159,10 @@ class POSTPROCESS {
 	public $text_target_id;
 	
 	
-	/* string - name of the function to use when the postprocess is being run */
-	/* use postprocess_type as key */
+	/** 
+	 * string - name of the function to use when the postprocess is being run.
+	 * Use postprocess_type as key into the array 
+	 */
 	private $function_names = array(
 		'coll' => 'run_postprocess_collocation',
 		'thin' => 'run_postprocess_thin',
@@ -173,7 +175,7 @@ class POSTPROCESS {
 		);
 	
 	
-	/* constructor - this reads things in from GET (and gets rid of them) */
+	/** Constructor - this reads things in from GET (and gets rid of them) */
 	function __construct()
 	{
 		/* unless disproven below */
@@ -467,6 +469,7 @@ class POSTPROCESS {
 			WHERE {$this->colloc_att} = '{$this->colloc_target}'
 			"  . $this->colloc_tag_filter_clause() . "
 			AND dist BETWEEN {$this->colloc_dist_from} AND {$this->colloc_dist_to}";
+			//TODO: does this need an order by like dist does, to make sure resutls are in corpus order?
 	}
 	
 	function colloc_tag_filter_clause()
@@ -528,7 +531,7 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 	
 	/* functions for sorting */
 	
-	/* the "orig" query record is needed because the DB is creaed for the orig query */
+	/* the "orig" query record is needed because the DB is created for the orig query */
 	function sort_set_dbname($orig_query_record)
 	{			
 		/* search the db list for a db whose parameters match those of the query we are working with  */
@@ -615,7 +618,7 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 			
 		return "SELECT beginPosition, endPosition
 			FROM {$this->sort_db} 
-			$this->sort_thinning_sql_where
+			{$this->sort_thinning_sql_where}
 			ORDER BY $sort_position_sql COLLATE utf8_general_ci  $extra_sort_pos_sql ";
 			/* note:
 			 * we always use utf8_general_ci for the actual sorting,
@@ -682,6 +685,8 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 			FROM {$this->sort_db}
 			$this->sort_thinning_sql_where
 			ORDER BY beginPosition  ";
+			//TODO: would refnumber be better than beginPosition? investigate
+			
 
 	}
 	
@@ -719,7 +724,8 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 			INNER JOIN text_metadata_for_$corpus_sql_name 
 			ON {$this->dist_db}.text_id = text_metadata_for_$corpus_sql_name.text_id 
 			WHERE text_metadata_for_$corpus_sql_name.{$this->dist_categorisation_handle}
-				= '{$this->dist_class_handle}' ";
+				= '{$this->dist_class_handle}' 
+			ORDER BY refnumber";
 	}
 	
 	function text_sql_for_queryfile($orig_query_record)
@@ -754,9 +760,13 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 
 
 
-/* run_postprocess_ functions have the following format: */
-/* parameters:	a cache-record of the new query and a descriptor object for the postprocess */
-/* return:   	the cache record it was passed, with a new 'query_name' and 'hits_left' */
+/* run_postprocess_ functions have the following format: 
+ * parameters:	a cache-record of the new query and a descriptor object for the postprocess 
+ * return:   	the cache record it was passed, with a new 'query_name' and 'hits_left' 
+ */
+
+
+
 function run_postprocess_collocation($cache_record, &$descriptor)
 {
 	global $instance_name;
@@ -1136,16 +1146,22 @@ function run_postprocess_text($cache_record, &$descriptor)
 
 
 
-
+/*
 ////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 /// very important note -- this won't work as well as bncWeb in the (sole) case where randomisation is applied *after* collocation thinning
 /// bncWeb manages to keep the highlight, but here rand will get in the way of seeing coll
 ///////////// unless ... the coll output could be randomised using the same algorithm so it will be replicable????
 // worry about this later
-/* returns an array of highlight positions matching the postprocess string specified */
-/* this will include a dbname, which is how the function knows which data to work on */
-/* this function sets its third output to true if tags are to be shown in highlight */
-/* otherwise it is set to false */
+*/
+
+/**
+ * Returns an array of highlight positions matching the postprocess string specified.
+ * 
+ * This will include a dbname, which is how the function knows which data to work on.
+ * 
+ * This function sets its third output to true if tags are to be shown in highlight;
+ * otherwise it is set to false.
+ */
 function get_highlight_position_table($qname, $postprocess_string, &$show_tags_in_highlight)
 {
 	if ($postprocess_string == '')

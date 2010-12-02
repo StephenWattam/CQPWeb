@@ -1,5 +1,5 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
  * Copyright (C) 2008-9 Andrew Hardie
  *
@@ -47,22 +47,70 @@
 /*
 
 there will be a class here someday
-but for now there are just a bunch of functions, php-extension-style
+which provides a child-process-like interface to the cwb command line utilities
+encapsulating all that stuff instead of having exec() or system() calls all over the place.
 
+(this will allow cwb::uncreate_corpus, xcwb::corpus_exists etc. to use the $this-> values for
+the registry and datadir rather than calling on global variables.
+
+but for now there are just a bunch of functions, php-extension-style
+*/
+
+/**
+ * Class encapsulating the interface to the CWB command-line utilities.
+ */
 class CWB
 {
+	//paths do NOT have a / prepended in this class so should have a / in them if they are absolute
+	private $path_binaries;
+	private $path_datadir;
+	private $path_registry;
+	
+	public function __construct($path_to_cwb, $cwb_datadir, $cwb_registry)
+	{
+		//TODO check dirs exist, store them in the appropriate object variables
+		// (use realpath)
+	}
+
+
+	// TODO
+	// public functions for setting $path_*, each of which should return the current value if
+	// they are passed NULL
+	
+	// the only methods writen so far are to-be-used replacements for the cwb_* functions in the file
+	
+	
+	/** Checks if a cwb-"corpus" exists for the specified lowercase name. */
+	public function corpus_exists($corpus_name)
+	{
+		return  (	
+					is_file("{$this->path_registry}/$corpus_name") 
+					&& 
+					is_dir("{$this->path_datadir}/$corpus_name")
+				);
+	}
+	
+	/**
+	 * Removes a corpus from the CWB system. The argument must be the *lowercase*
+	 * version of the CWB-corpus-name.
+	 */
+	public function uncreate_corpus($corpus_name)
+	{
+		//TODO
+		//note the uncreate function below also tinkers with the MySQL. Bad modularity! Fix this.
+		// it also relies on recursive_delete_directory
+		// and it does a superuser check.
+	}
+
+}	/* end of class CWB */
 
 
 
-}	/* end of CWB */
 
 
 
 
-
-
-
-/* check if a cwb-frequency-"corpus" exists for the specified lowercase name */
+/* check if a cwb-"corpus" exists for the specified lowercase name */
 function cwb_corpus_exists($corpus_name)
 {
 	global $cwb_datadir;
@@ -86,8 +134,7 @@ function cwb_uncreate_corpus($corpus_name)
 	global $cwb_datadir;
 	global $cwb_registry;
 	global $username;
-	global $mysql_link;
-
+	
 	/* only superusers are allowed to do this! */
 	if (! user_is_superuser($username))
 		return;
@@ -97,7 +144,7 @@ function cwb_uncreate_corpus($corpus_name)
 	
 	/* delete all files in the directory and the directory itself */
 	if (is_dir($dir_to_delete))
-		recursive_delete_directory($dir_to_delete);	
+		recursive_delete_directory($dir_to_delete);
 	
 	/* delete the registry file */
 	if (is_file($reg_to_delete))
@@ -105,15 +152,8 @@ function cwb_uncreate_corpus($corpus_name)
 		
 	/* is there a text indextable derived from this cwb freq "corpus"? if so, delete */
 	/* nb there will only be one *IF* this is a __freq corpus */
-	
-	$freq_text_index = "freq_text_index_$corpus_name";
-	
-	$sql_query = "drop table if exists $freq_text_index";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query("drop table if exists freq_text_index_$corpus_name");
+
 }
 
 
@@ -452,7 +492,7 @@ class CWBTempFile
 		}
 	}
 
-}	/* end of class CWBTempFile extends CWB */
+}	/* end of class CWBTempFile */
 
 
 

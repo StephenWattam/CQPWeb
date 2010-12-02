@@ -1,7 +1,7 @@
 <?php
 /**
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-10 Andrew Hardie
  *
  * See http://www.ling.lancs.ac.uk/activities/713/
  *
@@ -25,25 +25,21 @@
 
 /* initialise variables from settings files  */
 
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
+require_once ('settings.inc.php');
+require_once ('../lib/defaults.inc.php');
 
 
 /* include function library files */
-require('../lib/library.inc.php');
-require('../lib/concordance-lib.inc.php');
-require('../lib/concordance-post.inc.php');
-require('../lib/cache.inc.php');
-require('../lib/subcorpus.inc.php');
-require('../lib/exiterror.inc.php');
-require('../lib/metadata.inc.php');
-require('../lib/user-settings.inc.php');
-
-
-/* and because I'm using the next two modules I need to... */
-//create_pipe_handle_constants();
-require("../lib/cwb.inc.php"); /* NOT TESTED YET - used by dump and undump, I think */
-require("../lib/cqp.inc.php");
+require_once ('../lib/library.inc.php');
+require_once ('../lib/concordance-lib.inc.php');
+require_once ('../lib/concordance-post.inc.php');
+require_once ('../lib/cache.inc.php');
+require_once ('../lib/subcorpus.inc.php');
+require_once ('../lib/exiterror.inc.php');
+require_once ('../lib/metadata.inc.php');
+require_once ('../lib/user-settings.inc.php');
+require_once ('../lib/cwb.inc.php'); /* NOT TESTED YET - used by dump and undump, I think */
+require_once ('../lib/cqp.inc.php');
 
 
 
@@ -53,8 +49,6 @@ connect_global_mysql();
 
 /* connect to CQP */
 connect_global_cqp();
-
-
 
 
 
@@ -85,6 +79,10 @@ if ($_GET['downloadGo'] === 'yes')
 	/* the folllowing switch deals wth the ones that have "typical settings" */
 	switch ($_GET['downloadTypical'])
 	{
+	case 'threeline':
+		/* The threeline format falls through to copypaste. 
+		 * A correction function is applied to output lines. */
+
 	case 'copypaste':
 
 		/* linebreak */
@@ -115,17 +113,15 @@ if ($_GET['downloadGo'] === 'yes')
 		/* include url as column? */
 		$context_url = false;
 		
-		
 		/* the filename for the output */
 		$filename = 'concordance_download.txt';
 		
 		/* NO classifications */
 		$classifications_to_include = array();
-
 		
 		break;
-
-
+		
+		
 	case 'filemaker':
 	
 		/* linebreak */
@@ -145,7 +141,7 @@ if ($_GET['downloadGo'] === 'yes')
 		$tagged_as_well = true;
 		
 		/* file-start info format */
-		$header_format = 'NULL';
+		$header_format = NULL;
 		
 		/* kwic or line? */
 		$download_view_mode = 'line';
@@ -278,25 +274,28 @@ if ($_GET['downloadGo'] === 'yes')
 			break;
 		
 		default:
-			/* shouldn;t ever get here */
+			/* shouldn't ever get here */
 			/* add no classifications to the array to include */
 			break;
 		}
 		
 		break;
 	} /* end of switch */
+	
+	/* end of variable setup */
 
 	
 	/* name of server is needed to construct links */
 
+	// TODO replace this with a call to URL-absolutify.
 	$abs_server_string = 'http://' . $_SERVER['SERVER_NAME'] 
 		. str_replace('redirect.php', '', $_SERVER['SCRIPT_NAME']);
 	
 	list($temp, $junk) = explode('redirect.php', '');
-
+		//TODO what on earth does the line above do? seems to do nothing
 
 	
-	/* send the header */
+	/* send the HTTP header */
 	header("Content-Type: text/plain; charset=utf-8");
 	header("Content-disposition: attachment; filename=$filename");
 
@@ -486,7 +485,7 @@ if ($_GET['downloadGo'] === 'yes')
 			
 		} /* end loop for each line */
 
-	} /* end loop for concordance line download */
+	} /* end loop for concordance line batch download */
 
 	/* just in case ... */
 	php_execute_time_relimit();
@@ -724,11 +723,8 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 } /* end of the huge determining if-else */
 
 
-/* disconnect CQP child process using destructor function */
-$cqp->disconnect();
-
-/* disconnect mysql */
-mysql_close($mysql_link);
+/* disconnect CQP child process and mysql */
+disconnect_all();
 
 /* end of script */
 

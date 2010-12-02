@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -26,55 +26,82 @@
 
 
 
-/* this file contain functions that deal with the cache, saved queries, temp files, etc. */
+/** @file this file contain functions that deal with the cache, saved queries, temp files, etc. */
 
 
 
-/* returns if a CQP temp file exists with that qname in its filename */
+/** Returns true if a CQP temp file exists with that qname in its filename, otherwise false */
 function cqp_file_exists($qname)
 {
-	global $cqpweb_tempdir;
-	global $corpus_cqp_name;
-	return file_exists("/$cqpweb_tempdir/$corpus_cqp_name:$qname");
+	return file_exists(cqp_file_path($qname));
 }
 
 
-/* returns size of a CQP temp file (including 0 if said file existeth not) */
+/** returns size of a CQP temp file (including 0 if said file existeth not) */
 function cqp_file_sizeof($qname)
 {
-	global $cqpweb_tempdir;
-	global $corpus_cqp_name;
-	$s = filesize("/$cqpweb_tempdir/$corpus_cqp_name:$qname");
-	return ( $s == false ? 0 : $s );
+	$s = filesize(cqp_file_path($qname));
+	return ( $s === false ? 0 : $s );
 }
 
+/**
+ * Removes any CQP-query file in the cache with $qname in its filename after
+ * the ":" (i.e. works across corpora); returns true if the file existed and
+ * was deleted, false if it did not exist or if deletion failed.
+ */
 function cqp_file_unlink($qname)
 {
-	global $cqpweb_tempdir;
-	global $corpus_cqp_name;
-	$f = "/$cqpweb_tempdir/$corpus_cqp_name:$qname";
+	if (false === ($f = cqp_file_path($qname)))
+		return false;
 	if ( file_exists($f) )
-		unlink($f);
+		return unlink($f);
+	else
+		return false;
 }
 
+/**
+ * Copies the cache file corresponding to oldqname as newqname; if a file
+ * relating to newqname exists already, it will NOT be overwritten.
+ * 
+ * Returns true on success and false on failure.
+ */
 function cqp_file_copy($oldqname, $newqname)
 {
+	/* the old way to do it
 	global $cqpweb_tempdir;
 	global $corpus_cqp_name;
 	$of = "/$cqpweb_tempdir/$corpus_cqp_name:$oldqname";
 	$nf = "/$cqpweb_tempdir/$corpus_cqp_name:$newqname";
+	*/
+	$of = cqp_file_path($oldqname);
+	$nf = preg_replace("/:$oldqname\z/", ":$newqname", $of);
 	if ( file_exists($of) && ! file_exists($nf) )
-		copy($of, $nf);
+		return copy($of, $nf);
+	else
+		return false;
+}
+
+/**
+ * Returns the path on disk of the cache file corresponding to the specified
+ * query identifier (qname), or false if no such file appears to exist.
+ * 
+ * Works across corpora.
+ */
+function cqp_file_path($qname)
+{
+	global $cqpweb_tempdir;
+	$globbed = glob("/$cqpweb_tempdir/*:$qname");
+	if (empty($globbed))
+		return false;
+	else
+		return $globbed[0];
 }
 
 
-
-
-/* returns a blank associative array with named keys for each for the fields */
+/** Returns a blank associative array with named keys for each for the fields */
 function blank_cache_assoc()
 {
-// TODO shouldn't I just create an array, to avoid the overhead of a mysql call?
-	$result = mysql_query('select * from saved_queries limit 1');
+	$result = do_mysql_query('select * from saved_queries limit 1');
 
 	$blank = array();
 	$n = mysql_num_fields($result);
@@ -91,7 +118,13 @@ function blank_cache_assoc()
 
 /** 
  * Makes sure that the name you are about to put into cache is unique.
- * Keeps adding underscores to the end of it if it is not.
+ * 
+ * Keeps adding random letters to the end of it if it is not.
+ * By "Unique" we mean "unique across all corpora"; since all new qnames
+ * should be based on the instance name, and the instance name should be
+ * time-unique on a microsecond scale, this is really just belt-and-braces.
+ * 
+ * Typical usage: $qname = qname_unique($qname); 
  */
 function qname_unique($qname)
 {
@@ -99,7 +132,6 @@ function qname_unique($qname)
 		exiterror_arguments($qname, 'qname_unique() requires a string as argument $qname!',
 			__FILE__, __LINE__);
 
-	
 	while (true)
 	{
 		$sql_query = 'select query_name from saved_queries where query_name = \''
@@ -109,11 +141,8 @@ function qname_unique($qname)
 
 		if (mysql_num_rows($result) == 0)
 			break;
-		else
-		{
-			unset($result);
-			$qname .= '_';
-		}
+
+		$qname .= chr(rand(0x41,0x5a));
 	}
 	return $qname;	
 }
@@ -254,7 +283,23 @@ function check_cache_parameters($cqp_query, $restrictions, $subcorpus, $postproc
 
 
 
-
+/**
+ * Updates one or more fields for an entry in the query cache log.
+ * 
+ * Argument should be an associative array with $key=>$val where each $key
+ * is the column name in the table saved_queries.
+ * 
+ * Note that the fields to be updated are all treated as if they are strings.
+ * (Nonstring fields shouldn't, in theory, be being updated...)
+ * 
+ * Note that as things are, this function DOES NOT update fields whose entry
+ * in the array is an empty string. Such fields are left as they are - they are 
+ * NOT changed to an empty string! 
+ * 
+ * This means the argument can just be an associative array of the fields to
+ * change, it doesn't need to have been created using blank_cache_assoc.
+ * 
+ */
 function update_cached_query($record)
 {
 	/* argument must be an array */
@@ -267,8 +312,8 @@ function update_cached_query($record)
 		exiterror_arguments("'record' array", 'update_cached_query() requires the $record! to have a set \'query_name\'',
 			__FILE__, __LINE__);
 
-	/* get a blank associative array (for the key names - don't     */
-	/* rely on incoming array to have all and only the correct keys */
+	/* get a blank associative array (for the key names - don't
+	 * rely on incoming array to have all and only the correct keys) */
 	$sql_record = blank_cache_assoc();
 	
 	$sql_query = 'UPDATE saved_queries SET ';
@@ -301,17 +346,19 @@ function update_cached_query($record)
 
 
 
-/* delete a single, named query from cache. Note this is a within-corpus function. */
+/**
+ * Delete a single, specified query from cache. 
+ * 
+ * Note that qname is unique across corpora.
+ */
 function delete_cached_query($qname)
 {
-	global $corpus_sql_name;
-	
 	/* argument must be a string */
 	if (! is_string($qname))
 		exiterror_arguments($qname, 'delete_cached_query() requires a string as argument $qname!',
 			__FILE__, __LINE__);
 
-	$sql_query = "DELETE from saved_queries where corpus = '$corpus_sql_name' query_name = '" 
+	$sql_query = "DELETE from saved_queries where query_name = '" 
 		. mysql_real_escape_string($qname) . '\'';
 
 	cqp_file_unlink($qname);
@@ -336,8 +383,7 @@ function copy_cached_query($oldqname, $newqname)
 			__FILE__, __LINE__);
 			
 	if ($oldqname == $newqname)
-		exiterror_arguments($newqname, '$oldqname and $newqname cannot be identical in copy_cached_query()!',
-			__FILE__, __LINE__);
+		exiterror_arguments($newqname, '$oldqname and $newqname cannot be identical in copy_cached_query()!');
 			
 	/* doesn't copy if the $newqname already exists */	
 	if (is_array(check_cache_qname($newqname)))
@@ -384,7 +430,7 @@ function copy_cached_query($oldqname, $newqname)
 
 
 
-/* does nothing to the specified query, but refreshes its time_of_query / date_of_saving to = now */
+/** Does nothing to the specified query, but refreshes its time_of_query / date_of_saving to = now */
 function touch_cached_query($qname)
 {
 	if (! is_string($qname))
@@ -411,22 +457,17 @@ function touch_cached_query($qname)
 /* this can be overriden by passing it "false"                        */
 /* and is automatically overridden if enough space cannot be cleared  */
 /* just by deleting non-user-saved queries                            */
-/* note: this function works ACROSS CORPORA  
- * (which is why we can't just use delete_cached_query() on a loop!   */
-function delete_cached_queries($protect_user_saved = true)
+/////TODO the above behaviour seems dodgy and has been turned off
+/////user queries shouldn't just be silently deleted!
+function delete_cache_overflow($protect_user_saved = true)
 {
-	global $mysql_link;
 	global $cache_size_limit;
-	global $cqpweb_tempdir;
 
-	if (!is_bool($protect_user_saved))
-		exiterror_arguments($protect_user_saved, 
-			"delete_cached_queries() needs a bool (or nothing) as its argument!", __FILE__, __LINE__);
+	$protect_user_saved = (bool)$protect_user_saved;
 	
 	/* step one: how many bytes in size is the CQP cache RIGHT NOW? */
-	$sql_query = "select sum(file_size) from saved_queries";
-	$result = do_mysql_query($sql_query);
-	$row_array = mysql_fetch_array($result);
+	$result = do_mysql_query("select sum(file_size) from saved_queries");
+	$row_array = mysql_fetch_row($result);
 	$current_size = $row_array[0];
 	unset($result);
 	unset($row_array);
@@ -440,59 +481,42 @@ function delete_cached_queries($protect_user_saved = true)
 		$toDelete_size = $current_size - $cache_size_limit;
 		
 		/* step three: get a list of deletable files */
-		$sql_query = "select query_name, file_size, corpus from saved_queries"
+		$sql_query = "select query_name, file_size from saved_queries"
 			. ($protect_user_saved ? " where saved = 0" : "")
 			. " order by time_of_query asc";
 			
 		$del_result = do_mysql_query($sql_query);
 
 		/* step four: delete files from the list until we've deleted enough */
-		$mysql_deletelist = array();
 		while ($toDelete_size > 0)
 		{
 			/* get the next most recent file from the savedQueries list */
 			if ( ! ($current_del_row = mysql_fetch_row($del_result)) )
 				break;
-			
-			// TODO: don't use * and don't use glob. Get the actual corpus name from the DB.
-			// there is a danger here, if the same qname is used in different corpora.
-			$globbed = glob("/$cqpweb_tempdir/*:" . $current_del_row[0]);
-			$current_path_to_delete = $globbed[0];
 
-			if (file_exists($current_path_to_delete))
-			{
-				/* if the said file exists, delete it */
-				unlink($current_path_to_delete) ;
-				/* and reduce the number of bytes we still have to remove */
-				$toDelete_size = $toDelete_size - $current_del_row[1];
-			}
-			/* and add it to the mySQL deletelist regardless of whether or 
-			   not the file was there */
-			$mysql_deletelist[] = $current_del_row[0];
+			delete_cached_query($current_del_row[0]);
+			$toDelete_size = $toDelete_size - $current_del_row[1];
 		}
-		
-		/* step five: remove the references to those files from mySQL */
-		foreach ($mysql_deletelist as $d)
-			do_mysql_query("DELETE FROM saved_queries WHERE query_name = '$d'");
 		
 		/* have the above deletions done the trick? */
 		if ($toDelete_size > 0)
 		{	
+			// the following is commented out because user-saves should not be silently deleted!
 			/* deleting all the queries that could be deleted didn't work! 
 			   last ditch: if user-saved-queries were protected, unprotect them and try again. 
-			   Note, if it doesn't work unprotected, then the self-call will abort CQPweb */
+			   Note, if it doesn't work unprotected, then the self-call will abort CQPweb * /
 			if ($protect_user_saved)
 			{
 				$protect_user_saved = false;
-				delete_cached_queries(false);
+				delete_cache_overflow(false);
 			}
-			else
+			else*/
 				exiterror_cacheoverload();
 		}
 	} /* endif the cache has exceeded its size limit */
 	
-	/* no "else" - if the cache hasn't exceeded its size limit, */
-	/* so this function just returns without doing anything      */
+	/* no "else" - if the cache hasn't exceeded its size limit,
+	 * so this function just returns without doing anything */
 }
 
 
@@ -502,11 +526,6 @@ function delete_cached_queries($protect_user_saved = true)
 
 /* nuclear option - deletes all temp files, and removes their record from the saved_queries table */
 /* delete the entire cache, plus any files in the temp directory */
-/* by default, this function does not delete usersaved queries  ;     
- * this can be overriden by passing it "false"                        
- * and is automatically overridden if enough space cannot be cleared  
- * just by deleting non-user-saved queries                            
- */
 function clear_cache($protect_user_saved = true)
 {
 	global $cqpweb_tempdir;
@@ -517,39 +536,23 @@ function clear_cache($protect_user_saved = true)
 	/* in case arg comes in as a string or int */
 	$protect_user_saved = (bool)$protect_user_saved;
 	
-	/* get a list of deletable files */
+	/* get a list of deletable queries */
 	$sql_query = "select query_name from saved_queries" 
 		. ($protect_user_saved ? " where saved = 0" : "");
 		
 	$del_result = do_mysql_query($sql_query);
 
-	/* delete files */
-	$mysql_deletelist = array();
+	/* delete queries */
 	while (($current_del_row = mysql_fetch_row($del_result)) !== false)
-	{		
-		$globbed = glob("/$cqpweb_tempdir/*:" . $current_del_row[0]);
-		$current_path_to_delete = $globbed[0];
-
-		if (file_exists($current_path_to_delete))
-			/* if the said file exists, delete it */
-			unlink($current_path_to_delete);
-
-		/* and add it to the mySQL deletelist regardless of whether or not the file was there */
-		$mysql_deletelist[] = $current_del_row[0];
-	}
-
-
-	/* remove the references to those files from mySQL */
-	foreach ($mysql_deletelist as $d)
-		do_mysql_query("DELETE FROM saved_queries WHERE query_name = '$d'");
+		delete_cached_query($current_del_row[0]);
 
 
 	/* are there any files left in the temp directory? */
 	foreach(glob("/$cqpweb_tempdir/*") as $file)
 	{
-		/* was this file protected on the previous pass? if so, it will still be in the DB*/
+		/* was this file protected on the previous pass? if so, it will still be in the DB */
 		preg_match('/\A([^:]*:)(.*)\z/', $file, $m);
-
+any
 		$result = do_mysql_query("select query_name from saved_queries where query_name = '{$m[2]}'");
 		
 		/* if this file wasn't protected, then delete it */
@@ -566,7 +569,12 @@ function clear_cache($protect_user_saved = true)
 
 
 
-
+/**
+ * Adds a trace of a query performed by the user to the query history.
+ * 
+ * Note that the "hits" field is set by default to -3; scripts should update
+ * this later if the query is successful.
+ */
 function history_insert($instance_name, $cqp_query, $restrictions, $subcorpus, $simple_query, $qmode)
 {
 	global $corpus_sql_name;
@@ -583,10 +591,11 @@ function history_insert($instance_name, $cqp_query, $restrictions, $subcorpus, $
 		'$escaped_subcorpus', -3, '$escaped_simple_query', '$qmode')";
 
 	do_mysql_query($sql_query);
-
 }
 
-
+/**
+ * Deletes the history entry with the specified instance name.
+ */
 function history_delete($instance_name)
 {
 	$instance_name = mysql_real_escape_string($instance_name);
@@ -594,7 +603,9 @@ function history_delete($instance_name)
 	do_mysql_query($sql_query);
 }
 
-
+/**
+ * Sets the number of hits associated with a given instance name in the query history.
+ */
 function history_update_hits($instance_name, $hits)
 {
 	if (! is_int($hits) )
@@ -609,9 +620,11 @@ function history_update_hits($instance_name, $hits)
 
 
 
-/* this will normally be accessed by the superuser using execute.php */
-/* like the cache delete functions, it operates across usernames and across corpora */
-function delete_old_query_history($weeks = '__DEFAULT', $max = '__DEFAULT')
+/**
+ * This function clears the query history. Access to this would normally
+ * be superuser only. It operates across usernames and across corpora.
+ */
+function history_purge_old_queries($weeks = '__DEFAULT', $max = '__DEFAULT')
 {
 	global $history_weekstokeep;
 	global $history_maxentries;
@@ -620,19 +633,18 @@ function delete_old_query_history($weeks = '__DEFAULT', $max = '__DEFAULT')
 		$weeks = $history_weekstokeep;
 	else if (! is_int($weeks) )
 		exiterror_arguments($weeks, 
-			"delete_old_query_history() needs an int for both arguments (or no args at all)!", 
+			"history_purge_old_queries() needs an int for both arguments (or no args at all)!", 
 				__FILE__, __LINE__);
 	if ($max == '__DEFAULT')
 		$max = $history_maxentries;
 	else if (! is_int($max) )
 		exiterror_arguments($max, 
-			"delete_old_query_history() needs an int for both arguments (or no args at all)!", 
+			"history_purge_old_queries() needs an int for both arguments (or no args at all)!", 
 				__FILE__, __LINE__);
 	
 	$stopdate = date('Ymd', time()-($weeks * 7 * 24 * 60 * 60));
-	
-	$sql_query = "delete from query_history where date_of_query < $stopdate";
-	do_mysql_query($sql_query);
+
+	do_mysql_query("delete from query_history where date_of_query < $stopdate");
 }
 
 

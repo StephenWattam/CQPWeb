@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -134,11 +134,7 @@ case 'ready_to_save':
 		exit();
 	}
 	/* check if a saved query with this savename exists */
-	$sql_query = "select query_name from saved_queries where user = '$username' and save_name = '$savename'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query("select query_name from saved_queries where user = '$username' and save_name = '$savename'");
 	if (mysql_num_rows($result) > 0)
 	{
 		$url = 'redirect.php?' 
@@ -149,7 +145,7 @@ case 'ready_to_save':
 		exit();
 	}	
 	
-	$newqname = qname_unique($username. '_' . $savename);
+	$newqname = qname_unique($instance_name);
 
 	copy_cached_query($qname, $newqname);
 

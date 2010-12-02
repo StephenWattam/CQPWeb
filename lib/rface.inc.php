@@ -38,14 +38,14 @@
 /**
  * class RFace:
  * 
- * PHP interface to the R statistics program
+ * PHP interface to the R statistics program.
  * 
  * Usage:
  * 
  * $r = new RFace($path_to_r);
  * 
  * where $path_to_r is a relative path to the directory containing the R executable
- * that DOES NOT end in a slash
+ * that DOES NOT end in a slash.
  * 
  * $result = $r->execute("text to be fed to R here");
  * 
@@ -73,25 +73,27 @@ class RFace
 	
 	/* member variables */
 	
-	/* handle for the process */
+	/** handle for the process */
 	private $process;
 
-	/* array for the input/output handles themselves to go in */
+	/** array for the input/output handles themselves to go in */
 	private $handle;
 	
 	/* caches for oft-used R calls */
+	
+	/** cache of the list of object names */
 	private $object_list_cache = false;
 	
-	/* function for handling lines as they are passed */
+	/** function for handling lines as they are passed */
 	private $line_handler_callback = false;
 	
-	/* path directory separator character - use instgead of literal '/' */
+	/* path directory separator character - use instead of literal '/' */
 	private $DIRSEP;
 	
 	
 	/* variables for error handling */
 	
-	/* has there been an error? */
+	/** has there been an error? */
 	private $ok = true;
 	
 	/* most recent error message */
@@ -123,6 +125,8 @@ class RFace
 		if ($path_to_r === false && $this->DIRSEP == '/')
 		{
 			/* try to deduce the path using Unix "which" if available */
+			// TODO add check that "which" really is available.
+			// TODO add need for "which" to the setup manual. 
 			exec("which R", $exec_output);
 			if (is_executable($exec_output[0]))
 				$path_to_r = substr($exec_output[0], 0, -2);
@@ -178,13 +182,28 @@ class RFace
 
 
 	/**
-	 * Main execution function: returns an array of lines of output from R.
+	 * Main execution method: returns an array of lines of output from R.
 	 * 
 	 * This may be an empty array if R didn't print anything.
+	 * 
+	 * If $line_handler_callback is specified, it will be called on each line of
+	 * output. If it returns a value, that value will be added to the return-array
+	 * instead of the line. If it does not return a value, nothing will be added
+	 * to the return-array (and thus, the caller will ultimately get back an empty 
+	 * array).
+	 * 
+	 * If $line_handler_callback is NOT specified, the function checks whether
+	 * one has been set at the object level ($this->line_handler_callback). If it
+	 * has, that is used. 
+	 * 
 	 */
 	function execute($command, $line_handler_callback = false)
 	{
-		/* execute can change the number of objects, so clear obj cache */
+		if ($line_handler_callback === false)
+			if ($this->$line_handler_callback !== false)
+				$line_handler_callback = $this->line_handler_callback;
+		
+		/* execute can change the number of objects, so clear object-list cache */
 		$$this->object_list_cache = false;
 		
 		if ( (!is_string($command)) || $command == "" )
@@ -220,8 +239,16 @@ class RFace
 				echo "R >> $line\n";
 			
 			if ($line_handler_callback !== false)
+			{
 				/* call the specified function */
-				$line_handler_callback($line);
+				$callback_return = $line_handler_callback($line);
+				if (isset($callback_return))
+				{
+					$result[] = $callback_return;
+					unset($callback_return);
+				}
+				/* else don't add anything to $result */
+			}
 			else
 				/* add the line to an array of results */
 				$result[] = $line;
@@ -234,14 +261,27 @@ class RFace
 	
 	
 	/**
-	 * Specify a callback function to be used on lines as they are retrieved from ->execute()
+	 * Specify a callback function to be used on lines as they are retrieved by ->execute().
+	 * 
+	 * To use no line handler, pass false (or something else which typecasts to bool as false).
 	 */
 	public function set_line_handler($func)
 	{
-		if (function_exists($func))
-			$this->line_handler_callback = $func;
-		else if ($func == false)
+		// TODO, this will work on callbacks specified as strings, but what if
+		// the callback is passed in as a return value from create_function
+		// or as a closure created with the function keyword?
+		// maybe use is_callable() or is_a with class type Closure (though this is an "internal impelementation detail which 
+		// should not be relied on" (so actualyl is_a is a BAD idea).
+		// so: first answer here :
+		// http://stackoverflow.com/questions/2835627/php-is-function-to-determine-if-a-variable-is-a-function
+		// also use of is_callable is recommended here: http://bugs.php.net/bug.php?id=50037
+		// but note, there are three options: (1) an array with a class or object plus a amethod name; (2) a function name;
+		// (3) a closure.
+		// so the else-if needs to be a good bit more complicated. 
+		if ($func == false)
 			$this->line_handler_callback = false;
+		else if (function_exists($func))
+			$this->line_handler_callback = $func;
 		else
 			$this->error('ERROR: Unrecognised callback function specified.');
 	} 
@@ -259,7 +299,7 @@ class RFace
 	}
 	
 	
-	/**
+	/*
 	 * error control
 	 */
 	
@@ -311,7 +351,7 @@ class RFace
 	}
 	
 	
-	/**
+	/*
 	 * load functions
 	 */
 	
@@ -344,12 +384,12 @@ class RFace
 		
 		switch ($type)
 		{
-		case 'string':
-			return load_vector_of_strings($varname, $array);
-		case 'number':
-			return load_vector_of_numbers($varname, $array);
 		case 'deduce':
-			return load_vector($varname, $array, self::deduce_array_type($array));
+			return $this->load_vector($varname, $array, self::deduce_array_type($array));
+		case 'string':
+			return $this->load_vector_of_strings($varname, $array);
+		case 'number':
+			return $this->load_vector_of_numbers($varname, $array);
 		default:
 			$this->error('Unrecognised array type!', __LINE__);
 			break;
@@ -364,14 +404,22 @@ class RFace
 	
 	private function load_vector_of_numbers($varname, &$array)
 	{
-		// TODO -- note, this won't work because it modifies the ORIGINBAL
-		// I could create a temporary array and modify that but that would be a pain and would double the mem usage needlessly
-		// the loop needs ot assemble the axctual stirng.
-		// can I use map() here?
+		//old version that modified the argument array, a no-no
+		//foreach($array as $k=>&$a)
+		//	$a = self::num($a);
+		//$instring = "$varname = c(" . implode(',',$array) . ')';
+		
+		/* build comma-delimited string of values */
+		$instring = '';
 		foreach($array as $k=>&$a)
-			$a = self::num($a);
-		$instring = "$varname = c(" . implode(',',$array) . ')';
+			$instring .= ',' . self::num($a);
+		
+		/* now, add start and end of command, before sending to R */
+		$instring = preg_replace('/\A,/', "$varname = c(", $instring);
+		$instring .= ')';
 		$this->execute($instring);
+		
+		//TODO: check this method works esp. with various kinds of zero
 	}
 	
 	/**
@@ -396,7 +444,7 @@ class RFace
 	 * If $data is a string, then the following assumptions are made:
 	 * 
 	 * (1) that lines are terminated by \n or \r\n
-	 * (2) that fields are terminated by \t
+	 * (2) that fields are separated by \t
 	 * (3) if $header_row, then the first line is treated as containing column names
 	 *     that can be used as object names
 	 * 
@@ -414,7 +462,7 @@ class RFace
 	
 	private function load_data_frame_from_string($varname, &$data, $header_row = true)
 	{
-		
+		//TODO
 	}
 	
 	private function load_data_frame_from_2darray($varname, &$data, $header_row = true, $invert_array = true)
@@ -429,7 +477,7 @@ class RFace
 	}
 	
 	
-	/**
+	/*
 	 * read functions
 	 */
 	
@@ -446,15 +494,19 @@ class RFace
 	 *                     'verbatim' -- create a string containing the verbatim description
 	 *                                   of the object from R's output.
 	 *                     'solo' -- for a one-element vector: returns it as a single variable,
-	 *                               not as an array, with the appropriate type.
+	 *                               not as an array, with the appropriate type. If this option is
+	 *                               used for a multi-element vector, you only get the first element.
 	 *                     //TODO others? 
+	 * 
+	 * TODO Points to pointer. What if the object is a data frame, special object etc?
 	 */
 	public function read($varname, $mode = 'vector')
 	{
 		// OH no, hang on, what if this is the return value of a function
 		// or the result of an operation
 		// of PART of a vector???
-		// so don't chekc if exists.
+		// so don't check if exists.
+			// In retrospect, I don't understand what I meant by that column.
 		
 		
 		if (!$this->object_exists($varname))
@@ -465,7 +517,24 @@ class RFace
 		/* first, request the variable's contents */
 		$data = $this->execute($varname);
 		
-		// TODO
+		// TODO -- finish the function
+		switch($mode)
+		{
+		case 'solo':
+		case 'vector':
+			// TODO convert text to zero-indexed array.
+			
+			if ($mode == 'solo')
+				$output = $output[0];
+			break;
+		case 'verbatim':
+			/* this one is easy */
+			$output = $data;
+			break;
+		default:
+			$this->error("Unacceptable object read-mode $mode!");
+			return;
+		}			
 		
 		return $output;
 	}
@@ -475,7 +544,9 @@ class RFace
 	
 	
 	/**
-	 * Gets an array of object-names in the active R workspace, as strings. 
+	 * Gets an array of object-names in the active R workspace, as strings.
+	 * 
+	 * If there are no objects, returns an empty array. 
 	 */
 	public function list_objects()
 	{
@@ -506,7 +577,7 @@ class RFace
 	/**
 	 * Deletes an object, checking first if it exists.
 	 * 
-	 * If it doens't exist, no error is raised.
+	 * If it doesn't exist, no error is raised.
 	 */
 	public function drop_object($obj)
 	{
@@ -522,7 +593,7 @@ class RFace
 	{
 		$names = $this->list_objects();
 		
-		/* RFO for "RFace Object" */
+		/* 'rfo' for "RFace Object" */
 		for ($new = 'rfo'; true ; $new .= chr(rand(0x41, 0x5a)) )
 		{
 			for ($i = 0x41; $i <= 0x5a; $i++)
@@ -532,24 +603,29 @@ class RFace
 					return $curr;
 			}
 		}
-		/* should not be reached */
+		/* sanity check, should not be reached */
 		$this->error('New object name could not be generated', __LINE__);
 	}
 	
 	//TODO finish this method
 	/**
-	 * Saves the chart creatred by the given command to the specified filename
+	 * Saves the chart created by the given command to the specified filename.
 	 */
 	public function make_chart($filename, $chart_command)
 	{
 		if (is_dir($filename))
 			$filename .= '.' . self::DEFAULT_CHART_FILENAME;
 			
-		// set the gfraphics output to save to this file
+		// TODO set the graphics output to save to this file
 		
 		$this->execute($chart_command);
 		
-		// reset the graphics output
+		// TODO reset the graphics output
+		
+		// TODO: hang on, aren't charts created by multiple commands
+		// sometimes? If so, could this work?
+		// (presumably yes, if the lines are separated
+		// by \n)
 	}
 	
 	/**
@@ -563,7 +639,7 @@ class RFace
 	public function save_workspace($path)
 	{
 		if (is_dir($path))
-			$this->execute("save.image(file=\"$path{$this->DIRESP}.RData\")");
+			$this->execute("save.image(file=\"$path{$this->DIRSEP}.RData\")");
 		else 
 			$this->execute("save.image(file=\"$path\")");
 	}
@@ -574,12 +650,17 @@ class RFace
 	 * If $path is a directory, this function loads the file .Rdata in that directory.
 	 * 
 	 * Otherwise, $path is treated as a filename (the method will add the .RData extension
-	 * by default if necessary).
+	 * by default if the filename it is passed does not exist).
 	 */	
 	public function load_workspace($path)
 	{
 		if (is_dir($path))
-			$this->execute("load(file\"=$path{$this->DIRESP}.RData\")");
+		{
+			if (is_file("$path{$this->DIRSEP}.RData"))
+				$this->execute("load(file\"=$path{$this->DIRSEP}.RData\")");
+			else
+				$this->error("ERROR: can't load workspace, no file found at $path{$this->DIRSEP}.Rdata!");
+		}
 		else if (is_file($path))
 			$this->execute("load(file\"=$path\")");
 		else if (is_file($path.'.RData'))
@@ -602,8 +683,11 @@ class RFace
 	
 	
 	
-	/**
+	/*
 	 * Static methods
+	 * 
+	 * (mostly variable assessment functions at the moment...)
+	 * 
 	 */
 	
 	

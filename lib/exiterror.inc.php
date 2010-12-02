@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -23,29 +23,33 @@
 
 
 
-
 //////////// TODO reformat these functions and associated CSS to produce a nice page like BNCweb's
+//////////// ideally based on tables rather than errormessage paras
 
 
 
 
 function exiterror_bad_url()
 {
+	global $css_path;
+	
 	?>
 	<html>
 		<head>
+			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+			<title>CQPweb has encountered an error!</title>
+			<link rel="stylesheet" type="text/css" href="<?php echo $css_path; ?>" />
 		</head>
 		<body>
-			<h3>We're sorry, but CQPweb could not read your full URL.</h3>
+			<p class="errormessage">We're sorry, but CQPweb could not read your full URL.</p>
 			
-			<h3>Proxy servers sometimes truncate URLs, try again
-			without a proxy server!</h3>
+			<p class="errormessage">Proxy servers sometimes truncate URLs, try again
+			without a proxy server!</p>
 			
 			<hr/>
-			<p><a href="index.php">Back to corpus home page.</p>
+			<p class="errormessage"><a href="index.php">Back to corpus home page.</p>
 		</body>
 	</html>
-	<!-- needs a css link etc && proper layout -->
 	<?php
 	exit();
 }
@@ -64,13 +68,7 @@ function exiterror_fullpage($errormessage, $script=NULL, $line=NULL)
 	</head>
 	<body>
 	<?php
-	echo '<p class="errormessage">CQPweb encountered an error and could not continue.</p>';
-	echo "<p class=\"errormessage\">$errormessage</p>";
-	if (isset($script, $line))
-		echo "<p class=\"errormessage\">... in file <b>$script</b> line <b>$line</b>.</p>";
-	print_footer();
-	disconnect_all();
-	exit();
+	exiterror_general($errormessage, $script, $line);
 }
 
 function exiterror_general($errormessage, $script=NULL, $line=NULL)
@@ -99,7 +97,7 @@ function exiterror_cacheoverload()
 }
 
 
-/* used for freqtable overloads too */
+/** used for freqtable overloads too */
 function exiterror_dboverload()
 {
 	?>
@@ -118,7 +116,8 @@ function exiterror_toomanydbprocesses($process_type)
 	global $mysql_process_limit;
 	global $mysql_process_name;
 
-	// does this need to be a full page? prob not as will be acalling from a script 
+	// does this need to be a full page? prob not as will be acalling from a script
+	// TODO check "headers sent" on this and all functions.
 	?>
 	<p class="errormessage">Too many database processes!</p>
 	<p class="errormessage">
@@ -197,7 +196,7 @@ function exiterror_arguments($argument, $errormessage, $script=NULL, $line=NULL)
 }
 
 
-/* CQP error message as a table */
+/** CQP error message as a table */
 function exiterror_cqp($error_array)
 {
 	?>
@@ -222,7 +221,7 @@ function exiterror_cqp($error_array)
 
 
 
-/* prints a header to go on top of exiterror_cqp, and then calls it */
+/** prints a header to go on top of exiterror_cqp, and then calls it */
 function exiterror_cqp_full($error_array)
 {
 	global $css_path;

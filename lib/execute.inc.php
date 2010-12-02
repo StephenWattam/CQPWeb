@@ -1,7 +1,7 @@
 <?php
 /**
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-10 Andrew Hardie
  *
  * See http://www.ling.lancs.ac.uk/activities/713/
  *
@@ -79,25 +79,32 @@ include('../lib/user-settings.inc.php');
 include('../lib/rface.inc.php');
 include('../lib/corpus-settings.inc.php');
 include('../lib/xml.inc.php');
-//create_pipe_handle_constants();
 include('../lib/cwb.inc.php');
 include('../lib/cqp.inc.php');
-/* more to be added */
 
+
+/** a special form of "exit" function just used by execute.php script */
+function execute_print_and_exit($title, $content)
+{
+	exit("
+<html><head><title>$title</title></head><body><pre>
+$content
+
+CQPweb (c) 2010
+</pre></body></html>
+		");
+}
 
 /* only superusers get to use this script */
 if (!user_is_superuser($username))
-	exit ('
-<html><head><title>Unauthorised access to execute.php</title></head><body><pre>
-Your username does not have permission to run execute.php.
+	execute_print_and_exit('Unauthorised access to execute.php', 
+		'Your username does not have permission to run execute.php.');
 
-CQPweb (c) 2008
-</pre></body></html>');
 
 
 
 if (!url_string_is_valid())
-	exiterror_bad_url();
+	execute_print_and_exit('Bad URL', 'Your URL was badly formed (didn\'t end in the uT=y flag.)');
 
 
 
@@ -106,14 +113,10 @@ if (!url_string_is_valid())
 if (isset($_GET['function']))
 	$function = $_GET['function'];
 else
-	exit('
-<html><head><title>No function specified for execute.php</title></head><body><pre>
-You did not specify a function name for execute.php.
+	execute_print_and_exit('No function specified for execute.php', 
+		"You did not specify a function name for execute.php.\n\nYou should reload and specify a function.");
 
-You should reload and specify a function.
 
-CQPweb (c) 2008
-</pre></body></html>');
 
 
 /* extract the arguments */
@@ -126,26 +129,32 @@ else
 	$argc = 0;
 
 if ($argc > 10)
-	exit('
-<html><head><title>Too many arguments for execute.php</title></head><body><pre>
-You specified too many arguments for execute.php.
+	execute_print_and_exit('Too many arguments for execute.php', 
+'You specified too many arguments for execute.php.
 
-The script only allows up to ten arguments [which is, I rather think, quite enough -- AH].
+The script only allows up to ten arguments [which is, I rather think, quite enough -- AH].'
+		);
 
-CQPweb (c) 2008
-</pre></body></html>');
-	
+
+
+/* check the function is safe to call */
+$all_function = get_defined_functions();
+if (in_array($function, $all_function['user']))
+	; /* all is well */
+else
+	execute_print_and_exit('Function not available -- execute.php',
+'The function you specified is not available via execute.php.
+
+The script only allows you to call CQPweb\'s own function library -- NOT the built-in functions
+of PHP itself. This is for security reasons (otherwise someone could hijack your password and go
+around calling passthru() or unlink() or any other such dodgy function with arbitrary arguments).'
+		);
 
 
 
 /* connect to mySQL and cqp, in case the function call needs them as globals */
-/* connect to mySQL */
 connect_global_mysql();
-
-/* connect to CQP */
 connect_global_cqp();
-
-// TODO block access to PHP builtins or else system is open to attack
 
 /* run the function */
 
@@ -170,8 +179,9 @@ default:
 disconnect_all();
 
 
-/* go to the specified address, if one was specified AND if the HTTP headers have not been sent yet */
-/* (if execution of the function caused anything to be written, then they WILL have been sent)      */
+/* go to the specified address, if one was specified AND if the HTTP headers have not been sent yet 
+ * (if execution of the function caused anything to be written, then they WILL have been sent)      
+ */
 
 
 if ( isset($_GET['locationAfter']) && headers_sent() == false )
@@ -179,17 +189,13 @@ if ( isset($_GET['locationAfter']) && headers_sent() == false )
 	header('Location: ' . url_absolutify($_GET['locationAfter']));
 }
 else if ( ! isset($_GET['locationAfter']) && headers_sent() == false )
-	echo '
-<html><head><title>CQPweb -- execute.php</title></head><body><pre>
-Your function call has been finished executing!
+	execute_print_and_exit( 'CQPweb -- execute.php', 
+'Your function call has been finished executing!
 
 Thank you for flying with execute.php.
 
 On behalf of CQP and all the corpora, I wish you a very good day,
-and I hope we\'ll see you again soon.
+and I hope we\'ll see you again soon.'
+		);
 
-CQPweb (c) 2010
-</pre></body></html>';
-
-exit();
 ?>

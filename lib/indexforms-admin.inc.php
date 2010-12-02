@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -650,10 +650,12 @@ function printquery_managemeta()
 							<option>10</option>
 							<option>11</option>
 							<option>12</option>
-							<option>13</option>
 							<option>14</option>
-							<option>15</option>
 							<option>16</option>
+							<option>20</option>
+							<option>25</option>
+							<option>30</option>
+							<option>40</option>
 						</select>
 						slots!
 					</td>
@@ -2106,13 +2108,13 @@ function printquery_showcache()
 
 	echo '<th width="50%" class="concordtable">'
 		. '<a onmouseover="return escape(\'This function affects <b>all</b> corpora in the CQPweb database\')"'
-		. 'href="execute.php?function=delete_cached_queries&locationAfter='
+		. 'href="execute.php?function=delete_cache_overflow&locationAfter='
 		. $return_to_url
 		. '&uT=y">Delete cache overflow</a></th>';
 
 	echo '<th width="50%" class="concordtable">'
 		. '<a onmouseover="return escape(\'This function affects <b>all</b> corpora in the CQPweb database\')"'
-		. 'href="execute.php?function=delete_old_query_history&locationAfter='
+		. 'href="execute.php?function=history_purge_old_queries&locationAfter='
 		. $return_to_url
 		. '&uT=y">Discard old query history</a></th>';
 

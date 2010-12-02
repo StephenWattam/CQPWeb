@@ -111,8 +111,6 @@ class apache_htaccess {
 	}
 	function set_path_to_web_directory($path_to_web_directory)
 	{
-// this deffo needs a check!
-// likewise the similar one above
 		if (substr($path_to_web_directory, -1) == '/')
 			$path_to_web_directory = substr($path_to_web_directory, 0,
 										strlen($path_to_web_directory)-1);
@@ -359,7 +357,7 @@ class apache_htaccess {
 		return $returnme;
 	}
 
-	/* true for all OK, otherwise false */
+	/** true for all OK, otherwise false */
 	function add_user_to_group($user, $group)
 	{
 		/* add the specified user to the specified group */
@@ -382,7 +380,7 @@ class apache_htaccess {
 		return true;
 	}
 
-	/* true for all OK, otherwise false */
+	/** true for all OK, otherwise false */
 	function delete_user_from_group($user, $group)
 	{
 		if (!$this->check_ok_for_group_op())
@@ -405,6 +403,7 @@ class apache_htaccess {
 		return true;
 	}
 	
+	/** true for all OK, otherwise false */
 	function delete_user_from_all_groups($user)
 	{
 		if (!$this->check_ok_for_group_op())
@@ -422,7 +421,7 @@ class apache_htaccess {
 		return true;
 	}
 
-	/* true for all OK, otherwise false */
+	/** true for all OK, otherwise false */
 	function delete_group($group)
 	{
 		if (!$this->check_ok_for_group_op())
@@ -440,7 +439,7 @@ class apache_htaccess {
 		return true;
 	}
 
-	/* returns the return val from htpasswd, or 1 in case of unix copy fail */
+	/** returns the return val from htpasswd, or 1 in case of unix copy fail */
 	function new_user($username, $password)
 	{
 		/* create the user, adding them & their password to the password file */
@@ -473,6 +472,8 @@ class apache_htaccess {
 		
 		return $m[1];
 	}
+	
+	/** true for all OK, otherwise false */
 	function delete_user($username)
 	{
 		if (!$this->check_ok_for_password_op())
@@ -493,8 +494,10 @@ class apache_htaccess {
 	
 	
 	
-	/* returns true if this object has all the settings it needs to work with the password file */
-	/* otherwise false */
+	/**
+	 * Returns true if this object has all the settings it needs to work with the password file;
+	 * otherwise false.
+	 */
 	function check_ok_for_password_op()
 	{
 		return (
@@ -511,8 +514,10 @@ class apache_htaccess {
 			$this->path_to_groups_file !== NULL
 		? true : false );
 	}
-	/* returns true if this object has all the settings it needs to work with a particular htaccess file */
-	/* otherwise false */
+	/**
+	 * Returns true if this object has all the settings it needs to work with a particular htaccess file;
+	 * otherwise false.
+	 */
 	function check_ok_for_htaccess_save()
 	{
 		return (

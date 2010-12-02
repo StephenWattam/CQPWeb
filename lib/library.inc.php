@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-10 Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -35,9 +35,25 @@
 
 
 
-/* HOUSEKEPING FUNCTIONS */
+
+/*
+TODO
+If mysql extension does not exist, include fake-mysql.inc.php to restore the functions
+that are actually used and emulate them via mysqli.
+*/
+/* this is global code in a library file; normally a no-no.
+it -only- addresses what files need ot be included and which don't */
+if  (!extension_loaded('mysql'))
+{
+	if (!class_exists('mysqli', false))
+		exit('Fatal error: neither mysql nor mysqli is available.');
+	else
+		require_once('../lib/fake-mysql.inc.php');
+}
 
 
+
+/* connect/disconnect functions */
 
 function connect_global_cqp()
 {
@@ -111,43 +127,33 @@ function connect_global_mysql()
 	$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
 	
 	if (! $mysql_link)
-	{
 		exiterror_fullpage('mySQL did not connect - please try again later!');
-	}
 	
 	mysql_select_db($mysql_schema, $mysql_link);
 	
-	/* utf-8 setting is dependent on a variable defined in settings.inc.php */
+	/* utf-8 setting is dependent on a variable defined in config.inc.php */
 	if ($utf8_set_required)
 		mysql_query("SET NAMES utf8", $mysql_link);	
 }
-
 /**
- * disconnect from both cqp & mysql, assuming standard variable names are used
+ * Many scripts disconnect mysql_link locally. Doing so is pretty easy. This function
+ * only exists so there is function-name-symmetry, and (less anally-retentively) so 
+ * a script never really has to call mysql_link in the normal way of things.
  */
-function disconnect_all()
+function disconnect_global_mysql()
 {
-	global $cqp;
 	global $mysql_link;
-	if (isset($cqp))
-		disconnect_global_cqp();
 	if(isset($mysql_link))
 		mysql_close($mysql_link);
 }
 
-
-
 /**
- * returns an integer containing the RAM limit to be passed to CWB programs that
- * allow a RAM limit to be set - note, the flag (-M or whatever) is not returned,
- * just the number of megabytes.
+ * disconnect from both cqp & mysql, assuming standard global variable names are used
  */
-function get_cwb_memory_limit()
+function disconnect_all()
 {
-	global $cwb_max_ram_usage;
-	global $cwb_max_ram_usage_cli;
-	
-	return ((php_sapi_name() == 'cli') ? $cwb_max_ram_usage_cli : $cwb_max_ram_usage);
+	disconnect_global_cqp();
+	disconnect_global_mysql();
 }
 
 
@@ -244,12 +250,10 @@ function do_mysql_outfile_query($query, $filename)
 			print_debug_message("The query ran successfully.\n");
 	
 		if (!($fh = fopen($filename, 'w'))) 
-		{
-			mysql_free_result($result);
 			exiterror_general("Could not open file for write ( $filename )", __FILE__, __LINE__);
-		}
 		
 		$rowcount = 0;
+		
 		while ($row = mysql_fetch_row($result)) 
 		{
 			fputs($fh, implode("\t", $row) . "\n");
@@ -261,6 +265,24 @@ function do_mysql_outfile_query($query, $filename)
 		return $rowcount;
 	}
 }
+
+
+
+/**
+ * returns an integer containing the RAM limit to be passed to CWB programs that
+ * allow a RAM limit to be set - note, the flag (-M or whatever) is not returned,
+ * just the number of megabytes as an integer.
+ */
+function get_cwb_memory_limit()
+{
+	global $cwb_max_ram_usage;
+	global $cwb_max_ram_usage_cli;
+	
+	return ((php_sapi_name() == 'cli') ? $cwb_max_ram_usage_cli : $cwb_max_ram_usage);
+}
+
+
+
 
 /**
  * currently, this function just wraps pre_echo, or echoes naked to the command line 
@@ -285,6 +307,8 @@ function pre_echo($s)
 
 /**
  * Imports the settings for a corpus into global variable space.
+ * 
+ * If there is an active CQP object, it is set to use that corpus.
  */
 function import_settings_as_global($corpus)
 {
@@ -321,6 +345,7 @@ function regex_add_anchors($s)
 /**
  * Converts an integer to a string with commas every three digits.
  */
+ // TODO replace with builtin function number_format
 function make_thousands($number)
 {
 	$string = "$number";
@@ -347,12 +372,14 @@ function make_thousands($number)
 
 
 
-/* Simple function to replicate PHP 5 behaviour - copied from php.net */
+/**
+ * Returns the time as a float using PHP's microtime function.
+ *
+ * A simple function, copied from php.net, originally to replicate PHP5
+ * behaviour in PHP4, now it just wraps the PHP5 builtin function.
+ */
 function microtime_float()
 {
-//    list($usec, $sec) = explode(" ", microtime());
-//    return ((float)$usec + (float)$sec);
-// We on't need to fake it, we now need PHP5 so we can use the real get_as_float option.
 	return microtime(true);
 }
 
@@ -400,7 +427,7 @@ function cqpweb_handle_check($string)
  * The URL of the currently-running script's containing directory is worked out  
  * in one of two ways. If the global configuration variable "$cqpweb_root_url" is
  * set, this address is taken, and the corpus handle (SQL version, IE lowercase, which 
- * is the same as the subdirectory that stores the corpus) is added. If no SQL
+ * is the same as the subdirectory that accesses the corpus) is added. If no SQL
  * corpus handle exists, nothing is added to $cqpweb_root_url.
  * 
  * If $cqpweb_root_url is not set, the function tries to work out the containing
@@ -427,24 +454,25 @@ function url_absolutify($u)
 		 * folder in which the current php script is located -- but should work for most cases 
 		 */
 		if (empty($cqpweb_root_url))
-			return ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] 
-				. preg_replace('/\/[^\/]*\z/', '/', $_SERVER['REQUEST_URI']) . $u;
+			return ($_SERVER['HTTPS'] ? 'https://' : 'http://') 
+				. $_SERVER['HTTP_HOST'] 
+				. preg_replace('/\/[^\/]*\z/', '/', $_SERVER['REQUEST_URI']) 
+				. $u;
 		else
-			return $cqpweb_root_url . ( (!empty($corpus_sql_name)) ? $corpus_sql_name.'/' : '' ) . $u; 
+			return $cqpweb_root_url 
+				. ( (!empty($corpus_sql_name)) ? $corpus_sql_name.'/' : '' ) 
+				. $u; 
 	}
 }
 
 
 
-/** Checks whether the current script has $_GET[uT] == "y" (terminating element of all CQPweb URIs) */
+/** 
+ * Checks whether the current script has $_GET[uT] == "y" 
+ * (terminating element of all valid CQPweb URIs).
+ */
 function url_string_is_valid()
 {
-	/*if (! array_key_exists('uT', $_GET) )
-		return false;
-	if ($_GET['uT'] != 'y')
-		return false;
-	return true;*/
-	
 	return (array_key_exists('uT', $_GET) && $_GET['uT'] == 'y');
 }
 
@@ -611,15 +639,11 @@ function prepare_page_no($n)
 function user_is_superuser($username)
 {
 	/* superusers are determined in the config file */
-
 	global $superuser_username;
 	
 	$a = explode('|', $superuser_username);
 	
-	if (in_array($username, $a))
-		return true;
-	else
-		return false;
+	return in_array($username, $a);
 }
 
 
@@ -664,7 +688,6 @@ function show_var(&$var, $scope=false, $prefix='unique', $suffix='value')
 	echo "\n<pre>-->\$$vname<--\n";
 	var_dump($var);
 	echo "</pre>";
-
 }
 
 /** THIS IS A DEBUG FUNCTION */
@@ -744,8 +767,9 @@ function coming_soon_finish_page()
  * 
  * This function is not currently used.
  * 
- * script_path	path to the script, relative to current PHP script (string)
- * arguments	anything to add after the script name (string)
+ * script_path	   path to the script, relative to current PHP script (string)
+ * arguments	   anything to add after the script name (string)
+ * select_maxtime  time to wait for PErl to respond
  * 
  */
 function perl_interface($script_path, $arguments, $select_maxtime='!')
@@ -795,7 +819,10 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 
 
 
-/* returns an array of category names */
+/**
+ * Given the name of a categorised query, this function returns an array of 
+ * names of categories that exist in that query.
+ */
 function catquery_list_categories($qname)
 {
 	$sql_query = "select category_list from saved_catqueries where catquery_name = '"
@@ -807,8 +834,13 @@ function catquery_list_categories($qname)
 }
 
 
-/* returns an array of category values for a given catquery, with ints (reference numbers) indexing strings (category names */
-/* from and to parameters are INCLUSIVE */
+/**
+ * Returns an array of category values for a given catquery, with ints (reference 
+ * numbers) indexing strings (category names).
+ *
+ * The from and to parameters specify the range of refnumbers in the catquery
+ * that is desired to be returned; they are to be INCLUSIVE.
+ */
 function catquery_get_categorisation_table($qname, $from, $to)
 {
 	/* find out the dbname from the saved_catqueries table */
@@ -825,11 +857,12 @@ function catquery_get_categorisation_table($qname, $from, $to)
 		$a[(int)$row[0]] = $row[1];
 	
 	return $a;
-
 }
 
 
-
+/**
+ * Returns a string containing the dbname associated with the given catquery.
+ */
 function catquery_find_dbname($qname)
 {
 	$qname = mysql_real_escape_string($qname);
@@ -845,7 +878,42 @@ function catquery_find_dbname($qname)
 }
 
 /**
- * Creates a apge footer for CQPweb.
+ * Creates a table row for the index-page left-hand-side menu, which is either a link,
+ * or a greyed-out entry if the variable specified as $current_query is equal to
+ * the link handle. It is returned as a string, -not- immediately echoed.
+ *
+ * This is the version for adminhome.
+ */
+function print_menurow_admin($link_handle, $link_text)
+{
+	global $thisF;
+	return print_menurow_backend($link_handle, $link_text, $thisF, 'thisF');
+}
+/**
+ * Creates a table row for the index-page left-hand-side menu, which is either a link,
+ * or a greyed-out entry if the variable specified as $current_query is equal to
+ * the link handle. It is returned as a string, -not- immediately echoed.
+ *
+ * This is the version for the normal user-facing index.
+ */
+function print_menurow_index($link_handle, $link_text)
+{
+	global $thisQ;
+	return print_menurow_backend($link_handle, $link_text, $thisQ, 'thisQ');
+}
+function print_menurow_backend($link_handle, $link_text, $current_query, $http_varname)
+{
+	$s = "\n<tr>\n\t<td class=\"";
+	if ($current_query != $link_handle)
+		$s .= "concordgeneral\">\n\t\t<a class=\"menuItem\""
+			. " href=\"index.php?$http_varname=$link_handle&uT=y\">";
+	else 
+		$s .= "concordgrey\">\n\t\t<a class=\"menuCurrentItem\">";
+	$s .= "$link_text</a>\n\t</td>\n</tr>\n";
+	return $s;
+}
+/**
+ * Creates a page footer for CQPweb.
  * 
  * Pass in the string "admin" for an admin-logon link. 
  * Default link is to a help page.
@@ -903,12 +971,16 @@ function print_footer($link = 'help')
 
 /* the next two functions are really just for convenience */
 
+/** Turn off indexing for a given MySQL table. */
 function database_disable_keys($arg)
 {
+	$arg = mysql_real_escape_string($arg);
 	do_mysql_query("alter table $arg disable keys");
 }
+/** Turn on indexing for a given MySQL table. */
 function database_enable_keys($arg)
 {
+	$arg = mysql_real_escape_string($arg);
 	do_mysql_query("alter table $arg enable keys");
 }
 
@@ -920,7 +992,10 @@ function database_enable_keys($arg)
 
 
 
-
+/**
+ * Create a system message that will appear below the main "Standard Query"
+ * box (and also on the hompage).
+ */
 function add_system_message($header, $content)
 {
 	global $instance_name;
@@ -932,6 +1007,12 @@ function add_system_message($header, $content)
 	do_mysql_query($sql_query);
 }
 
+/**
+ * Delete the system message associated with a particular message_id.
+ *
+ * The message_id is the user/timecode assigned to the system message when it 
+ * was created.
+ */
 function delete_system_message($message_id)
 {
 	$message_id = preg_replace('/\W/', '', $message_id);
@@ -939,6 +1020,9 @@ function delete_system_message($message_id)
 	do_mysql_query($sql_query);
 }
 
+/**
+ * Print out the system messages in HTML, including links to dete them.
+ */
 function display_system_messages()
 {
 	global $instance_name;
@@ -947,10 +1031,8 @@ function display_system_messages()
 	
 	$su = user_is_superuser($username);
 
-	$sql_query = "select * from system_messages order by timestamp desc";
-	$result = do_mysql_query($sql_query);
+	$result = do_mysql_query("select * from system_messages order by timestamp desc");
 	
-
 	if (mysql_num_rows($result) == 0)
 		return;
 	
@@ -1023,9 +1105,10 @@ function recursive_delete_directory($path)
 
 
 /**
- * this function stores values in a table that would be too big to send via GET
- * instead, they are referenced in the web form by their id code (which is passed by get) and
- * retrieved by the scrip that processes the user input.
+ * This function stores values in a table that would be too big to send via GET.
+ *
+ * Instead, they are referenced in the web form by their id code (which is passed 
+ * by get) and retrieved by the script that processes the user input.
  * 
  * The return value is the id code that you should use in the web form.
  * 
@@ -1052,7 +1135,7 @@ function longvalue_store($value)
 
 
 /**
- * Retrieval function for values stored with longvalue_store (q.v.)
+ * Retrieval function for values stored with longvalue_store.
  */
 function longvalue_retrieve($id)
 {	

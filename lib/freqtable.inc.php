@@ -538,11 +538,8 @@ function delete_saved_freqtables($protect_public_freqtables = true)
 
 	/* step one: how many bytes in size is the freqtable cache RIGHT NOW? */
 	$sql_query = "select sum(ft_size) from saved_freqtables";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	$row_array = mysql_fetch_array($result);
+	$result = do_mysql_query($sql_query);
+	$row_array = mysql_fetch_row($result);
 	$current_size = $row_array[0];
 	unset($result, $row_array);
 

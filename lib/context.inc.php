@@ -285,7 +285,7 @@ $bdo_tag2 = ($corpus_main_script_is_r2l ? '</bdo>' : '');
 			array('text', ""), 
 			array('contextSize', "$context_size"),
 			array('redirect', "")
-			)); ?>
+			)); ?> 
 		</form>
 		
 		
@@ -297,17 +297,17 @@ $bdo_tag2 = ($corpus_main_script_is_r2l ? '</bdo>' : '');
 				&nbsp;
 			</td>
 		<input type="hidden" name="tagshow" value="<?php echo $reverseTag; ?>" />
-		<?php echo url_printinputs(array(array('tagshow', ""))); ?>
+		<?php echo url_printinputs(array(array('tagshow', ""))); ?> 
 		</form>
-		
-		
 	</tr>
+	
 	<tr>
 		<td colspan="2" class="concordgeneral">
-		<p class="query-match-context">
+		<p class="query-match-context" align="<?php echo ($corpus_main_script_is_r2l ? 'right' : 'left'); ?>">
 		<?php echo $bdo_tag1 . $lc_string . '<b>' . $node_string . '</b>' . $rc_string . $bdo_tag2; ?>
 		</p>
 	</tr>
+	
 </table>
 
 <?php

@@ -22,55 +22,31 @@
  */
 
 
-
-
-
-
-
-/* adminhome.inc.php */
-
-/* this file contains the code that renders the various admin function controls */
-
-/* inputs for forms that access this script:
-
-   thisF - specify the type of query you want to pop up
-
-*/
-
-
-
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
-
-
-/* first, process the various "actions" that this script may be asked to perform */
-require('../lib/admin-execute.inc.php');
-
-
-
-
-
-
+/* adminhome.inc.php: this file contains the code that renders the various admin function controls */
 
 /* ------------ */
 /* BEGIN SCRIPT */
 /* ------------ */
 
 
-/* initialise variables from settings files  */
+/* first, process the various "actions" that this script may be asked to perform */
+require_once ('../lib/admin-execute.inc.php');
 
-require("../lib/defaults.inc.php");
+/* before anything else... */
+header('Content-Type: text/html; charset=utf-8');
+
+/* initialise variables from settings files  */
+require_once ("../lib/defaults.inc.php");
 
 
 /* include function library files */
-require ("../lib/library.inc.php");
-require ("../lib/apache.inc.php");
-require ("../lib/admin-lib.inc.php");
-require ("../lib/exiterror.inc.php");
-require ("../lib/metadata.inc.php");
-require ("../lib/ceql.inc.php");
-require ("../lib/cqp.inc.php");
+require_once ("../lib/library.inc.php");
+require_once ("../lib/apache.inc.php");
+require_once ("../lib/admin-lib.inc.php");
+require_once ("../lib/exiterror.inc.php");
+require_once ("../lib/metadata.inc.php");
+require_once ("../lib/ceql.inc.php");
+require_once ("../lib/cqp.inc.php");
 
 
 if (!user_is_superuser($username))
@@ -78,16 +54,8 @@ if (!user_is_superuser($username))
 
 
 
-/* initialise variables from $_GET */
-
-/* in the case of index.php, we can allow there not to be any arguments, and set
-   them manually */
-
-
-if (! isset($_GET["thisF"]) )
-	$thisF = "showCorpora";
-else 
-	$thisF = $_GET["thisF"];
+/* thisF: the function whose interface page is to be displayed on the right-hand-side. */
+$thisF = ( isset($_GET["thisF"]) ? $_GET["thisF"] : 'showCorpora' );
 
 
 
@@ -206,6 +174,7 @@ function add_p_attribute_row()
 //-->
 </script>
 </head>
+
 <body>
 
 <table class="concordtable" width="100%">
@@ -214,15 +183,11 @@ function add_p_attribute_row()
 
 <?php
 
-//show_var($_SERVER);
-
 
 
 /* ******************* */
 /* PRINT SIDE BAR MENU */
 /* ******************* */
-
-// TODO : add tool tips using onmouseOver
 
 ?>
 <table class="concordtable" width="100%">
@@ -237,177 +202,47 @@ function add_p_attribute_row()
 	<th class="concordtable"><a class="menuHeaderItem">Corpora</a></th>
 </tr>
 <?php
-
-
-echo "<tr><td class=\"";
-if ($thisF != "showCorpora")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=showCorpora&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Show corpora</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "installCorpus" && $thisF != 'installCorpusIndexed')
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=installCorpus&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Install new corpus</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "publicTables")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=publicTables&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Public frequency lists</a></td></tr>";
-
-
+echo print_menurow_admin('showCorpora', 'Show corpora');
+echo print_menurow_admin('installCorpus', 'Install new corpus');
+echo print_menurow_admin('publicTables', 'Public frequency lists');
 ?>
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">Uploads</a></th>
 </tr>
 <?php
-
-echo "<tr><td class=\"";
-if ($thisF != "newUpload")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=newUpload&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Upload a file</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "uploadArea")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=uploadArea&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "View upload area</a></td></tr>";
-
-
+echo print_menurow_admin('newUpload', 'Upload a file');
+echo print_menurow_admin('uploadArea', 'View upload area');
 ?>
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">Users</a></th>
 </tr>
 <?php
-
-echo "<tr><td class=\"";
-if ($thisF != "userAdmin")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=userAdmin&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Manage users</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "groupAdmin")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=groupAdmin&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Manage group membership</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "groupAccess")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=groupAccess&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Manage group access</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "superuserAccess")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=superuserAccess&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Manage superuser access</a></td></tr>";
-
-
+echo print_menurow_admin('userAdmin', 'Manage users');
+echo print_menurow_admin('groupAdmin', 'Manage group membership');
+echo print_menurow_admin('groupAccess', 'Manage group access');
+echo print_menurow_admin('superuserAccess', 'Manage superuser access');
 ?>
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">Database</a></th>
 </tr>
-
 <?php
-
-echo "<tr><td class=\"";
-if ($thisF != "manageProcesses")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=manageProcesses&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Manage MySQL processes</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "tableView")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=tableView&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "View a MySQL table</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "mysqlRestore")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=mysqlRestore&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Reset MySQL database</a></td></tr>";
-
+echo print_menurow_admin('manageProcesses', 'Manage MySQL processes');
+echo print_menurow_admin('tableView', 'View a MySQL table');
+echo print_menurow_admin('mysqlRestore', 'Reset MySQL database');
 ?>
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">System</a></th>
 </tr>
-
 <?php
-
-echo "<tr><td class=\"";
-if ($thisF != "systemSettings")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=systemSettings&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "System settings</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "systemMessages")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=systemMessages&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "System messages</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "systemSecurity")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=systemSecurity&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "System security</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "systemSnapshots")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=systemSnapshots&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "System snapshots</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "systemDiagnostics")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=systemDiagnostics&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "System diagnostics</a></td></tr>";
+echo print_menurow_admin('systemSettings', 'System settings');
+echo print_menurow_admin('systemMessages', 'System messages');
+echo print_menurow_admin('systemSecurity', 'System security');
+echo print_menurow_admin('systemSnapshots', 'System snapshots');
+echo print_menurow_admin('systemDiagnostics', 'System diagnostics');
 ?>
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">Misc</a></th>
 </tr>
-
 <tr>
 	<td class="concordgeneral">
 		<a class="menuItem" href="../"
@@ -417,88 +252,19 @@ echo "System diagnostics</a></td></tr>";
 	</td>
 </tr>
 <?php
-
-echo "<tr><td class=\"";
-if ($thisF != "skins")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=skins&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Skins and colours</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "mappingTables")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=mappingTables&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Mapping tables</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "cacheControl")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=cacheControl&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Cache control</a></td></tr>";
-
-echo "<tr><td class=\"";
-if ($thisF != "phpConfig")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=phpConfig&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "PHP configuration</a></td></tr>";
-
-
+echo print_menurow_admin('skins', 'Skins and colours');
+echo print_menurow_admin('mappingTables', 'Mapping tables');
+echo print_menurow_admin('cacheControl', 'Cache control');
+echo print_menurow_admin('phpConfig', 'PHP configuration');
 ?>
-
-
-<!--  everything below this point NEEDS INTEGRATING -->
-
-
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">Usage Statistics</a></th>
 </tr>
 <?php
-
-
-echo "<tr><td class=\"";
-if ($thisF != "corpusStatistics")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=corpusStatistics&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Corpus statistics</a></td></tr>";
-
-
-echo "<tr><td class=\"";
-if ($thisF != "userStatistics")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=userStatistics&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "User statistics</a></td></tr>";
-
-
-echo "<tr><td class=\"";
-if ($thisF != "queryStatistics")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=queryStatistics&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Query statistics</a></td></tr>";
-
-/*
-echo "<tr><td class=\"";
-if ($thisF != "usageStatistics")
-	echo "concordgeneral\"><a class=\"menuItem\" 
-		href=\"index.php?thisF=usageStatistics"
-		. "&orderBy=numberQueries&uT=y\">";
-else 
-	echo "concordgrey\"><a class=\"menuCurrentItem\">";
-echo "Usage statistics</a></td></tr>";
-*/
+echo print_menurow_admin('corpusStatistics', 'Corpus statistics');
+echo print_menurow_admin('userStatistics', 'User statistics');
+echo print_menurow_admin('queryStatistics', 'Query statistics');
+echo print_menurow_admin('advancedStatistics', 'Advanced statistics');
 
 ?>
 </table>
@@ -513,8 +279,6 @@ echo "Usage statistics</a></td></tr>";
 		</th>
 	</tr>
 </table>
-
-
 
 <?php
 
@@ -636,7 +400,10 @@ case 'userStatistics':
 case 'queryStatistics':
 	printquery_statistic('query');
 	break;
-
+	
+case 'advancedStatistics':
+	printquery_advancedstats();
+	break;
 
 default:
 	?>
@@ -662,18 +429,11 @@ default:
 print_footer(NULL);
 
 /* ... and disconnect mysql */
-mysql_close($mysql_link);
+disconnect_all();
 
 /* ------------- */
 /* END OF SCRIPT */
 /* ------------- */
-
-
-
-
-
-
-
 
 
 
@@ -1389,7 +1149,6 @@ function printquery_uploadarea()
 
 function printquery_useradmin()
 {
-	global $mysql_link;
 	global $cqpweb_uses_apache;
 	
 	$apache = get_apache_object('nopath');
@@ -1576,13 +1335,9 @@ function printquery_useradmin()
 			<th class="concordtable">New limit</th>
 			<th class="concordtable">Update</th>
 		</tr>
+		
 		<?php
-		$sql_query = "SELECT username, max_dbsize from user_settings";
-	
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query("SELECT username, max_dbsize from user_settings");
 		
 		while (($r = mysql_fetch_assoc($result)) !== false)
 		{
@@ -1777,7 +1532,6 @@ function printquery_groupaccess()
 
 		$apache = get_apache_object('nopath');	
 
-
 		?>
 		<table class="concordtable" width="100%">
 			<tr>
@@ -1873,7 +1627,7 @@ function printquery_groupaccess()
 				<input type="hidden" name="group" value="<?php echo $group; ?>" />
 				<input type="hidden" name="uT" value="y" />
 			</form>
-						
+			
 			<?php
 		}
 		?>
@@ -1891,11 +1645,9 @@ function printquery_groupaccess()
 			<tr>
 				<td colspan="3" class="concordgrey">
 					&nbsp;<br/>
-					IF you "clone" access rights from Group A to Group B, you overwrite all the current access
+					If you "clone" access rights from Group A to Group B, you overwrite all the current access
 					rights of Group B; it will have exactly the same privilenges as Group A.
 					<br/>&nbsp;
-					
-					<br/><b>DOES NOT WORK YET!!!!!!</b>
 				</td>
 			</tr>
 			
@@ -1911,7 +1663,7 @@ function printquery_groupaccess()
 			
 			?>
 			
-			<form action="" method="get">
+			<form action="index.php" method="get">
 			
 				<tr>
 					<td class="concordgeneral">
@@ -1936,7 +1688,10 @@ function printquery_groupaccess()
 						<br/>&nbsp;
 					</td>
 				</tr>
-			
+				
+				<input type="hidden" name="admFunction" value="accessCloneGroupRights"/>
+				<input type="hidden" name="uT" value ="y" />
+				
 			</form>
 					 
 		</table>		
@@ -2700,8 +2455,6 @@ function printquery_systemannouncements()
 
 function printquery_tableview()
 {
-	global $mysql_link;
-	
 	if (isset($_GET['limit']) && strlen($_GET['limit']) > 0 )
 		$limit = mysql_real_escape_string($_GET['limit']);
 	else
@@ -2730,13 +2483,7 @@ function printquery_tableview()
 		if ($limit != "NO_LIMIT")
 			$sql_string .= " LIMIT $limit";
 		
-		$result = mysql_query($sql_string, $mysql_link);
-		if ($result == false) 
-		{
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-			exit(1);
-		}
+		$result = do_mysql_query($sql_string);
 		
 		/* print column headers */
 		echo '<table class="concordtable"><tr>';
@@ -2759,16 +2506,7 @@ function printquery_tableview()
 	else
 	{
 		/* no table has been chosen */
-		
-		$sql_string = "SHOW TABLES";
-		
-		$result = mysql_query($sql_string, $mysql_link);
-		if ($result == false) 
-		{
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
-			exit(1);
-		}
+		$result = do_mysql_query("SHOW TABLES");
 
 		?>
 		<table class="concordtable" width="100%">
@@ -2854,7 +2592,6 @@ function printquery_mysqlprocesses()
 
 function printquery_statistic($type = 'user')
 {
-	global $mysql_link;
 	global $default_history_per_page;
 
 	/* note usage of the same system of "perpaging" as the "Query History" function */
@@ -2871,17 +2608,12 @@ function printquery_statistic($type = 'user')
 
 	switch($type)
 	{
-	case 'user':
-		$bigquery = 'select user, count(*) as c from query_history 
-			group by user order by c desc';
-		$colhead = 'Username';
-		$pagehead = 'for user accounts';
-		break;
 	case 'corpus':
 		$bigquery = 'select corpus, count(*) as c from query_history 
 			group by corpus order by c desc';
 		$colhead = 'Corpus';
 		$pagehead = 'for corpora';
+		$list_of_corpora = list_corpora();
 		break;
 	case 'query':
 		$bigquery = 'select cqp_query, count(*) as c from query_history 
@@ -2889,12 +2621,16 @@ function printquery_statistic($type = 'user')
 		$colhead = 'Query';
 		$pagehead = 'for particular query strings';
 		break;
+	case 'user':
+	default:
+		$bigquery = 'select user, count(*) as c from query_history 
+			group by user order by c desc';
+		$colhead = 'Username';
+		$pagehead = 'for user accounts';
+		break;
 	}
 	
-	$result = mysql_query($bigquery);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($bigquery);
 	
 	?>
 	<table width="100%" class="concordtable">
@@ -2906,6 +2642,7 @@ function printquery_statistic($type = 'user')
 			<th class="concordtable" width="60%"><?php echo $colhead; ?></th>
 			<th class="concordtable" width="30%">No. of queries</th>
 		</tr>
+		
 		<?php
 		
 		$toplimit = $begin_at + $per_page;
@@ -2913,23 +2650,26 @@ function printquery_statistic($type = 'user')
 
 		if (($alt_toplimit + 1) < $toplimit)
 			$toplimit = $alt_toplimit + 1;
-			
+
 		for ( $i = 1 ; $i < $toplimit ; $i++ )
 		{
-			$row = mysql_fetch_row($result);
-			if (!$row)
+			if ( !($row = mysql_fetch_row($result)) )
 				break;
 			if ($i < $begin_at)
 				continue;
+			
+			if ($type == 'corpus')
+				if( !in_array($row[0], $list_of_corpora))
+					$row[0] .= ' <em>(deleted)</em>';
 
 			echo "<tr>\n";
 			echo '<td class="concordgeneral" align="center">' . "$i</td>\n";
 			echo '<td class="concordgeneral" align="left">' . "{$row[0]}</td>\n";
 			echo '<td class="concordgeneral" align="center">' . make_thousands($row[1]) . "</td>\n";
-			echo "</tr>\n";
+			echo "\n</tr>\n";
 		}
-		
 		?>
+		
 	</table>
 	<?php
 
@@ -3131,6 +2871,15 @@ function printquery_phpconfig()
 	</table>
 	
 	<?php
+}
+
+
+
+function printquery_advancedstats()
+{
+
+
+
 }
 
 

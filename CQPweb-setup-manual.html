@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20100716;11214900">
+	<META NAME="CHANGED" CONTENT="20101101;6054000">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -49,7 +49,9 @@ installed:
 	</P>
 </UL>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB">Open Corpus Workbench (at least version 3.2.0)</P>
+	<LI><P LANG="en-GB">Open Corpus Workbench (at least version 3.2.0 if
+	you want UTF8 regular expression matching, otherwise at least
+	2.2.100)</P>
 	<UL>
 		<LI><P LANG="en-GB"><SPAN LANG="en-GB">See
 		<A HREF="http://cwb.sourceforge.net/">http://cwb.sourceforge.net</A></SPAN></P>
@@ -57,8 +59,8 @@ installed:
 	<LI><P LANG="en-GB">Standard Unix-style command-line tools: awk,
 	tar, and gzip</P>
 	<UL>
-		<LI><P LANG="en-GB">Awk (any version of awk compatible with GNU awk
-		(“gawk”) should be OK)</P>
+		<LI><P LANG="en-GB">Awk: any version of awk compatible with GNU awk
+		(“gawk”) should be OK</P>
 	</UL>
 </UL>
 <P LANG="en-GB"><BR><BR>
@@ -166,10 +168,11 @@ not work. </SPAN></SPAN>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">PHP safe mode
 	may not allow CQPweb to run CQP and Perl as separate child processes
-	if the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">cqp</SPAN></FONT><SPAN STYLE="font-style: normal">
-	and </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">perl</SPAN></FONT><SPAN STYLE="font-style: normal">
-	executables are not in its “safe” directories – in which case,
-	</SPAN><I>nothing</I><SPAN STYLE="font-style: normal"> will work.</SPAN></P>
+	if the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">cqp</SPAN></FONT>
+	<SPAN STYLE="font-style: normal">and </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">perl</SPAN></FONT>
+	<SPAN STYLE="font-style: normal">executables are not in its “safe”
+	directories – in which case, </SPAN><I>nothing</I> <SPAN STYLE="font-style: normal">will
+	work.</SPAN></P>
 	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">PHP safe-mode
 	will </SPAN><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">stop
 	CQPweb from lifting</SPAN></SPAN></FONT></FONT><FONT COLOR="#000000">
@@ -217,6 +220,8 @@ location like <FONT FACE="Courier New, monospace">/etc/apache2/apache2.conf</FON
 or for the particular host (in something like
 <FONT FACE="Courier New, monospace">/etc/apache2/sites-available/{$site}.conf
 </FONT>).</P>
+<P LANG="en-GB">Note that if you change an Apache configuration file,
+you will need to restart Apache for the changes to have effect.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT COLOR="#000000"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -322,23 +327,23 @@ case you'll need to restart </SPAN></SPAN><SPAN LANG="en-GB"><I>mysqld</I></SPAN
 up directories</B></FONT></FONT></P>
 <P LANG="en-GB">CQPweb needs the following directories to be created
 on the server.</P>
-<TABLE WIDTH=882 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+<TABLE WIDTH=882 CELLPADDING=4 CELLSPACING=0>
 	<COL WIDTH=556>
 	<COL WIDTH=309>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 BGCOLOR="#c0c0c0">
+		<TD WIDTH=556 BGCOLOR="#c0c0c0" STYLE="border-top: 1.00pt solid #000000; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0.11cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Create
 			a directory for…</B></FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=309 BGCOLOR="#c0c0c0">
+		<TD WIDTH=309 BGCOLOR="#c0c0c0" STYLE="border: 1.00pt solid #000000; padding: 0.11cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Where
 			it should be</B></FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556>
+		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
 			<OL>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>The
@@ -347,14 +352,14 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309>
+		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			in the web-docs directory of the server</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556>
+		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
 			<OL START=2>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>CQPweb’s
@@ -362,14 +367,14 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309>
+		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556>
+		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
 			<OL START=3>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Temporary
@@ -377,14 +382,14 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309>
+		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556>
+		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
 			<OL START=4>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Indexed
@@ -392,14 +397,14 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309>
+		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556>
+		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
 			<OL START=5>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Registry
@@ -407,14 +412,14 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309>
+		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556>
+		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
 			<OL START=6>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Upload
@@ -422,7 +427,7 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309>
+		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
@@ -549,10 +554,10 @@ this as follows:
 </P>
 <P LANG="en-GB">Find the file called “template.config.inc.php”
 and edit it. It looks like this:</P>
-<TABLE WIDTH=1012 BORDER=1 CELLPADDING=4 CELLSPACING=3>
+<TABLE WIDTH=1012 CELLPADDING=4 CELLSPACING=3>
 	<COL WIDTH=996>
 	<TR>
-		<TD WIDTH=996 VALIGN=TOP>
+		<TD WIDTH=996 VALIGN=TOP STYLE="border: 2.60pt double #808080; padding: 0.11cm">
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>&lt;?php</FONT></FONT></P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
 			SYSTEM CONFIG SETTINGS : the same for every corpus, and CANNOT be
@@ -701,6 +706,30 @@ ignored if you don't understand exactly what they're for. They are</P>
 	thus – the name of the setting. The directories in question will
 	be passed to Perl using the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">-I</SPAN></FONT>
 	<SPAN STYLE="font-style: normal">command-line option.</SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$css_path_for_homepage
+	– this should be a relative or absolute URL of a stylesheet to use
+	for the main menu page. By default, a lovely blue-and-grey table
+	effect is used.</SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$css_path_for_adminpage
+	– this should be a relative or absolute URL of a stylesheet to use
+	for the admin control panel page. By default, a red-and-pink colour
+	scheme.</SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$print_debug_messages
+	– this default to false, if you set it to true messages about what
+	is going on behind the scenes will appear all over various CQPweb
+	pages.</SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$cache_size_limit
+	– defaults to 3 gigabytes, the amount of data that will be cached
+	(CQP temporary files only). Note that until the cache limit is
+	reached, the cache will just keep growing!</SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$default_max_fullsize_dbs_in_cache</SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$default_max_dbsize</SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$default_mysql_process_limit
+	– this defaults to five, represents the number of </SPAN><I>big</I><SPAN STYLE="font-style: normal">
+	MySQL processes that will be run at once.</SPAN></P>
+	<LI><P LANG="en-GB"><FONT COLOR="#0047ff"><SPAN STYLE="font-style: normal">&lt;NB,
+	these settings should be filed under various headings for
+	clarity...&gt;</SPAN></FONT></P>
 </UL>
 <P LANG="en-GB">Save the edited file as “config.inc.php” and put
 it into the “lib” subdirectory of the web directory.</P>
@@ -720,14 +749,14 @@ bob jill</B></FONT></P>
 your configuration file.</P>
 <P LANG="en-GB">Now, use the Apache htpasswd utility to actually
 create these user accounts, with the following commands:</P>
-<P LANG="en-GB" ALIGN=LEFT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><SPAN LANG="en-GB"><B>htpasswd
--bc </B></SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>/</B></FONT></FONT></FONT><FONT COLOR="#800000"><FONT FACE="Courier New"><FONT SIZE=3><B>$cqpweb_accessdir</B></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>/.htpasswd
-bob  bobspassword<BR>htpasswd -b  /</B></FONT></FONT></FONT><FONT COLOR="#800000"><FONT FACE="Courier New"><FONT SIZE=3><B>$cqpweb_accessdir</B></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>/.htpasswd
+<P LANG="en-GB" ALIGN=LEFT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>htpasswd
+-bc /</B></FONT></FONT></FONT><FONT COLOR="#800000"><FONT FACE="Courier New"><FONT SIZE=3><B>$cqpweb_accessdir</B></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>/.htpasswd
+bob bobspassword<BR>htpasswd -b /</B></FONT></FONT></FONT><FONT COLOR="#800000"><FONT FACE="Courier New"><FONT SIZE=3><B>$cqpweb_accessdir</B></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New"><FONT SIZE=3><B>/.htpasswd
 jill jillspassword</B></FONT></FONT></FONT></P>
-<P LANG="en-GB">… where <FONT FACE="Courier New, monospace">$cqpweb_accessdir</FONT>
-is directory (2) above (if you <FONT FACE="Courier New, monospace">cd</FONT>
-to the directory in question, you can just use the <FONT FACE="Courier New, monospace">.htpasswd</FONT>
-filename, of course). 
+<P LANG="en-GB">… <SPAN LANG="en-GB">where </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$cqpweb_accessdir</SPAN></FONT><SPAN LANG="en-GB">
+is directory (2) above (if you </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">cd</SPAN></FONT><SPAN LANG="en-GB">
+to the directory in question, you can just use the </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">.htpasswd</SPAN></FONT><SPAN LANG="en-GB">
+filename, of course). </SPAN>
 </P>
 <P LANG="en-GB">You'll also need to create a <B>.htaccess</B> file
 for the <B>./adm</B> directory. It should look like this:</P>
@@ -738,9 +767,9 @@ CQPweb<BR>AuthType Basic<BR>deny from all<BR>require group
 superusers<BR>satisfy any</B></FONT></FONT></FONT></P>
 <P LANG="en-GB">… <SPAN LANG="en-GB">but with the appropriate
 directories substituted, as in the configuration file.</SPAN></P>
-<P LANG="en-GB"><SPAN LANG="en-GB"><SPAN LANG="en-GB">Once CQPweb is
-up and running, you can use the “create user / reset password”
-function to change superuser account passwords if necessary.</SPAN></SPAN></P>
+<P LANG="en-GB">Once CQPweb is up and running, you can use the
+“create user / reset password” function to change superuser
+account passwords if necessary.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Getting

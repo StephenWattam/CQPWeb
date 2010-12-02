@@ -42,9 +42,10 @@ function __autoload($plugin)
 	// then modify Visualisations mangement to allow it to be engaged
 	// then modify conocrdance and context to run it on the strings that
 	// cmoe from CQP if the ncessary global variables are TRUE.
-	//end TODO
+	// end TODO
 	global $plugin_classes_transliterators;
 	global $plugin_classes_annotators;
+	//TODO more?
 	
 	/* check it's a valid plugin class, listed in config */
 	if (in_array($plugin, $plugin_classes_transliterators))
@@ -73,6 +74,32 @@ function __autoload($plugin)
 		if (! ($plugin instanceof Annotator) )
 			exiterror_general('Bad annotation plugin! Doesn\'t implement the Annotator interface.'
 				. ' Check the coding of your plugin ' . $plugin);
+	//TODO more types here
+}
+
+//TODO maybe add "get a list of available plugins of a particular type" function??
+
+
+/**
+ * General plugin interface that defines the protoype of the constructor,
+ * don't actually use this, only the interfaces that inherit from it.
+ */
+interface CQPwebPlugin
+{
+	/**
+	 * The constructor function of a Plugin may be passed a single argument.
+	 * 
+	 * If it is, it is the (absolute or relative) path to a configuration
+	 * file, which can be loaded and used (of course, it can be ignored as well.)
+	 * 
+	 * This argument's default value is an empty string. Any "empty" value,
+	 * such as '', NULL, 0 or false, should be interpreted as "no config file".
+	 * 
+	 * The internal format of the config file, and how it is parsed and the info
+	 * stored, is a matter for the plugin to decide. Config files can be anywhere
+	 * on the system that is accessible to the username that CQPweb runs under.
+	 */
+	public function __construct($config_file = '');
 }
 
 /**
@@ -83,7 +110,7 @@ function __autoload($plugin)
  * It must be able to something sensible with any UTF8 text passed to it.
  * 
  * This will normally mean transliterating it to Latin or other alphabet
- * native/fmailiar to the user base.
+ * native/familiar to the user base.
  * 
  * A class implementing this interface can do this however it likes - 
  * internally, by calling a library, by creating a back-end process
@@ -91,16 +118,16 @@ function __autoload($plugin)
  * 
  * What you are not allowed to do in a plugin is use any of CQPweb's
  * global data. (Or rather, you are ALLOWED to - it's your computer! -
- * we just don't think it would be a good idea at all.)
+ * I just don't think it would be a good idea at all.)
  */
-interface Transliterator
+interface Transliterator extends CQPwebPlugin
 {
 	/**
-	 * This function takes a UTf8 string and returns a UTF8 string.
+	 * This function takes a UTF8 string and returns a UTF8 string.
 	 * 
 	 * The returned string is the direct equivalent, but with some
-	 * (or all) characters from outside the Latin range(s) converted
-	 * to characters within that range.
+	 * (or all) characters from the source writing system converted
+	 * to the target writing system.
 	 * 
 	 * It must be possible to pass a raw string straight from CQP,
 	 * and get back a string that is still structured the same
@@ -108,12 +135,6 @@ interface Transliterator
 	 * transliteration has happened).
 	 */
 	public function transliterate($string);
-	
-	/**
-	 * The constructor of a transliterator plugin cannot take any
-	 * arguments.
-	 */
-	public function __construct();
 }
 
 
@@ -124,23 +145,8 @@ interface Transliterator
  * to CQPweb that can be used to manage files in some way (e.g. by 
  * tagging them.) 
  */
-interface Annotator
+interface Annotator extends CQPwebPlugin
 {
-	/**
-	 * The constructor function may be passed a single argument.
-	 * 
-	 * If it is, it is the (absolute or relative) path to a configuration
-	 * file, which can be loaded and used to (of course, it can be ignroed as well.)
-	 * 
-	 * This argument's default value is an empty string. Any "empty" value,
-	 * such as '', NULL, 0 or false, should be interpreted as "no config file".
-	 * 
-	 * The internal format of the config file, and how it is parsed and the info
-	 * stored, is a matter for the plugin to decide. Config files can be anywhere
-	 * on the system that is accessible to the username that CQPweb runs under.
-	 */
-	public function __construct($config_file = '');
-	
 	/**
 	 * Process a file (e.g. to tag or tokenise it).
 	 * 
@@ -181,6 +187,10 @@ interface Annotator
 	public function output_size();
 	
 }
+
+// TODO: interface for FormatChecker plugins
+
+// TODO: interface for other plugins??????
 
 
 ?>

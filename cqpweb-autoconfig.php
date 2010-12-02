@@ -1,4 +1,28 @@
 <?php
+/**
+ * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
+ * Copyright (C) 2008-10 Andrew Hardie
+ *
+ * See http://www.ling.lancs.ac.uk/activities/713/
+ *
+ * This file is part of CQPweb.
+ * 
+ * CQPweb is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * CQPweb is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+/* BEGIN FUNCTION DEFINITIONS */
 
 function get_variable_path($desc)
 {
@@ -32,15 +56,16 @@ function get_variable_word($desc)
 	}	
 }
 
+/* END FUNCTION DEFINITIONS */
+
 
 
 
 /* BEGIN HERE */
 
 /* refuse to run unless we are in CLI mode */
-
 if (php_sapi_name() != 'cli')
-	exit("config script must be run in CLI mode!");
+	exit("Critical error: CQPweb's auto-config script must be run in CLI mode!\n");
 
 echo "\n\n/***********************/\n\n\n";
 
@@ -103,14 +128,6 @@ $mysql_server = 'localhost';
 
 
 
-
-
-
-
-
-
-
-
 $config_file = 
 "<?php
 
@@ -119,7 +136,7 @@ $config_file =
 /* these settings should never be alterable from within CQPweb (would risk transmitting them as plaintext) */
 
 
-/* adminstrators' usernames, separated by | (as in BNCweb) */
+/* adminstrators' usernames, separated by | */
 \$superuser_username = '$superuser_username';
 
 
@@ -148,7 +165,11 @@ $config_file =
 \$cwb_datadir = '$cwb_datadir';
 \$cwb_registry = '$cwb_registry';
 
-/* if mySQL returns ???? instead of proper UTF-8 symbols, change this setting true -> false or false -> true */
+/* if queries to mySQL returns ???? instead of proper UTF-8 symbols, */ 
+/* it can often be fixed instantly by changing this setting, either  */
+/* true -> false or false -> true.                                   */
+/* The initial value is \"true\", but which is needed depends on     */
+/* several different aspects of your system setup.                   */
 \$utf8_set_required = true;
 
 ?>";
@@ -169,13 +190,11 @@ if (is_file('lib/config.inc.php'))
 		$i = strtoupper(fgets(STDIN));
 		if ($i[0] =='N')
 		{
-			echo "OK! won't overwrite. Program aborts.\n\n";
+			echo "\nOK! won't overwrite. Program aborts.\n\n";
 			exit();
 		}
 		else if ($i[0] == 'Y')
-		{
 			break;
-		}		
 	} 
 }
 
@@ -188,11 +207,14 @@ file_put_contents('lib/config.inc.php', $config_file);
 
 
 
+// TODO: check whether we are using Apache, and make the Apache bits conditional on that.
+// If Apache is not in use, spell out what the superuser needs to do with their webserver.
+
 
 /* create a password file for the superusers and a group file */
 
-echo "Creating admin username(s)... (NB: admin passwords will be the same as the username";
-echo "\nyou should reset them as soon as possible\n\n";
+echo "Creating admin username(s)... (NB: admin passwords will be the same as the username\n";
+echo "you should reset them as soon as possible\n\n";
 
 $x = str_replace('|', ' ', $superuser_username);
 file_put_contents("/$cqpweb_accessdir/.htgroup", "superusers: $x\n");
@@ -224,10 +246,9 @@ chmod("adm/.htaccess", 0664);
 
 
 
-echo "\n\nDone! note that the source file for this program will be gzipped,\n\nto avoid unwanted re-running.";
-echo "\nYou should delete this program (or move it out of the web directory) for security.";
+echo "\n\nDone! note that the source file for this script will be gzipped,\nto avoid unwanted re-running.";
+echo "\n\nYou should delete this program (or move it out of the web directory) for security.";
 /* zip the source file of this script so it can't be executed again by mistake */
 exec("gzip -q {$argv[0]}");
 
-exit();
 ?>

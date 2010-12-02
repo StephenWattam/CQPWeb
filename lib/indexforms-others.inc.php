@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -20,7 +20,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* each of these functions prints a table for the right-hand side interface */
 
@@ -623,8 +622,8 @@ function printquery_who()
 		
 			<p>CQPweb was created by Andrew Hardie (Lancaster University).</p>
 				
-			<p>Most of the architecture, the look-and-feel, and even some of the code
-			was shamelessly half-inched from <em>BNCweb</em>.</p>
+			<p>Most of the architecture, the look-and-feel, and even some snippets of code
+			were shamelessly half-inched from <em>BNCweb</em>.</p>
 			
 			<p>BNCweb's most recent version was written by Sebastian Hoffmann 
 			(University of Trier) and Stefan Evert (University of 
@@ -669,6 +668,7 @@ function printquery_who()
 					<a target="_blank" href="http://www.w3schools.com/html/">HTML</a>.
 					<br/>&nbsp;
 				</li>
+				<!-- TODO -- copy BNCweb notice about wz tooltip code -->
 			</ul>
 		</td>
 	</tr>
@@ -694,6 +694,28 @@ function printquery_latest()
 	<p>&nbsp;</p>
 	
 	<ul>
+		<li>
+		<b>Version 2.15</b>, 2010-12-02<br/>&nbsp;<br/>
+		Licence switched from GPLv3+ to GPLv2+ to match the rest of CWB. Some source files remain to be updated!
+		<br/>&nbsp;<br/>
+		A framework for "plugins" (semi-freestanding programlets) has been added. Three types of
+		plugins are envisaged: transliterator plugins, annotator plugins, and format-checker plugins. Some
+		"default" plugins will be supplied later.
+		<br/>&nbsp;<br/>
+		Some tweaks have been made to the concordance download options, in particular, giving a new default
+		download style (&ldquo;field-data-style&rdquo;).
+		<br/>&nbsp;<br/>
+		For the adminstrator, there is a new group-access-cloning function.
+		<br/>&nbsp;<br/>
+		The required version of CWB has been dropped back down to a late v2, but you still need 3.2.x
+		if you want UTF-8 regular expression matching to work properly in all languages.
+		<br/>&nbsp;<br/>
+		Improvements to query cache management internals.
+		<br/>&nbsp;<br/>
+		Plus the usual bug fixes, including some that deal with security issues, and further work on the R
+		interface.
+		<br/>&nbsp;</li>
+
 		<li>
 		<b>Version 2.14</b>, 2010-08-27<br/>&nbsp;<br/>
 		Quite a few new features this time. First, finer control over concordance display has been added;
@@ -871,7 +893,7 @@ function printquery_latest()
 		<li>
 		<b>Version 1.15</b>, 2008-10-11<br/>&nbsp;<br/>
 		A range of bugs have been fixed.<br/>
-		New features: a link to &ldquo;corpus and tagset help&rdquo;help on every page from the middle of the footer.
+		New features: a link to &ldquo;corpus and tagset help&rdquo; on every page from the middle of the footer.
 		<br/>&nbsp;</li>
 		
 		<li>
@@ -918,7 +940,7 @@ function printquery_latest()
 		
 		<li>
 		<b>Version 1.06</b>, 2008-06-07<br/>&nbsp;<br/>
-		Minor (but urgent) fixes to distribution as a result of changes to MySQL database structure.
+		Minor (but urgent) fixes to the system as a result of changes to MySQL database structure.
 		<br/>&nbsp;</li>
 		
 		<li>

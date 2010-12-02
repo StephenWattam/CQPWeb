@@ -89,16 +89,19 @@ else
 /* the default allows generous memory for indexing in command-line mode,
  * but is stingy in the Web interface, so admins can't bring down the server accidentally */
 
+
 /* Canonical form for $cwb_extra_perl_directories is an array of absolute directories without
  * an initial / even though they are absolute; but the input format is a string of pipe-
  * delimited directories. This bit of code converts. An empty array is used if the config
- * string vairable is not set. */ 
+ * string vairable is not set. 
+ */ 
 if (isset($cwb_extra_perl_directories))
 {
 	$cwb_extra_perl_directories = explode('|',$cwb_extra_perl_directories);
-	foreach($cwb_extra_perl_directories as $perldir)
+	foreach($cwb_extra_perl_directories as &$perldir)
 		$perldir = trim($perldir, "/ \t\r\n");
 	unset($perldir);
+	//TODO when the overall format of resource-location paths is changed, so should the code here. 
 }
 else
 	$cwb_extra_perl_directories = array();
@@ -170,6 +173,8 @@ else
 if (!isset($context_scope))
 	$context_scope = ( $context_scope_is_based_on_s ? 1 : 12 );
 
+//TODO. next few variable names are confusing
+
 if (!isset($default_per_page))
 	$default_per_page = 50;
 
@@ -237,11 +242,11 @@ if (!isset($default_words_in_download_context))
 
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '2.14');
+define('CQPWEB_VERSION', '2.15');
 
 
 /* "reserved words" that can't be used for corpus ids */
-$cqpweb_reserved_subdirs = array('adm', 'css', 'doc', 'lib');
+$cqpweb_reserved_subdirs = array('adm', 'css', 'doc', 'lib', 'usr');
 /* note: all reserved words are 3 lowercase letters and any new ones we add will also be three letters */
 
 
@@ -264,6 +269,10 @@ $max_textid_length = 40;
 /* before cached queries are deleted: default is 3 GB  */
 if (!isset($cache_size_limit))
 	$cache_size_limit = 3221225472;
+
+//TODO the way DB maxima are calculated is dodgy, to say the least.
+// PROBLEMS: (1) names beginnign $default thataren;t defaults is confusing, as above
+// (2) are the limits working as they should?
 
 /* Default maximum size for DBs -- can be changed on a per-user basis */
 if (!isset($default_max_dbsize))
@@ -319,8 +328,18 @@ if (!isset($username))
 
 
 /* instance_name is the unique identifier of the present run of a given script 
- * which will be used as the name of any queries/records saved by the present script */
-$instance_name = $username . '_' . time();
+ * which will be used as the name of any queries/records saved by the present script.
+ * 
+ * It was formerly the username plus the unix time, but this raised the possibility of
+ * one user seeing another's username linked to a cached query. So now it's the PHP uniqid(),
+ * which is a hexadecimal version of the Unix time in microseconds. This shouldn't be 
+ * possible to duplicate unless (a) we're on a computer fast enough to call uniqid() twice
+ * in two threads/processes in the same microsecond (b) two users do happen to hit us in 
+ * the same microsecond. 
+ * 
+ * An X prefix is used to flag the start and show it's hexadecimal.  Total length = 14 chars.
+ */ 
+$instance_name = 'x' . uniqid();
 
 if (! isset($this_script))
 {

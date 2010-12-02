@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -24,12 +24,11 @@
 
 
 
+
 /**
- * This file contains the CQP class, which calls CQP as a child process
- * and handles all interaction with that excellent program
+ * Class representing a CQP child process and handling 
+ * all interaction with that excellent program.
  */
-
-
 class CQP
 {
 	/* MEMBERS */
@@ -77,7 +76,7 @@ class CQP
 	/* the version of CWB that this class requires */
 	const VERSION_MAJOR_DEFAULT = 2;
 	const VERSION_MINOR_DEFAULT = 2;
-	const VERSION_BETA_DEFAULT = 100;
+	const VERSION_BETA_DEFAULT = 101;
 //	const VERSION_MAJOR_DEFAULT = 3;
 //	const VERSION_MINOR_DEFAULT = 2;
 //	const VERSION_BETA_DEFAULT = 0;
@@ -197,15 +196,20 @@ class CQP
 		$this->disconnect();
 	}
 
-	/* This was originally the "fake distructor" function when this class was written for PHP 4.x;
-	 * the shutdown code has been kept here rather than in __destruct() to avoid breaking old code. */ 
-	function disconnect()
+	/**
+	 * Disconnects the child process.
+	 * 
+	 * This was originally the "fake distructor" function when this class was written for PHP 4.x;
+	 * the shutdown code has been kept here rather than in __destruct() to avoid breaking calls to 
+	 * ->disconnect() that exist in CQPweb. 
+	 */ 
+	public function disconnect()
 	{
 		if ($this->has_been_disconnected)
 			return;
 		
 		/* the PHP manual says "It is important that you close any pipes
-		 * before calling proc_close in order to avoid a deadlock" 
+		 * before calling proc_close in order to avoid a deadlock" --
 		 * well, OK then! */
 		
 		if (isset($this->handle[0]))
@@ -242,7 +246,7 @@ class CQP
 	 * 
 	 * Returns true if the current version (loaded in __construct) is greater than the minimum.
 	 */
-	function check_version($major = 0, $minor = 0, $beta = 0)
+	public function check_version($major = 0, $minor = 0, $beta = 0)
 	{
 		if ($major == 0)
 			return $this->check_version_default();
@@ -283,7 +287,7 @@ class CQP
 	 * if necessary, allowing utf8 input to be converted to some other
 	 * character set for future calls to $this->execute() 
 	 */
-	function set_corpus($corpus_id)
+	public function set_corpus($corpus_id)
 	{
 		$this->execute($corpus_id);
 		$infoblock = "\n" . implode("\n", $this->execute('info')) . "\n";
@@ -305,6 +309,8 @@ class CQP
 	}
 	
 	/**
+	 * Gets a list of available corpora as a numeric array.
+	 * 
 	 * This is the same as "executing" the 'show corpora' command,
 	 * but the function sorts through the output for you and returns 
 	 * the list of corpora in a nice, whitespace-free array
@@ -319,7 +325,7 @@ class CQP
 	}
 		
 	
-	/** execute a CQP command & returns an array of results */
+	/** Executes a CQP command & returns an array of results (output lines from CQP). */
 	public function execute($command, $my_line_handler = false)
 	{
 		$result = array();
@@ -332,9 +338,9 @@ class CQP
 		$command = $this->filter_input($command);
 				
 		/* change any newlines in command to spaces */
-		preg_replace('/\n/', '/ /', $command);
+		preg_replace('/\n/', '/ /', $command);			//TODO the "replace" looks wrong, and nothing is done with the return value!
 		/* check for ; at end and remove if there */
-		preg_replace('/\n/', '/;\s*$/', $command);
+		preg_replace('/\n/', '/;\s*$/', $command);			//TODO the "replace" looks wrong, and nothing is done with the return value!
 		
 		if ($this->debug_mode == true)
 			echo "CQP << $command;\n";
@@ -445,7 +451,7 @@ class CQP
 
 
 	/**
-	 * wrapper for ->execute that gets the size of the named saved query.
+	 * A wrapper for ->execute that gets the size of the named saved query.
 	 * method has no error coding - relies on the normal ->execute error checking.
 	 */
 	public function querysize($name)
@@ -472,7 +478,7 @@ class CQP
 
 	
 	/**
-	 * dump named query result into table of corpus positions.
+	 * Dumps a named query result into table of corpus positions.
 	 * returns an array of results 
 	 */
 	public function dump($subcorpus, $from = '', $to = '')
@@ -486,6 +492,7 @@ class CQP
 		}
 		
 		$temp_returned = $this->execute("dump $subcorpus $from $to");
+		// TODO will this work with a charset filter?
 
 		$rows = array();
 
@@ -512,6 +519,8 @@ class CQP
 	 */
 	public function undump($subcorpus, $matches)
 	{
+		//TODO will this function work with a charset filter?
+		
 		if ( (!is_string($subcorpus)) || $subcorpus == "" || (!is_array($matches)) )
 		{
 			$this->status = 'error';
@@ -639,7 +648,7 @@ class CQP
 
 
 
-	/** compute freq distribution for match strings based on sort clause */
+	/** Computes the frequency distribution for match strings based on a sort clause. */
 	public function count($subcorpus, $sort_clause, $cutoff = 1)
 	{
 		if ($subcorpus == "" || $sort_clause == "")
@@ -682,7 +691,7 @@ class CQP
 	 * 
 	 * OTHERWISE, this function returns false.
 	 */
-	function checkerr()
+	public function checkerr()
 	{
 		$w = NULL;
 		$e = NULL;
@@ -717,7 +726,7 @@ class CQP
 
 
 
-	/** method to read the CQP object's status variable */
+	/** A method to read the CQP object's status variable. */
 	public function status()
 	{
 		return $this->status;
@@ -727,8 +736,8 @@ class CQP
 	
 	
 	/** 
-	 * simplified interface for checking for CQP errors: 
-	 * returns TRUE if status is ok, otherwise FALSE 
+	 * A simplified interface for checking for CQP errors: 
+	 * returns TRUE if status is ok, otherwise FALSE.
 	 */
 	public function ok()
 	{
@@ -752,25 +761,22 @@ class CQP
 		return $this->error_message;
 	}
 
-	/** does same as get_error_message, but with all strings in the array rolled together */
+	/** Does same as get_error_message, but with all strings in the array rolled together. */
 	public function get_error_message_as_string()
 	{
-		//TODO delete commented-out old version once it's established nothing broke.
-		//$output = '';
-		//foreach($this->error_message as $msg)
-			//$output .= "$msg\n";
-		//return $output;
 		return implode("\n", $this->error_message);
 	}
 
-	/** does same as get_error_message, but with (X)HTML paragraph and linebreak tags */
-	public function get_error_message_as_html()
+	/** 
+	 * Does same as get_error_message, but with (X)HTML paragraph and linebreak tags;
+	 * the parameter dictates what the value of the "class" attribute on the p-tag is to be.
+	 * 
+	 * If no argument is supplied, the paragraph is given no class.
+	 */
+	public function get_error_message_as_html($p_class = '')
 	{
-		$output = '<p class="errormessage">';
-		foreach ($this->error_message as $msg)
-			$output .= "<br/>$msg\n";
-		$output .= "</p>\n";
-		return $output;
+		$class = (empty($p_class) ? '' : " class=\"$p_class\"");
+		return "<p$class>" . implode("\n<br/>", $this->error_message) . "\n</p>\n";
 	}
 	
 	/** 
@@ -788,9 +794,11 @@ class CQP
 
 	
 
-	/** 
-	 * takes as argument: 1 argument -- an array of strings to return to caller 
-	 * reports errors in the object and CQP error messages 
+	/**
+	 * Function to call when the object encounters an error.
+	 *  
+	 * It takes as argument an array of strings to return to caller; these 
+	 * strings report errors in the object and CQP error messages. 
 	 */
 	private function error($message)
 	{
@@ -810,7 +818,7 @@ class CQP
 
 
 
-	/** set user-defined error handler */
+	/** Sets a user-defined error handler function. */
 	public function set_error_handler($handler)
 	{
 		$this->error_handler = $handler;
@@ -874,7 +882,7 @@ class CQP
 	 * will not be changed -- only its value will be returned. 
 	 * 
 	 * The argument should be a Boolean. If it isn't, it will be typecast to
-	 * bool according to the usual PHP rules.
+	 * bool according to the usual PHP rules (except NULL, of course).
 	 */
 	public function set_debug_mode($newstate = NULL)
 	{
@@ -907,6 +915,7 @@ class CQP
 			return $string;
 		case self::CHARSET_LATIN1:
 			return utf8_decode($string);
+			//TODO better to use iconv
 		}
 	}
 	/** 
@@ -962,7 +971,7 @@ class CQP
 	/* -------------- */
 
 	
-	/** backslash-escapes any CQP-syntax metacharacters in the argument string */
+	/** Backslash-escapes any CQP-syntax metacharacters in the argument string */
 	public static function escape_metacharacters($s)
 	{
 		$replacements = array(
@@ -981,7 +990,7 @@ class CQP
 		return strtr(str_replace('\\', '\\\\', $s), $replacements);
 	}
 	
-	/** Get a string containing the class's default required version of CWB. */ 
+	/** Gets a string containing the class's default required version of CWB. */ 
 	public static function default_required_version()
 	{
 		return self::VERSION_MAJOR_DEFAULT
@@ -1010,8 +1019,8 @@ class CQP
 		$infoblob .= "    \$cwb_registry = ``$cwb_registry''\n";
 		$infoblob .= "\n";
 		
-		/* all checks are wrapped in a do ... while(false) to allow a break to go straight to shutdown */
-		/* goto shutdown would be nice as well but we don't want to count on PHP 5.3+ */
+		/* all checks are wrapped in a do ... while(false) to allow a break to go straight to shutdown;
+		 * goto shutdown would be nice as well but we don't want to count on PHP 5.3+ */
 		do {
 			/* check path to cqp is a real directory */
 			$infoblob .= "Checking that /$path_to_cqp exists... ";
