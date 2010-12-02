@@ -290,9 +290,6 @@ if ($_GET['downloadGo'] === 'yes')
 	// TODO replace this with a call to URL-absolutify.
 	$abs_server_string = 'http://' . $_SERVER['SERVER_NAME'] 
 		. str_replace('redirect.php', '', $_SERVER['SCRIPT_NAME']);
-	
-	list($temp, $junk) = explode('redirect.php', '');
-		//TODO what on earth does the line above do? seems to do nothing
 
 	
 	/* send the HTTP header */

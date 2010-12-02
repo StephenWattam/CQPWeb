@@ -552,7 +552,6 @@ function clear_cache($protect_user_saved = true)
 	{
 		/* was this file protected on the previous pass? if so, it will still be in the DB */
 		preg_match('/\A([^:]*:)(.*)\z/', $file, $m);
-any
 		$result = do_mysql_query("select query_name from saved_queries where query_name = '{$m[2]}'");
 		
 		/* if this file wasn't protected, then delete it */
