@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -361,7 +361,7 @@ echo '</table>';
 print_footer();
 
 /* disconnect mysql */
-mysql_close($mysql_link);
+disconnect_global_mysql();
 
 /* ------------- */
 /* END OF SCRIPT */
@@ -393,7 +393,6 @@ function file_freq_comp_desc($a, $b)
 
 function print_distribution_filefreqs($qname_for_link)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	global $dbname;
@@ -408,10 +407,7 @@ function print_distribution_filefreqs($qname_for_link)
 		LEFT JOIN text_metadata_for_$corpus_sql_name as md ON db.text_id = md.text_id
 		GROUP BY db.text_id";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	$master_array = array();
 	$i = 0;
@@ -519,7 +515,6 @@ function print_distribution_filefreqs($qname_for_link)
 
 function print_distribution_graph($classification_handle, $classification_desc, $qname_for_link)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	global $dbname;
@@ -537,10 +532,7 @@ function print_distribution_graph($classification_handle, $classification_desc, 
 		LEFT JOIN $dbname as db on md.text_id = db.text_id
 		GROUP BY md.$classification_handle";
 	
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 
 	/* compile the info */
@@ -690,7 +682,6 @@ function print_distribution_graph($classification_handle, $classification_desc, 
 
 function print_distribution_table($classification_handle, $classification_desc, $qname_for_link)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	global $dbname;
@@ -741,10 +732,7 @@ function print_distribution_table($classification_handle, $classification_desc, 
 		LEFT JOIN $dbname as db on md.text_id = db.text_id
 		GROUP BY md.$classification_handle";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	/* for each category: */
 	while (($c = mysql_fetch_assoc($result)) != false)
@@ -851,7 +839,6 @@ function print_distribution_crosstabs($class_scheme_to_show, $class_desc_to_pass
 function print_distribution_crosstabs_once($classification_handle, $table_heading,
 	$condition_classification, $condition_category, $qname_for_link)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	global $dbname;
@@ -894,12 +881,7 @@ function print_distribution_crosstabs_once($classification_handle, $table_headin
 		WHERE $condition_classification = '$condition_category'
 		GROUP BY md.$classification_handle";
 
-//echo $sql_query;
-
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	/* for each category: */
 	while (($c = mysql_fetch_assoc($result)) != false)

@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -20,8 +20,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 
 
 
@@ -59,13 +57,9 @@ function corpus_list_texts($corpus)
 function text_metadata_table_exists()
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 
 	$sql_query = "show tables";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	$tables = array();
 	while ( ($r = mysql_fetch_row($result)) !== false)
@@ -84,7 +78,6 @@ function text_metadata_table_exists()
 
 function get_corpus_metadata($field)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	/* if data is in fixed metadata table */
@@ -108,7 +101,7 @@ function get_corpus_metadata($field)
 			. $corpus_sql_name ."' AND attribute = '$field'";
 	}
 
-	$result = mysql_query($query, $mysql_link);
+	$result = do_mysql_query($query);
 
 	if ($result != false && mysql_num_rows($result) != 0)
 	{
@@ -210,7 +203,6 @@ function update_corpus_visualisation_translate($in_concordance, $in_context, $s_
 }
 function update_corpus_metadata($field, $value)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	$field = mysql_real_escape_string($field);
@@ -236,37 +228,34 @@ function update_corpus_metadata($field, $value)
 			. " where corpus = '$corpus_sql_name' AND attribute = '$field'";
 	}
 
-	$result = mysql_query($query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($query);
 }
 
 
-
+/**
+ * Returns as integer the number of words in this corpus.
+ */
 function get_corpus_wordcount()
 {
-	global $mysql_link;
 	global $corpus_sql_name;
-
 
 	// this should prob be an auto-genrerated item of fixed metadata
 	// obviating the need for this function separate from the above
 	$sql_query = "select sum(words) from text_metadata_for_$corpus_sql_name";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	$row = mysql_fetch_row($result);
 
-	return $row[0];
+	return (int)$row[0];
 }
 
-/* returns an associative array: the keys are annotation handles, the values are annotation descs */
-/* if the corpus has no annotation, an empty array is returned. */
+/**
+ * Returns an associative array: the keys are annotation handles, 
+ * the values are annotation descs.
+ * 
+ * If the corpus has no annotation, an empty array is returned. 
+ */
 function get_corpus_annotations()
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	$compiled = array();
@@ -274,11 +263,7 @@ function get_corpus_annotations()
 	$sql_query = "select handle, description from annotation_metadata 
 		where corpus = '$corpus_sql_name'";
 	
-	$result = mysql_query($sql_query, $mysql_link);
-
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	while (($r = mysql_fetch_row($result)) !== false)
 		$compiled[$r[0]] = $r[1];
@@ -299,11 +284,13 @@ function check_is_real_corpus_annotation($handle)
 	return array_key_exists($handle, $annotations);
 }
 
-/* returns a list of tags used in the given annotation field, derived from the corpus' freqtable */
+/** 
+ * Returns a list of tags used in the given annotation field, 
+ * derived from the corpus's freqtable.
+ */
 function corpus_annotation_taglist($field)
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	
 	/* shouldn't be necessary...  but hey */
 	$field = mysql_real_escape_string($field);
@@ -312,10 +299,7 @@ function corpus_annotation_taglist($field)
 		return array();
 	
 	$sql_query = "select distinct(item) from freq_corpus_{$corpus_sql_name}_{$field} limit 1000";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 			
 	while ( ($r = mysql_fetch_row($result)) !== false )
 		$tags[] = $r[0];
@@ -327,7 +311,6 @@ function corpus_annotation_taglist($field)
 
 function metadata_expand_attribute($field, $value)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	/* value may not be a handle, so it needs escaping */
 	$value = mysql_real_escape_string($value);
@@ -336,10 +319,7 @@ function metadata_expand_attribute($field, $value)
 		. "'$corpus_sql_name' AND field_handle = '$field' AND handle = '$value' LIMIT 1";
 
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);	
+	$result = do_mysql_query($sql_query);
 
 	if (mysql_num_rows($result) == 0)
 		$exp_val = $value;
@@ -358,10 +338,7 @@ function metadata_expand_attribute($field, $value)
 	$sql_query = 'SELECT description FROM text_metadata_fields WHERE corpus = '
 		. "'$corpus_sql_name' AND handle = '$field' LIMIT 1";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);	
+	$result = do_mysql_query($sql_query);	
 
 	if (mysql_num_rows($result) == 0)
 		$exp_field = $field;
@@ -372,7 +349,6 @@ function metadata_expand_attribute($field, $value)
 		if ($exp_field == '')
 			$exp_field = $field;
 	}
-
 	
 	return array('field' => $exp_field, 'value' => $exp_val);
 }
@@ -380,28 +356,27 @@ function metadata_expand_attribute($field, $value)
 
 
 
-
+/**
+ * Expands the handle of a field to its description.
+ * 
+ * If there is no description, the handle is returned unaltered.
+ */
 function metadata_expand_field($field)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
-
+	$field = mysql_real_escape_string($field);
 	$sql_query = 'SELECT description FROM text_metadata_fields WHERE corpus = '
 		. "'$corpus_sql_name' AND handle = '$field' LIMIT 1";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);	
+	$result = do_mysql_query($sql_query);
 
 	if (mysql_num_rows($result) == 0)
 		$exp_field = $field;
 	else
 	{
-		$row = mysql_fetch_row($result);
-		$exp_field = $row[0];
-		if ($exp_field == "")
+		list($exp_field) = mysql_fetch_row($result);
+		if (empty($exp_field))
 			$exp_field = $field;
 	}
 
@@ -411,33 +386,29 @@ function metadata_expand_field($field)
 
 
 /**
- * returns an associative array (field=>value) for the text with the specified text id
+ * Returns an associative array (field=>value) for the text with the specified text id
  */
 function metadata_of_text($text_id)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 
 	$text_id = mysql_real_escape_string($text_id);
 
-	$sql_query = "select * from text_metadata_for_$corpus_sql_name where text_id = '$text_id' limit 1";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$sql_query = "select * from text_metadata_for_$corpus_sql_name 
+					where text_id = '$text_id' limit 1";
+	$result = do_mysql_query($sql_query);
 	
 	return mysql_fetch_assoc($result);
 }
 
 /**
- * returns an onmouseover string for links to the specified text_id
+ * Returns an onmouseover string for links to the specified text_id
  * 
  * TODO: this should probably be in concordance-lib
  */
 function metadata_tooltip($text_id)
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	
 	static $stored_tts = array();
 	
@@ -446,23 +417,15 @@ function metadata_tooltip($text_id)
 		return $stored_tts[$text_id]; 
 	
 	$sql_query = "select * from text_metadata_for_$corpus_sql_name where text_id = '$text_id'";
-	$text_result = mysql_query($sql_query, $mysql_link);
-	if ($text_result == false) 
-		printerror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$text_result = do_mysql_query($sql_query);
 	if (mysql_num_rows($text_result) == 0)
 		return "";
 	$text_data = mysql_fetch_assoc($text_result);
 
-
 	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus_sql_name' and is_classification = 1";
-	$field_result = mysql_query($sql_query, $mysql_link);
-	if ($field_result == false) 
-		printerror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$field_result = do_mysql_query($sql_query);
 	if (mysql_num_rows($field_result) == 0)
 		return "";
-
 	
 	$tt = 'onmouseover="return escape(\'Text <b>' . $text_id . '</b><BR>'
 		. '<i>(length = ' . make_thousands($text_data['words']) 
@@ -486,37 +449,30 @@ function metadata_tooltip($text_id)
 }
 
 /**
- * returns an array of field handles for the metadata table in this corpus
+ * Returns an array of field handles for the metadata table in this corpus.
  */
 function metadata_list_fields()
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 
 	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus_sql_name'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 			
 	$r = array();
 	while (($temp = mysql_fetch_row($result)) != false)
-	{
 		$r[] = $temp[0];
-	}
 	
 	return $r;
 }
 
 
 /**
- * returns true if this field name is a classification; false if it is free text
+ * Returns true if this field name is a classification; false if it is free text.
  * 
- * an exiterror will occur if the field does not exist!
+ * An exiterror will occur if the field does not exist!
  */
 function metadata_field_is_classification($field)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 
 	$field = mysql_real_escape_string($field);
@@ -524,10 +480,7 @@ function metadata_field_is_classification($field)
 	$sql_query = "SELECT is_classification FROM text_metadata_fields WHERE 
 		corpus = '$corpus_sql_name' and handle = '$field'";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	if (mysql_num_rows($result) < 1)
 		exiterror_general("Unknown metadata field specified!\n\n$sql_query", __FILE__, __LINE__);
@@ -535,22 +488,22 @@ function metadata_field_is_classification($field)
 	list($return_me) = mysql_fetch_row($result);
 	
 	return (bool)$return_me;
-
 }
 
 
 
 /**
- * returns an array of arrays listing all the classification schemes & their descs for the current corpus 
+ * Returns an array of arrays listing all the classification schemes & 
+ * their descs for the current corpus. 
  * 
  * Return format: array('handle'=>$the_handle,'description'=>$the_description) 
  * 
- * If the description is NULL or an empty string in the database, a copy of the handle is put in place of the
- * description. This default functionality can be turned off by passing a FALSE argument.
+ * If the description is NULL or an empty string in the database, a copy of the handle 
+ * is put in place of the description. This default functionality can be turned off 
+ * by passing a FALSE argument.
  */
 function metadata_list_classifications($disallow_empty_descriptions = true)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	$disallow_empty_descriptions = (bool)$disallow_empty_descriptions;
@@ -558,10 +511,7 @@ function metadata_list_classifications($disallow_empty_descriptions = true)
 	$sql_query = "SELECT handle, description FROM text_metadata_fields WHERE 
 		corpus = '$corpus_sql_name' and is_classification = 1";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	$return_me = array();
 
@@ -576,21 +526,17 @@ function metadata_list_classifications($disallow_empty_descriptions = true)
 
 
 /**
- *  returns a list of category handles occuring for the given classification 
+ *  Returns a list of category handles occuring for the given classification. 
  */
 function metadata_category_listall($classification)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 
 
 	$sql_query = "SELECT handle FROM text_metadata_values 
 		WHERE field_handle = '$classification' AND corpus = '$corpus_sql_name'";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	$return_me = array();
 	
@@ -603,26 +549,24 @@ function metadata_category_listall($classification)
 
 
 /**
- * returns an associative array of category descriptions
- * where the keys are the handles, for the given classification 
+ * Returns an associative array of category descriptions,
+ * where the keys are the handles, for the given classification.
+ * 
+ * If no description exists, the handle is set as the description.
  */
 function metadata_category_listdescs($classification)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 
 	$sql_query = "SELECT handle, description FROM text_metadata_values 
 		WHERE field_handle = '$classification' AND corpus = '$corpus_sql_name'";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	$return_me = array();
 	
 	while (($r = mysql_fetch_row($result)) != false)
-		$return_me[$r[0]] = $r[1];
+		$return_me[$r[0]] = (empty($r[1]) ? $r[0] : $r[1]);
 	
 	return $return_me;
 }
@@ -631,19 +575,15 @@ function metadata_category_listdescs($classification)
 
 
 /**
- *  returns a list of text IDs, plus their category for the given classification 
+ * Returns a list of text IDs, plus their category for the given classification. 
  */
 function metadata_category_textlist($classification)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	$sql_query = "SELECT text_id, $classification FROM text_metadata_for_$corpus_sql_name";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	$return_me = array();
 	
@@ -660,16 +600,12 @@ function metadata_category_textlist($classification)
  */ 
 function metadata_size_of_cat($classification, $category)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 
 	$sql_query = "SELECT sum(words) FROM text_metadata_for_$corpus_sql_name 
 		where $classification = '$category'";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	$size_in_words = mysql_fetch_row($result);
 	unset($result);
@@ -678,10 +614,7 @@ function metadata_size_of_cat($classification, $category)
 	$sql_query = "SELECT count(*) FROM text_metadata_for_$corpus_sql_name
 		where $classification = '$category'";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	$size_in_files = mysql_fetch_row($result);
 	unset($result);
@@ -693,16 +626,12 @@ function metadata_size_of_cat($classification, $category)
 /* as above, but thins by an additional classification-catgory pair (for crosstabs) */
 function metadata_size_of_cat_thinned($classification, $category, $class2, $cat2)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 
 	$sql_query = "SELECT sum(words) FROM text_metadata_for_$corpus_sql_name 
 		where $classification = '$category' and $class2 = '$cat2'";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	$size_in_words = mysql_fetch_row($result);
 	unset($result);
@@ -711,10 +640,7 @@ function metadata_size_of_cat_thinned($classification, $category, $class2, $cat2
 	$sql_query = "SELECT count(*) FROM text_metadata_for_$corpus_sql_name
 		where $classification = '$category' and $class2 = '$cat2'";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	$size_in_files = mysql_fetch_row($result);
 	unset($result);

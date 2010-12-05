@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -20,7 +20,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 
@@ -268,16 +267,12 @@ function print_sc_define_metadata()
 function print_sc_define_query()
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	global $username;
 	
 	$sql_query = $sql_query = "select query_name, save_name from saved_queries 
 		where corpus = '$corpus_sql_name' and user = '$username' and saved = 1";
 	
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	$no_saved_queries = (mysql_num_rows($result) == 0);
 	
@@ -575,7 +570,7 @@ function print_sc_define_text_id()
 	<table class="concordtable" width="100%">
 	<form action="subcorpus-admin.php" method="get">
 		<tr>
-			<th class="concordtable"<?php echo $colspan_text; ?>>Design a new subcorpus</th>
+			<th class="concordtable">Design a new subcorpus</th>
 		</tr>
 		<tr>
 			<td class="concordgeneral">
@@ -609,7 +604,6 @@ function print_sc_define_text_id()
 
 function print_sc_showsubcorpora()
 {
-	global $mysql_link;
 	global $username;
 	global $default_history_per_page;	/* the same variable used for query history is used here */
 	global $corpus_sql_name;
@@ -637,10 +631,7 @@ function print_sc_showsubcorpora()
 
 		$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
 			where corpus = '$corpus_sql_name' and user = '$username' order by subcorpus_name";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 				
 		$subcorpora_with_freqtables = list_freqtabled_subcorpora();
 
@@ -865,7 +856,6 @@ function print_sc_addtexts()
 
 function print_sc_view_and_edit()
 {
-	global $mysql_link;
 	global $username;
 	global $default_history_per_page;
 	global $corpus_sql_name;
@@ -897,7 +887,6 @@ function print_sc_view_and_edit()
 			$catdescs = false;
 		$field_options = "\n";
 	}
-
 
 
 	
@@ -962,10 +951,6 @@ function print_sc_view_and_edit()
 						</select>
 						<input type="submit" onclick="subcorpusAlterForm()" value="Show" />
 					</th>
-					<!--
-					<input type="hidden" name="subcorpusFunction" value="view_subcorpus" />
-					<input type="hidden" name="subcorpusToView" value="<?php echo $subcorpus; ?>" />
-					-->
 				<th class="concordtable">Size in words</th>		
 				<th class="concordtable">Delete</th>		
 			</tr>
@@ -987,12 +972,12 @@ function print_sc_view_and_edit()
 			. $text
 			. '</a></strong></td>';
 			
-		/* primary classification */
+		/* primary classification (or whatever classification has been selected) */
 		echo '<td class="concordgeneral">'
 			. ($show_field === false 
 					? '&nbsp;'
 					: ($catdescs !== false ? $catdescs[$meta[$show_field]] : $meta[$show_field])
-					) 
+					)
 			. '</td>';
 		
 
@@ -1028,7 +1013,6 @@ function print_sc_list_of_files()
 {
 	global $username;
 	global $corpus_sql_name;
-	global $mysql_link;
 
 	global $list_of_texts_to_show_in_form;
 	global $header_cell_text;
@@ -1048,10 +1032,7 @@ function print_sc_list_of_files()
 	
 	$sql_query = "select subcorpus_name from saved_subcorpora
 		where corpus = '$corpus_sql_name' and user = '$username' order by subcorpus_name";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	$subcorpus_options = "\n";
 	while ( ($r= mysql_fetch_row($result)) != false)
 		$subcorpus_options .= '<option value="' . $r[0] . '">Add to ' . $r[0]. '</option>';

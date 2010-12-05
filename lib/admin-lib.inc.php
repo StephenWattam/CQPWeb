@@ -1,7 +1,7 @@
 <?php
 /*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-10 Andrew Hardie and contributors
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
  * See http://cwb.sourceforge.net/cqpweb.php
  *
@@ -22,12 +22,15 @@
  */
 
 /**
- * This file contains functions used in the adminstration of CQPweb.
+ * @file
+ * 
+ * This file contains functions used in the administration of CQPweb.
  * 
  * It should generally not be included into scripts unless the user
  * is a sysadmin.
  */
 
+//TODO split into admin-install.inc.php and rest of admin-lib.inc.php
 
 
 /**
@@ -230,16 +233,14 @@ class corpus_install_info
 
 		if ($_GET['cssCustom'] == 1)
 		{
-			// TODO
-			// I am no longer certain if this will work properly??? haven't tried yet, should do so
-			// note that this was written BEFORE we had the generalised magic-quotes-nullifying code
-			// that is found in defaults.inc.php
-			if (get_magic_quotes_gpc() == 0)
-				$_GET['cssCustomUrl'] = addcslashes($_GET['cssCustomUrl'], "'");
+			/* escape single quotes in the address because it will be embedded in a single-quoted string */ 
 			$this->css_url = addcslashes($_GET['cssCustomUrl'], "'");
+			/* only a silly URL would have ' in it anyway, so this is for safety */
 		}
 		else
 		{
+			/* we assume no single quotes in builtin CSS files because we can make sure no
+			 * silly filenames get added in the future.... */ 
 			$this->css_url = "../css/{$_GET['cssBuiltIn']}";
 			if (! is_file($this->css_url))
 				$this->css_url = '';
@@ -489,17 +490,17 @@ function delete_corpus_from_cqpweb($corpus)
 {
 	global $cwb_registry;
 	global $cwb_datadir;
-	global $corpus_cqp_name;
+	//global $corpus_cqp_name;
 	$corpus = mysql_real_escape_string($corpus);
 
 	/* get the cwb name of the corpus, etc. */
 	include("../$corpus/settings.inc.php");
 	
+	//TODO DANGEROUS, or is it?????? names should be ascii....
 	$corpus_cwb_lower = strtolower($corpus_cqp_name);
 	
 	/* check the corpus is actually there to delete */
-	$sql_query = "select corpus, cwb_external from corpus_metadata_fixed where corpus = '$corpus'";
-	$result = do_mysql_query($sql_query);
+	$result = do_mysql_query("select corpus, cwb_external from corpus_metadata_fixed where corpus = '$corpus'");
 	if (mysql_num_rows($result) < 1)
 		return;
 	
@@ -509,18 +510,15 @@ function delete_corpus_from_cqpweb($corpus)
 	
 
 	/* delete all saved queries, frequency tables, and dbs associated with this corpus */
-	$sql_query = "select query_name from saved_queries where corpus = '$corpus'";
-	$result = do_mysql_query($sql_query);
+	$result = do_mysql_query("select query_name from saved_queries where corpus = '$corpus'");
 	while (($r = mysql_fetch_row($result)) !== false)
 		delete_cached_query($r[0]);
 
-	$sql_query = "select dbname from saved_dbs where corpus = '$corpus'";
-	$result = do_mysql_query($sql_query);
+	$result = do_mysql_query("select dbname from saved_dbs where corpus = '$corpus'");
 	while (($r = mysql_fetch_row($result)) !== false)
 		delete_db($r[0]);
 
-	$sql_query = "select freqtable_name from saved_freqtables where corpus = '$corpus'";
-	$result = do_mysql_query($sql_query);
+	$result = do_mysql_query("select freqtable_name from saved_freqtables where corpus = '$corpus'");
 	while (($r = mysql_fetch_row($result)) !== false)
 		delete_freqtable($r[0]);
 	
@@ -529,9 +527,9 @@ function delete_corpus_from_cqpweb($corpus)
 	
 	/* delete main frequency tables */
 	// TODO possible bug here if someone has one corpus called XXX and another called XXX_YYY
-	// deleting freq tables for the former will take the latter with it!
-	$sql_query = "show tables like 'freq_corpus_${corpus}_%'";
-	$result = do_mysql_query($sql_query);
+	// deleting freq tables for the former will take the tables of the latter with it!
+	// to fix this, instead of using "show tables", get a list of p-atts and build each delete query
+	$result = do_mysql_query("show tables like 'freq_corpus_($corpus}_%'");
 	while (($r = mysql_fetch_row($result)) !== false)
 		do_mysql_query("drop table if exists ${r[0]}");
 	
@@ -750,7 +748,7 @@ function uploaded_file_view($filename)
 	
 	$data = htmlspecialchars($data);
 	
-	// TODO call header() with char encoding here 
+	header('Content-Type: text/html; charset=utf-8');
 	?>
 	<html>
 		<head>
@@ -813,7 +811,12 @@ function restore_system_security()
 		unlink('../cqpweb-autoconfig.php.gz');
 }
 
-
+/**
+ * Adds a new user.
+ * 
+ * Note the function can also be used to update the password. If the user already exists,
+ * default values will not be reinserted into the user database.
+ */
 function add_new_user($username, $password, $email = NULL)
 {
 	$apache = get_apache_object('nopath');
@@ -822,16 +825,22 @@ function add_new_user($username, $password, $email = NULL)
 	$password = preg_replace('/\W/', '', $password);
 	
 	if ($username === '' || $password === '')
-		exiterror_fullpage("Usernames and passwords can only contain letters, numbers and underscores",
+		exiterror_fullpage("Usernames and passwords can only contain letters, numbers and underscores.",
 			__FILE__, __LINE__);
 	
 	$apache->new_user($username, $password);
+
+	/* start by creating a blank entry for the user (or, retrieving an existing entry) */
+	$profile = get_all_user_settings($username);
 	
+	/* then, overwrite the password as stored in the database */
+	global $password_more_security;
+	$db_password = ($password_more_security ? $apache->get_user_hashword($username) : $password);
+	update_user_setting($username, 'password', $db_password);
+	
+	/* and if email has been passed into the function, likewise overwrite it */
 	if (isset($email))
-	{
-		create_user_record($username);
 		update_user_setting($username, 'email', mysql_real_escape_string($email));
-	}
 }
 
 function add_batch_of_users($username_root, $number_in_batch, $password, $autogroup, $different_passwords = false)
@@ -871,18 +880,26 @@ function add_batch_of_users($username_root, $number_in_batch, $password, $autogr
 	}
 }
 
+/**
+ * Deletes a specified user account.
+ * 
+ * If the username passed in is an empty string,
+ * it will return without doing anything; all non-word
+ * characters are removed for database safety.
+ */
 function delete_user($user)
 {
 	$apache = get_apache_object('nopath');
 	$user = preg_replace('/\W/', '', $user);
-	if ($user === '')
+	if (empty($user))
 		return;
 	$apache->delete_user($user);
+	delete_user_record($user);
 }
 
 
 /**
- * delete all usernames consisting of $prefix plus a string of one or more digits 
+ * Deletes accounts of all usernames consisting of $prefix plus a string of one or more digits. 
  */
 function delete_user_batch($prefix)
 {
@@ -893,7 +910,10 @@ function delete_user_batch($prefix)
 	foreach ($apache->list_users() as $user)
 	{
 		if (preg_match("/^$prefix\d+$/", $user) > 0)
+		{
 			$apache->delete_user($user);
+			delete_user_record($user);
+		}
 	}	
 }
 
@@ -1262,7 +1282,6 @@ function create_text_metadata_for()
 	global $create_text_metadata_for_info;
 	global $cqpweb_uploaddir;
 	global $cqpweb_tempdir;
-	global $mysql_link;
 	global $mysql_LOAD_DATA_INFILE_command;
 	
 	
@@ -1296,7 +1315,7 @@ function create_text_metadata_for()
 // it doesn't seem to do anything.
 // cut it out, see if it still works???
 	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus'";
-	$result = do_mysql_query($sql_query, $mysql_link);
+	$result = do_mysql_query($sql_query);
 // end of bit that doesn't seem to do anything.
 	
 	/* note, size of text_id is 50 to allow possibility of non-decoded UTF8 - they should be shorter */
@@ -1374,12 +1393,7 @@ function create_text_metadata_for()
 	if (isset($inserts_for_metadata_fields))
 	{
 		foreach($inserts_for_metadata_fields as &$ins)
-		{
-			$result = mysql_query($ins, $mysql_link);
-			if ($result == false) 
-				exiterror_mysqlquery(mysql_errno($mysql_link), 
-					mysql_error($mysql_link), __FILE__, __LINE__);
-		}
+			do_mysql_query($ins);
 	}
 	
 	do_mysql_query($create_statement);
@@ -1387,7 +1401,7 @@ function create_text_metadata_for()
 	create_text_metadata_check_text_ids($corpus);
 	
 	if ($update_statement !== '')
-		do_mysql_query($update_statement, $mysql_link);
+		do_mysql_query($update_statement);
 
 	foreach($scan_statements as &$current)
 	{
@@ -1842,12 +1856,10 @@ function cqpweb_mysql_undump_data($dump_file_path)
 
 
 /**
- * Function to re-set the mysql setup to basic form.
+ * Function to re-set the mysql setup to its initialised form.
  */
 function cqpweb_mysql_total_reset()
 {
-	global $mysql_link;
-
 	foreach (array( 'db_', 
 					'freq_corpus_', 
 					'freq_sc_', 
@@ -1941,6 +1953,7 @@ function cqpweb_mysql_recreate_tables()
 	$create_statements['user_settings'] =
 		"CREATE TABLE `user_settings` (
 			`username` varchar(20) NOT NULL default '',
+			`password` varchar(20) default NULL,
 			`realname` varchar(50) default NULL,
 			`email` varchar(50) default NULL,
 			`conc_kwicview` tinyint(1),
@@ -1955,7 +1968,7 @@ function cqpweb_mysql_recreate_tables()
 			`coll_to` tinyint,
 			`max_dbsize` int(10) unsigned default NULL,
 			`linefeed` char(2) default NULL,
-			key(`username`)
+			primary key(`username`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 
 	

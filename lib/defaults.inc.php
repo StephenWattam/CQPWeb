@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-10 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -128,6 +128,9 @@ if (!isset($css_path_for_adminpage))
 if (!isset($create_password_function))
 	$create_password_function = "password_insert_internal";
 
+if (!isset($password_more_security))
+	$password_more_security = false;
+
 if (!isset($cqpweb_uses_apache))
 	$cqpweb_uses_apache = true;
 
@@ -242,7 +245,7 @@ if (!isset($default_words_in_download_context))
 
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '2.15');
+define('CQPWEB_VERSION', '2.16');
 
 
 /* "reserved words" that can't be used for corpus ids */
@@ -327,19 +330,19 @@ if (!isset($username))
 
 
 
-/* instance_name is the unique identifier of the present run of a given script 
+/* $instance_name is the unique identifier of the present run of a given script 
  * which will be used as the name of any queries/records saved by the present script.
  * 
  * It was formerly the username plus the unix time, but this raised the possibility of
  * one user seeing another's username linked to a cached query. So now it's the PHP uniqid(),
  * which is a hexadecimal version of the Unix time in microseconds. This shouldn't be 
  * possible to duplicate unless (a) we're on a computer fast enough to call uniqid() twice
- * in two threads/processes in the same microsecond (b) two users do happen to hit us in 
+ * in two different processes in the same microsecond (b) two users do happen to hit us in 
  * the same microsecond. 
  * 
- * An X prefix is used to flag the start and show it's hexadecimal.  Total length = 14 chars.
+ * For compactness, we convert to base-36.  Total length = 10 chars (for the foreseeable future!).
  */ 
-$instance_name = 'x' . uniqid();
+$instance_name = base_convert(uniqid(), 16, 36);
 
 if (! isset($this_script))
 {

@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -115,9 +115,7 @@ echo "concordgeneral\"><a class=\"menuItem\"
 /* print a link to a corpus manual, if there is one */
 $sql_query = "select external_url from corpus_metadata_fixed where corpus = '"
 	. $corpus_sql_name . "' and external_url IS NOT NULL";
-$result = mysql_query($sql_query, $mysql_link);
-if ($result == false) 
-	exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), __FILE__, __LINE__);
+$result = do_mysql_query($sql_query);
 if (mysql_num_rows($result) < 1)
 	echo '<tr><td class="concordgeneral"><a class="menuCurrentItem">No corpus documentation available</a></tr></td>';
 else
@@ -134,9 +132,7 @@ unset($row);
 /* print a link to each tagset for which an external_url is declared in metadata */
 $sql_query = "select description, tagset, external_url from annotation_metadata where corpus = '"
 	. $corpus_sql_name . "' and external_url IS NOT NULL";
-$result = mysql_query($sql_query, $mysql_link);
-if ($result == false) 
-	exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), __FILE__, __LINE__);
+$result = do_mysql_query($sql_query);
 
 
 while (($row = mysql_fetch_assoc($result)) != false)
@@ -214,7 +210,7 @@ echo "Report bugs</a></td></tr>";
 print_footer();
 
 /* ... and disconnect mysql */
-mysql_close($mysql_link);
+disconnect_global_mysql();
 
 /* ------------- */
 /* END OF SCRIPT */

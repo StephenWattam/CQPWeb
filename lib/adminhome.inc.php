@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -20,7 +20,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* adminhome.inc.php: this file contains the code that renders the various admin function controls */
 
@@ -2558,6 +2557,7 @@ function printquery_tableview()
 // currently just dumps the table to the page.
 // we also want options to kill, etc.
 // and ideally delete any associated temp files if their names can be worked out.
+// also would be good to get information on how many connections from cqpweb to mysql there are
 // TODO : this, properly!
 function printquery_mysqlprocesses()
 {
@@ -2702,6 +2702,8 @@ function printquery_phpconfig()
 {
 	if ($_GET['showPhpInfo'])
 	{
+		/* this messes up the HTML styling unfortunately, but I can't see a way to
+		 * stop it from doing so */
 		phpinfo();
 		return;
 	}

@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -22,9 +22,9 @@
  */
 
 
-
-
 /**
+ * @file
+ * 
  * this file contains functions dealing with the creation and management of subcorpora 
  * and restrictions 
 
@@ -47,14 +47,13 @@ function create_subcorpus_list($subcorpus_name, $text_list)
 {
 	global $corpus_sql_name;
 	global $username;
-	global $mysql_link;
 
 	$text_list = alphabetise_textlist($text_list);
 	$whereclause = translate_textlist_to_where($text_list);
 	
 	$sql_query = "SELECT count(*), sum(words) FROM text_metadata_for_$corpus_sql_name 
 		WHERE $whereclause";
-	$result = do_mysql_query($sql_query, $mysql_link);
+	$result = do_mysql_query($sql_query);
 	list($numfiles, $numwords) = mysql_fetch_row($result);
 			
 	unset($result);
@@ -66,33 +65,29 @@ function create_subcorpus_list($subcorpus_name, $text_list)
 		WHERE subcorpus_name = '$subcorpus_name'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	do_mysql_query($sql_query, $mysql_link);
+	do_mysql_query($sql_query);
 
 	$text_list = mysql_real_escape_string($text_list);
 	
 	$sql_query = "INSERT INTO saved_subcorpora (subcorpus_name, corpus, user, text_list, numfiles, numwords)
 		values 
 		('$subcorpus_name', '$corpus_sql_name', '$username', '$text_list', '$numfiles', '$numwords')";
-	do_mysql_query($sql_query, $mysql_link);
+	do_mysql_query($sql_query);
 }
 
 
 
 
 
-/* create a subcorpus from restrictions formatted as SQL "where" clause */
+/** Creates a subcorpus from restrictions formatted as SQL "where" clause */
 function create_subcorpus_restrictions($subcorpus_name, $restrictions)
 {
 	global $corpus_sql_name;
 	global $username;
-	global $mysql_link;
 
 	$sql_query = "SELECT count(*), sum(words) FROM text_metadata_for_$corpus_sql_name 
 		WHERE $restrictions";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	list($numfiles, $numwords) = mysql_fetch_row($result);
 			
 	unset($result);
@@ -102,12 +97,7 @@ function create_subcorpus_restrictions($subcorpus_name, $restrictions)
 		WHERE subcorpus_name = '$subcorpus_name'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-			
-	unset($result);
+	do_mysql_query($sql_query);
 	
 	$subcorpus_name = mysql_real_escape_string($subcorpus_name);
 	$restrictions = mysql_real_escape_string($restrictions);
@@ -115,10 +105,7 @@ function create_subcorpus_restrictions($subcorpus_name, $restrictions)
 	$sql_query = "INSERT INTO saved_subcorpora (subcorpus_name, corpus, user, restrictions, numfiles, numwords)
 		values 
 		('$subcorpus_name', '$corpus_sql_name', '$username', '$restrictions', '$numfiles', '$numwords')";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 
 
@@ -127,7 +114,6 @@ function create_subcorpus_query($subcorpus_name, $qname)
 {
 	global $corpus_sql_name;
 	global $username;
-	global $mysql_link;
 	global $cqp;
 
 	/* check the connection to CQP */
@@ -176,8 +162,7 @@ function create_subcorpus_invert($subcorpus_name, $subcorpus_to_invert)
 	$new_text_list = trim($new_text_list);
 	
 	if (empty($new_text_list))
-		exiterror_general("The subcorpus you have tried to create would not contain "
-			. "any texts!");
+		exiterror_general("The subcorpus you have tried to create would not contain any texts!");
 	
 	create_subcorpus_list($subcorpus_name, $new_text_list);
 }
@@ -188,16 +173,12 @@ function subcorpus_change_restrictions_to_list($subcorpus_name)
 {
 	global $corpus_sql_name;
 	global $username;
-	global $mysql_link;
 
 	$sql_query = "select * from saved_subcorpora
 		WHERE subcorpus_name = '$subcorpus_name'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)
 		exiterror_arguments($subcorpus_name, 'This subcorpus does not seem to exist!', 
@@ -217,10 +198,7 @@ function subcorpus_change_restrictions_to_list($subcorpus_name)
 		WHERE subcorpus_name = '$subcorpus_name'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 
 
@@ -230,7 +208,7 @@ function subcorpus_change_restrictions_to_list($subcorpus_name)
 
 
 /**
- * remove the texts listed in the array from the specified subcorpus
+ * Removes the texts listed in the array from the specified subcorpus.
  */
 function subcorpus_remove_texts($subcorpus, $text_array)
 {
@@ -255,7 +233,8 @@ function subcorpus_remove_texts($subcorpus, $text_array)
 
 
 /** 
- * add the texts listed in the array to the specified subcorpus (if they are not already there)
+ * Adds the texts listed in the array to the specified subcorpus 
+ * (if they are not already there).
  */
 function subcorpus_add_texts($subcorpus, $text_array)
 {	
@@ -274,25 +253,22 @@ function subcorpus_add_texts($subcorpus, $text_array)
 
 
 /**
- * changes the subcorpus to have the new text list (and no restrictions)
- * and updates its size
- * note: new_list should be a space-delimited string as per usual
+ * Changes the subcorpus to have the new text list (and no restrictions)
+ * and updates its size.
+ * 
+ * Note: new_list should be a space-delimited string as per usual.
  */
 function subcorpus_alter_text_list($subcorpus, $new_list)
 {
 	global $corpus_sql_name;
 	global $username;
-	global $mysql_link;
 
 	$subcorpus = mysql_real_escape_string($subcorpus);
 	
 	/* find out the new size of the subcorpus and update */
 	$sql_query = "SELECT count(*), sum(words) FROM text_metadata_for_$corpus_sql_name 
 		WHERE " . translate_textlist_to_where($new_list);
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	list($numfiles, $numwords) = mysql_fetch_row($result);
 
 	$sql_query = "update saved_subcorpora 
@@ -300,10 +276,7 @@ function subcorpus_alter_text_list($subcorpus, $new_list)
 		WHERE subcorpus_name = '$subcorpus'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);	
+	do_mysql_query($sql_query);
 }
 
 
@@ -313,7 +286,6 @@ function subcorpus_alter_text_list($subcorpus, $new_list)
 function subcorpus_get_text_list($subcorpus)
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	global $username;
 	
 	$subcorpus = mysql_real_escape_string($subcorpus);
@@ -322,10 +294,7 @@ function subcorpus_get_text_list($subcorpus)
 		WHERE subcorpus_name = '$subcorpus'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)
 		exiterror_arguments($subcorpus, 'This subcorpus does not seem to exist!', 
@@ -348,10 +317,7 @@ function subcorpus_get_text_list($subcorpus)
 
 		$sql_query = "select text_id from text_metadata_for_$corpus_sql_name
 			WHERE {$sc_record['restrictions']}";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 				
 		while ( ($r = mysql_fetch_row($result)) !== false)
 		{
@@ -370,7 +336,6 @@ function subcorpus_get_text_list($subcorpus)
 function subcorpus_based_on_restrictions($subcorpus)
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	global $username;
 	
 	$subcorpus = mysql_real_escape_string($subcorpus);
@@ -379,10 +344,7 @@ function subcorpus_based_on_restrictions($subcorpus)
 		WHERE subcorpus_name = '$subcorpus'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)
 		exiterror_arguments($subcorpus, 'This subcorpus does not seem to exist!', 
@@ -416,7 +378,6 @@ function subcorpus_based_on_restrictions($subcorpus)
 function subcorpus_sizeof($subcorpus)
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	global $username;
 	
 	$subcorpus = mysql_real_escape_string($subcorpus);
@@ -425,10 +386,7 @@ function subcorpus_sizeof($subcorpus)
 		WHERE subcorpus_name = '$subcorpus'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)
 		exiterror_arguments($subcorpus, 'This subcorpus does not seem to exist!', 
@@ -443,12 +401,13 @@ function subcorpus_sizeof($subcorpus)
 }
 
 /**
- * amends the numwords and numfiles fields in the subcorpus table to match the 
+ * Amends the numwords and numfiles fields in the subcorpus table to match the 
  * (presumably new) text list
  */
 function subcorpus_sizeof_update($subcorpus)
 {
 	//TODO
+	// is this even needed?
 }
 
 
@@ -473,7 +432,6 @@ function get_list_of_subcorpora()
 /* freq tables as well */
 function delete_subcorpus($subcorpus_name)
 {
-	global $mysql_link;
 	global $username;
 	global $corpus_sql_name;
 
@@ -483,10 +441,7 @@ function delete_subcorpus($subcorpus_name)
 		and corpus = '$corpus_sql_name' 
 		and user = '$username'
 		";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	while ( ($r = mysql_fetch_row($result)) !== false)
 		delete_cached_query($r[0]);
@@ -500,10 +455,7 @@ function delete_subcorpus($subcorpus_name)
 		and corpus = '$corpus_sql_name' 
 		and user = '$username'
 		";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	while ( ($r = mysql_fetch_row($result)) !== false)
 		delete_db($r[0]);
@@ -525,10 +477,7 @@ function delete_subcorpus($subcorpus_name)
 		and corpus = '$corpus_sql_name' 
 		and user = '$username'
 		LIMIT 1";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);	
+	do_mysql_query($sql_query);
 }
 
 
@@ -537,15 +486,11 @@ function delete_subcorpus($subcorpus_name)
 function translate_restrictions_to_text_list($restrictions)
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 
 	$sql_query = "select text_id from text_metadata_for_$corpus_sql_name
 		where $restrictions";
 	/* note - it isn't real-escaped, so it must be escaped before this if necessary */
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	while ($r = mysql_fetch_row($result))
 		$list .= $r[0] . ' ';
@@ -559,7 +504,6 @@ function load_subcorpus_to_cqp($subcorpus)
 {
 	global $corpus_sql_name;
 	global $username;
-	global $mysql_link;
 	global $instance_name;
 	global $cqpweb_tempdir;
 
@@ -571,10 +515,7 @@ function load_subcorpus_to_cqp($subcorpus)
 		WHERE subcorpus_name = '$subcorpus'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)
 		exiterror_arguments($subcorpus, 'This subcorpus does not seem to exist!', 
@@ -614,7 +555,6 @@ function load_subcorpus_to_cqp($subcorpus)
 
 function load_restrictions_to_cqp($restrictions)
 {
-	global $mysql_link;
 	global $cqpweb_tempdir;
 	global $corpus_sql_name;
 	global $instance_name;
@@ -760,14 +700,11 @@ function save_last_restrictions_as_subcorpus($restrictions)
 {
 	global $corpus_sql_name;
 	global $username;
-	global $mysql_link;
 
 	$sql_query = "SELECT count(*), sum(words) FROM text_metadata_for_$corpus_sql_name 
 		WHERE $restrictions";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
+
 	list($numfiles, $numwords) = mysql_fetch_row($result);
 			
 	unset($result);
@@ -776,22 +713,14 @@ function save_last_restrictions_as_subcorpus($restrictions)
 		WHERE subcorpus_name = '__last_restrictions'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-			
-	unset($result);
+	do_mysql_query($sql_query);
 	
 	$restrictions = mysql_real_escape_string($restrictions);
 	
 	$sql_query = "INSERT INTO saved_subcorpora (subcorpus_name, corpus, user, restrictions, numfiles, numwords)
 		values 
 		('__last_restrictions', '$corpus_sql_name', '$username', '$restrictions', '$numfiles', '$numwords')";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 */
 
@@ -801,16 +730,12 @@ function reload_last_restrictions()
 {
 	global $corpus_sql_name;
 	global $username;
-	global $mysql_link;
 
 	$sql_query = "SELECT restrictions from saved_subcorpora
 		WHERE subcorpus_name = '__last_restrictions'
 		AND corpus = '$corpus_sql_name'
 		AND user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	$row = mysql_fetch_row($result);
 
 	return $row[0];
@@ -906,15 +831,12 @@ function check_textlist_valid($text_list)
 function check_real_text_name($text)
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 
 	$text = mysql_real_escape_string($text);
 	
 	$sql_query = "select text_id from text_metadata_for_$corpus_sql_name where text_id = '$text'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
+	
 	if (mysql_num_rows($result) > 0)
 		return true;
 	else
@@ -949,10 +871,8 @@ function check_real_text_name($text)
 // not quite sure why this is here
 // prob better files for it to be in 
 
-
 function populate_corpus_cqp_positions()
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	global $cqp;
@@ -965,22 +885,25 @@ function populate_corpus_cqp_positions()
 		connect_global_cqp();
 	}
 
-	// more efficient implementation of this code (SE, 2009-12-19)
+	/* more efficient implementation of this code (SE, 2009-12-19) */
 
 	$cqp->execute("A = <text> [] expand to text");
 	$lines = $cqp->execute("tabulate A match, matchend, match text_id");
 	foreach ($lines as &$a)
 	{
 		$item = explode("\t", $a);
-		// PHP's MySQL interface is badly broken as it doesn't support prepared queries.
-		// This code recompiles the SQL query below for each metadata item. It is slow and unsafe.
+		/* Doing a mysql query inside a loop would be much more efficient if we could
+		 * use a prepared query - but, alas, we don't want to require the more recent
+		 * versions of the mysql server that enable this (or, indeed, PHP's mysqli 
+		 * extension that supports it) */
 		do_mysql_query("update text_metadata_for_$corpus_sql_name
 			set cqp_begin = {$item[0]}, cqp_end = {$item[1]}
 			where text_id = '{$item[2]}'");
 	}
 	unset($lines);
 
-	// update word counts for each text (NB: previous calculation words = cqp_end - cqp_start was wrong!)
+	/* update word counts for each text 
+	 * (NB: previous calculation, words = cqp_end - cqp_begin, was wrong!) */
 	$sql_query = "update text_metadata_for_$corpus_sql_name set words = cqp_end - cqp_begin + 1";
 	do_mysql_query($sql_query);
 
@@ -1018,16 +941,13 @@ function populate_corpus_cqp_positions()
 			. $c['begin'] . ", cqp_end = " . $c['end'] . ", words = " . ($c['end'] - $c['begin']) 
 			. " where text_id = '$text_id'";
 
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 		unset($result, $sql_query);
 	}
 */
 
 	if (!$cqp_was_set)
-		$cqp->disconnect();
+		disconnect_global_cqp();
 
 	return;
 }

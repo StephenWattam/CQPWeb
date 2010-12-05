@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -29,11 +29,8 @@
 
 
 
-
 function get_user_setting($username, $field)
 {
-	global $mysql_link;
-
 	static $cache;
 
 	if (isset($cache[$username]))
@@ -41,11 +38,7 @@ function get_user_setting($username, $field)
 
 	$sql_query = "SELECT * from user_settings WHERE username = '$username'";
 	
-	$result = mysql_query($sql_query, $mysql_link);
-
-	if ($result == false)
-	exiterror_mysqlquery(mysql_errno($mysql_link), 
-		mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 		
 	if (mysql_num_rows($result) == 0)
 	{
@@ -59,27 +52,38 @@ function get_user_setting($username, $field)
 	}
 }
 
-function get_all_user_settings($username)
-{
-	global $mysql_link;
-	
+/** 
+ * Returns an object (stdClass with members corresponding to the
+ * fields of the user_settings table in the database) containing
+ * the specified user's data.
+ * 
+ * If $autocreate is set to false, then the function will return
+ * false in case of a nonexistent user. If it is set to true
+ * (the default value) then an empty user record will be created
+ * for that user. 
+ */  
+function get_all_user_settings($username, $autocreate = true)
+{	
 	static $cache;
+	
+	$autocreate = (bool) $autocreate;
 	
 	if (isset($cache[$username]))
 		return $cache[$username];
 	
 	$sql_query = "SELECT * from user_settings WHERE username = '$username'";
 	
-	$result = mysql_query($sql_query, $mysql_link);
-
-	if ($result == false)
-	exiterror_mysqlquery(mysql_errno($mysql_link), 
-		mysql_error($mysql_link), __FILE__, __LINE__);
-		
+	$result = do_mysql_query($sql_query);
+	
 	if (mysql_num_rows($result) == 0)
 	{
-		create_user_record($username);
-		return get_all_user_settings($username);
+		if ($autocreate)
+		{
+			create_user_record($username);
+			return get_all_user_settings($username);
+		}
+		else
+			return false;
 	}
 	else
 	{
@@ -88,25 +92,23 @@ function get_all_user_settings($username)
 	}
 }
 
-/* note: neither of the following functions sanitises input */
-/* this MUST be done beforehand, e.g. using parse_get_user_settings() */
+
+// TODO next two functions prob should do sanitisation as elsewhere in
+// cqpweb that is done at the lowest possible level, ie at poitn where the SQL queries are composed.
+/** 
+ * note: neither of the following functions sanitises input 
+ * this MUST be done beforehand, e.g. using parse_get_user_settings() 
+ */
 function update_user_setting($username, $field, $setting)
 {
-	global $mysql_link;
-	
 	$sql_query = "UPDATE user_settings SET $field = '$setting' WHERE username = '$username'";
 	
-	$result = mysql_query($sql_query, $mysql_link);
-
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 
+/** does not sanitise the parameters... */
 function update_multiple_user_settings($username, $settings)
-{
-	global $mysql_link;
-	
+{	
 	$sql_query = "UPDATE user_settings SET ";
 	
 	foreach ($settings as $field => $value)
@@ -116,16 +118,11 @@ function update_multiple_user_settings($username, $settings)
 	
 	$sql_query .= " WHERE username = '$username'";
 	
-	$result = mysql_query($sql_query, $mysql_link);
-
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 }
 
 function create_user_record($username)
 {
-	global $mysql_link;
 	global $default_max_dbsize;
 	global $default_colloc_range;
 	global $default_calc_stat;
@@ -164,13 +161,15 @@ function create_user_record($username)
 		$default_max_dbsize,
 		'au')";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-
-	if ($result == false)
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 
+
+function delete_user_record($username)
+{
+	$username = mysql_real_escape_string($username);
+	do_mysql_query("DELETE FROM user_settings where username = '$username'");
+}
 
 
 function get_user_linefeed($username)
@@ -195,26 +194,26 @@ function guess_user_linefeed($user_to_guess)
 {
 	if ($user_to_guess != $_SERVER['REMOTE_USER'])
 		return 'da';
-	/* da is the default guess when no guess can be made, because Windows dominates the OS market. */
-	/* and *nix people are more likely to be computer literate ;-P */
+	/* da is the default guess when no guess can be made, because Windows dominates the OS market.
+	 * and *nix people are more likely to be computer literate enough to fix it ;-P */
 	
 	/* a and d are symbols, of course, for \n and \r respectively. */
 	if (strpos($_SERVER['HTTP_USER_AGENT'], 'Windows') !== false)
 		return 'da';
-	else if (strpos($_SERVER['HTTP_USER_AGENT'], 'Macintosh') !== false || strpos($_SERVER['HTTP_USER_AGENT'], 'Mac_PowerPC') !== false)
+	else if (strpos($_SERVER['HTTP_USER_AGENT'], 'Macintosh')   !== false || 
+			 strpos($_SERVER['HTTP_USER_AGENT'], 'Mac_PowerPC') !== false)
 	{
 		if (strpos($_SERVER['HTTP_USER_AGENT'], 'OS X') !== false)
 			return 'a';		/* cos OS X is like *nix */
 		else
 			return 'd';		/* cos old Macs aren't */
-		/* this is the other way round than BNCweb. But I have checked and linefeed is deffo U+a on OSX. */
 	}
 	else /* unix or linux prolly */
 		return 'a';
 }
 
 
-/* gets all "newSetting" parameters from $_GET and sanitises for mySQL */
+/** Gets all "newSetting" parameters from $_GET and sanitises for mySQL */
 function parse_get_user_settings()
 {
 	$settings = array();
@@ -295,7 +294,6 @@ function user_macro_create($username, $macro_name, $macro_body)
 		('$username', '$macro_name', $macro_num_args, '$macro_body')";
 	
 	do_mysql_query($sql_query);
-	
 }
 
 function user_macro_delete($username, $macro_name, $macro_num_args)

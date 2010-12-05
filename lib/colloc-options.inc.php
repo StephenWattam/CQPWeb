@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -109,19 +109,13 @@ if ($query_record === false)
 			<?php
 			/* get a list of annotations && the primary && count them for this corpus */
 			$sql_query = "select * from annotation_metadata where corpus = '$corpus_sql_name'";
-			$result_annotations = mysql_query($sql_query, $mysql_link);
-			if ($result_annotations == false) 
-				exiterror_mysqlquery(mysql_errno($mysql_link), 
-					mysql_error($mysql_link), __FILE__, __LINE__);
+			$result_annotations = do_mysql_query($sql_query);
 			
 			$num_annotation_rows = mysql_num_rows($result_annotations);
 			
 			$sql_query = "select primary_annotation from corpus_metadata_fixed 
 				where corpus = '$corpus_sql_name'";
-			$result_fixed = mysql_query($sql_query, $mysql_link);
-			if ($result_fixed == false) 
-				exiterror_mysqlquery(mysql_errno($mysql_link), 
-					mysql_error($mysql_link), __FILE__, __LINE__);
+			$result_fixed = do_mysql_query($sql_query);
 			/* this will only contain a single row */
 			list($primary_att) = mysql_fetch_row($result_fixed);
 
@@ -217,7 +211,7 @@ print_footer();
 
 
 /* disconnect mysql */
-mysql_close($mysql_link);
+disconnect_global_mysql();
 
 
 /* ------------- */

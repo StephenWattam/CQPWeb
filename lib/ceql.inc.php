@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -30,7 +30,7 @@
 /* ceql.inc.php -- functions which interface with perl and give CQPweb access to the CEQL parser. */
 
 
-/** 
+/** @file <pre>
 
 CEQL Parser Parameters for CQPweb
 ---------------------------------
@@ -104,6 +104,7 @@ A CEQL parser can be told to accept the following varieties of attribute:
    IF it's a combo annotation, then the CEQL parameter 'combo_attribute' is used.
    IF it's not, then it is the SECONDARY ANNOTATION and the TERTIARY ANNOTAION that are used.
 
+</pre>
 */
 
 
@@ -165,7 +166,8 @@ END_OF_CEQL_QUERY
 		}
 		';
 		
-// important thing to check : that NULL values in mysql will come out as NULLs and not strings containing NULL -- cos that is what is being checked here.
+// important thing to check : that NULL values in mysql will come out as NULLs and not strings containing NULL 
+// -- cos that is what is being checked here.
 // i haven't checked this but everything seems to be working as it should
 
 	/* if a primary annotation exists, specify it */
@@ -313,7 +315,7 @@ function process_simple_query($query, $case_sensitive)
 
 
 /**
- * Returns the Perl string of the specified mapping table (with appropriate escapes)
+ * Returns the Perl string of the specified mapping table (with appropriate escapes).
  * 
  * Return value is false if the mapping table was not found.
  */
@@ -398,6 +400,7 @@ function add_tertiary_mapping_table($id, $name, $mappings)
 
 function drop_tertiary_mapping_table($id)
 {
+	$id = mysql_real_escape_string($id);
 	do_mysql_query("delete from annotation_mapping_tables where id = '$id'");
 }
 
@@ -429,7 +432,7 @@ function get_builtin_mapping_table($mapping_table_id)
 	switch ($mapping_table_id)
 	{
 	/* note, these should be perl code exactly as it would be written into the perl script */
-	/* a perl hash table in each case; aliases keyed to regexes */
+	/* a perl hash table in each case; aliases keyed to regexes; slash escape single quotes, natch */
 	case 'oxford_simplified_tags':
 		return '{ 
 			"A" => "ADJ",

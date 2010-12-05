@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -24,31 +24,26 @@
 
 
 
-/* makes sure that the name you are about to give to a db is unique */
+/** makes sure that the name you are about to give to a db is unique */
 function dbname_unique($dbname)
 {
 	if (! is_string($dbname))
 		exiterror_arguments($dbname, 'dbname_unique() requires a string as argument $dbname!',
 			__FILE__, __LINE__);
-
-	global $mysql_link;
 	
 	while (1)
 	{
 		$sql_query = 'select dbname from saved_dbs where dbname = \''
 			. mysql_real_escape_string($dbname) . '\' limit 1';
 	
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 
 		if (mysql_num_rows($result) == 0)
 			break;
 		else
 		{
 			unset($result);
-			$dbname .= '_';
+			$dbname .= chr(rand(0x41,0x5a));
 		}
 	}
 	return $dbname;	
@@ -58,7 +53,7 @@ function dbname_unique($dbname)
 
 
 
-/* creates a db in mysql for the named query of the specified type & returns its name*/
+/** creates a db in mysql for the named query of the specified type & returns its name*/
 function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $postprocess)
 {
 	global $cqp;
@@ -68,7 +63,6 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 	
 	global $username;
 
-	global $mysql_link;
 	global $mysql_LOAD_DATA_INFILE_command;
 	
 	global $colloc_db_premium;
@@ -101,12 +95,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 
 	/* double-check that no table of this name exists */
-	$sql_query = "DROP TABLE IF EXISTS $dbname";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query("DROP TABLE IF EXISTS $dbname");
 	
 
 	/* call a function to delete dbs if they are taking up too much space*/
@@ -164,37 +153,18 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 
 	/* create the empty table */
-	$result = mysql_query($commands['create'], $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query($commands['create']);
 
 
 	/* create the tabulation */
 	$cqp->execute("{$commands['tabulate']} > $tabulate_dest");
 
-
-	$sql_query = "Alter table $dbname disable keys";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query("Alter table $dbname disable keys");
 
 	$sql_query = "$mysql_LOAD_DATA_INFILE_command '/$cqpweb_tempdir/$tabfile' into table $dbname fields escaped by ''";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query($sql_query);
 	
-	$sql_query = "Alter table $dbname enable keys";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query("Alter table $dbname enable keys");
 
 
 	/* and delete the file from which the table was created, plus the awk-script if there was one */
@@ -239,11 +209,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 		/* nb - don't need to real-escape db_type because exiterror will have been called by now
 		   if it was a dodgy value */
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
+	do_mysql_query($sql_query);
 	
 	
 	unregister_db_process();
@@ -447,22 +413,14 @@ function db_commands($dbname, $db_type, $qname)
 
 
 
-/* does nothing to the specified db, but refreshes its create_time to = now */
+/** does nothing to the specified db, but refreshes its create_time to = now */
 function touch_db($dbname)
 {
-	global $mysql_link;
-	
-	if (! is_string($dbname))
-		exiterror_arguments($dbname, 'touch_db() requires a string as argument $dbname!',
-			__FILE__, __LINE__);
+	$dbname = mysql_real_escape_string($dbname);
 		
 	$time_now = time();
 	
-	$sql_query = "update saved_dbs set create_time = $time_now where dbname = '$dbname'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-			__FILE__, __LINE__);
+	do_mysql_query("update saved_dbs set create_time = $time_now where dbname = '$dbname'");
 }
 
 
@@ -471,34 +429,24 @@ function touch_db($dbname)
 
 function get_db_size($dbname)
 {
-	global $mysql_link;
+	$result = do_mysql_query("SHOW TABLE STATUS LIKE '$dbname'");
 	
-	$sql_query = "SHOW TABLE STATUS LIKE '$dbname'";
-
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
 	$info = mysql_fetch_assoc($result);
 
 	return $info['Data_length'] + $info['Index_length'];
 }
 
 
-/* returns AN ASSOCIATIVE ARRAY for the located db's record */
-/* or false if it could not be found */
+/**
+ * returns AN ASSOCIATIVE ARRAY for the located db's record
+ * or false if it could not be found 
+ */
 function check_dblist_dbname($dbname)
 {
-	global $mysql_link;
-	
 	$sql_query = "SELECT * from saved_dbs where dbname = '" 
 		. mysql_real_escape_string($dbname) . "' limit 1";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) == 0)
 		return false;
@@ -508,12 +456,13 @@ function check_dblist_dbname($dbname)
 
 
 
-/* returns AN ASSOCIATIVE ARRAY for the located db's record */
-/* or false if it could not be found */
+/**
+ * returns AN ASSOCIATIVE ARRAY for the located db's record 
+ * or false if it could not be found 
+ */
 function check_dblist_parameters($db_type, $cqp_query, $restrictions, $subcorpus, $postprocess,
 	$colloc_atts = '', $colloc_range = 0, $sort_position = 0)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	/* set up the options that are particular to certain types of db */
@@ -553,12 +502,8 @@ function check_dblist_parameters($db_type, $cqp_query, $restrictions, $subcorpus
 		. "  and sort_position = $sort_position"
 		. "  limit 1";
 
-	$result = mysql_query($sql_query, $mysql_link);
+	$result = do_mysql_query($sql_query);
 
-	
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
 	
 	if (mysql_num_rows($result) == 0)
 		return false;
@@ -568,23 +513,13 @@ function check_dblist_parameters($db_type, $cqp_query, $restrictions, $subcorpus
 
 
 
-
+/**
+ * Deletes a database from the system.
+ */
 function delete_db($dbname)
 {
-	global $mysql_link;
-
-	$sql_query = "DROP TABLE IF EXISTS $dbname";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	unset($result);
-	
-	$sql_query = "DELETE FROM saved_dbs where dbname = '$dbname'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query("DROP TABLE IF EXISTS $dbname");
+	do_mysql_query("DELETE FROM saved_dbs where dbname = '$dbname'");
 }
 
 
@@ -669,14 +604,10 @@ function clear_dbs($type = '__NOTYPE')
 function check_db_max_processes($process_type)
 {
 	global $mysql_process_limit;
-	global $mysql_link;
 	
 	$sql_query = "select process_id from mysql_processes where process_type = '"
 		. mysql_real_escape_string($process_type) . "'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	$current_processes = mysql_num_rows($result);
 	
@@ -708,12 +639,13 @@ function check_db_max_processes($process_type)
 	
 
 
-/* add the current instance of PHP's process id to a list of concurrent db processes */
-/* note: is dbname actually needed? it's prob for diagnostic purposes and it does no harm */
+/** 
+ * Adds the current instance of PHP's process-id to a list of concurrent db processes.
+ * 
+ * Note: is dbname actually needed? it's prob for diagnostic purposes and it does no harm.
+ */
 function register_db_process($dbname, $process_type, $process_id = '___THIS_SCRIPT')
 {
-	global $mysql_link;
-
 	$dbname = mysql_real_escape_string($dbname);
 	$process_type = mysql_real_escape_string($process_type);
 	if ($process_id == '___THIS_SCRIPT')
@@ -723,27 +655,18 @@ function register_db_process($dbname, $process_type, $process_id = '___THIS_SCRI
 	$begin_time = time();
 	$sql_query = "insert into mysql_processes (dbname, begin_time, process_type, process_id)
 		values ('$dbname', $begin_time, '$process_type', '$process_id' )";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
+	//TODO maybe also record the instance name, and the MySQL connection-id?
 }
 
 
 
-/* declare a process run by the current script complete; remove from the list of db processes */
+/** Declares a process run by the current script complete; removes it from the list of db processes */
 function unregister_db_process($process_id = '___THIS_SCRIPT')
 {
-	global $mysql_link;
-	
 	if ($process_id == '___THIS_SCRIPT')
 		$process_id = getmypid();
-	$sql_query = "delete from mysql_processes where process_id = '$process_id'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-
+	do_mysql_query("delete from mysql_processes where process_id = '$process_id'");
 }
 
 

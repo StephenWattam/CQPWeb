@@ -55,6 +55,9 @@ if  (!extension_loaded('mysql'))
 
 /* connect/disconnect functions */
 
+/**
+ * Creates a global connection to a CQP child process.
+ */
 function connect_global_cqp()
 {
 	global $cqp;
@@ -78,7 +81,9 @@ function connect_global_cqp()
 		$cqp->set_debug_mode(true);
 }
 
-
+/**
+ * Disconnects the global CQP child process.
+ */
 function disconnect_global_cqp()
 {
 	global $cqp;
@@ -104,6 +109,7 @@ function refresh_directory_global_cqp()
 	
 	if (isset($cqp))
 	{
+		// question: will next line work if we have no read access to root?
 		$cqp->execute("set DataDirectory '/'");
 		$cqp->execute("set DataDirectory '/$cqpweb_tempdir'");
 		$cqp->set_corpus($corpus_cqp_name);
@@ -113,7 +119,7 @@ function refresh_directory_global_cqp()
 
 /**
  * Creates a global variable $mysql_link containing a connection to the CQPweb
- * database, using the settings in config.inc.php.
+ * database, using the settings in the config file.
  */
 function connect_global_mysql()
 {
@@ -133,12 +139,15 @@ function connect_global_mysql()
 	
 	/* utf-8 setting is dependent on a variable defined in config.inc.php */
 	if ($utf8_set_required)
-		mysql_query("SET NAMES utf8", $mysql_link);	
+		mysql_query("SET NAMES utf8", $mysql_link);
 }
 /**
- * Many scripts disconnect mysql_link locally. Doing so is pretty easy. This function
+ * Disconnects from the MySQL server.
+ * 
+ * Scripts could easily disconnect mysql_link locally. So this function
  * only exists so there is function-name-symmetry, and (less anally-retentively) so 
- * a script never really has to call mysql_link in the normal way of things.
+ * a script never really has to use mysql_link in the normal way of things. As
+ * a consequence mysql_link is entirely contained within this module.
  */
 function disconnect_global_mysql()
 {
@@ -148,7 +157,7 @@ function disconnect_global_mysql()
 }
 
 /**
- * disconnect from both cqp & mysql, assuming standard global variable names are used
+ * Disconnects from both cqp & mysql, assuming standard global variable names are used.
  */
 function disconnect_all()
 {
@@ -228,8 +237,7 @@ function do_mysql_outfile_query($query, $filename)
 			print_debug_message("About to run the following MySQL query:\n\n$query\n");
 		$result = mysql_query($query);
 		if ($result == false)
-			exiterror_mysqlquery(mysql_errno($mysql_link),
-				mysql_error($mysql_link), __FILE__, __LINE__);
+			exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
 		else
 		{
 			if ($print_debug_messages)
@@ -244,8 +252,7 @@ function do_mysql_outfile_query($query, $filename)
 			print_debug_message("About to run the following MySQL query:\n\n$query\n");
 		$result = mysql_unbuffered_query($query, $mysql_link); /* avoid memory overhead for large result sets */
 		if ($result == false)
-			exiterror_mysqlquery(mysql_errno($mysql_link),
-				mysql_error($mysql_link), __FILE__, __LINE__);
+			exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
 		if ($print_debug_messages)
 			print_debug_message("The query ran successfully.\n");
 	
@@ -265,6 +272,26 @@ function do_mysql_outfile_query($query, $filename)
 		return $rowcount;
 	}
 }
+
+
+
+/* the next two functions are really just for convenience */
+
+/** Turn off indexing for a given MySQL table. */
+function database_disable_keys($arg)
+{
+	$arg = mysql_real_escape_string($arg);
+	do_mysql_query("alter table $arg disable keys");
+}
+/** Turn on indexing for a given MySQL table. */
+function database_enable_keys($arg)
+{
+	$arg = mysql_real_escape_string($arg);
+	do_mysql_query("alter table $arg enable keys");
+}
+
+
+
 
 
 
@@ -345,9 +372,10 @@ function regex_add_anchors($s)
 /**
  * Converts an integer to a string with commas every three digits.
  */
- // TODO replace with builtin function number_format
+
 function make_thousands($number)
 {
+// TODO replace with builtin function number_format
 	$string = "$number";
 	$length = strlen($string);
 
@@ -372,16 +400,17 @@ function make_thousands($number)
 
 
 
-/**
+/*
  * Returns the time as a float using PHP's microtime function.
  *
  * A simple function, copied from php.net, originally to replicate PHP5
  * behaviour in PHP4, now it just wraps the PHP5 builtin function.
- */
+ * /
+Function no longer used. Replaced with direct calls to microtime.
 function microtime_float()
 {
 	return microtime(true);
-}
+}*/
 
 
 
@@ -401,7 +430,7 @@ function cqpweb_htmlspecialchars($string)
 
 
 /**
- * This function removes any characters that match PCRE \W from a string.
+ * Removes any characters that match PCRE \W from a string.
  *  
  * A "handle" can only contain word characters.
  */
@@ -468,8 +497,10 @@ function url_absolutify($u)
 
 
 /** 
- * Checks whether the current script has $_GET[uT] == "y" 
- * (terminating element of all valid CQPweb URIs).
+ * Checks whether the current script has $_GET['uT'] == "y" 
+ * (&uT=y is the terminating element of all valid CQPweb URIs).
+ * 
+ * "uT" is short for "urlTest", by the way.
  */
 function url_string_is_valid()
 {
@@ -480,13 +511,15 @@ function url_string_is_valid()
 
 
 /**
- * returns a string of "var=val&var=val&var=val"
+ * Returns a string of "var=val&var=val&var=val".
  * 
- * $changes must be an array of arrays, where each array consists of [0] a field name & [1] the new value
+ * $changes = array of arrays, 
+ * where each array consists of [0] a field name  
+ *                            & [1] the new value.
  * 
- * if [1] is an empty string, that pair is not included
+ * If [1] is an empty string, that pair is not included.
  * 
- * WARNING: adds values that weren't there at the START of the string
+ * WARNING: adds values that weren't already there at the START of the string.
  * 
  */
 function url_printget($changes = "Nope!")
@@ -519,8 +552,7 @@ function url_printget($changes = "Nope!")
 		}
 		else
 			$string .= $key . '=' . urlencode($val);
-		/* is urlencode needed here? */
-		/* presumably so, since $_GET appears to be un-makesafed automatically */
+		/* urlencode needed here since $_GET appears to be un-makesafed automatically */
 	}
 	if ($change_me)
 	{
@@ -535,11 +567,11 @@ function url_printget($changes = "Nope!")
 }
 
 /**
- * Returns a string of "<input type="hidden" name="key" value="value" />..."
+ * Returns a string of "&lt;input type="hidden" name="key" value="value" /&gt;..."
  * 
- * changes = array of arrays 
+ * $changes = array of arrays, 
  * where each array consists of [0] a field name  
- * 						& [1] the new value 
+ *                            & [1] the new value.
  * 
  * If [1] is an empty string, that pair is not included.
  *  
@@ -817,7 +849,7 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 
 
 
-
+// TODO next 3 functions seem a bit non-general to be in the library.... catquery.inc.php?
 
 /**
  * Given the name of a categorised query, this function returns an array of 
@@ -912,6 +944,8 @@ function print_menurow_backend($link_handle, $link_text, $current_query, $http_v
 	$s .= "$link_text</a>\n\t</td>\n</tr>\n";
 	return $s;
 }
+
+
 /**
  * Creates a page footer for CQPweb.
  * 
@@ -948,7 +982,7 @@ function print_footer($link = 'help')
 			<td align="left" class="cqpweb_copynote" width="33%">
 				CQPweb v<?php echo CQPWEB_VERSION; ?> &#169; 2008-2010
 			</td>
-			<?php echo $help_cell; ?> 
+			<?php echo $help_cell; ?>  
 			<td align="right" class="cqpweb_copynote" width="33%">
 				<?php
 				if ($username == '__unknown_user')
@@ -962,27 +996,11 @@ function print_footer($link = 'help')
 	<script language="JavaScript" type="text/javascript" src="../lib/javascript/wz_tooltip.js">
 	</script>
 	</body>
-	</html>
+</html>
 	<?php
 }
 
 
-
-
-/* the next two functions are really just for convenience */
-
-/** Turn off indexing for a given MySQL table. */
-function database_disable_keys($arg)
-{
-	$arg = mysql_real_escape_string($arg);
-	do_mysql_query("alter table $arg disable keys");
-}
-/** Turn on indexing for a given MySQL table. */
-function database_enable_keys($arg)
-{
-	$arg = mysql_real_escape_string($arg);
-	do_mysql_query("alter table $arg enable keys");
-}
 
 
 

@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -376,21 +376,12 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 /* makes sure that the name you are about to give to a freqtable is unique */
 function freqtable_name_unique($name)
 {
-	if (! is_string($name))
-		exiterror_arguments($name, 'freqtable_name_unique() requires a string as argument $name!',
-			__FILE__, __LINE__);
-
-	global $mysql_link;
-	
 	while (1)
 	{
 		$sql_query = 'select freqtable_name from saved_freqtables where freqtable_name = \''
 			. mysql_real_escape_string($name) . '\' limit 1';
 
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);
+		$result = do_mysql_query($sql_query);
 
 		if (mysql_num_rows($result) == 0)
 			break;
@@ -408,20 +399,16 @@ function freqtable_name_unique($name)
 
 
 
-/* get the combined size of all freqtables relating to a specific subcorpus */
+/** gets the combined size of all freqtables relating to a specific subcorpus */
 function get_freqtable_size($freqtable_name)
-{
-	global $mysql_link;
-	
+{	
 	$size = 0;
 	
 	$sql_query = "SHOW TABLE STATUS LIKE '$freqtable_name%'";
 	/* note the " % " */
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
+
 	while ( ($info = mysql_fetch_assoc($result)) !== false)
 		$size += ($info['Data_length'] + $info['Index_length']);
 
@@ -431,34 +418,29 @@ function get_freqtable_size($freqtable_name)
 
 
 
-/* update the timestamp (note it's an int not really a TIMESTAMP selon mySQL!) */
+/** updates the timestamp (note it's an int, not really a TIMESTAMP as per mySQL!) */
 function touch_freqtable($freqtable_name)
-{
-	global $mysql_link;
-	
-	if (! is_string($freqtable_name))
-		exiterror_arguments($freqtable_name, 'touch_freqtable() requires a string as argument $dbname!',
-			__FILE__, __LINE__);
+{	
+	$freqtable_name = mysql_real_escape_string($freqtable_name);
 		
 	$time_now = time();
 	
 	$sql_query = "update saved_freqtables set create_time = $time_now 
 		where freqtable_name = '$freqtable_name'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-			__FILE__, __LINE__);
+	do_mysql_query($sql_query);
 }
 
 
 
-/* returns the record (associative array) of the freqtable cluster for the subcorpus */
-/* OR returns false */
-/* note this function DOESNT check usernames, whereas check_freqtable_subcorpus DOES */
+/**
+ * Returns the record (associative array) of the freqtable cluster for the subcorpus
+ * OR returns false.
+ * 
+ * note this function DOESNT check usernames, whereas check_freqtable_subcorpus DOES 
+ */
 function check_freqtable_restriction($restrictions)
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 
 	/* especially important because restricitons often contain single quotes */
 	$restrictions = mysql_real_escape_string($restrictions);
@@ -466,10 +448,7 @@ function check_freqtable_restriction($restrictions)
 	$sql_query = "select * from saved_freqtables 
 		where corpus = '$corpus_sql_name' and restrictions = '$restrictions'";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-			__FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	if (mysql_num_rows($result) == 0)
 		return false;
@@ -478,12 +457,13 @@ function check_freqtable_restriction($restrictions)
 }
 
 
-/* returns the record (associative array) of the freqtable cluster for the subcorpus */
-/* OR returns false */
+/**
+ * Returns the record (associative array) of the freqtable cluster for the subcorpus
+ * OR returns false. 
+ */
 function check_freqtable_subcorpus($subcorpus_name)
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	global $username;
 	
 	$subcorpus_name = mysql_real_escape_string($subcorpus_name);
@@ -492,10 +472,7 @@ function check_freqtable_subcorpus($subcorpus_name)
 		where corpus = '$corpus_sql_name' 
 		and user = '$username' 
 		and subcorpus = '$subcorpus_name'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-			__FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	if (mysql_num_rows($result) == 0)
 		return false;
@@ -508,10 +485,12 @@ function check_freqtable_subcorpus($subcorpus_name)
 
 
 /**
- * delete a "cluster" of freq tables relating to a particular subsection, + their saved_fts entry 
+ * Deletes a "cluster" of freq tables relating to a particular subsection, + their saved_fts entry.
  */
 function delete_freqtable($freqtable_name)
 {
+	$freqtable_name = mysql_real_escape_string($freqtable_name);
+	
 	do_mysql_query("delete from saved_freqtables where freqtable_name = '$freqtable_name'");
 	
 	$result = do_mysql_query("show tables like '$freqtable_name%'");
@@ -525,10 +504,9 @@ function delete_freqtable($freqtable_name)
 
 
 
-/* note: this function works ACROSS CORPORA */
+/** note: this function works ACROSS CORPORA */
 function delete_saved_freqtables($protect_public_freqtables = true)
 {
-	global $mysql_link;
 	global $mysql_freqtables_size_limit;
 	
 	if (!is_bool($protect_public_freqtables))
@@ -550,10 +528,7 @@ function delete_saved_freqtables($protect_public_freqtables = true)
 	$sql_query = "select freqtable_name, ft_size from saved_freqtables 
 		" . ( $protect_public_freqtables ? " where public = 0" : "") . " 
 		order by create_time asc";
-	$del_result = mysql_query($sql_query, $mysql_link);
-	if ($del_result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$del_result = do_mysql_query($sql_query);
 
 
 	while ($current_size > $mysql_freqtables_size_limit)
@@ -580,18 +555,10 @@ function delete_saved_freqtables($protect_public_freqtables = true)
 
 
 
-/* dump all cached freq tables from the database */
+/** Dumps all cached freq tables from the database */
 function clear_freqtables()
 {
-	global $mysql_link;
-	
-	$sql_query = "select freqtable_name from saved_freqtables";
-
-	$del_result = mysql_query($sql_query, $mysql_link);
-
-	if ($del_result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$del_result = do_mysql_query("select freqtable_name from saved_freqtables");
 
 	while ($current_ft_to_delete = mysql_fetch_assoc($del_result))
 		delete_freqtable($current_ft_to_delete['freqtable_name']);
@@ -604,18 +571,14 @@ function clear_freqtables()
 
 function publicise_this_corpus_freqtable($description)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 
-// not needed cos of magic quotes
-//	$description = mysql_real_escape_string($description);
+	$description = mysql_real_escape_string($description);
 	
 	$sql_query = "update corpus_metadata_fixed set public_freqlist_desc = '$description'
 		where corpus = '$corpus_sql_name'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+		
+	do_mysql_query($sql_query);
 }
 
 
@@ -623,15 +586,12 @@ function publicise_this_corpus_freqtable($description)
 
 function unpublicise_this_corpus_freqtable()
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	$sql_query = "update corpus_metadata_fixed set public_freqlist_desc = NULL
 		where corpus = '$corpus_sql_name'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+		
+	do_mysql_query($sql_query);
 }
 
 
@@ -642,7 +602,6 @@ function unpublicise_this_corpus_freqtable()
 function publicise_freqtable($name, $switch_public_on = true)
 {
 	global $username;
-	global $mysql_link;
 
 	/* only superusers are allowed to do this! */
 	if (! user_is_superuser($username))
@@ -652,10 +611,9 @@ function publicise_freqtable($name, $switch_public_on = true)
 	
 	$sql_query = "update saved_freqtables set public = " . ($switch_public_on ? 1 : 0) . " 
 		where freqtable_name = '$name'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	
+	do_mysql_query($sql_query);
+
 }
 
 
@@ -674,13 +632,7 @@ function unpublicise_freqtable($name)
 /* list of names there would be no way to get at the freqtable_name that is the key ident    */
 function list_public_freqtables()
 {
-	global $mysql_link;
-
-	$sql_query = "select * from saved_freqtables where public = 1";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-			__FILE__, __LINE__);
+	$result = do_mysql_query("select * from saved_freqtables where public = 1");
 
 	$public_list = array();
 	
@@ -691,17 +643,13 @@ function list_public_freqtables()
 }
 
 
-/* works across the system, returns an assoc array of corpus handles  with public descriptions */
+/** Returns an assoc array of corpus handles with public descriptions; works across the system */
 function list_public_whole_corpus_freqtables()
 {
-	global $mysql_link;
-
 	$sql_query = "select corpus, public_freqlist_desc from corpus_metadata_fixed 
 		where public_freqlist_desc IS NOT NULL";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-			__FILE__, __LINE__);
+		
+	$result = do_mysql_query($sql_query);
 
 	$list = array();
 	while ( ($r = mysql_fetch_assoc($result)) !== false)
@@ -720,15 +668,11 @@ function list_public_whole_corpus_freqtables()
 function list_freqtabled_subcorpora()
 {
 	global $corpus_sql_name;
-	global $mysql_link;
 	global $username;
 
 	$sql_query = "select subcorpus from saved_freqtables 
 		where corpus = '$corpus_sql_name' and user = '$username' and subcorpus != 'no_subcorpus'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), 
-			__FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 
 	$list = array();
 	while ( ($r = mysql_fetch_row($result)) !== false)

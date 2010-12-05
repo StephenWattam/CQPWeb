@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -24,14 +24,8 @@
 
 
 
-
-
-
-
-
-
 /**
- *  object for dealing with simple apache .htaccess files  of the format below 
+ *  Object for dealing with simple apache htaccess files  of the format below.
  *  
  *  AuthUserFile PATH
  *  AuthGroupFile PATH
@@ -46,39 +40,56 @@
  * 
  *  see http://httpd.apache.org/docs/1.3/howto/auth.html 
  *  
- *  don't need to put methods in a <Limit> -- if it's not there, then the restrictions 
+ *  We don't need to put methods in a Limit -- if it's not there, then the restrictions 
  *  specified are applied to ALL http methods, not just those specified; see
  *  http://httpd.apache.org/docs/1.3/mod/core.html#limit
+ * 
  */
+class apache_htaccess 
+{
 
 
-class apache_htaccess {
+	/* begin member declaration */
+	
 
+	/** The AuthName of this htaccess file */
 	private $AuthName;
 	
 	
-	/* important note: all paths should be RELATIVE */
-	/* ie must begin with a slash if that is what is intended */
+	/* important note: all paths are treated as-is;
+	 * ie they must begin with a slash when passed in, 
+	 * if that is what is intended */
 	
-	/* directory name */
+	/** directory name: location of binaries */
 	private $path_to_apache_password_utility_directory;
 	
-	/* filename not a directory name */
+	/** filename not a directory name: location of htgroup file (AuthGroupFile) */
 	private $path_to_groups_file;
 	
-	/* filename not a directory name */
+	/** filename not a directory name: location of htpasswd file (AuthUserFile) */
 	private $path_to_password_file;
 		
-	/* directory name of the web directory where this htaccess is going to go */
+	/** directory name of the web directory where this htaccess is going to go */
 	private $path_to_web_directory;
 	
-	/* note: only one of these can be set. */
+	
+	/* note: only one of the following two members should be set at any one time. */
+	
+	/** Array of users who are permitted access (or NULL if there aren't any). */
 	private $permitted_users;
+	/** Array of groups who are permitted access (or NULL if there aren't any). */
 	private $permitted_groups;
 	
+	
+	/** 
+	 * Extra Apache directives that this object does nothing special with, and
+	 * just adds verbatim to the htaccess file. Typically this variable will be 
+	 * undefined, or an empty string.
+	 */
 	private $extra_directives;
 
-	/* override rules :
+
+	/* override rules for setting member variables:
 	   (1) when loading from file, users will only be loaded if groups is not there
 	   (2) nothing can be added to users if groups is set
 	   (3) nothing can be added to groups is users is set
@@ -86,7 +97,10 @@ class apache_htaccess {
 	*/
 	
 	
-	/* constructor allows you to set the location of the web directory all in one go */	
+	/* end of member declaration */
+	
+	
+	/** Constructor: allows you to set the location of the web directory all in one go. */	
 	function __construct($path_to_web_directory = false)
 	{
 		if ($path_to_web_directory !== false)
@@ -216,11 +230,13 @@ class apache_htaccess {
 	}
 
 
-	/* returns true for all OK, false for something went wrong */
+	/** 
+	 * Loads an Apache htaccess file of the sort this class handles.
+	 * 
+	 * Returns true for all OK, false for something went wrong 
+	 */
 	function load()
 	{
-		/* load an Apache htaccess file of the sort this class handles */
-		
 		if (!$this->check_ok_for_htaccess_load())
 			return false;
 		
@@ -251,11 +267,13 @@ class apache_htaccess {
 		}
 	}
 	
-	/* returns true for all OK, false for something went wrong */
+	/**
+	 * Writes the Apache htaccess file.
+	 * 
+	 * returns true for all OK, false for something went wrong 
+	 */
 	function save()
 	{
-		/* write the Apache htaccess file */
-		
 		if (!$this->check_ok_for_htaccess_save())
 			return false;
 			
@@ -266,7 +284,10 @@ class apache_htaccess {
 	}
 	
 	
-	
+	/**
+	 * Get the contents of the Apache htaccess file embodying
+	 * the settings within this object.
+	 */
 	function make_htaccess_contents()
 	{
 		$string = "AuthUserFile {$this->path_to_password_file}\n";	
@@ -295,7 +316,7 @@ class apache_htaccess {
 	}
 	
 	
-	/* returns true for success, false for failure */
+	/** Creates a new group; returns true for success, false for failure */
 	function new_group($groupname)
 	{
 		/* add a new group to the groups file */
@@ -321,7 +342,7 @@ class apache_htaccess {
 		
 	}
 
-	/* false for problem, otherwise array containing the groups */
+	/** Lists current groups; returns false for problem, otherwise an array containing the groups */
 	function list_groups()
 	{
 		/* get a list of all groups from the htgroup file, and return as an array */
@@ -336,11 +357,13 @@ class apache_htaccess {
 			return array();
 	}
 
+	/**
+	 * Gets a list of all the users in the specified group from the htgroup file, 
+	 * and returns it as an array; the array is empty if the group was not found,
+	 * the return value is false if the operation was impossible
+	 */
 	function list_users_in_group($group)
 	{
-		/* get a list of all the users in the specified group from the htgroup file, */
-		/* and return as an array */
-		/* empty array if none, false if operation impossible */
 		if (!$this->check_ok_for_group_op())
 			return false;
 	
@@ -439,11 +462,17 @@ class apache_htaccess {
 		return true;
 	}
 
-	/** returns the return val from htpasswd, or 1 in case of unix copy fail */
+	/** 
+	 * Creates a new user; returns the return value from htpasswd, or 1 in case of unix copy fail.
+	 * 
+	 * Note this is the opposite to most methods in this class, which return true for all-OK;
+	 * it is because here we are using the return value system of htpasswd.
+	 */
 	function new_user($username, $password)
 	{
-		/* create the user, adding them & their password to the password file */
-		/* no need to check for and delete the name -- htpasswd does this*/
+		/* create the user, adding them & their password to the password file
+		 * no need to check for and delete the name -- htpasswd does this */
+		
 		if (!$this->check_ok_for_password_op())
 			return false;
 		
@@ -456,11 +485,32 @@ class apache_htaccess {
 		}
 		else
 			$c = 'c';
-		exec("{$this->path_to_apache_password_utility_directory}/htpasswd -b$c {$this->path_to_password_file} $username $password", 
-			$junk, $val);
+
+		exec("{$this->path_to_apache_password_utility_directory}/htpasswd"
+				. " -b$c {$this->path_to_password_file} $username $password"
+				, $junk, $val);
 
 		return $val;
 	}
+	
+	/** 
+	 * Gets the hashed password of the specified username from the htpasswd file,
+	 * returning false if the username cannot be found or if there is some other problem.
+	 */
+	function get_user_hashword($username)
+	{
+		if (!$this->check_ok_for_password_op())
+			return false;
+		$data = file_get_contents($this->path_to_password_file);
+		if (preg_match("/\b$username:([^\n]+)/", $data, $m) < 1)
+			return false;
+		else
+			return $m[1];
+	}
+	
+	/**
+	 * Returns an array of usernames, or false if there is a problem.
+	 */
 	function list_users()
 	{
 		if (!$this->check_ok_for_password_op())
@@ -506,8 +556,10 @@ class apache_htaccess {
 			$this->path_to_apache_password_utility_directory !== NULL
 		? true : false );
 	}
-	/* returns true if this object has all the settings it needs to work with the group file */
-	/* otherwise false */
+	/**
+	 * Returns true if this object has all the settings it needs to work with the group file;
+	 * otherwise false
+	 */
 	function check_ok_for_group_op()
 	{
 		return (
@@ -516,7 +568,7 @@ class apache_htaccess {
 	}
 	/**
 	 * Returns true if this object has all the settings it needs to work with a particular htaccess file;
-	 * otherwise false.
+	 * otherwise false; the check is for *writing*.
 	 */
 	function check_ok_for_htaccess_save()
 	{
@@ -532,15 +584,19 @@ class apache_htaccess {
 			)
 		? true : false );
 	}
+	/**
+	 * Returns true if this object has all the settings it needs to work with a particular htaccess file;
+	 * otherwise false; the check is for *reading*.
+	 */
 	function check_ok_for_htaccess_load()
 	{
 		return (
 			$this->path_to_web_directory !== NULL
 		? true : false );
 	}
-}
 
 
+} /* end of class apache_htaccess */
 
 
 

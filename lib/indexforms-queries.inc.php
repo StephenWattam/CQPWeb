@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -24,12 +24,10 @@
 
 
 
-
 /* each of these functions prints a table for the right-hand side interface */
 
 function printquery_search()
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	global $corpus_uses_case_sensitivity;
 
@@ -108,9 +106,9 @@ function printquery_search()
 						<option value="500"<?php if ($default_per_page == 500) echo ' selected="selected"';?>>500</option>
 						<option value="1000<?php if ($default_per_page == 1000) echo ' selected="selected"';?>">1000</option>
 						<?php
-						/* this option is currently restricted to superusers, but  */
-						/* perhaps I should invent a category of "power users" who */
-						/* can be trusted not to misuse features like this  ????   */
+						/* this option is currently restricted to superusers, but
+						 * perhaps I should invent a category of "power users" who
+						 * can be trusted not to misuse features like this  ????   */
 						if (user_is_superuser($username))
 							echo '<option value="all">show all</option>';
 						?>

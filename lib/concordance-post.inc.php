@@ -161,7 +161,7 @@ class POSTPROCESS {
 	
 	/** 
 	 * string - name of the function to use when the postprocess is being run.
-	 * Use postprocess_type as key into the array 
+	 * Use postprocess_type as key into the array. 
 	 */
 	private $function_names = array(
 		'coll' => 'run_postprocess_collocation',
@@ -766,12 +766,18 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
  */
 
 
-
+/**
+ * Creates a new query from that specified in cache_record by running
+ * the "collocation" postprocess, caches the new query, and returns its 
+ * cache record.
+ * 
+ * $descriptor needs to be a POSTPROCESS object that contains the various
+ * parameters controlling this postprocess.
+ */
 function run_postprocess_collocation($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $mysql_link;
 	global $cqpweb_tempdir;
 	global $username;
 	
@@ -817,11 +823,18 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 }
 
 
+/**
+ * Creates a new query from that specified in cache_record by running
+ * the "sort" postprocess, caches the new query, and returns its 
+ * cache record.
+ * 
+ * $descriptor needs to be a POSTPROCESS object that contains the various
+ * parameters controlling this postprocess.
+ */
 function run_postprocess_sort($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $mysql_link;
 	global $cqpweb_tempdir;
 	global $username;
 
@@ -878,11 +891,18 @@ function run_postprocess_sort($cache_record, &$descriptor)
 
 
 
+/**
+ * Creates a new query from that specified in cache_record by running
+ * the "randomise" postprocess, caches the new query, and returns its 
+ * cache record.
+ * 
+ * $descriptor needs to be a POSTPROCESS object that contains the various
+ * parameters controlling this postprocess.
+ */
 function run_postprocess_randomise($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $mysql_link;
 	global $username;
 	
 
@@ -908,11 +928,19 @@ function run_postprocess_randomise($cache_record, &$descriptor)
 	return $cache_record;
 }
 
+
+/**
+ * Creates a new query from that specified in cache_record by running
+ * the "unrandomise" postprocess, caches the new query, and returns its 
+ * cache record.
+ * 
+ * $descriptor needs to be a POSTPROCESS object that contains the various
+ * parameters controlling this postprocess.
+ */
 function run_postprocess_unrandomise($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $mysql_link;
 	global $username;
 	
 
@@ -939,11 +967,18 @@ function run_postprocess_unrandomise($cache_record, &$descriptor)
 }
 
 
+/**
+ * Creates a new query from that specified in cache_record by running
+ * the "thin" postprocess, caches the new query, and returns its 
+ * cache record.
+ * 
+ * $descriptor needs to be a POSTPROCESS object that contains the various
+ * parameters controlling this postprocess.
+ */
 function run_postprocess_thin($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $mysql_link;
 	global $username;
 
 	$old_qname = $cache_record['query_name'];	
@@ -974,12 +1009,19 @@ function run_postprocess_thin($cache_record, &$descriptor)
 
 
 
+/**
+ * Creates a new query from that specified in cache_record by running
+ * the "item" postprocess, caches the new query, and returns its 
+ * cache record.
+ * 
+ * $descriptor needs to be a POSTPROCESS object that contains the various
+ * parameters controlling this postprocess.
+ */
 function run_postprocess_item($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
 	global $cqpweb_tempdir;
-	global $mysql_link;
 	global $username;
 
 	$old_qname = $cache_record['query_name'];	
@@ -1031,14 +1073,21 @@ function run_postprocess_item($cache_record, &$descriptor)
 
 
 // NB this was copied from "item" (and thus, from "sort") with minor changes.
-// TODO optimise sort, item, dist, text to re-use the code, since so much of it is the same
+// TODO optimise sort, item, dist, text, colloc etc. to re-use the code, since so much of it is the same
 // rather than repeating it
+/**
+ * Creates a new query from that specified in cache_record by running
+ * the "distribution" postprocess, caches the new query, and returns its 
+ * cache record.
+ * 
+ * $descriptor needs to be a POSTPROCESS object that contains the various
+ * parameters controlling this postprocess.
+ */
 function run_postprocess_dist($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
 	global $cqpweb_tempdir;
-	global $mysql_link;
 	global $username;
 
 	$old_qname = $cache_record['query_name'];	
@@ -1090,12 +1139,19 @@ function run_postprocess_dist($cache_record, &$descriptor)
 
 
 // another copy from the same family as preceding two functions
+/**
+ * Creates a new query from that specified in cache_record by running
+ * the "text" postprocess, caches the new query, and returns its 
+ * cache record.
+ * 
+ * $descriptor needs to be a POSTPROCESS object that contains the various
+ * parameters controlling this postprocess.
+ */
 function run_postprocess_text($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
 	global $cqpweb_tempdir;
-	global $mysql_link;
 	global $username;
 
 	$old_qname = $cache_record['query_name'];	
@@ -1158,6 +1214,10 @@ function run_postprocess_text($cache_record, &$descriptor)
  * Returns an array of highlight positions matching the postprocess string specified.
  * 
  * This will include a dbname, which is how the function knows which data to work on.
+ * 
+ * NB. "Highlight positions" = which words in concordance lines should be emphasised
+ * (usually in bold), e.g. collocating words in a collocation-thinned query, or sort
+ * key word in a sorted query. 
  * 
  * This function sets its third output to true if tags are to be shown in highlight;
  * otherwise it is set to false.
@@ -1269,6 +1329,12 @@ function get_highlight_position_table($qname, $postprocess_string, &$show_tags_i
 
 
 // so useful, it should prob be in library
+/**
+ * Returns a printable (HTML) description of all the things that have been done
+ * to a query in postprocessing, using a standard-format postprocess_string,
+ * and a hits_string listing any decreases to the number of hits caused by
+ * the postprocessing.
+ */
 function postprocess_string_to_description($postprocess_string, $hits_string)
 {
 	global $corpus_main_script_is_r2l;

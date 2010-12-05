@@ -22,9 +22,11 @@
  */
 
 
-/* concordance.inc.php */
-
-/* this file contains the code for (a) doing and (b) displaying a search */
+/**
+ * @file 
+ * 
+ * This file contains the code for (a) doing and (b) displaying a corpus query as a concordance. 
+ */
 
 
 /* ------------ */
@@ -51,7 +53,6 @@ require_once('../lib/db.inc.php');
 require_once('../lib/user-settings.inc.php');
 
 /* and because I'm using the next two modules I need to... */
-//create_pipe_handle_constants();
 require_once("../lib/cwb.inc.php"); /* TODO NOT TESTED YET - used by dump and undump, I think */
 require_once("../lib/cqp.inc.php");
 
@@ -94,8 +95,16 @@ $user_settings = get_all_user_settings($username);
 /* QUERY VARIABLES */
 /* *************** */
 
-/* qname is the overriding variable --- is it set? */
-/* if it is, then we don't need $theData or anything like that */
+/* qname is the overriding variable --- is it set?
+ * If it is, then we are accessing an already-existing query in order to 
+ * display it (or rather, an approrpiate subset of it).
+ * 
+ * In this case, we don't need $theData or anything like that.
+ * 
+ * If qname is INIT this indicates explicitly that this is a
+ * new query, although this is also taken as implicitly indicated
+ * by the qname parameter not being set at all.
+ */
 if (isset($_GET['qname']) && $_GET['qname'] != 'INIT')
 {
 	$qname = $_GET['qname'];
@@ -104,17 +113,22 @@ if (isset($_GET['qname']) && $_GET['qname'] != 'INIT')
 else
 {
 	/* if we're here, either $qname was INIT, or no qname was specified */
-	$qname = 'INIT';
+	$_GET['qname'] = $qname = 'INIT';
 	$incoming_qname_specified = false;
 }
 
 
-/* handling of theData && qmode */
+/* Handling of theData && qmode.
+ *
+ * "theData" is the contents of a query, either in CQP-syntax, or in
+ * the CEQL simple-syntax formalism. The qmode parameter indicates which
+ * of these it is. If a new query is to be performed, both these parameters
+ * are indispensible.
+ */
 if (! $incoming_qname_specified )
 {
-	/* we have to have theData & qmode */
 	if (isset($_GET['theData']))
-		$_GET['theData'] = $theData = prepare_query_string($_GET['theData']);
+		$theData = prepare_query_string($_GET['theData']);
 	else
 		exiterror_parameter('The content of the query was not specified!', __FILE__, __LINE__);
 
@@ -128,7 +142,7 @@ else
 	/* theData & qmode are optional: set them to NULL if not present */
 	/* note that they are ignored UNLESS qname turns out not to be cached after all */
 	if (isset($_GET['theData']))
-		$_GET['theData'] = $theData = prepare_query_string($_GET['theData']);
+		$theData = prepare_query_string($_GET['theData']);
 	else
 		$theData = NULL;
 
@@ -140,14 +154,20 @@ else
 /* stop "theData" & "qmode" from being passed to any other script */
 unset($_GET['theData']);
 unset($_GET['qmode']);
-/* only used if this is a new query */
+/* $case_sensitive is only used if this is a new query */
 $case_sensitive = ($qmode === 'sq_nocase' ? 0 : 1);
 
 
 
-/* check for restrictions and subcorpus statements */
-/* note that the specification of a subcorpus trumps restrictions */
-/* note that these will be overwritten below if a named query is retrieved from cache */
+/* Check for restrictions and subcorpus statements. 
+ * 
+ * Note that the specification of a subcorpus trumps the specification of restrictions
+ * (of course, a query submitted from the CQPweb forms will only have ONE of these,
+ * not both, so this is just a safety measure in the face of badly-formed links.
+ * 
+ * Note that both subcorpus and restrictions will be overwritten below if a named query 
+ * is retrieved from cache 
+ */
 if (isset($_GET['subcorpus']))
 {
 	$subcorpus = $_GET['subcorpus'];
@@ -158,8 +178,8 @@ else
 	$subcorpus = 'no_subcorpus';
 	$restrictions = translate_restrictions_definition_string();
 	
-	/* careful - if there was a subcorpus in the "&t=...", it will now be stated as a restriction */
-	/* but that won't work, therefore we need to do this : */
+	/* careful - if there was a subcorpus in the "&t=...", it will now be stated as a restriction;
+	 * but that won't work, therefore we need to do this : */
 	
 	if (preg_match('/\A\(subcorpus=\'(\w+)\'\)\z/', $restrictions, $temp) > 0 ) 
 	{
@@ -177,8 +197,10 @@ else
 }
 
 
-/* this always starts as an empty string -- it may be added to later by new-postprocess, */
-/* or an existing postprocessor string may be loaded from memory. */
+/* $postprocess describes all the postprocesses applied to a query; it 
+ * always starts as an empty string, but it may be added to later by new-postprocess,
+ * or an existing postprocessor string may be loaded from memory. 
+ */
 $postprocess = '';
 
 /* load variables for new postprocesses */
@@ -199,13 +221,18 @@ if (isset($_GET['newPostP']) && $_GET['newPostP'] !== '')
 /* RENDERING VARIABLES */
 /* ******************* */
 
+/* In a multi-page concordance: which page to display. */
 if (isset($_GET['pageNo']))
 	$_GET['pageNo'] = $page_no = prepare_page_no($_GET['pageNo']);
 else
 	$page_no = 1;
 
 
-
+/* In a multi-page concordance: how many hits per page. 
+ * 
+ * Note that &pp=count indicates that rather than show ANY 
+ * hits, we should just display how many hits there were.
+ */
 if (isset($_GET['pp']))
 	$per_page = prepare_per_page($_GET['pp']);   /* filters out any invalid options */
 else
@@ -227,6 +254,7 @@ else
 	$show_all_hits = false;
 
 
+/* viewMode can be either kwic or line. */
 if (isset($_GET['viewMode']))
 	$viewMode = $_GET['viewMode'];
 else
@@ -252,8 +280,8 @@ else
 
 
 
-/* the program variable: filtered by a switch to admit only OK values */
-/* note this is only used for the RENDERING of the query */
+/* the $program variable: filtered by a switch to admit only OK values;
+ * note this is only used for the RENDERING of the query */
 switch($_GET['program'])
 {
 case 'collocation':	/* does this actually do anything? */
@@ -301,12 +329,12 @@ $primary_tag_handle = get_corpus_metadata('primary_annotation');
 
 
 
-/* ----------------------------------------------------------------------------- */
-/* This is the section which runs two separate tracks                            */
-/* a track for a query that is in cache and another track for a query that isn't */
-/* ----------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------- *
+ * This is the section which runs two separate tracks:                           *
+ * a track for a query that is in cache and another track for a query that isn't *
+ * ----------------------------------------------------------------------------- */
 
-$startTime = microtime_float();
+$startTime = microtime(true);
 	
 
 
@@ -442,13 +470,13 @@ if ( ! $incoming_qname_specified )
 }
 
 
-/* we now know if it's a new query, and can check whether to apply the user's auto-randomise function
- * but this is only applied if no other postprocess has been asked for */
+/* we now know if it's a new query, and can check whether to apply the user's auto-randomise function;
+ * but this is only applied if no other postprocess has been asked for. */
 if ($run_new_query && ! $new_postprocess && ! $user_settings->conc_corpus_order)
 {
 	$_GET['newPostP'] = 'rand';
 	$new_postprocess = new POSTPROCESS();
-	/* no need to check whether it parsed correctly */
+	/* no need to check whether it parsed correctly, cos we know it did! */
 	$page_no = 1;
 	unset($_GET['pageNo']);
 	/* so that we know it will go to page 1 of the postprocessed query */
@@ -511,11 +539,11 @@ if ($run_new_query)
 }
 else
 {
-	/* nothing. The query has been retrieved from cache. */
+	/* if ! $run_new_query, do nothing. The query has been retrieved from cache. */
 }
 
 /* set flag in history for query completed */
-if ($history_inserted === true)
+if ($history_inserted)
 	history_update_hits($instance_name, $num_of_solutions);
 	/* IF this query created a record, update it so it's not -3 */
 
@@ -577,7 +605,7 @@ if ($new_postprocess)
 		$run_new_query = true;
 		/* so that it won't say the answer was retrieved from cache in the heading */
 	}
-}
+} /* endif $new_postprocess */
 
 /* get the highlight-positions table */
 $highlight_positions_array = get_highlight_position_table($qname, $postprocess, $highlight_show_tag);
@@ -591,8 +619,7 @@ $highlight_show_tag = ( (! empty($primary_tag_handle) ) && $highlight_show_tag &
 /* --------------------- */
 
 
-$endTime = microtime_float();
-$timeTaken = round($endTime - $startTime, 3);
+$timeTaken = round(microtime(true) - $startTime, 3);
 
 
 
@@ -701,12 +728,12 @@ if ($program == "sort")
 
 /* set up CQP options for the concordance display */
 $cqp->execute("set Context $context_scope " . ($context_scope_is_based_on_s ? $context_s_attribute : 'words'));
-/* next line allows for unannotated corpora */
 
 if ($visualise_gloss_in_concordance)
 	$cqp->execute("show +word +$visualise_gloss_annotation ");
 else
 	$cqp->execute('show +word ' . (empty($primary_tag_handle) ? '' : "+$primary_tag_handle "));
+	/* note that $primary_tag_handle should only be empty in an unannotated corpus. */
 $cqp->execute("set PrintStructures \"" 
 				. ($visualise_translate_in_concordance ? "$visualise_translate_s_att " : '') 
 				. "text_id\""); 
@@ -732,7 +759,7 @@ $kwic = $cqp->execute("cat $qname $batch_start $batch_end");
 
 /* get a table of corpus positions */
 $table = $cqp->dump($qname, $batch_start, $batch_end);
-// !!!!!!!!!!!!!!!!!! is this used? it is passed to print_concordance_line, but does that use it?
+// !!!!!!!!!!!!!!!!!! TODO is this used? it is passed to print_concordance_line, but does that use it?
 
 /* n = number of concordances we have to display in this run of the script */
 $n = count($kwic);
@@ -809,7 +836,7 @@ if ($program == 'categorise')
 /* finish off table */
 echo '</table>';
 
-// more listfiles/categorise
+// TODO more listfiles/categorise
 
 
 /* show the control row again at the bottom if there are more than 15 lines on screen */
@@ -829,11 +856,11 @@ delete_cache_overflow();
 if ($restrictions != 'no_restriction')
 	create_subcorpus_restrictions('__last_restrictions', $restrictions);
 
-/* disconnect CQP child process using destructor function */
-$cqp->disconnect();
+/* disconnect CQP child process */
+disconnect_global_cqp();
 
 /* disconnect mysql */
-mysql_close($mysql_link);
+disconnect_global_mysql();
 
 
 /* ------------- */

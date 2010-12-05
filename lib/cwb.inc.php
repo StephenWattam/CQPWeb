@@ -1,15 +1,15 @@
 <?php
 /*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -91,8 +91,9 @@ class CWB
 	}
 	
 	/**
-	 * Removes a corpus from the CWB system. The argument must be the *lowercase*
-	 * version of the CWB-corpus-name.
+	 * Removes a corpus from the CWB system. 
+	 * 
+	 * The argument must be the *lowercase* version of the CWB-corpus-name.
 	 */
 	public function uncreate_corpus($corpus_name)
 	{
@@ -126,9 +127,16 @@ function cwb_corpus_exists($corpus_name)
 
 
 
-
-/* this function only removes a corpus from the cwb system; it doesn't do anything in mysql */
-/* argument must be the *lowercase* version of the name (ie *with* the __freq suffix, if nec.) */
+/**
+ * Removes a CWB corpus from the system.
+ * 
+ * The function also deletes any frequency-text-index in the MySQL system.
+ * It doesn't touch the record of the corpus in corpus_metadata_fixed and other tables.
+ * TODO surely it should nto touch the mysql at all?
+ * 
+ * The argument must be the *lowercase* version of the registry name (ie *with* the __freq 
+ * suffix, if nec.)
+ */
 function cwb_uncreate_corpus($corpus_name)
 {
 	global $cwb_datadir;

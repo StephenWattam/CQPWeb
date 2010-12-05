@@ -1248,13 +1248,12 @@ function printquery_managemeta()
 		
 		global $corpus_title;
 		global $corpus_sql_name;
-		global $mysql_link;
 	
 		$table_title =  "text_metadata_for_" . $corpus_sql_name;
 	
 		$sql_query = "select handle from text_metadata_fields where corpus = '$corpus_sql_name'";
 		
-		$result = mysql_query($sql_query, $mysql_link);
+		$result = do_mysql_query($sql_query);
 		
 		if ($result == false)
 		{
@@ -2153,16 +2152,12 @@ function printquery_showcache()
 
 function printquery_showfreqtables()
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	global $default_history_per_page;
 	global $mysql_freqtables_size_limit;
 	
 	$sql_query = "select sum(ft_size) from saved_freqtables";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	list($size) = mysql_fetch_row($result);
 	if (!isset($size))
@@ -2239,10 +2234,7 @@ function printquery_showfreqtables()
 		public
 		FROM saved_freqtables WHERE corpus = '$corpus_sql_name' order by create_time desc";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 
 	if (isset($_GET['beginAt']))
@@ -2346,17 +2338,12 @@ function printquery_showfreqtables()
 
 function printquery_showdbs()
 {
-
-	global $mysql_link;
 	global $corpus_sql_name;
 	global $default_history_per_page;
 	global $mysql_db_size_limit;
 	
 	$sql_query = "select sum(db_size) from saved_dbs";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	
 	list($size) = mysql_fetch_row($result);
 	if (!isset($size))
@@ -2433,11 +2420,7 @@ function printquery_showdbs()
 	$sql_query = "SELECT user, dbname, db_type, db_size, cqp_query, restrictions, subcorpus, create_time 
 		FROM saved_dbs WHERE corpus = '$corpus_sql_name' order by create_time desc";
 		
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-	
+	$result = do_mysql_query($sql_query);
 
 	if (isset($_GET['beginAt']))
 		$begin_at = $_GET['beginAt'];

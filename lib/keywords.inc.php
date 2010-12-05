@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -292,10 +292,7 @@ $table_name[2] = "{$table_base[2]}_$att_for_comp";
 foreach (array(1, 2) as $i)
 {
 	$sql_query = "select sum(freq) from {$table_name[$i]}";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_fullpage(mysql_errno($mysql_link) . ': ' .
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
 	if (mysql_num_rows($result) < 1)
 		exiterror_fullpage("sum(freq) not found in from {$table_name[$i]}, 
 			0 rows returned from mySQL.", __FILE__, __LINE__);		
@@ -383,10 +380,7 @@ switch ($statistic)
 }
 
 
-$result = mysql_query($sql_query, $mysql_link);
-if ($result == false) 
-	exiterror_fullpage(mysql_errno($mysql_link) . ': ' .
-		mysql_error($mysql_link), __FILE__, __LINE__);
+$result = do_mysql_query($sql_query);
 
 $n = mysql_num_rows($result);
 
@@ -489,7 +483,7 @@ else
 }
 
 /* disconnect mysql */
-mysql_close($mysql_link);
+disconnect_global_mysql();
 
 
 
@@ -622,7 +616,6 @@ function keywords_write_download($att_desc, $description, &$result)
 
 function parse_keyword_table_parameter($par)
 {
-	global $mysql_link;
 	global $corpus_sql_name;
 	global $corpus_title;	
 	
@@ -665,10 +658,8 @@ function parse_keyword_table_parameter($par)
 			
 			$sql_query = "select public_freqlist_desc from corpus_metadata_fixed
 				where corpus = '{$m[1]}'";
-			$result = mysql_query($sql_query, $mysql_link);
-			if ($result == false) 
-				exiterror_mysqlquery(mysql_errno($mysql_link), 
-					mysql_error($mysql_link), __FILE__, __LINE__);
+			$result = do_mysql_query($sql_query);
+
 			$r = mysql_fetch_row($result);
 			$desc = "corpus &ldquo;$r[0]&ldquo;";
 		}
@@ -684,10 +675,8 @@ function parse_keyword_table_parameter($par)
 			
 			$sql_query = "select corpus, subcorpus from saved_freqtables 
 				where freqtable_name = '{$m[1]}'";
-			$result = mysql_query($sql_query, $mysql_link);
-			if ($result == false) 
-				exiterror_mysqlquery(mysql_errno($mysql_link), 
-					mysql_error($mysql_link), __FILE__, __LINE__);
+			$result = do_mysql_query($sql_query);
+
 			$r = mysql_fetch_assoc($result);
 			$desc = "subcorpus &ldquo;{$r['subcorpus']}&rdquo; from corpus &ldquo;{$r['corpus']}&rdquo;";
 		}	

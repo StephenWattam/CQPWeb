@@ -1,7 +1,7 @@
 <?php
 /*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-10 Andrew Hardie and contributors
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
  * See http://cwb.sourceforge.net/cqpweb.php
  *
@@ -20,6 +20,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
 
 /* refuse to run unless we are in CLI mode */
 

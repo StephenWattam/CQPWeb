@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -322,7 +322,7 @@ if ( ( ! isset($colloc_atts_list) ) || ( ! in_array($att_for_calc, $colloc_atts_
 
 
 
-$startTime = microtime_float();
+$startTime = microtime(true);
 
 
 /* does a db for the collocation exist? */
@@ -426,8 +426,7 @@ if ($solomode === true)
 {
 	run_script_for_solo_collocation();
 	print_footer();
-	$cqp->disconnect();
-	mysql_close($mysql_link);	
+	disconnect_all();
 	exit(0);
 }
 
@@ -446,8 +445,7 @@ $result = do_mysql_query($sql_query);
 
 
 /* "time" == time to create the db (if nec), create the freqtable (if nec), + run the BIIIG query */
-$endTime = microtime_float();
-$timeTaken = round($endTime - $startTime, 3);
+$timeTaken = round(microtime(true) - $startTime, 3);
 
 $description = "There are " . make_thousands($db_types_total) . " different " 
 	. strtolower($att_desc[$att_for_calc]) 
@@ -737,11 +735,11 @@ else
 
 
 
-/* disconnect CQP child process using destructor function */
-$cqp->disconnect();
+/* disconnect CQP child process */
+disconnect_global_cqp();
 
 /* disconnect mysql */
-mysql_close($mysql_link);
+disconnect_global_mysql();
 
 
 

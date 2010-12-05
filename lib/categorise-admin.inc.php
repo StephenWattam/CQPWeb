@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -128,10 +128,10 @@ switch ($_GET['categoriseAction'])
 
 
 /* disconnect CQP child process using destructor function */
-$cqp->disconnect();
+disconnect_global_cqp();
 
 /* disconnect mysql */
-mysql_close($mysql_link);
+disconnect_global_mysql();
 
 
 /* ------------- */
@@ -284,8 +284,6 @@ function categorise_create_query()
 
 function categorise_update()
 {
-	global $mysql_link;
-	
 	if (isset($_GET['qname']))
 		$qname = mysql_real_escape_string($_GET['qname']);
 	else
@@ -306,10 +304,7 @@ function categorise_update()
 			continue;
 		
 		$sql_query = "update $dbname set category = '$selected_cat' where refnumber = $refnumber";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);	
+		do_mysql_query($sql_query);
 	}
 	
 	/* and finish by ... */
@@ -327,7 +322,6 @@ function categorise_separate()
 	global $username;
 	global $cqp;
 	global $cqpweb_tempdir;
-	global $mysql_link;
 	global $corpus_sql_name;
 	
 	if (isset($_GET['qname']))
@@ -423,50 +417,29 @@ function categorise_separate()
 			1,
 			'$newsavename'		
 			)";
-		$result = mysql_query($sql_query, $mysql_link);
-		if ($result == false) 
-			exiterror_mysqlquery(mysql_errno($mysql_link), 
-				mysql_error($mysql_link), __FILE__, __LINE__);	
+		do_mysql_query($sql_query);
 	}
-	
 }
 
 
 
 
-
+/** delete the databse, the cached query, and the record in saevd_catqueries */
 function categorise_delete_query()
 {
-	global $mysql_link;
-
-	/* delete the databse, the cached query, and the record in saevd_catqueries */
-	
-	
 	if (isset($_GET['qname']))
 		$qname = mysql_real_escape_string($_GET['qname']);
 	else
 		exiterror_fullpage('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
 
-	$sql_query = "select dbname from saved_catqueries where catquery_name='$qname'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query("select dbname from saved_catqueries where catquery_name='$qname'");
 	list($dbname) = mysql_fetch_row($result);
 
-	$sql_query = "drop table if exists $dbname";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query("drop table if exists $dbname");
 			
 	delete_cached_query($qname);
 	
-	$sql_query = "delete from saved_catqueries where catquery_name='$qname'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query("delete from saved_catqueries where catquery_name='$qname'");
 }
 
 
@@ -477,11 +450,6 @@ function categorise_delete_query()
 
 function categorise_add_new_value()
 {
-	global $mysql_link;
-
-	/* delete the databse, the cached query, and the record in saevd_catqueries */
-	
-	
 	if (isset($_GET['qname']))
 		$qname = mysql_real_escape_string($_GET['qname']);
 	else
@@ -513,12 +481,7 @@ function categorise_add_new_value()
 	$cat_list_string = implode('|', $category_list);
 	
 	$sql_query = "update saved_catqueries set category_list = '$cat_list_string' where catquery_name='$qname'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-
-
+	do_mysql_query($sql_query);
 	
 	/* and finish by ... */
 	$dbname = catquery_find_dbname($qname);

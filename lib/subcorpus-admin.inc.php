@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -20,8 +20,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 
 
 
@@ -223,10 +221,8 @@ case 'create_from_metadata_scan':
 	
 
 	$sql_query = "select text_id from text_metadata_for_$corpus_sql_name where $field like '$value'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	$result = do_mysql_query($sql_query);
+
 			
 	$list_of_texts_to_show_in_form = '';
 	
@@ -354,22 +350,14 @@ case 'copy':
 		where subcorpus_name = '$old_subcorpus_name'
 		and corpus = '$corpus_sql_name' 
 		and user = '$username'";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
-
-	unset($result);
+	do_mysql_query($sql_query);
 
 	$sql_query = "update saved_subcorpora set subcorpus_name = '$subcorpus_name'
 		where subcorpus_name = '$old_subcorpus_name' 
 		and corpus = '$corpus_sql_name' 
 		and user = '$username' 
 		LIMIT 1";
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), 
-			mysql_error($mysql_link), __FILE__, __LINE__);
+	do_mysql_query($sql_query);
 	
 	disconnect_all();
 	header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));

@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -26,12 +26,12 @@
 
 
 
-
 /* before anything else */
 header('Content-Type: text/html; charset=utf-8');
 
 include ("lib/defaults.inc.php");
 include ("lib/library.inc.php");
+include ("lib/exiterror.inc.php");
 
 /* connect to mySQL */
 connect_global_mysql();
@@ -42,18 +42,7 @@ if ($use_corpus_categories_on_homepage)
 {
 	/* get a list of categories */
 	$sql_query = "select distinct (corpus_cat) from corpus_metadata_fixed where visible = 1 order by corpus_cat asc";
-	$result = mysql_query($sql_query, $mysql_link);
-
-	if ($result == false) 
-	{
-		?>
-		<html><body>
-		<p class="errormessage">
-			the mySQL query could not be run - please try again later!
-		</p></body></html> 
-		<?php
-		exit(1);
-	}
+	$result = do_mysql_query($sql_query);
 	
 	while ( ($r = mysql_fetch_row($result)) != false)
 		$categories[] = $r[0];
@@ -69,6 +58,8 @@ else
 }
 
 
+
+header('Content-Type: text/html; charset=utf-8');
 ?>
 <html>
 <head>
@@ -106,17 +97,7 @@ foreach ($categories as $cat)
 	$sql_query = "select corpus, visible from corpus_metadata_fixed
 		where visible = 1 and corpus_cat like '$cat' order by corpus asc";
 
-	$result = mysql_query($sql_query, $mysql_link);
-	if ($result == false) 
-	{
-		?>
-		<html><body>
-		<p class="errormessage">
-			the mySQL query could not be run - please try again later!
-		</p></body></html> 
-		<?php
-		exit(1);
-	}
+	$result = do_mysql_query($sql_query);
 	
 	$corpus_list = array();
 	while ( ($x = mysql_fetch_object($result)) != false)
@@ -164,7 +145,6 @@ foreach ($categories as $cat)
 	}
 	if ($i == 2)
 		echo "<td class=\"$celltype\" width=\"33%\" align=\"center\">&nbsp;</td>";
-
 }
 
 ?>
@@ -174,12 +154,10 @@ foreach ($categories as $cat)
 
 <?php
 
-
 display_system_messages();
 
 print_footer('admin');
 
-
 /* disconnect mysql */
-mysql_close($mysql_link);
+disconnect_global_mysql();
 ?>

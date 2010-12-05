@@ -339,7 +339,6 @@ function printquery_usermacros()
 
 function printquery_corpusmetadata()
 {
-	global $mysql_link;
 	global $corpus_title;
 	global $corpus_sql_name;
 	global $corpus_cqp_name;
@@ -694,6 +693,11 @@ function printquery_latest()
 	<p>&nbsp;</p>
 	
 	<ul>
+		<li>
+		<b>Version 2.16</b>, 2010-xx-yy<br/>&nbsp;<br/>
+		
+		<br/>&nbsp;</li>
+
 		<li>
 		<b>Version 2.15</b>, 2010-12-02<br/>&nbsp;<br/>
 		Licence switched from GPLv3+ to GPLv2+ to match the rest of CWB. Some source files remain to be updated!

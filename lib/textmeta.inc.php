@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -20,7 +20,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 
@@ -83,12 +82,8 @@ else
 	$text_id = mysql_real_escape_string($_GET["text"]);
 	
 
-$result = mysql_query("SELECT * from text_metadata_for_$corpus_sql_name 
-	where text_id = '$text_id'", $mysql_link);
-
-if ($result == false) 
-	printerror_mysqlquery(mysql_errno($mysql_link), 
-		mysql_error($mysql_link), __FILE__, __LINE__);
+$result = do_mysql_query("SELECT * from text_metadata_for_$corpus_sql_name 
+	where text_id = '$text_id'");
 
 if (mysql_num_rows($result) < 1)
 {
@@ -138,7 +133,7 @@ for ( $i = 0 ; $i < $n ; $i++ )
 }
 
 /* disconnect mysql */
-mysql_close($mysql_link);
+disconnect_global_mysql();
 
 echo '</table>';
 

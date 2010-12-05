@@ -1,15 +1,15 @@
 <?php
-/**
+/*
  * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
- * Copyright (C) 2008-9 Andrew Hardie
+ * Copyright (C) 2008-today Andrew Hardie and contributors
  *
- * See http://www.ling.lancs.ac.uk/activities/713/
+ * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
  * 
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
  * CQPweb is distributed in the hope that it will be useful,
@@ -56,12 +56,15 @@ function prepare_query_string($s)
 }
 
 
-/* invalid values: cause CQPweb to abort if $strict; are converted to NULL if not $strict */
+/**
+ * This function gets one of the allowed query-mode strings from $_GET.
+ * 
+ * If no valid query-mode is specified, it (a) causes CQPweb to abort if
+ * $strict is true; OR (b) returns NULL if $strict is false. 
+ */
 function prepare_query_mode($s, $strict = true)
 {
-	if ( ! is_bool($strict) )
-		exiterror_arguments($strict, 
-			"prepare_query_mode() needs a bool (or nothing) as its 2nd argument!", __FILE__, __LINE__);
+	$strict = (bool)$strict;
 	
 	$s = strtolower($s);
 	
