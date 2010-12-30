@@ -42,6 +42,8 @@ require_once ("../lib/defaults.inc.php");
 require_once ("../lib/library.inc.php");
 require_once ("../lib/apache.inc.php");
 require_once ("../lib/admin-lib.inc.php");
+// TODO needed?
+//require_once ("../lib/admin-install.inc.php");
 require_once ("../lib/exiterror.inc.php");
 require_once ("../lib/metadata.inc.php");
 require_once ("../lib/ceql.inc.php");

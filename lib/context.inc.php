@@ -26,7 +26,7 @@
 
 /* context.inc.php */
 
-/* this file contains the code for showing extended context for a single result */
+/** @file this file contains the code for showing extended context for a single result */
 
 
 /* ------------ */
