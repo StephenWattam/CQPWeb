@@ -469,7 +469,7 @@ function install_create_settings_file($filepath, $info)
 		. ($info->script_is_r2l ? "\$corpus_main_script_is_r2l = true;\n" : '')
 		. '?>';
 	file_put_contents($filepath, $data);
-	chmod($filepath, 0775);
+	chmod($filepath, 0664);
 }
 
 
@@ -482,7 +482,7 @@ function install_create_corpus_script_files($in_dir)
 					'textmeta') as $c)
 	{
 		file_put_contents("$in_dir/$c.php", "<?php require('../lib/$c.inc.php'); ?>");
-		chmod("$in_dir/$c.php", 0775);
+		chmod("$in_dir/$c.php", 0664);
 	}		
 }
 

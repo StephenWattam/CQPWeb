@@ -236,8 +236,6 @@ function process_simple_query($query, $case_sensitive)
 	global $path_to_perl;
 	global $cwb_extra_perl_directories;
 	
-	global $print_debug_messages;
-	
 	/* return as is if nothing but whitespace */
 	if (preg_match('/^\s*$/', $query) > 0)
 		return $query;
@@ -295,8 +293,7 @@ function process_simple_query($query, $case_sensitive)
 		array_unshift($ceql_errors, "<u>Syntax error</u>", "Sorry, your simple query
 	        ' $query ' contains a syntax error.");
 	        
-		if ($print_debug_messages)
-			print_debug_message("Error in perl script for CEQL: this was the script\n\n$script");
+		print_debug_message("Error in perl script for CEQL: this was the script\n\n$script\n\n");
 		
 		exiterror_cqp_full($ceql_errors);
 	}

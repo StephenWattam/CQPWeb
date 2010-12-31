@@ -37,18 +37,18 @@
 
 
 /*
-TODO
-If mysql extension does not exist, include fake-mysql.inc.php to restore the functions
-that are actually used and emulate them via mysqli.
-*/
-/* this is global code in a library file; normally a no-no.
-it -only- addresses what files need ot be included and which don't */
+ * If mysql extension does not exist, include fake-mysql.inc.php to restore the functions
+ * that are actually used and emulate them via mysqli.
+ * 
+ * This is global code in a library file; normally a no-no.
+ * it -only- addresses what files need ot be included and which don't.
+ */
 if  (!extension_loaded('mysql'))
 {
 	if (!class_exists('mysqli', false))
-		exit('Fatal error: neither mysql nor mysqli is available.');
+		exit('CQPweb fatal error: neither mysql nor mysqli is available.');
 	else
-		require_once('../lib/fake-mysql.inc.php');
+		include('../lib/fake-mysql.inc.php');
 }
 
 
@@ -178,20 +178,16 @@ function disconnect_all()
 function do_mysql_query($sql_query)
 {
 	global $mysql_link;
-	global $print_debug_messages;
 
-	if ($print_debug_messages)
-	{
-		print_debug_message("About to run the following MySQL query:\n\n$sql_query\n");
-		$start_time = time();
-	}	
+	print_debug_message("About to run the following MySQL query:\n\n$sql_query\n");
+	$start_time = time();
+	
 	$result = mysql_query($sql_query, $mysql_link);
 	
 	if ($result == false) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
 			
-	if ($print_debug_messages)
-		print_debug_message("The query ran successfully in " . (time() - $start_time) . " seconds.\n");
+	print_debug_message("The query ran successfully in " . (time() - $start_time) . " seconds.\n");
 		
 	return $result;
 }
@@ -218,7 +214,6 @@ function do_mysql_outfile_query($query, $filename)
 {
 	global $mysql_has_file_access;
 	global $mysql_link;
-	global $print_debug_messages;
 	
 	if ($mysql_has_file_access)
 	{
@@ -233,28 +228,24 @@ function do_mysql_outfile_query($query, $filename)
 				'A query was prepared which does not contain FROM, or contains multiple instances of FROM: ' 
 				. $query , __FILE__, __LINE__);
 		
-		if ($print_debug_messages)
-			print_debug_message("About to run the following MySQL query:\n\n$query\n");
+		print_debug_message("About to run the following MySQL query:\n\n$query\n");
 		$result = mysql_query($query);
 		if ($result == false)
 			exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
 		else
 		{
-			if ($print_debug_messages)
-				print_debug_message("The query ran successfully.\n");
+			print_debug_message("The query ran successfully.\n");
 			return mysql_affected_rows($mysql_link);
 		}
 	}
 	else 
 	{
 		/* we cannot use INTO OUTFILE, so run the query, and write to file ourselves */
-		if ($print_debug_messages)
-			print_debug_message("About to run the following MySQL query:\n\n$query\n");
+		print_debug_message("About to run the following MySQL query:\n\n$query\n");
 		$result = mysql_unbuffered_query($query, $mysql_link); /* avoid memory overhead for large result sets */
 		if ($result == false)
 			exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
-		if ($print_debug_messages)
-			print_debug_message("The query ran successfully.\n");
+		print_debug_message("The query ran successfully.\n");
 	
 		if (!($fh = fopen($filename, 'w'))) 
 			exiterror_general("Could not open file for write ( $filename )", __FILE__, __LINE__);
@@ -312,15 +303,26 @@ function get_cwb_memory_limit()
 
 
 /**
- * currently, this function just wraps pre_echo, or echoes naked to the command line 
- * but we might want to create a more HTML-table-friendly version later.
+ * Prints a debug message. 
+ * 
+ * Messages are not printed if the config variable $print_debug_messages is not set to
+ * true.
+ * 
+ * (Currently, this function just wraps pre_echo, or echoes naked to the command line
+ * - but we might want to create a more HTML-table-friendly version later.)
  */
 function print_debug_message($message)
 {
-	if (php_sapi_name() == 'cli')
-		echo $message. "\n\n";
-	else
-		pre_echo($message);
+	global $debug_messages_textonly;
+	global $print_debug_messages;
+	
+	if ($print_debug_messages)
+	{
+		if ($debug_messages_textonly)
+			echo $message. "\n\n";
+		else
+			pre_echo($message);
+	}
 }
 
 
@@ -329,7 +331,7 @@ function print_debug_message($message)
  */
 function pre_echo($s)
 {
-	echo "<pre>\n$s\n</pre>";
+	echo "\n\n<pre>\n$s\n</pre>\n";
 }
 
 /**
@@ -489,7 +491,7 @@ function url_absolutify($u)
 				. $u;
 		else
 			return $cqpweb_root_url 
-				. ( (!empty($corpus_sql_name)) ? $corpus_sql_name.'/' : '' ) 
+				. ( (!empty($corpus_sql_name)) ? $corpus_sql_name . '/' : '' ) 
 				. $u; 
 	}
 }

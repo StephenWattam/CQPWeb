@@ -137,6 +137,13 @@ if (!isset($cqpweb_uses_apache))
 if (!isset($print_debug_messages))
 	$print_debug_messages = false;
 
+if (!isset($debug_messages_textonly))
+	$debug_messages_textonly = false;
+/* but whether it was set or not we override it on the command-line */
+if (php_sapi_name() == 'cli')
+	$debug_messages_textonly = false;
+
+
 /* This is not a default - it cleans up the input, so we can be sure the root
  * URL ends in a slash. */
 if (isset($cqpweb_root_url))

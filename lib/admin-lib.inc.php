@@ -769,9 +769,7 @@ function create_text_metadata_for()
 	/* and, if requested, we can do all the other setup automatically */
 	if ($create_text_metadata_for_info['do_automatic_metadata_setup'])
 	{
-		global $print_debug_messages;
-		if ($print_debug_messages)
-			print_debug_message('About to start running auto-pre-setup functions');
+		print_debug_message('About to start running auto-pre-setup functions');
 		
 		/* get the right global settings for these functions */
 		import_settings_as_global($corpus);
@@ -794,8 +792,7 @@ function create_text_metadata_for()
 		/* do unconditionally */
 		corpus_make_freqtables();
 		
-		if ($print_debug_messages)
-			print_debug_message('Auto-pre-setup functions complete.');
+		print_debug_message('Auto-pre-setup functions complete.');
 	}
 }
 
@@ -1186,6 +1183,8 @@ function cqpweb_mysql_dump_data($dump_file_path)
  */
 function cqpweb_mysql_undump_data($dump_file_path)
 {
+	global $mysql_LOAD_DATA_INFILE_command;
+	
 	$dir = dumpable_dir_basename($dump_file_path);
 	
 	cqpweb_dump_untargzip("$dir.tar.gz");

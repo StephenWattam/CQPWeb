@@ -269,7 +269,7 @@ if ($_GET['downloadGo'] === 'yes')
 					continue;
 				$c = substr($key, 13);
 				if ($val && in_array($c, $list_of_classifications))
-					$classifications_to_include[] = $k;
+					$classifications_to_include[] = $c;
 			}
 			break;
 		
@@ -283,13 +283,6 @@ if ($_GET['downloadGo'] === 'yes')
 	} /* end of switch */
 	
 	/* end of variable setup */
-
-	
-	/* name of server is needed to construct links */
-
-	// TODO replace this with a call to URL-absolutify.
-	$abs_server_string = 'http://' . $_SERVER['SERVER_NAME'] 
-		. str_replace('redirect.php', '', $_SERVER['SCRIPT_NAME']);
 
 	
 	/* send the HTTP header */
@@ -310,7 +303,7 @@ if ($_GET['downloadGo'] === 'yes')
 		
 		/* print the rest of the printer-friendly header */
 		
-		echo "Processed for $username at {$abs_server_string}$da$da";
+		echo "Processed for $username at " . url_absolutify('') . "$da$da";
 		echo "Order of tab-delimited text:$da";
 		echo "1. Number of hit$da";
 		echo "2. Text ID$crlf";
@@ -334,7 +327,7 @@ if ($_GET['downloadGo'] === 'yes')
 				$j = 5;
 			}
 		}
-		foreach($classifications_to_include as &$c)
+		foreach($classifications_to_include as $c)
 		{
 			echo "$j. " . metadata_expand_field($c) . $da;
 			$j++;
@@ -449,6 +442,7 @@ if ($_GET['downloadGo'] === 'yes')
 
 			if (!empty($sql_classifications)) 
 			{
+//TODO this is the sql query where S got a problem
 				$sql_query = "SELECT $sql_classifications FROM text_metadata_for_$corpus_sql_name where text_id='$text_id'";
 				$result = do_mysql_query($sql_query);
 
@@ -467,7 +461,7 @@ if ($_GET['downloadGo'] === 'yes')
 			}
 			
 
-			$link = ($context_url ? "\t{$abs_server_string}context.php?qname=$qname&batch=$i&uT=y" : '');
+			$link = ($context_url ? "\t". url_absolutify("context.php?qname=$qname&batch=$i&uT=y") : '');
 			
 			$out = "$line_indicator\t$text_id\t$untagged$tagged$categorisation_string$link";
 			
@@ -697,8 +691,8 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 			<td class="concordgeneral" colspan="2" align="center">
 				&nbsp;<br/>
 				<input type="submit" value="Download with settings above" />
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-				<input type="reset" value="Clear form" />
+				<!-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<input type="reset" value="Clear form" />-->
 				<br/>&nbsp;
 			</td>
 		</tr>
