@@ -26,7 +26,7 @@
 /* convert an everyday, cached query to a user-saved query */
 
 
-/* script to be included within redirect.php -- thus, $_GET will be full fo all sorts */
+/* script to be included within redirect.php -- thus, $_GET will be full of all sorts */
 /* BUT the only bit that is used for the save is $qname */
 
 

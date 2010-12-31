@@ -1,4 +1,23 @@
-# -*-cperl-*-
+# CQPweb: a user-friendly interface to the IMS Corpus Query Processor
+# Copyright (C) 2008-today Andrew Hardie and contributors
+#
+# See http://cwb.sourceforge.net/cqpweb.php
+#
+# This file is part of CQPweb.
+# 
+# CQPweb is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# CQPweb is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 ## CQPweb extension of the CEQL grammar
 
 use warnings;
@@ -17,15 +36,32 @@ cqpwebCEQL - CQPweb extension of the Common Elementary Query Language (CEQL)
 =head1 SYNOPSIS
 
   use cqpwebCEQL;
-  our $CEQL = new bncCEQL;
+  our $CEQL = new cqpwebCEQL;
 
   $CEQL->SetParam("default_ignore_case", 0); # case-sensitive query mode
+  
+  # You must tell CEQL what the CWB attribute-names of your annotations are for the 
+  # relevant queries to work. If any of the following are left undef, those bits of
+  # CEQL syntax will cause an error.
+  
+  $CEQL->SetParam("pos_attribute", "PRIMARY_ANNOTATION");            # _XXX
+  $CEQL->SetParam("lemma_attribute", "SECONDARY_ANNOTATION");        # {XXX}
+  $CEQL->SetParam("simple_pos_attribute", "TERTIARY_ANNOTATION");    # _{XXX}
+  # to use a tertiary annotation you also require a mapping table
+  $CEQL->SetParam("simple_pos", HASH_TABLE_OF_ALIASES_TO_REGEX);
+  $CEQL->SetParam("combo_attribute", "COMBO_ANNOTATION");            # {XXX/YYY}
+  
+  # You can also set a list of XML elements allowed within queries
+  $self->SetParam("s_attributes", HASH_TABLE_OF_S_ATTRIBUTES);
+  
+  # As CQPweb does nto currently have terribly good XML support, a default
+  # "allow only s" option is preset. Future versions of cqpwebCEQL may remove this. 
 
   # $ceql_query must be in utf-8
-  $cqp_query = $CEQL->Parse($ceql_query);    # returns CQP query in canonical BNCweb encoding
+  $cqp_query = $CEQL->Parse($ceql_query);    # returns CQP query
 
   if (not defined $cqp_query) {
-    $html_msg = $ceql->HtmlErrorMessage;     # ready-made HTML error message
+    $html_msg = $CEQL->HtmlErrorMessage;     # ready-made HTML error message
     print "<html><body>$html_msg</body></html>\n";
     exit 0;
   }
@@ -109,11 +145,7 @@ sub lemma_pattern {
 =head1 COPYRIGHT
 
 Copyright (C) 1999-2008 Stefan Evert [http::/purl.org/stefan.evert]
-(modified very slightly by Andrew Hardie for CQPweb)
-
-This software is provided AS IS and the author makes no warranty as to
-its use and performance. You may use the software, redistribute and
-modify it under the same terms as Perl itself.
+(modified by Andrew Hardie for CQPweb)
 
 =cut
 

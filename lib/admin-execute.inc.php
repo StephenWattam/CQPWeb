@@ -52,7 +52,7 @@ switch($_GET['admFunction'])
 		exit();
 		
 	case 'uploadFile':
-		$_GET['function'] = 'upload_file_to_upload_area';
+		$_GET['function'] = 'uploaded_file_to_upload_area';
 		$_GET['args'] = $_FILES['uploadedFile']['name'] . '#' . $_FILES['uploadedFile']['type'] . '#' 
 			. $_FILES['uploadedFile']['size'] . '#' . $_FILES['uploadedFile']['tmp_name'] . '#' 
 			. $_FILES['uploadedFile']['error'];

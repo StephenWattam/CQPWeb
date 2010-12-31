@@ -52,39 +52,39 @@ header('Content-Type: text/html; charset=utf-8');
 
 /* initialise variables from settings files  */
 
-require_once("settings.inc.php");
-require_once("../lib/defaults.inc.php");
+require("settings.inc.php");
+require("../lib/defaults.inc.php");
 
 
 /* include function library files */
-require_once("../lib/library.inc.php");
-require_once("../lib/user-settings.inc.php");
-require_once("../lib/exiterror.inc.php");
-require_once("../lib/cache.inc.php");
-require_once("../lib/subcorpus.inc.php");
-require_once("../lib/db.inc.php");
-require_once("../lib/ceql.inc.php");
-require_once("../lib/freqtable.inc.php");
-require_once("../lib/metadata.inc.php");
-require_once("../lib/concordance-lib.inc.php");
-require_once("../lib/colloc-lib.inc.php");
+include("../lib/library.inc.php");
+include("../lib/user-settings.inc.php");
+include("../lib/exiterror.inc.php");
+include("../lib/cache.inc.php");
+include("../lib/subcorpus.inc.php");
+include("../lib/db.inc.php");
+include("../lib/ceql.inc.php");
+include("../lib/freqtable.inc.php");
+include("../lib/metadata.inc.php");
+include("../lib/concordance-lib.inc.php");
+include("../lib/colloc-lib.inc.php");
 
 /* this is probably _too_ paranoid. but hey */
 if (user_is_superuser($username))
 {
-	require_once('../lib/apache.inc.php');
-	require_once('../lib/admin-lib.inc.php');
-	require_once('../lib/corpus-settings.inc.php');
-	require_once('../lib/xml.inc.php');		// TODO move to main section if users need XML functions
+	include('../lib/apache.inc.php');
+	include('../lib/admin-lib.inc.php');
+	include('../lib/corpus-settings.inc.php');
+	include('../lib/xml.inc.php');		// move to main section if users need XML functions
 }
 
 
 /* especially, include the functions for each type of query */
-require_once("../lib/indexforms-queries.inc.php");
-require_once("../lib/indexforms-saved.inc.php");
-require_once("../lib/indexforms-admin.inc.php");
-require_once("../lib/indexforms-subcorpus.inc.php");
-require_once("../lib/indexforms-others.inc.php");
+include("../lib/indexforms-queries.inc.php");
+include("../lib/indexforms-saved.inc.php");
+include("../lib/indexforms-admin.inc.php");
+include("../lib/indexforms-subcorpus.inc.php");
+include("../lib/indexforms-others.inc.php");
 
 
 
@@ -162,6 +162,8 @@ echo print_menurow_index('restrict', 'Restricted query');
    with a row for every XXXX that is an XML in the db that has been set up
    for restricting-via? 
    and the normal "Restricted query" is jut a special case for text / text_id
+   
+   OR: just have "Restricted query" and open up sub-options when that is clicked on?
    */
 echo print_menurow_index('lookup', 'Word lookup');
 echo print_menurow_index('freqList', 'Frequency lists');

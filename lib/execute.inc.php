@@ -80,6 +80,7 @@ include('../lib/user-settings.inc.php');
 include('../lib/rface.inc.php');
 include('../lib/corpus-settings.inc.php');
 include('../lib/xml.inc.php');
+include('../lib/uploads.inc.php');
 include('../lib/cwb.inc.php');
 include('../lib/cqp.inc.php');
 
