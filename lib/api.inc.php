@@ -51,6 +51,16 @@ require_once('../lib/user-settings.inc.php');
 require_once("../lib/cwb.inc.php");
 require_once("../lib/cqp.inc.php");
 
+/*
+ * Important note: what about exiterror? should we engage a special mode where it writes
+ * a more machine-readable error message?
+ */
+
+/* ensure error messages go in text format */
+$debug_messages_textonly = true;
+// this is ok for now but in the long rn we may want a special mode for API where a more formal error is returned
+// in the HTTP response.
+
 
 if (!url_string_is_valid())
 	exiterror_bad_url();
@@ -65,14 +75,17 @@ if (!url_string_is_valid())
  * output buffering, capture the HTML, extract what we need from it, then throw it away.
  * e.g. the qname form the concordance output in the query function.
  * 
- * In some cases, just writing a simpler version fo the script may be justifiable.
+ * In some cases, just writing a simpler version of the script may be justifiable.
  */
+
+
+
 switch($_GET['function'])
 {
 case 'query':
 	/* run a query */
-	//return value: the query name. (allow this to be specified, as with a saved query?
-	// yeah actually, that would be better.
+	//return value: the query name.
+	// Allow it to be auto-saved under a specified save-name as well??
 	break;
 	/* endcase query */
 	
@@ -85,8 +98,15 @@ case 'concordance':
 	
 /* insert other cases HERE */
 
+/*
+ * cases to be added include:
+ * 
+ * postprocesses - each one should return the new query name.
+ * interrogateCache - check whether a cached query still exists.
+ */
+
 default:
-	// send error code	
+	// send error code: bad function.
 	break;
 }
 

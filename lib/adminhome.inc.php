@@ -185,6 +185,7 @@ function add_p_attribute_row()
 		<td valign="top">
 
 <?php
+show_var($d = '\\N');
 
 
 

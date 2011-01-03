@@ -118,7 +118,7 @@ function exiterror_endpage($backlink = false)
 		{
 			?>
 			<hr/>
-			<p class="errormessage"><a href="index.php">Back to corpus home page.</p>
+			<p class="errormessage"><a href="index.php">Back to corpus home page.</a></p>
 			<?php
 		}
 		print_footer();
@@ -283,6 +283,7 @@ function exiterror_cqp($error_array)
 {
 	$msg[] = "CQP sent back these error messages:";
 	$msg = array_merge($msg, $error_array);
+	
 	exiterror_beginpage('CQPweb -- CQP reports errors!');
 	exiterror_printlines($msg);
 	exiterror_endpage();

@@ -265,6 +265,120 @@ function do_mysql_outfile_query($query, $filename)
 }
 
 
+//TODO - this function is complete, but untested
+//TODO - use of this function should replace ALL direct use of 
+// the $mysql_LOAD_DATA_INFILE_command.
+/**
+ * Loads a specified text file into the given MySQL table.
+ * 
+ * Note: this is done EITHER with LOAD DATA (LOCAL) INFILE, OR
+ * with a loop across the lines of the file.
+ * 
+ * The latter is EXTREMELY inefficient, but necessary if we're 
+ * working on a box where LOAD DATA (LOCAL) INFILE has been 
+ * disabled.
+ * 
+ * "FIELDS ESCAPED BY" behaviour is normally not specified,
+ * but if  $no_escapes is true, it will be set to an empty
+ * string.
+ * 
+ * Function returns the (last) update/import query result if
+ * all went well; false in case of error.
+ */
+function do_mysql_infile_query($table, $filename, $no_escapes = false)
+{
+	global $mysql_infile_disabled;
+	global $mysql_LOAD_DATA_INFILE_command;
+	
+	/* check variables */
+	if (! is_file($filename))
+		return false;
+	$table = mysql_real_escape_string($table);
+	
+	/* massive if/else: overall two branches. */
+	if (! $mysql_infile_disabled)
+	{
+		/* the normal sensible way */
+		
+		$sql = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE $table";
+		if ($no_escapes)
+			$sql .= ' FIELDS ESCAPED BY \'\'';
+		
+		return do_mysql_query($sql);
+	}
+	else
+	{
+		/* the nasty hacky workaround way */
+		exiterror_general("Mysql workaround not built yet!", __SCRIPT__, __LINE__);
+		
+		/* first we need to find out about the table ... */
+		$fields = array();
+		
+		/* note: we currently allow for char, varchar, and text as "quote-needed"
+		 * types, because those are the ones CQPweb uses. There are, of course,
+		 * others. See the MySQL manual. */
+		
+		$result = do_mysql_query("describe $table");
+		while (false !== ($f = mysql_fetch_object($result)))
+		{
+			/* format of "describe" is such that "Field" contains the fieldname,
+			 * and "Type" its type. All types should be lowercase, but let's make sure */
+			$f->Type = strtolower($f->Type);
+			$quoteme =    /* quoteme equals the truth of the following long condition. */
+				(
+					substr($f->Type, 0, 7) == 'varchar'
+					||
+					$f->Type == 'text'
+					||
+					substr($f->Type, 0, 4) == 'char'
+				);
+			$fields[] = array('field' => $f->Field, 'quoteme' => $quoteme);	
+		}
+		unset($result);
+		
+		$source = fopen($filename, 'r');
+		
+		/* loop across lines in input file */
+		while (false !== ($line = fgets($source)));
+		{
+			/* necessary for security, but might possibly lead to data being
+			 * escaped where we don't want it; if so, tant pis */
+			$line = mysql_real_escape_string($line);
+			$line = rtrim($line, "\r\n");
+			$data = explode($line, "\t");
+
+			
+			$blob1 = $blob2 = '';
+			
+			for ( $i = 0 ; true ; $i++ )
+			{
+				/* require both a field and data; otherwise break */
+				if (!isset($data[$i], $fields[$i]))
+					break;
+				$blob1 .= ", {$fields[$i]['field']}";
+				
+				if ( (! $no_escapes) && $data[$i] == '\\N' )
+					/* data for this field is NULL, so type doesn't matter */
+					$blob2 .= ', NULL';
+				else 
+					if ( $fields[$i]['quoteme'] )
+						/* data for this field needs quoting (string) */
+						$blob2 .= ", '{$data[$i]}'";
+					else
+						/* data for this field is an integer or like type */
+						$blob2 .= ", '{$data[$i]}'";
+			}
+			
+			$blob1 = ltrim($blob1, ', ');
+			$blob2 = ltrim($blob2, ', ');
+			
+			$result = do_mysql_query("insert into $table ($blob1) values ($blob2)");
+		}
+		fclose($source);
+		
+		return $result;
+	}
+}
 
 /* the next two functions are really just for convenience */
 
