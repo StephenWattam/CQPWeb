@@ -630,7 +630,7 @@ function create_text_metadata_for()
 	global $create_text_metadata_for_info;
 	global $cqpweb_uploaddir;
 	global $cqpweb_tempdir;
-	global $mysql_LOAD_DATA_INFILE_command;
+	//global $mysql_LOAD_DATA_INFILE_command;
 	
 	
 	$corpus = cqpweb_handle_enforce($create_text_metadata_for_info['corpus']);
@@ -736,7 +736,7 @@ function create_text_metadata_for()
 				where corpus = '$corpus'";
 	}
 
-	$load_statement = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE text_metadata_for_$corpus";
+	//$load_statement = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE text_metadata_for_$corpus";
 
 	if (isset($inserts_for_metadata_fields))
 	{
@@ -745,7 +745,8 @@ function create_text_metadata_for()
 	}
 	
 	do_mysql_query($create_statement);
-	do_mysql_query($load_statement);
+	//do_mysql_query($load_statement);
+	do_mysql_infile_query("text_metadata_for_$corpus", $input_file);
 	create_text_metadata_check_text_ids($corpus);
 	
 	if ($update_statement !== '')
@@ -810,7 +811,7 @@ function create_text_metadata_for_minimalist()
 	global $corpus_cqp_name;
 	global $corpus_sql_name;
 	global $cwb_registry;
-	global $mysql_LOAD_DATA_INFILE_command;
+	//global $mysql_LOAD_DATA_INFILE_command;
 	
 	
 	if (!is_dir("../$corpus_sql_name"))
@@ -830,10 +831,11 @@ function create_text_metadata_for_minimalist()
 		primary key (text_id)
 		) CHARSET=utf8 ;\n\n";
 
-	$load_statement = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE text_metadata_for_$corpus_sql_name";
+	//$load_statement = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE text_metadata_for_$corpus_sql_name";
 
 	do_mysql_query($create_statement);
-	do_mysql_query($load_statement);
+	//do_mysql_query($load_statement);
+	do_mysql_infile_query("text_metadata_for_$corpus_sql_name", $input_file);
 	create_text_metadata_check_text_ids($corpus_sql_name);
 
 	unlink($input_file);
@@ -993,7 +995,7 @@ function cqpweb_dump_userdata($dump_file_path)
 function cqpweb_undump_userdata($dump_file_path)
 {
 	global $cqpweb_tempdir;
-	global $mysql_LOAD_DATA_INFILE_command;
+	//global $mysql_LOAD_DATA_INFILE_command;
 
 	php_execute_time_unlimit();
 
@@ -1017,7 +1019,8 @@ function cqpweb_undump_userdata($dump_file_path)
 
 		do_mysql_query("drop table if exists {$m[1]}");
 		do_mysql_query($create_statement);
-		do_mysql_query("$mysql_LOAD_DATA_INFILE_command '{$m[1]}' into table {$m[1]}");
+		//do_mysql_query("$mysql_LOAD_DATA_INFILE_command '{$m[1]}' into table {$m[1]}");
+		do_mysql_infile_query($m[1], $m[1]);
 	}
 	
 	/* now, we need to load the data back into saved_queries  --
@@ -1028,14 +1031,16 @@ function cqpweb_undump_userdata($dump_file_path)
 		list($qname, $junk, $corpus) = explode("\t", $line);
 		do_mysql_query("delete from saved_queries where query_name = '$qname' and corpus = '$corpus'");
 	}
-	do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$dir/__SAVED_QUERIES_LINES' into table saved_queries");
+	//do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$dir/__SAVED_QUERIES_LINES' into table saved_queries");
+	do_mysql_infile_query('saved_queries', "$dir/__SAVED_QUERIES_LINES");
 
 	foreach (file("$dir/saved_catqueries") as $line)
 	{
 		list($qname, $junk, $corpus) = explode("\t", $line);
 		do_mysql_query("delete from saved_catqueries where catquery_name = '$qname' and corpus = '$corpus'");
 	}
-	do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$dir/saved_catqueries' into table saved_catqueries");
+	//do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$dir/saved_catqueries' into table saved_catqueries");
+	do_mysql_infile_query('saved_catqueries', "$dir/saved_catqueries");
 
 	recursive_delete_directory($dir);
 	
@@ -1183,7 +1188,7 @@ function cqpweb_mysql_dump_data($dump_file_path)
  */
 function cqpweb_mysql_undump_data($dump_file_path)
 {
-	global $mysql_LOAD_DATA_INFILE_command;
+	// global $mysql_LOAD_DATA_INFILE_command;
 	
 	$dir = dumpable_dir_basename($dump_file_path);
 	
@@ -1195,7 +1200,8 @@ function cqpweb_mysql_undump_data($dump_file_path)
 			continue;
 		do_mysql_query("drop table if exists {$m[1]}");
 		do_mysql_query($create_statement);
-		do_mysql_query("$mysql_LOAD_DATA_INFILE_command '{$m[1]}' into table {$m[1]}");
+		//do_mysql_query("$mysql_LOAD_DATA_INFILE_command '{$m[1]}' into table {$m[1]}");
+		do_mysql_infile_query($m[1], $m[1]);
 	}
 	
 	recursive_delete_directory($dir);

@@ -60,6 +60,23 @@ if ($mysql_has_file_access)
 else
 	$mysql_LOAD_DATA_INFILE_command = 'LOAD DATA LOCAL INFILE';
 
+/* Has MySQL got LOAD DATA LOCAL disabled? 
+ * [[NOT DOCUMENTED YET as related function not fully working]] 
+ */
+if (!isset($mysql_local_infile_disabled))
+	$mysql_local_infile_disabled = false;
+	
+/* From the previous two variables, deduce whether we have ANY infile access. */
+if ($mysql_has_file_access)
+	/* if the SERVER has file access, then lack of LOAD DATA LOCAL doesn't matter */
+	// in THEORY. I haven't checked ths out with a server that has LOAD DATA LOCAL disabled.
+	$mysql_infile_disabled = false;
+else
+	/* otherwise, whether we have ANY infile access is dependent on whether we have local access */
+	$mysql_infile_disabled = $mysql_local_infile_disabled;
+
+
+
 
 /* TEMPORARY DIRECTORIES
  * 

@@ -48,7 +48,7 @@ function corpus_make_freqtables()
 	global $corpus_cqp_name;
 	global $cqpweb_tempdir;
 	global $username;
-	global $mysql_LOAD_DATA_INFILE_command;
+	//global $mysql_LOAD_DATA_INFILE_command;
 	
 	/* only superusers are allowed to do this! */
 	if (! user_is_superuser($username))
@@ -94,7 +94,8 @@ function corpus_make_freqtables()
 
 
 	database_disable_keys($temp_tablename);
-	do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$filename' INTO TABLE $temp_tablename FIELDS ESCAPED BY ''");
+	//do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$filename' INTO TABLE $temp_tablename FIELDS ESCAPED BY ''");
+	do_mysql_infile_query($temp_tablename, $filename, true);
 	database_enable_keys($temp_tablename);
 
 	unlink($filename);
@@ -156,7 +157,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	global $corpus_sql_name;
 	global $corpus_sql_collation;
 	global $corpus_cqp_name;
-	global $mysql_LOAD_DATA_INFILE_command;
+	//global $mysql_LOAD_DATA_INFILE_command;
 	global $cqpweb_tempdir;
 	global $instance_name;
 	global $path_to_cwb;
@@ -269,7 +270,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	/* and run it */
 	exec($cmd_scancorpus);
 	
-	/* close and delete the temp file containing the text regions*/
+	/* close and delete the temp file containing the text regions */
 	$regionfile->close();
 	
 	/* ok, now to transfer that into mysql */
@@ -289,8 +290,9 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	
 	/* import the base frequency list */
 	database_disable_keys($temp_table);
-	$sql_query = "$mysql_LOAD_DATA_INFILE_command '$temp_table_loadfile' into table $temp_table fields escaped by ''";
-	do_mysql_query($sql_query);
+	//$sql_query = "$mysql_LOAD_DATA_INFILE_command '$temp_table_loadfile' into table $temp_table fields escaped by ''";
+	//do_mysql_query($sql_query);
+	do_mysql_infile_query($temp_table, $temp_table_loadfile, true);
 	database_enable_keys($temp_table);
 	
 //	unlink($temp_table_loadfile);

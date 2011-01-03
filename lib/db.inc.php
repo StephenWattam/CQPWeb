@@ -63,7 +63,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 	
 	global $username;
 
-	global $mysql_LOAD_DATA_INFILE_command;
+	//global $mysql_LOAD_DATA_INFILE_command;
 	
 	global $colloc_db_premium;
 	
@@ -161,8 +161,9 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 	do_mysql_query("Alter table $dbname disable keys");
 
-	$sql_query = "$mysql_LOAD_DATA_INFILE_command '/$cqpweb_tempdir/$tabfile' into table $dbname fields escaped by ''";
-	do_mysql_query($sql_query);
+	//$sql_query = "$mysql_LOAD_DATA_INFILE_command '/$cqpweb_tempdir/$tabfile' into table $dbname fields escaped by ''";
+	//do_mysql_query($sql_query);
+	do_mysql_infile_query($dbname, "/$cqpweb_tempdir/$tabfile", true);
 	
 	do_mysql_query("Alter table $dbname enable keys");
 

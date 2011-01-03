@@ -694,8 +694,9 @@ function printquery_latest()
 	
 	<ul>
 		<li>
-		<b>Version 2.16</b>, 2010-xx-yy<br/>&nbsp;<br/>
-		
+		<b>Version 2.16</b>, 2011-xx-yy<br/>&nbsp;<br/>
+		Added a workaround for a problem that arises with some MySQL security setups.
+		<br/>&nbsp;<br/>		
 		<br/>&nbsp;</li>
 
 		<li>
