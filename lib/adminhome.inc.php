@@ -31,9 +31,6 @@
 /* first, process the various "actions" that this script may be asked to perform */
 require_once ('../lib/admin-execute.inc.php');
 
-/* before anything else... */
-header('Content-Type: text/html; charset=utf-8');
-
 /* initialise variables from settings files  */
 require_once ("../lib/defaults.inc.php");
 
@@ -67,6 +64,9 @@ $thisF = ( isset($_GET["thisF"]) ? $_GET["thisF"] : 'showCorpora' );
 /* connect to mySQL */
 connect_global_mysql();
 
+
+/* before anything else... */
+header('Content-Type: text/html; charset=utf-8');
 
 
 
@@ -185,7 +185,6 @@ function add_p_attribute_row()
 		<td valign="top">
 
 <?php
-show_var($d = '\\N');
 
 
 

@@ -309,9 +309,14 @@ function user_macro_delete($username, $macro_name, $macro_num_args)
 }
 
 
-function user_macro_loadall()
+/**
+ * Load all macros for the specified user. 
+ */
+function user_macro_loadall($username)
 {
 	global $cqp;
+	
+	$username = mysql_real_escape_string($username);
 
 	$result = do_mysql_query("select * from user_macros where username='$username'");
 

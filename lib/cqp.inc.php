@@ -942,7 +942,7 @@ class CQP
 			if (is_array($string))
 			{
 				foreach($string as $k => &$v)
-					$string[$k] = utf8_encode($string);
+					$string[$k] = utf8_encode($v);
 				return $string;
 			}
 			else

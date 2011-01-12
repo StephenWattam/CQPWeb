@@ -153,7 +153,10 @@ function disconnect_global_mysql()
 {
 	global $mysql_link;
 	if(isset($mysql_link))
+	{
 		mysql_close($mysql_link);
+		unset($mysql_link);
+	}
 }
 
 /**
@@ -199,7 +202,7 @@ function do_mysql_query($sql_query)
  * This works regardless of whether the mysql server program (mysqld)
  * is allowed to write files or not.
  * 
- * The mysql $query should be of the form "select [somthing] FROM [table] [other conditions]" 
+ * The mysql $query should be of the form "select [something] FROM [table] [other conditions]" 
  * -- that is, it MUST NOT contain "into outfile $filename", and the FROM must be in capitals. 
  * 
  * The output file is specified by $filename - this must be a full absolute path.
@@ -222,6 +225,7 @@ function do_mysql_outfile_query($query, $filename)
 		$into_outfile = 'INTO OUTFILE "' . mysql_real_escape_string($filename) . '" FROM ';
 		$replaced = 0;
 		$query = str_replace("FROM ", $into_outfile, $query, $replaced);
+		// TODO: change to preg_replace, then we can limit it to 1 replacement?
 		
 		if ($replaced != 1)
 			exiterror_mysqlquery('no_number',
@@ -266,8 +270,6 @@ function do_mysql_outfile_query($query, $filename)
 
 
 //TODO - this function is complete, but untested
-//TODO - use of this function should replace ALL direct use of 
-// the $mysql_LOAD_DATA_INFILE_command.
 /**
  * Loads a specified text file into the given MySQL table.
  * 

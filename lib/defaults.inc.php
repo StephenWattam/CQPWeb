@@ -36,6 +36,7 @@ else
 
 /* can be overridden by setting these variables in config.inc.php */
 
+
 /* Does mysqld have file-write/read ability? If set to true, CQPweb uses LOAD DATA
  * INFILE and SELECT INTO OUTFILE. If set to false, file write/read into/out of
  * mysql tables is done via the client-server link.
@@ -60,9 +61,7 @@ if ($mysql_has_file_access)
 else
 	$mysql_LOAD_DATA_INFILE_command = 'LOAD DATA LOCAL INFILE';
 
-/* Has MySQL got LOAD DATA LOCAL disabled? 
- * [[NOT DOCUMENTED YET as related function not fully working]] 
- */
+/* Has MySQL got LOAD DATA LOCAL disabled? */
 if (!isset($mysql_local_infile_disabled))
 	$mysql_local_infile_disabled = false;
 	

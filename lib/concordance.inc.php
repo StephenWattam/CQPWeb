@@ -72,7 +72,7 @@ connect_global_mysql();
 /* connect to CQP */
 connect_global_cqp();
 /* and load user macros! */
-user_macro_loadall();
+user_macro_loadall($username);
 
 
 /* download all user settings */
@@ -280,22 +280,27 @@ else
 
 
 
+
 /* the $program variable: filtered by a switch to admit only OK values;
  * note this is only used for the RENDERING of the query */
-switch($_GET['program'])
-{
-case 'collocation':	/* does this actually do anything? */
-//case 'distribution':
-case 'sort':
-case 'lookup':
-case 'categorise':
-	$program = $_GET['program'];
-	break;
-default:
+if(empty($_GET['program']))
 	$program = 'search';
-	break;
+else
+{
+	switch($_GET['program'])
+	{
+	case 'collocation':	/* does this actually do anything? */
+	//case 'distribution':
+	case 'sort':
+	case 'lookup':
+	case 'categorise':
+		$program = $_GET['program'];
+		break;
+	default:
+		$program = 'search';
+		break;
+	}
 }
-
 
 
 
