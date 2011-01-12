@@ -1994,7 +1994,7 @@ function printquery_mappingtables()
 			</td>
 		</tr>
 	</table>
-	<?	
+	<?php
 }
 
 
@@ -2044,7 +2044,7 @@ function printquery_systemsecurity()
 			</td>
 		</tr>
 	</table>
-	<?
+	<?php
 }
 
 
@@ -2363,7 +2363,7 @@ function printquery_mysqlsystemrestore()
 				</td>
 			</tr>
 		</table>
-		<?
+		<?php
 	}
 	else
 	{
@@ -2409,7 +2409,7 @@ function printquery_mysqlsystemrestore()
 				<input type="hidden" name="uT" value="y" />
 			</form>
 		</table>
-		<?
+		<?php
 	}
 }
 
