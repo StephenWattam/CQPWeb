@@ -302,7 +302,7 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 	{
 		/* the normal sensible way */
 		
-		$sql = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE $table";
+		$sql = "$mysql_LOAD_DATA_INFILE_command '$filename' INTO TABLE $table";
 		if ($no_escapes)
 			$sql .= ' FIELDS ESCAPED BY \'\'';
 		
