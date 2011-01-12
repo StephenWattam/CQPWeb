@@ -322,8 +322,9 @@ function user_macro_loadall($username)
 
 	while (false !== ($r = mysql_fetch_object($result)))
 	{
-		$block = "MACRO {$r->macro_name}({$r->macro_num_args})}\n";
-		$block .= $r->macro_body . "\n";
+		$block = "define macro {$r->macro_name}({$r->macro_num_args}) ' ";
+		/* nb. Rather than use str_replace here, maybe use the CQP:: escape method? */
+		$block .= str_replace("'", "\\'", strtr($r->macro_body, "\t\r\n", "   ")) . " '";
 		$cqp->execute($block);
 	}
 }
