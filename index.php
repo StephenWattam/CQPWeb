@@ -1,5 +1,5 @@
 <?php
 
-require('lib/corpushome.inc.php');
+require('lib/mainhome.inc.php');
 
 ?>

@@ -7,14 +7,14 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20101101;6054000">
+	<META NAME="CHANGED" CONTENT="20110219;19393300">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1 LANG="en-GB">Some notes on how to set up CQPweb (v 2.13 or
+<H1 LANG="en-GB">Some notes on how to set up CQPweb (v 2.16 or
 higher)</H1>
 <P LANG="en-GB"><BR><BR>
 </P>
@@ -51,7 +51,7 @@ installed:
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Open Corpus Workbench (at least version 3.2.0 if
 	you want UTF8 regular expression matching, otherwise at least
-	2.2.100)</P>
+	2.2.101)</P>
 	<UL>
 		<LI><P LANG="en-GB"><SPAN LANG="en-GB">See
 		<A HREF="http://cwb.sourceforge.net/">http://cwb.sourceforge.net</A></SPAN></P>
@@ -80,7 +80,7 @@ lots of memory; if it can't get enough RAM, it will use hard-disk
 space as temporary storage instead; if it uses up all available
 hard-disk space, it will fall over mid-operation, possibly with a
 very uninformative error message (e.g. saying that it can't read from
-a write to a particular temporary file). These “big database
+or write to a particular temporary file). These “big database
 operations” tend to be aspects of the corpus-setup procedure –
 especially frequency-table creation – rather than anything that the
 non-administrator user can set in motion. 
@@ -108,22 +108,25 @@ up PHP</B></FONT></FONT></P>
 <P LANG="en-GB"><SPAN LANG="en-GB">CQPweb crucially requires the
 </SPAN><SPAN LANG="en-GB"><B>mysql</B></SPAN><SPAN LANG="en-GB">
 extension to PHP, which enables interaction between PHP and the MySQL
-database software (note: </SPAN><SPAN LANG="en-GB"><I>not</I></SPAN><SPAN LANG="en-GB">
+database software. A</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">s
+of version 2.15 CQPweb can also make use of</SPAN></SPAN><SPAN LANG="en-GB">
 </SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN><SPAN LANG="en-GB">
 </SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">extension</SPAN></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">,
-which is something different). In PHP v5.x, this extension is not
+which is something different (the “i” stands for “improved”).
+Any given build of PHP is almost certain to include one or the other
+of </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">or </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">,
+and may well include both. In PHP v5.x, </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">is not
 enabled by default. See <A HREF="http://php.net/manual/en/mysql.installation.php">here</A>
-for information on making sure it is enabled. You may have recompile
-PHP to make the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN><SPAN LANG="en-GB">
+for information on making sure it is enabled. If you don't want to
+use the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">alternative,
+you may have recompile PHP to make the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN><SPAN LANG="en-GB">
 </SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">extension
-available. </SPAN></SPAN><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>(We
-are working on an extension to CQPweb which will make worrying about
-the availability of mysql unnecessary by allowing the system to work
-equally well with both </B></SPAN></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><I><B>mysql</B></I></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB">
-</SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>and
-</B></SPAN></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><I><B>mysqli</B></I></SPAN></FONT><FONT COLOR="#0000ff"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>.)</B></SPAN></SPAN></FONT></P>
-<P LANG="en-GB"><SPAN LANG="en-GB">Certain aspects of he behaviour of
-PHP is controlled by its </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
+available.</SPAN></SPAN></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">Certain aspects of the behaviour
+of PHP is controlled by its </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
 file (see <A HREF="http://www.php.net/manual/en/ini.php">here</A>).
 The precise settings in this file may be different depending on how
 you installed PHP (or your system administrator may have subsequently
@@ -134,13 +137,13 @@ at least moderately generous values; if your system's settings are
 much less than these, you may have problems. The directives in
 question are as follows:</SPAN></P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">upload_max_file_size</SPAN></FONT>
-	needs to be quite high if you want to upload corpus files to index
-	over HTTP; we recommend <FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">20M</SPAN></FONT>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">upload_max_filesize</SPAN></FONT>
+	needs to be quite high if you want to upload corpus files for
+	indexing over HTTP; we recommend <FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">20M</SPAN></FONT>
 	(for files larger than that relying on HTTP is probably a bad idea
 	anyway)</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">post_max_size</SPAN></FONT>
-	needs to be at least as high as <FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">upload_max_file_size
+	needs to be at least as high as <FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">upload_max_filesize
 	</SPAN></FONT>
 	</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">memory_limit</SPAN></FONT>
@@ -154,11 +157,14 @@ question are as follows:</SPAN></P>
 </UL>
 <P LANG="en-GB">Less “generous” limits for file size, memory use,
 and execution time may be OK if you are running CQPweb on a
-standalone computer rather than a shared web server. Once CQPweb is
-up and running, the values of these settings can be checked by
-looking at “PHP configuration” in the Admin control panel. You
-can also find out the location of the active <FONT FACE="Courier New, monospace">php.ini</FONT>
-file from this screen.</P>
+standalone computer rather than a shared web server – although on
+the other hand, on a standalone computer it doesn’t matter nearly
+so much if CQPweb locks up all the system's resources for long
+periods at a time! Once CQPweb is up and running, the values of all
+these settings can be checked by looking at “PHP configuration”
+in the Admin control panel. You can also find out the location of the
+active <FONT FACE="Courier New, monospace">php.ini</FONT> file from
+this screen.</P>
 <P LANG="en-GB"><SPAN LANG="en-GB">Finally, <A HREF="http://php.net/manual/en/features.safe-mode.php">PHP
 has a “safe-mode” configuration</A>. This should, ideally, </SPAN><SPAN LANG="en-GB"><I>not</I></SPAN><SPAN LANG="en-GB">
 </SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">be
@@ -166,7 +172,7 @@ activated; if it is, you may well find that some CQPweb operations do
 not work. </SPAN></SPAN>
 </P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">PHP safe mode
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">PHP safe-mode
 	may not allow CQPweb to run CQP and Perl as separate child processes
 	if the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">cqp</SPAN></FONT>
 	<SPAN STYLE="font-style: normal">and </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">perl</SPAN></FONT>
@@ -178,8 +184,10 @@ not work. </SPAN></SPAN>
 	CQPweb from lifting</SPAN></SPAN></FONT></FONT><FONT COLOR="#000000">
 	</FONT><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">restrictions
 	on execution time for long-running operations; these functions
-	(mostly setup functions for big corpora, but also processes like
-	collocations on queries with lots of results) will stop working. </SPAN></SPAN></FONT></FONT>
+	(mostly set-up</SPAN></SPAN></FONT></FONT><FONT COLOR="#000000">
+	</FONT><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">functions
+	for big corpora, but also processes like collocations on queries
+	with lots of results) will stop working. </SPAN></SPAN></FONT></FONT>
 	</P>
 	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">PHP
 	safe-mode will restrict CQPweb to only</SPAN></SPAN></FONT></FONT><FONT COLOR="#000000">
@@ -187,14 +195,12 @@ not work. </SPAN></SPAN>
 	or modifying files that CQPweb has created itself. However, some
 	operations need CQPweb to work with files which it didn’t create
 	itself but were, rather, created by the MySQL server or manually by
-	you.</SPAN></SPAN></FONT></FONT></P>
+	you. All these operations will stop working.</SPAN></SPAN></FONT></FONT></P>
 </UL>
 <P LANG="en-GB" STYLE="font-style: normal; font-weight: normal"><FONT COLOR="#000000"><FONT FACE="Times New Roman">Note
 that the “safe-mode” feature of PHP has, in any case, been
 deprecated as of recent versions (5.3.0 or later) of PHP – so web
 servers should ideally not be relying on it anyway.</FONT></FONT></P>
-<P LANG="en-GB"><BR><BR>
-</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -222,6 +228,55 @@ or for the particular host (in something like
 </FONT>).</P>
 <P LANG="en-GB">Note that if you change an Apache configuration file,
 you will need to restart Apache for the changes to have effect.</P>
+<P LANG="en-GB">There are some known “gotchas” in Apache's
+behaviour under certain configurations. The best approach is not
+worry about the following until and unless the propblems as described
+happen in your installation!</P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000">Sometimes</FONT>, Apache
+	will happily serve up the built-in pages (e.g. the admin area) but
+	then give you an “Internal Server Error” when you try to access
+	the pages created during a corpus installation. This appears to be
+	because these files are created with 0664 permissions
+	(group-writeable, world-readable).</P>
+	<UL>
+		<LI><P LANG="en-GB">To fix the problem for an already indexed
+		corpus, open a terminal to the directory containing its script
+		files (<FONT FACE="Times New Roman, serif">index.php,
+		concordance.php</FONT>, etc.) and run <FONT FACE="Courier New, monospace">sudo
+		chmod 644 *.php</FONT></P>
+		<LI><P LANG="en-GB">To prevent the problem from recurring, edit the
+		code file “lib/admin-install.inc.php” and change all instances
+		of <FONT FACE="Courier New, monospace">chmod()</FONT> where the
+		mode is set to <FONT FACE="Courier New, monospace">0664</FONT> to
+		set it to <FONT FACE="Courier New, monospace">0644</FONT> instead.</P>
+	</UL>
+	<LI><P LANG="en-GB">The symptom of the next “gotcha” is getting
+	a message like “Forbidden - You don't have permission to access
+	/cqpweb/adm/index.php on this server” when you try to run the
+	corpus metadata-setup function, when everything has previously been
+	running fine. This is caused by a security feature intended to
+	reduce the risk of SQL injection attacks by disallowing any HTTP
+	request which contains the words “create” and “table”.
+	Unfortunately, the command for creating a metadata table that CQPweb
+	sends is – not unreasonably – <I><B>createMetadataTable</B></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">.
+	</SPAN></SPAN>
+	</P>
+	<UL>
+		<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">To
+		get around this, you must again edit the code to change this to
+		something inoffensive (e.g. </SPAN></SPAN><I><B>createMetadataQQQQ</B></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">).
+		The two code files that refer to this command are
+		“admin-execute.inc.php” and “indexforms-admin.inc.php”.
+		</SPAN></SPAN><I><SPAN STYLE="font-weight: normal">Warning: there
+		may be other “bad values” blocked by this same security feature
+		that we are not yet aware of</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">.</SPAN></SPAN></P>
+		<LI><P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">
+		Alternatively you could just turn that feature off. CQPweb itself
+		assumes no such security feature is active and always escapes
+		databse strings that might have an injection attack in them.</P>
+	</UL>
+</UL>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT COLOR="#000000"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -289,12 +344,37 @@ FILE ON *.*</FONT></P>
 the MySQL server by a webscript. This will probably be <FONT FACE="Courier New, monospace">localhost</FONT>,
 assuming that the MySQL server is on the same machine as the
 webscripts. (It does not absolutely need to be.)</P>
-<P LANG="en-GB">A known “gotcha”: PHP needs to know how to
+<P LANG="en-GB"><SPAN LANG="en-GB">MySQL can be configured to disable
+the LOAD DATA LOCAL INFILE command as a security measure – see
+<A HREF="http://dev.mysql.com/doc/refman/5.5/en/load-data-local.html">http://dev.mysql.com/doc/refman/5.5/en/load-data-local.html</A>
+. This command will stop CQPweb working (you will be able to tell
+this is happening because you get the error message “ERROR 1148:
+The used command is not allowed with this MySQL version” when you
+attempt to set up the metadata for a corpus). You can fix this by
+editing the MySQL configuration file (usually something like
+</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">/etc/my.cnf</SPAN></FONT><SPAN LANG="en-GB">
+). and change the line </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">set-variable=local-infile=0</SPAN></FONT><SPAN LANG="en-GB">
+to </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">set-variable=local-infile=1</SPAN></FONT><SPAN LANG="en-GB">
+– you will probably need to restart the MySQL daemon after making
+this change. Alternatively the problem should be fixed if you set the
+CQPweb configuration variable </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$mysql_has_file_access</SPAN></FONT><SPAN LANG="en-GB">
+to </SPAN><SPAN LANG="en-GB"><B>true</B></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-weight: normal">,
+because when you do this, the LOAD DATA LOCAL INFILE command is never
+used.</SPAN></SPAN><SPAN LANG="en-GB"> But there are requirements
+that must be must satisfy to use this option – see below. If you
+can't meet these requirements, then you can set the configuration
+variable </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$mysql_local_infile_disabled</SPAN></FONT><SPAN LANG="en-GB">
+to </SPAN><SPAN LANG="en-GB"><B>true</B></SPAN><SPAN LANG="en-GB">.
+This makes CQPweb avoid the LOAD DATA LOCAL INFILE unconditionally.
+Be warned – doing this should fix things, but it has the potential
+to be a major performance hit (and to boot involves code that has not
+been thoroughly tested as of version 2.16).</SPAN></P>
+<P LANG="en-GB">Another known “gotcha”: PHP needs to know how to
 connect to the MySQL server via a <I>socket</I> in the filesystem.
 This information is often contained in the <FONT FACE="Courier New, monospace">php.ini</FONT>
-file, which contains settings loaded by PHP when it starts up. On
-many systems, connecting to MySQL simply “works” by default, but
-on some systems you may need to edit your <FONT FACE="Courier New, monospace">php.ini</FONT>
+file, which contains settings that PHP will load when it starts up.
+On many systems, connecting to MySQL simply “works” by default,
+but on some systems you may need to edit your <FONT FACE="Courier New, monospace">php.ini</FONT>
 file to tell PHP where to find the socket, by changing the
 <FONT FACE="Courier New, monospace">mysql.default_socket</FONT>
 setting. For instance, if your socket is at <FONT FACE="Courier New, monospace">/tmp/mysql.sock
@@ -331,19 +411,19 @@ on the server.</P>
 	<COL WIDTH=556>
 	<COL WIDTH=309>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 BGCOLOR="#c0c0c0" STYLE="border-top: 1.00pt solid #000000; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0.11cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
+		<TD WIDTH=556 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Create
 			a directory for…</B></FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=309 BGCOLOR="#c0c0c0" STYLE="border: 1.00pt solid #000000; padding: 0.11cm">
+		<TD WIDTH=309 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Where
 			it should be</B></FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
+		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
 			<OL>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>The
@@ -352,14 +432,14 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
+		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			in the web-docs directory of the server</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
+		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
 			<OL START=2>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>CQPweb’s
@@ -367,29 +447,29 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
+		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
+		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
 			<OL START=3>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Temporary
-				files (inc the cache) </FONT></FONT></FONT>
+				files (including the cache) </FONT></FONT></FONT>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
+		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
+		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
 			<OL START=4>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Indexed
@@ -397,14 +477,14 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
+		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
+		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
 			<OL START=5>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Registry
@@ -412,14 +492,14 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
+		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
+		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
 			<OL START=6>
 				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Upload
@@ -427,7 +507,7 @@ on the server.</P>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border-top: none; border-bottom: 1.00pt solid #000000; border-left: 1.00pt solid #000000; border-right: 1.00pt solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
+		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
@@ -436,17 +516,18 @@ on the server.</P>
 </TABLE>
 <P LANG="en-GB"><BR><BR>
 </P>
-<P LANG="en-GB">… <SPAN LANG="en-GB">make a note of the path of
-each one. </SPAN>
+<P LANG="en-GB">… <SPAN LANG="en-GB">as you create these
+directories, make a note of the path of each one. </SPAN>
 </P>
 <P LANG="en-GB">Note that the data / registry locations do not need
 to be the same as the ones you normally use for CWB.</P>
-<P LANG="en-GB">The username of the webserver (in the case of Apache,
-usually something like <B>www</B> or <B>www-data</B>) need to have
-read-write-execute access to all these directories. The username of
-the mysqld process (usually something like <B>mysql</B><SPAN STYLE="font-weight: normal">)
-also needs read and write access if you want MySQL to use file-access
-functions. So, these new folders </SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I>
+<P LANG="en-GB">The username of the webserver process (in the case of
+the Apache httpd process, usually something like <B>www</B> or
+<B>www-data</B>) needs to have read-write-execute access to all these
+directories. The username of the mysqld process (usually something
+like <B>mysql</B><SPAN STYLE="font-weight: normal">) also needs read
+and write access if you want MySQL to use file-access functions. So,
+these new folders </SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I>
 <SPAN STYLE="font-weight: normal">have the write permission set for
 either “all” or – if you are worried about security – for
 “group” (where the file is assigned to some group that both the
@@ -492,7 +573,8 @@ has full permissions. You fix this by doing the following (as root):</SPAN></FON
 	</UL>
 </UL>
 <P LANG="en-GB" STYLE="font-weight: normal"><FONT FACE="Times New Roman, serif">The
-alternative is to disable AppArmor completely.</FONT></P>
+alternative is to disable AppArmor completely if you do not need the
+extra security it supplies.</FONT></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -501,8 +583,8 @@ up the web scripts</B></FONT></FONT></P>
 distribution file to the web directory you created above (such that
 the directories <B>lib</B>, <B>adm</B> etc. appear directly within
 this web-directory). Don’t change the folder hierarchy. Make sure
-the www user has rwx access to all the files you’ve just put in
-here.</P>
+the <B>www</B> user has rwx access to all the files you’ve just put
+in here.</P>
 <P LANG="en-GB">Alternatively, use subversion to get the most
 up-to-date version of the code:</P>
 <UL>
@@ -515,8 +597,8 @@ up-to-date version of the code:</P>
 a config file: automatically</B></FONT></FONT></P>
 <P LANG="en-GB">There is now an auto-config script – it is somewhat
 primitive but it will save you fiddling with PHP code for
-configuration variables. To use it, change directory to the web
-directory, and run</P>
+configuration variables. To use it, open a shell, change directory to
+the web directory, and run</P>
 <UL>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">php
 	cqpweb-autoconfig.php</FONT></P>
@@ -557,7 +639,7 @@ and edit it. It looks like this:</P>
 <TABLE WIDTH=1012 CELLPADDING=4 CELLSPACING=3>
 	<COL WIDTH=996>
 	<TR>
-		<TD WIDTH=996 VALIGN=TOP STYLE="border: 2.60pt double #808080; padding: 0.11cm">
+		<TD WIDTH=996 VALIGN=TOP STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>&lt;?php</FONT></FONT></P>
 			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>/*
 			SYSTEM CONFIG SETTINGS : the same for every corpus, and CANNOT be
@@ -641,7 +723,8 @@ beginning or end of any of these three paths.</P>
 change it if so.</P>
 <P LANG="en-GB">There are assorted settings that can be set manually,
 but not automatically. For most CQPweb setups, they can be safely
-ignored if you don't understand exactly what they're for. They are</P>
+ignored if you don't understand exactly what they're for. They are as
+follows:</P>
 <UL>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$use_corpus_categories_on_homepage</FONT>
 	– this defaults to <B>false,</B> if you set it to <B>true</B> <SPAN STYLE="font-weight: normal">then
@@ -652,31 +735,61 @@ ignored if you don't understand exactly what they're for. They are</P>
 	– <SPAN STYLE="font-weight: normal">CQPweb uses “suggest
 	password” functions to ease the creation of user accounts. The
 	default function (</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">password_insert_internal</SPAN></FONT><SPAN STYLE="font-weight: normal">)
-	produces passwords of the form </SPAN><B>aaaaddaaaa</B> <SPAN STYLE="font-weight: normal">where
-	</SPAN><B>a</B> <SPAN STYLE="font-weight: normal">is a lowercase
-	letter and </SPAN><B>d</B> <SPAN STYLE="font-weight: normal">is a
-	digit. You can optionally use Lancaster University's web-based
+	produces randomised passwords of the form </SPAN><B>aaaaddaaaa</B>
+	<SPAN STYLE="font-weight: normal">where </SPAN><B>a</B> <SPAN STYLE="font-weight: normal">is
+	a lowercase letter and </SPAN><B>d</B> <SPAN STYLE="font-weight: normal">is
+	a digit. You can optionally use Lancaster University's web-based
 	random password generator to get nicer, more-wordlike passwords: to
 	do this, set the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">$create_password_function</SPAN></FONT>
 	<SPAN STYLE="font-weight: normal">to the quoted string
 	</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">'password_insert_lancaster'</SPAN></FONT><SPAN STYLE="font-weight: normal">.
 	This will probably not work if your system needs to use a proxy
-	server to access the web, however.</SPAN></P>
+	server to access the web, however. You can also write your own
+	nice-password function and specify it here.</SPAN></P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$password_more_security</FONT>
+	– normally it is assumed that password security is low, and thus
+	it doesn't matter if passwords are stored in plaintext in the
+	database, sent to users by no-security email (planned function!),
+	etc. However, if you have taken pains to make your CQPweb server
+	secure, e.g. by (at minimum) using HTTPS rather than HTTP, then you
+	can – and should – set this to <B>true</B> <SPAN STYLE="font-weight: normal">(default
+	is </SPAN><B>false</B><SPAN STYLE="font-weight: normal">); it will
+	have the following effects:</SPAN></P>
+	<UL>
+		<LI><P LANG="en-GB"><SPAN STYLE="font-weight: normal">Passwords
+		will not be stored in plaintext in the database. Instead the Apache
+		</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">.htpasswd</SPAN></FONT>
+		<SPAN STYLE="font-weight: normal">file's hashed version of the
+		password will be stored. (The copy of the password in the database</SPAN>
+		<SPAN STYLE="font-weight: normal">is not actually used for anything
+		at present, so is just a “filler” value.) Note that if you set
+		</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">$password_more_security</SPAN></FONT>
+		<SPAN STYLE="font-weight: normal">to </SPAN><B>true</B><SPAN STYLE="font-weight: normal">,
+		any previously-added users will still have their passwords stored
+		in plaintext – that is, this configuration is not retroactive.</SPAN></P>
+	</UL>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$mysql_has_file_access</FONT>
-	– this defaults to false, if you set it to true then this affects
-	various functions that load data from file to the MySQL server: they
-	may run faster. But this must only be set to true <B>if</B> (a) the
-	MySQL server is running on the same computer as CQPweb <B>and</B>
-	(b) the MySQL server actually does have access to the temporary
-	directory and all other locations that CQPweb writes files to <B>and</B>
-	(c) the MySQL username used by CQPweb has <FONT FACE="Courier New, monospace">GRANT
+	– this defaults to <B>false</B>, if you set it to <B>true</B> then
+	this affects various functions that load data from file to the MySQL
+	server: they may run faster. But this must only be set to <B>true</B>
+	<B>if</B> (a) the MySQL server is running on the same computer as
+	CQPweb <B>and</B> (b) the MySQL server actually does have access to
+	the temporary directory and all other locations that CQPweb writes
+	files to <B>and</B> (c) the MySQL username used by CQPweb has <FONT FACE="Courier New, monospace">GRANT
 	FILE ON *.*</FONT> permissions. It is important you get this right,
 	as CQPweb doesn't check these preconditions for you! 
 	</P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$mysql_local_infile_disabled</FONT>
+	– this should only be set to <B>true</B> if your MySQL has been
+	set up to disallow the LOAD DATA LOCAL command, and you can't change
+	this set-up (on this particular front, changing MySQL is far
+	preferable, it should be noted!) See notes above. The default is
+	<B>false.</B></P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$cqpweb_uses_apache</FONT>
-	– this defaults to true, but you can set it to false if your web
-	server is not Apache. If it is set to false, functions that depend
-	on Apache will be hidden (since they wouldn't work anyway).</P>
+	– this defaults to <B>true</B>, but you can set it to <B>false</B>
+	if your web server is not Apache. If it is set to false, functions
+	that depend on Apache will be hidden (since they wouldn't work
+	anyway).</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$cqpweb_root_url</SPAN></FONT><SPAN LANG="en-GB">
 	– you can set this to an absolute URL (in the style
 	&quot;</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">http://your-server.net/path/to/cqpweb/web/directory/</SPAN></FONT><SPAN LANG="en-GB">&quot;
@@ -703,40 +816,69 @@ ignored if you don't understand exactly what they're for. They are</P>
 	All paths must be <I>absolute</I><SPAN STYLE="font-style: normal">.
 	Normally, the only reason to use this variable is to specify a
 	non-standard location for the installed CWB-Perl modules (see above)
-	thus – the name of the setting. The directories in question will
+	– thus the name of the setting. The directories in question will
 	be passed to Perl using the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">-I</SPAN></FONT>
 	<SPAN STYLE="font-style: normal">command-line option.</SPAN></P>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$css_path_for_homepage
-	– this should be a relative or absolute URL of a stylesheet to use
-	for the main menu page. By default, a lovely blue-and-grey table
-	effect is used.</SPAN></P>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$css_path_for_adminpage
-	– this should be a relative or absolute URL of a stylesheet to use
-	for the admin control panel page. By default, a red-and-pink colour
-	scheme.</SPAN></P>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$print_debug_messages
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_welcome_message</SPAN></FONT><SPAN STYLE="font-style: normal">
+	– a little bit of text (can include HTML) which will appear in the
+	header box of the main menu page. The default is “Welcome to
+	CQPweb!”</SPAN></P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT><SPAN STYLE="font-style: normal">
+	– the URL (relative to the main menu page or absolute) of an image
+	to display as a logo on the left of the header box of the main page
+	menu. If the string consists of two URLs with a tab between them,
+	then the first will be used as the address of the image, and the
+	second as a link to embed it into. A transparent CorpusWorkbench
+	logo that you can use if you wish is located at the relative URL of
+	</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">css/img/ocwb-logo.transparent.gif</SPAN></FONT><SPAN STYLE="font-style: normal">
+	.  The default is no logo.</SPAN></P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_right</SPAN></FONT><SPAN STYLE="font-style: normal">
+	– as per </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT><SPAN STYLE="font-style: normal">,
+	but it appears on the left of the header box.</SPAN></P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$css_path_for_homepage</SPAN></FONT></FONT>
+	– this should be a relative or absolute URL of a CSS stylesheet to
+	use for the main menu page. By default, a lovely blue-and-grey table
+	effect is used.</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$css_path_for_adminpage</SPAN></FONT></FONT>
+	– this should be a relative or absolute URL of a CSS stylesheet to
+	use for the admin control panel page. By default, a red-and-pink
+	colour scheme is used.</P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$searchpage_corpus_name_suffix</FONT>
+	– a little bit of text that suffixes the name of the corpus in the
+	main search page header. It defautls to “powered by CQPweb”. If
+	you don't want anything, set it to an empty string. If you want to
+	configure it on an individual corpus basis, you can do so in
+	settings.inc.php.</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$print_debug_messages</SPAN></FONT></FONT>
 	– this default to false, if you set it to true messages about what
 	is going on behind the scenes will appear all over various CQPweb
-	pages.</SPAN></P>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$cache_size_limit
-	– defaults to 3 gigabytes, the amount of data that will be cached
-	(CQP temporary files only). Note that until the cache limit is
-	reached, the cache will just keep growing!</SPAN></P>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$default_max_fullsize_dbs_in_cache</SPAN></P>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$default_max_dbsize</SPAN></P>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">$default_mysql_process_limit
-	– this defaults to five, represents the number of </SPAN><I>big</I><SPAN STYLE="font-style: normal">
-	MySQL processes that will be run at once.</SPAN></P>
-	<LI><P LANG="en-GB"><FONT COLOR="#0047ff"><SPAN STYLE="font-style: normal">&lt;NB,
+	pages (totally messing up the layout).</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$debug_messages_textonly</SPAN></FONT></FONT>
+	– defaults to false, if you set it to true all debug and error
+	messages will be printed as text with no HTML formatting. Plain text
+	messages are <I>always</I> produced (a) when outputting a textual
+	download (b) in scripts that run from the command-line.</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$cache_size_limit</SPAN></FONT></FONT>
+	– this defaults to 3 gigabytes, and sets a limit on the amount of
+	data that will be cached (CQP temporary files only, the MySQL
+	database does not count towards this size limit). Note that until
+	the cache limit is reached, the cache will just keep growing!</P>
+	<LI><P LANG="en-GB" STYLE="font-style: normal">$default_max_fullsize_dbs_in_cache</P>
+	<LI><P LANG="en-GB" STYLE="font-style: normal">$default_max_dbsize</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$default_mysql_process_limit</SPAN></FONT></FONT>
+	– <SPAN STYLE="font-style: normal">this defaults to five,
+	represents the number of </SPAN><I>big</I> <SPAN STYLE="font-style: normal">MySQL
+	processes that will be run at once.</SPAN></P>
+	<LI><P LANG="en-GB" STYLE="font-style: normal"><FONT COLOR="#0047ff">&lt;NB,
 	these settings should be filed under various headings for
-	clarity...&gt;</SPAN></FONT></P>
+	clarity...&gt;</FONT></P>
 </UL>
 <P LANG="en-GB">Save the edited file as “config.inc.php” and put
 it into the “lib” subdirectory of the web directory.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
-up administrator users</B></FONT></FONT></P>
+up administrator users (under Apache)</B></FONT></FONT></P>
 <P LANG="en-GB"><I><U>If you have used the autoconfig, then this is
 done automatically for you.</U></I> Otherwise, you need to manually
 set up the administrator accounts <I>simply in order to get into
@@ -823,9 +965,13 @@ secure</B>, the security is all based on the fact that even if
 someone manages to hack in, they can’t do anything other than break
 CQPweb itself. For this reason, I usually select passwords for my
 users, to make sure that they don’t re-use on CQPweb the secure
-passwords that they use for other purposes. If you really want secure
-username/password access, you need to set up CQPweb on an HTTPS
-server.</P>
+passwords that they use for other purposes. 
+</P>
+<P LANG="en-GB">If you really want secure username/password access,
+you need to (at least!) set up CQPweb on an HTTPS server. You can use
+the <FONT FACE="Courier New, monospace">$password_more_security</FONT>
+configuration variable to assist the process of enhancing security
+(see above).</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Installing
@@ -998,22 +1144,25 @@ CQPweb with a web server other than Apache</B></FONT></FONT></P>
 <P LANG="en-GB">CQPweb can be used with web servers other than
 Apache. However, you will not be able to use the internal
 user-creation, group-management, and access-management functions,
-because these are all dependent on Apache htaccess, htpasswd and
-htgroup files (and the information is not stored in the database).
-CQPweb on its own does nothing to restrict access to a corpus to
-particular users: this job belongs to the web server. 
+because these are all dependent on Apache <FONT FACE="Courier New, monospace">htaccess</FONT>,
+<FONT FACE="Courier New, monospace">htpasswd</FONT> and <FONT FACE="Courier New, monospace">htgroup</FONT>
+files (the information is also stored in the database, but the
+database is not used for logon purposes). CQPweb on its own does
+nothing to restrict access to a corpus to particular users: this job
+belongs to the web server. 
 </P>
-<P LANG="en-GB">CQPweb does store some information about users in its
-database – notably, the “limits” of how big each individual use
-of the database can be, and the personalisable “settings” that
-affect the default behaviour of CQPweb. For both these purposes,
-CQPweb gets the username from the HTTP request (PHP variable
-<FONT FACE="Courier New, monospace">$_SERVER['REMOTE_USER']</FONT> ).
-User entries in the database are created automatically when they
-change their settings (or with default settings when any script
-queries a user setting before they have been set.) So, any HTTP
-server system that results in the username being part of the HTTP
-request can be used with CQPweb.</P>
+<P LANG="en-GB">Alongside username/password pairs, CQPweb stores some
+other information about users in its database – notably, the
+“limits” of how big each individual use of the database can be,
+and the personalisable “settings” that affect the default
+behaviour of CQPweb. For both these purposes, CQPweb gets the
+username from the HTTP request (PHP variable <FONT FACE="Courier New, monospace">$_SERVER['REMOTE_USER']</FONT>
+). If the internal account creation procedures are not used, user
+entries in the database are created automatically when they change
+their settings (or with default settings when any script queries a
+user setting before they have been set.) So, any HTTP server system
+that results in the username being part of the HTTP request can be
+used with CQPweb.</P>
 <P LANG="en-GB">CQPweb puts each corpus in a separate directory in
 its root web-directory, so that you can set access rights for each
 corpus separately, if you wish. But if you are not using Apache, <I>you
@@ -1022,10 +1171,10 @@ will have to manage this yourself</I>.
 <P LANG="en-GB">With Apache, this works as follows: (a) the
 web-folder of each corpus has an <FONT FACE="Courier New, monospace">.htaccess</FONT>
 file in which are listed the groups that have access to that corpus;
-(b) the list of members in each group is in the .htgroup file in
-CQPweb's “access” directory (and the <FONT FACE="Courier New, monospace">.htpasswd</FONT>
+(b) the list of members in each group is in the <FONT FACE="Courier New, monospace">.htgroup</FONT>
+file in CQPweb's “access” directory (and the <FONT FACE="Courier New, monospace">.htpasswd</FONT>
 file is there as well). How exactly you simulate this will depend on
-the details of the alternative web server you are using.</P>
+the details of the alternative web server program that you are using.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Using
@@ -1045,10 +1194,130 @@ to <B>true</B> if the MySQL server is on a separate computer. The
 system cannot currently check this for you!</P>
 <P LANG="en-GB"><BR><BR>
 </P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Updating
+to more recent versions of CQPweb </B></FONT></FONT>
+</P>
+<P LANG="en-GB">Normally, you can update your CQPweb to a more recent
+version simply by copying over the files in the <FONT FACE="Courier New, monospace">./lib</FONT>
+directory with the new versions. If you used Subversion to get the
+CQPweb code, this can typically be done with the <FONT FACE="Courier New, monospace">svn
+update</FONT> command.</P>
+<P LANG="en-GB">Sometimes the template of the database changes
+between versions. If you don't have any installed corpora that you
+want to keep, then you can simply wipe and rebuild the database
+(having deleted all corpora first). On the other hand, if you'd
+prefer to keep things running, the following table gives a list of
+the commands you should run in the MySQL client to alter the database
+in order to keep it compatible with your new version of the CQPweb
+code. All these commands can be run using the user account you
+created for CQPweb (and, of course, they must be run <I>within</I>
+<SPAN STYLE="font-style: normal">the CQPweb database).</SPAN> 
+</P>
+<P LANG="en-GB">You need to run <I>all</I> <SPAN STYLE="font-style: normal">the
+commands between the version you are upgrading </SPAN><I>from</I> <SPAN STYLE="font-style: normal">and
+the version you are upgrading </SPAN><I>to</I> <SPAN STYLE="font-style: normal">(i.e.
+the list that follows is cumulative).</SPAN></P>
+<P LANG="en-GB"><BR><BR>
+</P>
+<TABLE WIDTH=882 CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=158>
+	<COL WIDTH=708>
+	<TR VALIGN=TOP>
+		<TD WIDTH=158 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Version
+			change</B></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=708 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>MySQL
+			commands you need to run to change the database <BR>(in order
+			top-to-bottom)</B></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>2.15
+			to 2.16</FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=708 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>alter
+			table user_settings drop key `username`;</FONT></FONT></FONT></P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>alter
+			table user_settings add primary key (`username`);</FONT></FONT></FONT></P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>alter
+			table user_settings add column `password` varchar(20) default
+			NULL;</FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+		<TD WIDTH=708 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+		<TD WIDTH=708 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+		<TD WIDTH=708 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+		<TD WIDTH=708 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+		<TD WIDTH=708 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB"><BR><BR>
+</P>
 <HR>
 <P LANG="en-GB"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
-v2.13 © 2008-2010 – documentation by Andrew Hardie,
-<A HREF="mailto:andrewhardie@user.ssourceforge.net">andrewhardie@users.sourceforge.net</A>
+v2.16</SPAN></SPAN></SPAN></FONT></FONT></FONT><FONT COLOR="#808080"><SPAN LANG="en-GB">
+</SPAN></FONT><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">©
+2008-2011</SPAN></SPAN></SPAN></FONT></FONT></FONT><FONT COLOR="#808080"><SPAN LANG="en-GB">
+– </SPAN></FONT><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">documentation
+by Andrew Hardie, <A HREF="mailto:andrewhardie@user.ssourceforge.net">andrewhardie@users.sourceforge.net</A>
 </SPAN></SPAN></SPAN></FONT></FONT></FONT>
 </P>
 </BODY>

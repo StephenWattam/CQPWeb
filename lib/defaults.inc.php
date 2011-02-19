@@ -141,6 +141,12 @@ if (!isset($css_path_for_homepage))
 if (!isset($css_path_for_adminpage))
 	$css_path_for_adminpage = "../css/CQPweb-red.css";
 
+if (!isset($homepage_welcome_message))
+	$homepage_welcome_message = "Welcome to CQPweb!";
+
+if (!isset($searchpage_corpus_name_suffix))
+	$searchpage_corpus_name_suffix = ': <em>powered by CQPweb</em>';
+
 if (!isset($create_password_function))
 	$create_password_function = "password_insert_internal";
 

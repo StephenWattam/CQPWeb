@@ -77,7 +77,7 @@ header('Content-Type: text/html; charset=utf-8');
 
 	<tr>
 		<th colspan="3" class="concordtable">
-			Welcome to CQPweb!
+			<?php mainpage_print_logos(); echo $homepage_welcome_message; ?>
 			<br/>
 			<em>Please select a corpus from the list below to enter.</em>
 		</th>
@@ -160,4 +160,31 @@ print_footer('admin');
 
 /* disconnect mysql */
 disconnect_global_mysql();
+
+
+/* END OF SCRIPT */
+
+/* this is in a function to keep all the if clauses out of the way of the main HTML */
+function mainpage_print_logos()
+{
+	foreach ( array('left', 'right') as $side)
+	{
+		$addresses = 'homepage_logo_'.$side;
+		global $$addresses;
+		if (!isset($$addresses))
+			continue;
+		if (false !== strpos($$addresses, "\t"))
+			list ($img_url, $link_url) = explode("\t", $$addresses, 2);	
+		else
+		{
+			$img_url = $$addresses;
+			$link_url = false;
+		}
+		echo "<div style=\"float: $side;\">";
+		if ($link_url) echo "<a href=\"$link_url\">";
+		echo "<img src=\"$img_url\" height=\"80\"  border=\"0\" >";
+		if ($link_url) echo '</a>';
+		echo '</div>      ';
+	}
+} 
 ?>

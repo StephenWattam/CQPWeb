@@ -303,7 +303,7 @@ echo print_menurow_index('bugs', 'Report bugs');
 <table class="concordtable" width="100%">
 	<tr>
 		<th class="concordtable"><a class="menuHeaderItem">
-		<?php echo "$corpus_title: <em>powered by CQPweb</em>"; ?>
+		<?php echo $corpus_title . $searchpage_corpus_name_suffix; ?>
 		</a></th>
 	</tr>
 </table>
