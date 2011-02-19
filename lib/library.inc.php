@@ -403,7 +403,7 @@ function database_enable_keys($arg)
 
 
 /**
- * returns an integer containing the RAM limit to be passed to CWB programs that
+ * Returns an integer containing the RAM limit to be passed to CWB programs that
  * allow a RAM limit to be set - note, the flag (-M or whatever) is not returned,
  * just the number of megabytes as an integer.
  */
@@ -489,11 +489,13 @@ function regex_add_anchors($s)
 
 /**
  * Converts an integer to a string with commas every three digits.
+ * 
+ * Note: this was created when I didn't know about the existence of number_format()! -- AH.
  */
-
 function make_thousands($number)
 {
-// TODO replace with builtin function number_format
+	return number_format($number);
+	// TODO delete below once we're sure the above works as anticipated.
 	$string = "$number";
 	$length = strlen($string);
 
@@ -575,10 +577,8 @@ function cqpweb_handle_check($string)
  * in one of two ways. If the global configuration variable "$cqpweb_root_url" is
  * set, this address is taken, and the corpus handle (SQL version, IE lowercase, which 
  * is the same as the subdirectory that accesses the corpus) is added. If no SQL
- * corpus handle exists, nothing is added to $cqpweb_root_url.
- * 
- * If $cqpweb_root_url is not set, the function tries to work out the containing
- * directory by extracting values from the global $_SERVER array.
+ * corpus handle exists, the current script's containing directory is added to 
+ * $cqpweb_root_url.
  * 
  * $u will be treated as a relative address  (as explained above) if it does not 
  * begin with "http" and as an absolute address if it does.
@@ -586,11 +586,11 @@ function cqpweb_handle_check($string)
  * Note, this "absolute" in the sense of having a server specified at the start, 
  * it can still contain relativising elements such as '/../' etc.
  */
-function url_absolutify($u)
+function url_absolutify($u, $special_subdir = NULL)
 {
 	global $cqpweb_root_url;
 	global $corpus_sql_name;
-	
+
 	if (preg_match('/\Ahttps?:/', $u))
 		/* address is already absolute */
 		return $u;
@@ -601,18 +601,28 @@ function url_absolutify($u)
 		 * folder in which the current php script is located -- but should work for most cases 
 		 */
 		if (empty($cqpweb_root_url))
-			return ($_SERVER['HTTPS'] ? 'https://' : 'http://') 
-				. $_SERVER['HTTP_HOST'] 
-				. preg_replace('/\/[^\/]*\z/', '/', $_SERVER['REQUEST_URI']) 
+			return ($_SERVER['HTTPS'] ? 'https://' : 'http://')
+				  /* host name */
+				. $_SERVER['HTTP_HOST']
+				  /* path from request URI excluding filename */ 
+				. preg_replace('/\/[^\/]*\z/', '/', $_SERVER['REQUEST_URI'])
+				  /* target path relative to current folder */ 
 				. $u;
 		else
 			return $cqpweb_root_url 
-				. ( (!empty($corpus_sql_name)) ? $corpus_sql_name . '/' : '' ) 
+				. ( (!empty($corpus_sql_name)) 
+					/* within a corpus, use the root + the corpus sql name */
+					? $corpus_sql_name . '/' 
+					/* outside a corpus, extract the immeidate containing directory
+					 * from REQUEST_URI (e.g. 'adm') */
+					: preg_replace('/\A.*\/([^\/]+)\/[^\/]*\z/',
+									'/$1/', $_SERVER['REQUEST_URI']) 
+				) 
 				. $u; 
 	}
 }
 
-
+//
 
 /** 
  * Checks whether the current script has $_GET['uT'] == "y" 
