@@ -1167,13 +1167,27 @@ function delete_system_message($message_id)
 }
 
 /**
- * Print out the system messages in HTML, including links to dete them.
+ * Print out the system messages in HTML, including links to delete them.
  */
 function display_system_messages()
 {
 	global $instance_name;
 	global $username;
 	global $this_script;
+	global $corpus_sql_name;
+	
+	if (!isset($corpus_sql_name))
+	{
+		/* we are in /adm */
+		$execute_path = 'index.php?admFunction=execute&function=delete_system_message';
+		$after_path = urlencode("index.php?thisF=systemMessages&uT=y");
+	}
+	else
+	{
+		/* we are in a corpus */
+		$execute_path = 'execute.php?function=delete_system_message';
+		$after_path = urlencode("$this_script");
+	}
 	
 	$su = user_is_superuser($username);
 
@@ -1210,9 +1224,9 @@ function display_system_messages()
 			echo '
 			<td rowspan="2" class="concordgeneral" nowrap="nowrap">
 				<a class="menuItem" onmouseover="return escape(\'Delete this system message\')"
-				href="execute.php?function=delete_system_message&args='
+				href="'. $execute_path . '&args='
 				. $r->message_id .
-				'&locationAfter=' . $this_script . '&uT=y">
+				'&locationAfter=' . $after_path . '&uT=y">
 					[x]
 				</a>
 			</td>';
