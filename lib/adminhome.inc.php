@@ -1609,7 +1609,7 @@ function printquery_groupaccess()
 						<?php 
 						
 						if ($group == "superusers")
-							echo "<center>Superusers always have access to everything.";
+							echo "<center><br/>Superusers always have access to everything.<br/>&nbsp;";
 						else
 						{
 							foreach($list_of_corpora as $c)
@@ -1623,7 +1623,10 @@ function printquery_groupaccess()
 					</td>
 					
 					<td class="concordgeneral" align="center">
-						<input type="submit" value="Update" />
+						<?php
+						echo ($group == 'superusers'
+							? '&nbsp;'
+							: '<input type="submit" value="Update" />'); ?>	
 					</td>
 				</tr>
 				<input type="hidden" name="admFunction" value="accessUpdateGroupRights" />

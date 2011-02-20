@@ -139,12 +139,16 @@ switch($_GET['admFunction'])
 	case 'accessUpdateGroupRights':
 		$_GET['function'] = 'update_group_access_rights';
 		
+		/* block potential hack removing suepruser access */
+		if ($_GET['group'] == 'superusers')
+			exit(); 
+		
 		$group_update_allow = array();
 		foreach ($_GET as $k => $v)
 		{
 			if (substr($k,0,12) == 'hasAccessTo_')
 			{
-				if ( (bool)$v )
+				if ( (bool)$v  )
 					$group_update_allow[] = substr($k,12);
 			}
 		}
