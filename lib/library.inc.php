@@ -520,19 +520,6 @@ function make_thousands($number)
 
 
 
-/*
- * Returns the time as a float using PHP's microtime function.
- *
- * A simple function, copied from php.net, originally to replicate PHP5
- * behaviour in PHP4, now it just wraps the PHP5 builtin function.
- * /
-Function no longer used. Replaced with direct calls to microtime.
-function microtime_float()
-{
-	return microtime(true);
-}*/
-
-
 
 /**
  * Replacement for htmlspecialcharacters which DOESN'T change & to &amp; if it is already part of

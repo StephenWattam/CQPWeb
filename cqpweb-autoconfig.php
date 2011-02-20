@@ -53,7 +53,23 @@ function get_variable_word($desc)
 			echo "\n\n$s contains invalid characters, please try again:\n\n\n";
 		else
 			return $s;
-	}	
+	}
+}
+
+function ask_boolean_question($question)
+{
+	while (1)
+	{
+		echo "\n$question\n\n";
+	
+		echo "Enter [Y]es or [N]:";
+		
+		$s = strtolower(trim(fgets(STDIN), "/ \t\r\n"));
+		if ($s[0] == 'y')
+			return true;
+		else if ($s[0] == 'n')
+			return false;
+	}
 }
 
 /* END FUNCTION DEFINITIONS */
@@ -69,7 +85,7 @@ if (php_sapi_name() != 'cli')
 
 echo "\n\n/***********************/\n\n\n";
 
-echo "This is the configuration set up program for CQPweb.\n\n\n";
+echo "This is the interactive configuration setup program for CQPweb.\n\n\n";
 
 
 
@@ -77,6 +93,17 @@ echo "This is the configuration set up program for CQPweb.\n\n\n";
 
 
 /* get the options, one by one */
+
+if ($using_apache = ask_boolean_question("Are you using the Apache webserver?"))
+{
+	echo "OK, we'll create .htaccess, .htpasswd, and .htgroup files.\n\n";
+	$apache_var_set = '';
+}	
+else
+{
+	echo "OK, we'll skip steps related to Apache login files \n- but you will need to manage passwords yourself.\n\n";
+	$apache_var_set = '$cqpweb_uses_apache = false;';
+}
 
 
 $superuser_username = '';
@@ -96,7 +123,8 @@ while (1)
 }
 $superuser_username = trim($superuser_username, '|');
 
-
+if (! $using_apache)
+	echo "You must not forget to also create these usernames in your\nwebserver's logon system.\n\n" ;
 
 
 
@@ -135,6 +163,7 @@ $config_file =
 
 /* these settings should never be alterable from within CQPweb (would risk transmitting them as plaintext) */
 
+$apache_var_set
 
 /* adminstrators' usernames, separated by | */
 \$superuser_username = '$superuser_username';
@@ -207,42 +236,91 @@ file_put_contents('lib/config.inc.php', $config_file);
 
 
 
-// TODO: check whether we are using Apache, and make the Apache bits conditional on that.
-// If Apache is not in use, spell out what the superuser needs to do with their webserver.
-
-
-/* create a password file for the superusers and a group file */
-
-echo "Creating admin username(s)... (NB: admin passwords will be the same as the username\n";
-echo "you should reset them as soon as possible\n\n";
-
-$x = str_replace('|', ' ', $superuser_username);
-file_put_contents("/$cqpweb_accessdir/.htgroup", "superusers: $x\n");
-
-$c = 'c';
-foreach (explode(' ', $x) as $username)
+if ($using_apache)
 {
-	exec("/$path_to_apache_utils/htpasswd -b$c /$cqpweb_accessdir/.htpasswd $username $username");
-	$c = '';
-}
+	/* create a password file for the superusers and a group file */
+	
+	echo "Creating admin username(s) in Apache htpasswd/htgroup files...\n\n";
+	echo "(NB: admin passwords will be the same as the username\n";
+	echo "you should reset them as soon as possible)\n\n";
+	
+	$x = str_replace('|', ' ', $superuser_username);
+	file_put_contents("/$cqpweb_accessdir/.htgroup", "superusers: $x\n");
+	
+	$c = 'c';
+	foreach (explode(' ', $x) as $username)
+	{
+		exec("/$path_to_apache_utils/htpasswd -b$c /$cqpweb_accessdir/.htpasswd $username $username");
+		$c = '';
+	}
+	
+	/* the files will belong to the current user not the webserver user,
+	 * so change permissions to make sure they will be writeable */
+	chmod("/$cqpweb_accessdir/.htgroup", 0664);
+	chmod("/$cqpweb_accessdir/.htpasswd", 0664);
+	
+	$groupinfo = posix_getgrgid(filegroup("/$cqpweb_accessdir/.htpasswd"));
+	
+	echo "The files have been created within user group {$groupinfo['name']}.\n\n";
+	
+	echo "The members of this group are:\n\t";
+	echo implode("\n\t", $groupinfo['members']) . "\n";
+	
+	echo "If the username that the Apache httpd server runs under is not a member\n";
+	echo "of this group, it will not be able to modify the htpasswd/htgroup files\n";
+	echo "(which it needs to be able to do).\n";
+	
+	if (! ask_boolean_question("Do you want to keep this group for the htpasswd/group files?"))
+	{
+		while (1)
+		{
+			$newgroup = get_variable_word("the group to change these files to");
+			
+			if (chgrp("/$cqpweb_accessdir/.htgroup",  $newgroup)
+				&&
+				chgrp("/$cqpweb_accessdir/.htpasswd", $newgroup)
+				)
+			{
+				echo "Group successfully changed on both files. Onwards!\n\n";
+				break;
+			}
+			else
+			{
+				echo "Couldn't change one or other file to that group!\n\n";
+				if (! ask_boolean_question("Specify another group and try again?"))
+				{
+					echo "OK, no further efforts to change the group will be made.\n";
+					echo "You may need to change this manually (e.g. using sudo chown)\n";
+					echo "for the username/group management interface to work\n";
+					echo "properly.\n\n";
+					break;	
+				}
+			}
+		}
+	}
+	else
+		echo "OK - onwards!\n\n";  
+	
+	
+	
+	
+	
+	/* create a .htaccess file for ./adm */
+	
+	$adm_htaccess = str_replace("\r\n", "\n", 
+	"AuthUserFile /$cqpweb_accessdir/.htpasswd
+	AuthGroupFile /$cqpweb_accessdir/.htgroup
+	AuthName CQPweb
+	AuthType Basic
+	deny from all
+	require group superusers
+	satisfy any
+	");
+	
+	file_put_contents("adm/.htaccess", $adm_htaccess);
+	chmod("adm/.htaccess", 0664);
 
-
-
-
-/* create a .htaccess file for ./adm */
-
-$adm_htaccess = str_replace("\r\n", "\n", 
-"AuthUserFile /$cqpweb_accessdir/.htpasswd
-AuthGroupFile /$cqpweb_accessdir/.htgroup
-AuthName CQPweb
-AuthType Basic
-deny from all
-require group superusers
-satisfy any
-");
-
-file_put_contents("adm/.htaccess", $adm_htaccess);
-chmod("adm/.htaccess", 0664);
+} /* endif using Apache */
 
 
 
