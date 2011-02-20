@@ -665,7 +665,7 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	list($rc_string, $rc_tool_string) 
 		= concordance_line_blobprocess($kwic_rc, 'right', $highlight_position, $highlight_show_pos);
 
-	/* if the corpus is r-to-l, this function will spot it and handle things for us */
+	/* if the corpus is r-to-l, this function call will spot it and handle things for us */
 	right_to_left_adjust($lc_string, $lc_tool_string, $node_string, $node_tool_string, $rc_string,$rc_tool_string); 
 
 
@@ -777,6 +777,11 @@ function concordance_line_blobprocess($lineblob, $type, $highlight_position, $hi
 	$token_array = explode(' ', trim($lineblob));
 
 	$n = ($token_array[0] == '' ? 0 : count($token_array));
+	
+	/* if we are in the left string, we need to translate the highlight position from
+	 * a negative number to a number relative to 0 to $n... */
+	if ($type == 'left')
+		$highlight_position = $n + $highlight_position + 1;
 	
 	/* these are the strings we will build up */
 	$main_string = '';

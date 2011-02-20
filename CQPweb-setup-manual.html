@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20110219;19393300">
+	<META NAME="CHANGED" CONTENT="20110220;14030400">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -204,11 +204,28 @@ servers should ideally not be relying on it anyway.</FONT></FONT></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
-up Apache</B></FONT></FONT></P>
-<P LANG="en-GB">This section assumes that you are using Apache and
-that you want to use the internal username/password functions in
-CQPweb. If this assumption is false, skip onwards to the next
-section!</P>
+up your webserver</B></FONT></FONT></P>
+<P LANG="en-GB">There are two things that you need to make sure are
+configured in your webserver.</P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB"><SPAN LANG="en-GB">It </SPAN><I>must</I><SPAN STYLE="font-style: normal">
+	be </SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">configured</SPAN></SPAN></SPAN><SPAN STYLE="font-style: normal">
+	so that files with the </SPAN><SPAN STYLE="font-style: normal"><B>.php</B></SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+	extension are run as PHP (whether via CGI or via a module like
+	Apache's mod_php). This is the default on most webservers.</SPAN></SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">It
+	</SPAN></SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+	be configured so that a file named </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">index.html</SPAN></SPAN></SPAN></FONT><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+	or </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">index.php</SPAN></SPAN></SPAN></FONT><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+	is served as the default when the address of a directory is accessed
+	(so </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">http://my.server.net/directory</SPAN></SPAN></SPAN></FONT><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+	produces the same as </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">http://my.server.net/directory/index.php</SPAN></SPAN></FONT><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
+	). This is also usually the default situation.</SPAN></SPAN></P>
+</UL>
+<P LANG="en-GB">The rest of this section assumes that you are using
+Apache and that you want to use the internal username/password
+functions in CQPweb. If this assumption is false, skip onwards to the
+next section!</P>
 <P LANG="en-GB">Make sure that your Apache configuration file is set
 up to allow <B>.htaccess</B> files in the CQPweb web-directory. The
 directive 

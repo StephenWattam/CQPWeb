@@ -1208,6 +1208,7 @@ function run_postprocess_text($cache_record, &$descriptor)
 /// bncWeb manages to keep the highlight, but here rand will get in the way of seeing coll
 ///////////// unless ... the coll output could be randomised using the same algorithm so it will be replicable????
 // worry about this later
+ * TODO
 */
 
 /**
