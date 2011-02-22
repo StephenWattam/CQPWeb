@@ -212,11 +212,11 @@ function make_cwb_freq_index()
 
 
 	/*
-	  last thing is to create a file of indexes of the text_ids in this "corpus"
-	  contains 3 whitespace delimited fields: begin_index - end_index - text_id.
-	  
-	  This then goes into a mysql table which corresponds to the __freq cwb corpus.
-	*/
+	 * last thing is to create a file of indexes of the text_ids in this "corpus"
+	 * contains 3 whitespace delimited fields: begin_index - end_index - text_id.
+	 * 
+	 * This then goes into a mysql table which corresponds to the __freq cwb corpus.
+	 */
 	$index_filename = "/$cqpweb_tempdir/{$corpus_sql_name}_freqdb_index.tbl";
 	
 	$s_decode_cmd = "/$path_to_cwb/cwb-s-decode -r /$cwb_registry $freq_corpus_cqp_name_uc -S text_id > $index_filename";

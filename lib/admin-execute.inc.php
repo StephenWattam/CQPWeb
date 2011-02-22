@@ -343,9 +343,17 @@ switch($_GET['admFunction'])
 		exit();
 
 	case 'clearMetadataTable':
-		$_GET['function'] = 'delete_text_metadata_for';
-		$_GET['locationAfter'] = '../' . $_GET['corpus'] .'/index.php?thisQ=manageMetadata&uT=y';
-		$_GET['args'] = $_GET['corpus'] ;
+	 	if ($_GET['clearMetadataAreYouReallySure'] != 'yesYesYes')
+	 	{
+			$_GET['function'] = 'exiterror_general';
+			$_GET['args'] = "CQPweb won't delete the metadata unless you confirm you're certain!" ;
+	 	}
+	 	else
+	 	{	
+			$_GET['function'] = 'delete_text_metadata_for';
+			$_GET['locationAfter'] = '../' . $_GET['corpus'] .'/index.php?thisQ=manageMetadata&uT=y';
+			$_GET['args'] = $_GET['corpus'] ;
+	 	}
 		require('../lib/execute.inc.php');
 		exit();
 	

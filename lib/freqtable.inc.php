@@ -275,6 +275,8 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	
 	/* ok, now to transfer that into mysql */
 	
+	//TODO do we need to translate $temp_table_loadfile from latin1 to utf8 if this is a latin1 corpus???????
+	
 	/* set up temporary table for subcorpus frequencies */
 	$sql_query = "CREATE TABLE `$temp_table` (
 	   `freq` int(11) NOT NULL default 0";

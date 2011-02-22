@@ -594,7 +594,7 @@ function print_categorise_control()
  * 
  * Note no tr's are added at this point.
  * 
- * In certain display modes, these td' may have other smaller tables within them.
+ * In certain display modes, these td's may have other smaller tables within them.
  * 
  * @param cqp_line				A line of output from CQP.
  * @param position_table		I have no idea what this is for.
@@ -903,7 +903,7 @@ function right_to_left_adjust(&$lc_string,   &$lc_tool_string,
 }
 
 /**
- * Build a two-line (or three line?) glosbox table from a 
+ * Build a two-line (or three line?) glossbox table from
  * two provided sequences of td's.
  * 
  * $type must be left, node, or right (as a string). Anything
@@ -1020,22 +1020,16 @@ function extract_cqp_word_and_tag(&$cqp_source_string)
 
 
 /* print a sorry-no-solutions page, shut down CQP, and end */
-//TODO: check whether or not this should have the HTML header here
+//TODO: This should actually output a full page inc. HTML header
 function say_sorry($instance_name, $sorry_input = "no_solutions")
 {
 	history_update_hits($instance_name, 0);
 	$errorType = "";
 
-	/* this references a global variable - it's meant to do so */
-//	if ( preg_match("/\'/", $theData) > 0 && preg_match('/\"/', $theData == 0))
-//		$errorType = "<i>Possible reason:</i> you are using an apostrophe 
-//			without quotation marks.<br/>Please consult the manual 
-//			to find out how to search for contracted forms.";
-	
 	if ($sorry_input == "no_files")
 		$errorText = "There are no files that match your restrictions.";
 	else /* sorry_input is "no_solutions" */
-		$errorText = "<br/><b>There are no matches for your query.";
+		$errorText = "There are no matches for your query.";
 	?>
 		<table width="100%">
 			<tr>
