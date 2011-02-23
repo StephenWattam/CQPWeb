@@ -31,11 +31,13 @@
  */
 
 // TODO -- check this against cwb_uncreate_corpus and prevent duplication of functionality
+/**
+ * Main corpus-deletion function.
+ */
 function delete_corpus_from_cqpweb($corpus)
 {
 	global $cwb_registry;
 	global $cwb_datadir;
-	//global $corpus_cqp_name;
 	$corpus = mysql_real_escape_string($corpus);
 
 	/* get the cwb name of the corpus, etc. */
@@ -397,7 +399,10 @@ function clone_group_access_rights($from_group, $to_group)
 	}
 }
 
-
+/**
+ * Creates an Apache interface-object (that deals with htacces,s htpasswd, and htgroup
+ * files) with the right settings for use in CQPweb.
+ */
 function get_apache_object($path_to_web_directory)
 {
 	global $path_to_apache_utils;
@@ -424,9 +429,9 @@ function update_text_metadata_values_descriptions()
 	foreach($update_text_metadata_values_descriptions_info['actions'] as &$current_action)
 	{
 		$sql_query = "update text_metadata_values set description='{$current_action['new_desc']}' 
-			where corpus = '{$update_text_metadata_values_descriptions_info['corpus']}' 
-			and field_handle = '{$current_action['field_handle']}'
-			and handle = '{$current_action['value_handle']}'";
+			where corpus       = '{$update_text_metadata_values_descriptions_info['corpus']}' 
+			and   field_handle = '{$current_action['field_handle']}'
+			and   handle       = '{$current_action['value_handle']}'";
 		do_mysql_query($sql_query);
 	}
 }
@@ -455,7 +460,11 @@ function update_corpus_metadata_fixed()
 	do_mysql_query($sql_query);
 }
 
-
+/**
+ * Adds an attribute-value pair to the variable-metadata table.
+ * 
+ * Note, there is no requirement for attribute names to be unique.
+ */
 function add_variable_corpus_metadata($corpus, $attribute, $value)
 {
 	$corpus = mysql_real_escape_string($corpus);
@@ -467,6 +476,12 @@ function add_variable_corpus_metadata($corpus, $attribute, $value)
 	do_mysql_query($sql_query);
 }
 
+/**
+ * Deletes an attribute-value pair from the variable-metadata table.
+ * 
+ * The pair to be deleted must both be specified, as well as the corpus,
+ * because there is no requirement that attribute names be unique.
+ */
 function delete_variable_corpus_metadata($corpus, $attribute, $value)
 {
 	$corpus = mysql_real_escape_string($corpus);
@@ -474,9 +489,9 @@ function delete_variable_corpus_metadata($corpus, $attribute, $value)
 	$value = mysql_real_escape_string($value);
 	
 	$sql_query = "delete from corpus_metadata_variable 
-			where corpus = '$corpus'
+			where corpus    = '$corpus'
 			and   attribute = '$attribute'
-			and   value = '$value'";
+			and   value     = '$value'";
 	do_mysql_query($sql_query);
 }
 
@@ -600,7 +615,7 @@ function create_text_metadata_check_text_ids($corpus)
 /**
  * Wrapper round create_text_metadata_for() for when we need to create the file from CQP.
  * 
- * $fields_to_show is (part of) a CQP instruction: see admin-execute.php 
+ * $fields_to_show is (part of) a CQP instruction: see admin-execute.inc.php 
  */
 function create_text_metadata_for_from_xml($fields_to_show)
 {
@@ -846,10 +861,11 @@ function create_text_metadata_for_minimalist()
 
 
 
-/** deletes the metadata table plus the records that log its fields/values
-  * this is a separate function because it reverses the "create_text_metadata_for" function 
-  * and it is called by the general "delete corpus" function 
-  */
+/** 
+ * Deletes the metadata table plus the records that log its fields/values.
+ * this is a separate function because it reverses the "create_text_metadata_for" function 
+ * and it is called by the general "delete corpus" function 
+ */
 function delete_text_metadata_for($corpus)
 {
 	$corpus = mysql_real_escape_string($corpus);

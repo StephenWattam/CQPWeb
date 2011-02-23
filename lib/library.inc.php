@@ -130,10 +130,14 @@ function connect_global_mysql()
 	global $mysql_schema;
 	global $utf8_set_required;
 	
-	$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass);
+	/* Connect with flag 128 == mysql client lib constant CLIENT_LOCAL_FILES;
+	 * this overrules deactivation at PHP's end of LOAD DATA LOCAL. (If L-D-L
+	 * is deactivated at the mysqld end, e.g. by my.cnf, this won't help, but 
+	 * won't hurt either.) */ 
+	$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass, false, 128);
 	
 	if (! $mysql_link)
-		exiterror_fullpage('mySQL did not connect - please try again later!');
+		exiterror_general('MySQL did not connect - please try again later!');
 	
 	mysql_select_db($mysql_schema, $mysql_link);
 	

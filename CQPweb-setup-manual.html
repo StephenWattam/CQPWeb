@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20110220;14030400">
+	<META NAME="CHANGED" CONTENT="20110223;1205400">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -21,9 +21,9 @@ higher)</H1>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>What
 you will need</B></FONT></FONT></P>
 <P LANG="en-GB">You'll need a machine with a Unix-style operating
-system (<I>CQPweb has been tested, so far, on Mac OS X; Sun OS 5.10;
-Debian; Ubuntu; and Fedora</I>). Other software you need to have
-installed: 
+system (<I>CQPweb has been </I><I>installed successfully</I><I>, </I><I>to
+our knowledge</I><I>, on Mac OS X; Sun OS 5.10; Debian; Ubuntu; and
+Fedora</I>). Other software you need to have installed: 
 </P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Apache or some other webserver (note: <I>internal
@@ -50,8 +50,8 @@ installed:
 </UL>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Open Corpus Workbench (at least version 3.2.0 if
-	you want UTF8 regular expression matching, otherwise at least
-	2.2.101)</P>
+	you want UTF8-compliant regular expression matching, otherwise at
+	least 2.2.101)</P>
 	<UL>
 		<LI><P LANG="en-GB"><SPAN LANG="en-GB">See
 		<A HREF="http://cwb.sourceforge.net/">http://cwb.sourceforge.net</A></SPAN></P>
@@ -208,19 +208,25 @@ up your webserver</B></FONT></FONT></P>
 <P LANG="en-GB">There are two things that you need to make sure are
 configured in your webserver.</P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB"><SPAN LANG="en-GB">It </SPAN><I>must</I><SPAN STYLE="font-style: normal">
-	be </SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">configured</SPAN></SPAN></SPAN><SPAN STYLE="font-style: normal">
-	so that files with the </SPAN><SPAN STYLE="font-style: normal"><B>.php</B></SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
-	extension are run as PHP (whether via CGI or via a module like
-	Apache's mod_php). This is the default on most webservers.</SPAN></SPAN></P>
+	<LI><P LANG="en-GB">It <I>must</I> <SPAN STYLE="font-style: normal">be
+	</SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">configured</SPAN></SPAN>
+	<SPAN STYLE="font-style: normal">so that files with the </SPAN><SPAN STYLE="font-style: normal"><B>.php</B></SPAN>
+	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">extension
+	are run as PHP (whether via CGI or via a module like Apache's
+	mod_php). This is the default on most webservers.</SPAN></SPAN></P>
 	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">It
-	</SPAN></SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
-	be configured so that a file named </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">index.html</SPAN></SPAN></SPAN></FONT><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
-	or </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">index.php</SPAN></SPAN></SPAN></FONT><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
-	is served as the default when the address of a directory is accessed
-	(so </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">http://my.server.net/directory</SPAN></SPAN></SPAN></FONT><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
-	produces the same as </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">http://my.server.net/directory/index.php</SPAN></SPAN></FONT><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
-	). This is also usually the default situation.</SPAN></SPAN></P>
+	</SPAN></SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I>
+	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">be
+	configured so that a file named </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">index.html</SPAN></SPAN></FONT>
+	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">or
+	</SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">index.php</SPAN></SPAN></FONT>
+	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">is
+	served as the default when the address of a directory is accessed
+	(so </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">http://my.server.net/directory</SPAN></SPAN></FONT>
+	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">produces
+	the same as </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">http://my.server.net/directory/index.php</SPAN></SPAN></FONT>
+	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">).
+	This is also usually the default situation.</SPAN></SPAN></P>
 </UL>
 <P LANG="en-GB">The rest of this section assumes that you are using
 Apache and that you want to use the internal username/password
@@ -244,10 +250,11 @@ or for the particular host (in something like
 <FONT FACE="Courier New, monospace">/etc/apache2/sites-available/{$site}.conf
 </FONT>).</P>
 <P LANG="en-GB">Note that if you change an Apache configuration file,
-you will need to restart Apache for the changes to have effect.</P>
+you will need to restart the <I>httpd</I> process for the changes to
+have effect.</P>
 <P LANG="en-GB">There are some known “gotchas” in Apache's
 behaviour under certain configurations. The best approach is not
-worry about the following until and unless the propblems as described
+worry about the following until and unless the problems as described
 happen in your installation!</P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB"><FONT COLOR="#000000">Sometimes</FONT>, Apache
@@ -276,7 +283,7 @@ happen in your installation!</P>
 	reduce the risk of SQL injection attacks by disallowing any HTTP
 	request which contains the words “create” and “table”.
 	Unfortunately, the command for creating a metadata table that CQPweb
-	sends is – not unreasonably – <I><B>createMetadataTable</B></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">.
+	sends is called – not unreasonably – <I><B>createMetadataTable</B></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">.
 	</SPAN></SPAN>
 	</P>
 	<UL>
@@ -293,6 +300,15 @@ happen in your installation!</P>
 		assumes no such security feature is active and always escapes
 		databse strings that might have an injection attack in them.</P>
 	</UL>
+	<LI><P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">CQPweb
+	uses the Apache <B>htpasswd</B> utility. You should make a note of
+	the directory where this utility is located as you will need to
+	specify it during configuration. On some systems, the <B>htpasswd</B>
+	binary may have a different name (e.g. <B>htpasswd2</B>). If this is
+	the case, the best thing to do is to create a symlink called
+	<B>htpasswd</B> to the alternatively-named binary. (The symlink can
+	of course be anywhere; the path you specify when configuring would
+	in this case be the path to the symlink.)</P>
 </UL>
 <P LANG="en-GB"><BR><BR>
 </P>
@@ -382,10 +398,12 @@ that must be must satisfy to use this option – see below. If you
 can't meet these requirements, then you can set the configuration
 variable </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$mysql_local_infile_disabled</SPAN></FONT><SPAN LANG="en-GB">
 to </SPAN><SPAN LANG="en-GB"><B>true</B></SPAN><SPAN LANG="en-GB">.
-This makes CQPweb avoid the LOAD DATA LOCAL INFILE unconditionally.
-Be warned – doing this should fix things, but it has the potential
-to be a major performance hit (and to boot involves code that has not
-been thoroughly tested as of version 2.16).</SPAN></P>
+This makes CQPweb avoid the LOAD DATA LOCAL INFILE </SPAN><SPAN LANG="en-GB">command
+</SPAN><SPAN LANG="en-GB">unconditionally. Be warned – doing this
+should fix things, but it has the potential to be a major performance
+hit (</SPAN><FONT COLOR="#0000ff"><SPAN LANG="en-GB">and to boot
+involves code that has not been thoroughly tested as of version
+2.16</SPAN></FONT><SPAN LANG="en-GB">).</SPAN></P>
 <P LANG="en-GB">Another known “gotcha”: PHP needs to know how to
 connect to the MySQL server via a <I>socket</I> in the filesystem.
 This information is often contained in the <FONT FACE="Courier New, monospace">php.ini</FONT>
@@ -397,9 +415,10 @@ file to tell PHP where to find the socket, by changing the
 setting. For instance, if your socket is at <FONT FACE="Courier New, monospace">/tmp/mysql.sock
 </FONT>but PHP is looking at <FONT FACE="Courier New, monospace">/var/mysql/mysql.sock</FONT>
 , you need to adjust <FONT FACE="Courier New, monospace">mysql.default_socket</FONT>
-to /tmp/mysql.sock. If you edit a <FONT FACE="Courier New, monospace">php.ini</FONT>
-file, make sure it is the one used when PHP is run by the server
-(i.e. as CGI or as an Apache module).</P>
+to <FONT FACE="Courier New, monospace">/tmp/mysql.sock</FONT>. If you
+edit a <FONT FACE="Courier New, monospace">php.ini</FONT> file, make
+sure it is the one used when PHP is run by the server (i.e. as CGI or
+as an Apache module).</P>
 <P LANG="en-GB"><SPAN LANG="en-GB">Another potential problem can
 arise from <A HREF="http://dev.mysql.com/doc/refman/5.5/en/binary-log.html">MySQL
 binary logging</A>. Even relatively light use of a CQPweb
@@ -632,7 +651,10 @@ you should <B>delete this script</B> – <SPAN STYLE="font-weight: normal">as
 it could compromise the security of the system. (When you use the
 “restore default system security” option (see below), one of the
 various things it does is check that this script is gone – in both
-its gzipped and non-gzipped forms – and delete it if not.)</SPAN></P>
+its gzipped and non-gzipped forms – and delete it if not.) </SPAN><SPAN STYLE="font-weight: normal">If
+you need it later, you can always retrieve it from the original
+</SPAN><B>.tar.gz</B><SPAN STYLE="font-weight: normal"> again. </SPAN>
+</P>
 <P LANG="en-GB"><SPAN STYLE="font-weight: normal">You may wish to
 change the configuration variables at some later point. If so, you
 need to edit the file </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">config.inc.php</SPAN></FONT>
@@ -804,12 +826,12 @@ follows:</P>
 	<B>false.</B></P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$cqpweb_uses_apache</FONT>
 	– this defaults to <B>true</B>, but you can set it to <B>false</B>
-	if your web server is not Apache. If it is set to false, functions
-	that depend on Apache will be hidden (since they wouldn't work
-	anyway).</P>
+	if your web server is not Apache. If it is set to <B>false,</B>
+	functions that depend on Apache will be hidden (since they wouldn't
+	work anyway).</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$cqpweb_root_url</SPAN></FONT><SPAN LANG="en-GB">
 	– you can set this to an absolute URL (in the style
-	&quot;</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">http://your-server.net/path/to/cqpweb/web/directory/</SPAN></FONT><SPAN LANG="en-GB">&quot;
+	&quot;</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">http://your-server.net/path/to/cqpweb/web/directory</SPAN></FONT><SPAN LANG="en-GB">&quot;
 	) and this will be used internally when CQPweb redirects the user's
 	browser from one point in the system to another. If you don't set
 	it, then CQPweb will try to work out its own URL based on
@@ -836,22 +858,24 @@ follows:</P>
 	– thus the name of the setting. The directories in question will
 	be passed to Perl using the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">-I</SPAN></FONT>
 	<SPAN STYLE="font-style: normal">command-line option.</SPAN></P>
-	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_welcome_message</SPAN></FONT><SPAN STYLE="font-style: normal">
-	– a little bit of text (can include HTML) which will appear in the
-	header box of the main menu page. The default is “Welcome to
-	CQPweb!”</SPAN></P>
-	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT><SPAN STYLE="font-style: normal">
-	– the URL (relative to the main menu page or absolute) of an image
-	to display as a logo on the left of the header box of the main page
-	menu. If the string consists of two URLs with a tab between them,
-	then the first will be used as the address of the image, and the
-	second as a link to embed it into. A transparent CorpusWorkbench
-	logo that you can use if you wish is located at the relative URL of
-	</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">css/img/ocwb-logo.transparent.gif</SPAN></FONT><SPAN STYLE="font-style: normal">
-	.  The default is no logo.</SPAN></P>
-	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_right</SPAN></FONT><SPAN STYLE="font-style: normal">
-	– as per </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT><SPAN STYLE="font-style: normal">,
-	but it appears on the left of the header box.</SPAN></P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_welcome_message</SPAN></FONT>
+	– <SPAN STYLE="font-style: normal">a little bit of text (can
+	include HTML </SPAN><SPAN STYLE="font-style: normal">formatting</SPAN><SPAN STYLE="font-style: normal">)
+	which will appear in the header box of the main menu page. The
+	default is “Welcome to CQPweb!”</SPAN></P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT>
+	– <SPAN STYLE="font-style: normal">the URL (relative to the main
+	menu page or absolute) of an image to display as a logo on the left
+	of the header box of the main page menu. If the string consists of
+	two URLs with a tab between them, then the first will be used as the
+	address of the image, and the second as a link to embed it into. A
+	transparent CorpusWorkbench logo that you can use if you wish is
+	located at the relative URL of </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">css/img/ocwb-logo.transparent.gif</SPAN></FONT>
+	<SPAN STYLE="font-style: normal">. The default is no logo.</SPAN></P>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_right</SPAN></FONT>
+	– <SPAN STYLE="font-style: normal">as per </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT><SPAN STYLE="font-style: normal">,
+	but it appears on the </SPAN><SPAN STYLE="font-style: normal">right
+	side</SPAN><SPAN STYLE="font-style: normal"> of the header box.</SPAN></P>
 	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$css_path_for_homepage</SPAN></FONT></FONT>
 	– this should be a relative or absolute URL of a CSS stylesheet to
 	use for the main menu page. By default, a lovely blue-and-grey table
@@ -862,10 +886,11 @@ follows:</P>
 	colour scheme is used.</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">$searchpage_corpus_name_suffix</FONT>
 	– a little bit of text that suffixes the name of the corpus in the
-	main search page header. It defautls to “powered by CQPweb”. If
+	main search page header. It defaults to “powered by CQPweb”. If
 	you don't want anything, set it to an empty string. If you want to
-	configure it on an individual corpus basis, you can do so in
-	settings.inc.php.</P>
+	configure it on an individual corpus basis, you can do so in the
+	settings.inc.php file of each corpus (but then beware automatic
+	overwrites of that file!).</P>
 	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$print_debug_messages</SPAN></FONT></FONT>
 	– this default to false, if you set it to true messages about what
 	is going on behind the scenes will appear all over various CQPweb
@@ -879,7 +904,9 @@ follows:</P>
 	– this defaults to 3 gigabytes, and sets a limit on the amount of
 	data that will be cached (CQP temporary files only, the MySQL
 	database does not count towards this size limit). Note that until
-	the cache limit is reached, the cache will just keep growing!</P>
+	the cache limit is reached, the cache will just keep growing! Cached
+	files are never deleted simply due to age, only when the disk space
+	needs to be reused.</P>
 	<LI><P LANG="en-GB" STYLE="font-style: normal">$default_max_fullsize_dbs_in_cache</P>
 	<LI><P LANG="en-GB" STYLE="font-style: normal">$default_max_dbsize</P>
 	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$default_mysql_process_limit</SPAN></FONT></FONT>
@@ -978,11 +1005,12 @@ usernames</B></FONT></FONT></P>
 </UL>
 <P LANG="en-GB">If you're using a normal web server, CQPweb passwords
 are transmitted in plaintext via HTTP. <B>User accounts are thus not
-secure</B>, the security is all based on the fact that even if
-someone manages to hack in, they can’t do anything other than break
-CQPweb itself. For this reason, I usually select passwords for my
-users, to make sure that they don’t re-use on CQPweb the secure
-passwords that they use for other purposes. 
+secure</B>, the security is all based on checking user input for
+validity before doing anything sensitive with it (such as sending it
+to MySQL or inserting it into a system call). For this reason, I
+usually select passwords for my users, to make sure that they don’t
+re-use on CQPweb the secure passwords that they use for other
+purposes. 
 </P>
 <P LANG="en-GB">If you really want secure username/password access,
 you need to (at least!) set up CQPweb on an HTTPS server. You can use
@@ -1232,7 +1260,8 @@ created for CQPweb (and, of course, they must be run <I>within</I>
 </P>
 <P LANG="en-GB">You need to run <I>all</I> <SPAN STYLE="font-style: normal">the
 commands between the version you are upgrading </SPAN><I>from</I> <SPAN STYLE="font-style: normal">and
-the version you are upgrading </SPAN><I>to</I> <SPAN STYLE="font-style: normal">(i.e.
+the version you are upgrading </SPAN><I>to</I><SPAN STYLE="font-style: normal">,
+</SPAN><SPAN STYLE="font-style: normal">inclusive</SPAN> <SPAN STYLE="font-style: normal">(i.e.
 the list that follows is cumulative).</SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
@@ -1273,8 +1302,8 @@ the list that follows is cumulative).</SPAN></P>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
-			</P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">2.16
+			to 2.17</P>
 		</TD>
 		<TD WIDTH=708 STYLE="; border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
