@@ -189,9 +189,9 @@ class corpus_install_info
 				$this->p_attributes[] = $p;
 				$this->p_attributes_mysql_insert[] = $this->get_p_att_mysql_insert($p, '', '', '');
 				
-				/* note that no "primary" annotation is created if we are loading in an existing corpus */
-				/* instead, the primary annotation can be set later */
-				/* note also that cwb_external applies EVEN IF the indexed corpus was already in this directory
+				/* note that no "primary" annotation is created if we are loading in an existing corpus; 
+				 * instead, the primary annotation can be set later.
+				 * note also that cwb_external applies EVEN IF the indexed corpus was already in this directory
 				 * (its sole use is to prevent deletion of data that CQPweb did not create)
 				 */
 				$this->corpus_metadata_fixed_mysql_insert =
@@ -207,8 +207,9 @@ class corpus_install_info
 
 		
 		/* s-attributes */
-		/* have to have this one! */
-		$this->s_attributes[] = 'text:0+id';
+		
+		/* if text is declared through the interface, don't add */
+		$text_attribute_explicit = false;
 		
 		if ($_GET['withDefaultSs'] === '1')
 		{
@@ -222,12 +223,24 @@ class corpus_install_info
 					$cand = $_GET["customS$q"];
 				else
 					$cand = cqpweb_handle_enforce($_GET["customS$q"]);
-				if ($cand === '')
+
+				if (($test_cand = substr($cand, 0, 5)) == 'text:' || $test_cand == 'text+')
+				{
+					/* this is a declaration of 'text', so enforce id */
+					$text_attribute_explicit = true;
+					if (! in_array('id', explode('+', $cand)))
+						$cand .= '+id';
+				}
+
+				if ($cand === ''|| $cand == 'text')
 					continue;
 				else
 					$this->s_attributes[] = $cand;
 			}
 		}
+		/* have to have this one! */
+		if (!$text_attribute_explicit)
+			$this->s_attributes[] = 'text:0+id';
 
 		
 		/* ******************* */
@@ -255,6 +268,7 @@ class corpus_install_info
 	} /* end constructor */
 	
 	
+	// TODO currently the code here WILL NOT allow feature sets
 	private function load_p_atts_based_on_get()
 	{
 		if ($_GET['withDefaultPs'] === '1')
@@ -297,6 +311,7 @@ class corpus_install_info
 					continue;
 				else
 				{
+					//TODO need to add / to cwb-encode command line input string if it's a featureset.
 					$this->p_attributes[] = $cand;
 	
 					$this->p_attributes_mysql_insert[] = $this->get_p_att_mysql_insert(
