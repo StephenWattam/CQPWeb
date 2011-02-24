@@ -74,16 +74,16 @@ A CEQL parser can be told to accept the following varieties of attribute:
            "UNC" => "UNC",
           };
 
-** the attribute that will be searched if "{.../...} is used in simple queries.
+** the attribute that will be searched if "{.../...}" is used in simple queries.
    In this BNC, this is "lemma". CEQL by default doesn't have a parameter for this. 
    So cqpwebCEQL adds one. It is called 'combo_attribute'.
    IF combo_attribute is not defined, it uses the SECONDARY ANNOTATION and the TERTIARY ANNOTAION.
 
 ** the lookup table for s-attributes (XML). Again, a hash table. It should contain the names of all
-   the allowable s-attributes mapped to 1. for the default, you are supposed to always have at least
+   the allowable s-attributes mapped to 1. For the default, you are supposed to always have at least
    { "s" => 1 }
-   since for a corpus to be used in CWB it should have at least <s> tags. Unfortunately, for CQPweb,
-   this can't be guaranteed. But if there aren't any, then at least nothing will go wrong
+   since we'd expect a CWB corpus to have at least s-tags. Unfortunately, for CQPweb,
+   this can't be guaranteed. But if there aren't any, then at least nothing will go wrong.
 
 ** there are 2 other parameters:
    default_ignore_case : 0 means case is not ignored, 1 means it is
@@ -185,8 +185,8 @@ END_OF_CEQL_QUERY
 		$script = str_replace('#~~secondary_annotation_command~~#', '', $script);
 
 	/* if there is a tertiary annotation AND a tertiary annotation hash table, specify them */
-	/* these are needed as a pair */
-	if (isset($name_of_tertiary_annotation, $string_with_table_of_3ary_mappings))
+	/* these are needed as a pair; note, the mapping table is always set, but may be false */
+	if (isset($name_of_tertiary_annotation) && $string_with_table_of_3ary_mappings != false)
 	{
 		$script = str_replace('#~~tertiary_annotation_command~~#',
 			"\$CEQL->SetParam(\"simple_pos_attribute\", \"$name_of_tertiary_annotation\"); ", $script);

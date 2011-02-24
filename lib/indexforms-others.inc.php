@@ -353,6 +353,8 @@ function printquery_corpusmetadata()
 
 	<?php
 	
+	/* set up the data we need */
+	
 	/* load metadata into two result arrays */
 
 	$sql_query = "select * from corpus_metadata_fixed where corpus = '$corpus_sql_name'";
@@ -394,19 +396,9 @@ function printquery_corpusmetadata()
 	$sql_query = "select * from annotation_metadata where corpus = '$corpus_sql_name'";
 	$result_annotations = do_mysql_query($sql_query);
 	
-	/* get the primary annotation's description */
-	$sql_query = 'select description from annotation_metadata where handle = "' 
-		. $metadata_fixed['primary_annotation'] . '"';
-	$result_primary_tag = do_mysql_query($sql_query);
-	if (mysql_num_rows($result_primary_tag) > 0 )
-	{
-		$primary_row = mysql_fetch_row($result_primary_tag);
-		$primary_annotation_string = $primary_row[0];
-	}
-	else
-		$primary_annotation_string = $metadata_fixed['primary_annotation'];
-	unset($primary_row);
-	unset($result_primary_tag);
+	/* create a placeholder for the primary annotation's description */
+	$primary_annotation_string = $metadata_fixed['primary_annotation'];
+	/* the description itself will be grabbed when we scroll through the full list of annotations */
 		
 	
 	
@@ -504,7 +496,14 @@ function printquery_corpusmetadata()
 	{
 		echo '<td class="concordgeneral">';
 		if ($annotation['description'] != "")
+		{
 			echo $annotation['description'];
+			
+			/* while we're looking at the description, save it for later if this
+			 * is the primary annotation */
+			if ($primary_annotation_string == $annotation['handle'])
+				$primary_annotation_string  = $annotation['description'];
+		}
 		else
 			echo $annotation['handle'];
 		if ($annotation['tagset'] != "")

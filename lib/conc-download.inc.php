@@ -702,6 +702,15 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 		<input type="hidden" name="downloadTypical" value="NULL" />
 		<input type="hidden" name="uT" value="y" />
 	</form>
+	<?php
+	
+	// TODO
+	/*
+	 * should we have the functionality to allow an annotation OTHER THAN the primary attribute
+	 * to be selected for a concordance download?
+	 */
+	
+	?>
 </table>
 </body>
 </html>
