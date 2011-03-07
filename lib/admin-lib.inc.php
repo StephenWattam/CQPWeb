@@ -593,16 +593,10 @@ function password_insert_lancaster($n)
  */
 function create_text_metadata_check_text_ids($corpus)
 {
-	$result = do_mysql_query("select text_id from text_metadata_for_$corpus 
-								where text_id REGEXP '[^A-Za-z0-9_]'");
-	if (mysql_num_rows($result) == 0)
+	if (false === ($bad_ids = create_text_metadata_get_bad_ids($corpus, 'text_id')))
 		return;
-		
-	$bad_ids = '';
-	while (($r = mysql_fetch_row($result)) !== false)
-		$bad_ids .= " '${r[0]}';";
-	
-	do_mysql_query("drop table if exists text_metadata_for_$corpus");
+
+	do_mysql_query("drop table if exists text_metadata_for_" . mysql_real_escape_string($corpus));
 	
 	$msg = "The data source you specified for the text metadata contains badly-formatted text"
 		. " ID codes, as follows: <strong>"
@@ -610,6 +604,56 @@ function create_text_metadata_check_text_ids($corpus)
 		. "</strong> (text ids can only contain unaccented letters, numbers, and underscore).";
 	
 	exiterror_general($msg);
+}
+
+/**
+ * Utility function for the create_text_metadata_for functions.
+ * 
+ * Returns nothing, but deletes the text_metadata_for table and aborts the script 
+ * if there are any non-word values in the specified field.
+ * 
+ * Use for categorisation columns. A BIT DIFFERENT to how we do it for text ids
+ * (different error message).
+ * 
+ * (NB - doesn't do any other cleanup e.g. temporary files).
+ * 
+ * This function should be called before any other updates are made to the database.
+ */
+function create_text_metadata_check_field_words($corpus, $field)
+{
+	if (false === ($bad_ids = create_text_metadata_get_bad_ids($corpus, $field)))
+		return;
+	
+	do_mysql_query("drop table if exists text_metadata_for_" . mysql_real_escape_string($corpus));
+	
+	$msg = "The data source you specified for the text metadata contains badly-formatted "
+		. " category handles, as follows: <strong>"
+		. $bad_ids
+		. "</strong> (category handles can only contain unaccented letters, numbers, and underscore).";
+	
+	exiterror_general($msg);	
+}
+
+/**
+ * Returns false if there are no bad ids in the field specified.
+ * 
+ * If there are bad ida, a string containing those ids is returned.
+ */
+function create_text_metadata_get_bad_ids($corpus, $field)
+{
+	$corpus = mysql_real_escape_string($corpus);
+	$field  = mysql_real_escape_string($field);
+	
+	$result = do_mysql_query("select distinct $field from text_metadata_for_$corpus 
+								where $field REGEXP '[^A-Za-z0-9_]'");
+	if (mysql_num_rows($result) == 0)
+		return false;
+
+	$bad_ids = '';
+	while (($r = mysql_fetch_row($result)) !== false)
+		$bad_ids .= " '${r[0]}';";
+	
+	return $bad_ids;	
 }
 
 /**
@@ -751,8 +795,6 @@ function create_text_metadata_for()
 				where corpus = '$corpus'";
 	}
 
-	//$load_statement = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE text_metadata_for_$corpus";
-
 	if (isset($inserts_for_metadata_fields))
 	{
 		foreach($inserts_for_metadata_fields as &$ins)
@@ -760,9 +802,15 @@ function create_text_metadata_for()
 	}
 	
 	do_mysql_query($create_statement);
-	//do_mysql_query($load_statement);
+	
 	do_mysql_infile_query("text_metadata_for_$corpus", $input_file);
+	
+	/* check resulting table for invalid text ids and invalid category handles */
 	create_text_metadata_check_text_ids($corpus);
+	/* we can re-use $category_index_list which contains only fieldnames of categorisations */
+	foreach ($category_index_list as &$cur)
+		create_text_metadata_check_field_words($corpus, $cur);
+	
 	
 	if ($update_statement !== '')
 		do_mysql_query($update_statement);
@@ -849,9 +897,12 @@ function create_text_metadata_for_minimalist()
 	//$load_statement = "$mysql_LOAD_DATA_INFILE_command '$input_file' INTO TABLE text_metadata_for_$corpus_sql_name";
 
 	do_mysql_query($create_statement);
-	//do_mysql_query($load_statement);
+
 	do_mysql_infile_query("text_metadata_for_$corpus_sql_name", $input_file);
+
 	create_text_metadata_check_text_ids($corpus_sql_name);
+	
+	/* since it's minimilist, there are no classifications. */
 
 	unlink($input_file);
 	
@@ -1011,7 +1062,6 @@ function cqpweb_dump_userdata($dump_file_path)
 function cqpweb_undump_userdata($dump_file_path)
 {
 	global $cqpweb_tempdir;
-	//global $mysql_LOAD_DATA_INFILE_command;
 
 	php_execute_time_unlimit();
 
@@ -1203,9 +1253,7 @@ function cqpweb_mysql_dump_data($dump_file_path)
  * extension will be added.
  */
 function cqpweb_mysql_undump_data($dump_file_path)
-{
-	// global $mysql_LOAD_DATA_INFILE_command;
-	
+{	
 	$dir = dumpable_dir_basename($dump_file_path);
 	
 	cqpweb_dump_untargzip("$dir.tar.gz");
