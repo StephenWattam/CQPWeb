@@ -119,20 +119,22 @@ function delete_corpus_from_cqpweb($corpus)
 
 
 /**
- * Adds default htaccess files to the root, adm, css, doc, and lib; removes
+ * Adds default htaccess files to the builtin subdirectories; removes
  * the autoconfig script if it exists.
  */
 function restore_system_security()
 {
-	/* four folders: adm, css, doc, lib; plus root folder */
+	/* folders: adm, css, doc, lib; plus root folder */
 	
-	/* three of those are easy */
+	/* four of those are easy */
 	if (file_exists('../.htaccess'))
 		unlink('../.htaccess');
 	if (file_exists('../doc/.htaccess'))
 		unlink('../doc/.htaccess');
 	if (file_exists('../css/.htaccess'))
 		unlink('../css/.htaccess');
+	if (file_exists('../rss/.htaccess'))
+		unlink('../rss/.htaccess');
 	
 	/* adm needs a standard .htaccess which just allows superusers */
 	if (file_exists('../adm/.htaccess'))
@@ -153,6 +155,12 @@ function restore_system_security()
 		unlink('../lib/javascript/.htaccess');
 	file_put_contents('../lib/javascript/.htaccess', "allow from all");
 	chmod("../lib/javascript/.htaccess", 0664);
+
+	/* bin needs a total block also */
+	if (file_exists('../bin/.htaccess'))
+		unlink('../bin/.htaccess');
+	file_put_contents('../bin/.htaccess', "deny from all");
+
 	
 	/* check that the autoconfig script in the root folder is GONE */
 	if (file_exists('../cqpweb-autoconfig.php'))

@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20110223;1205400">
+	<META NAME="CHANGED" CONTENT="20110307;23212400">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -21,9 +21,9 @@ higher)</H1>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>What
 you will need</B></FONT></FONT></P>
 <P LANG="en-GB">You'll need a machine with a Unix-style operating
-system (<I>CQPweb has been </I><I>installed successfully</I><I>, </I><I>to
-our knowledge</I><I>, on Mac OS X; Sun OS 5.10; Debian; Ubuntu; and
-Fedora</I>). Other software you need to have installed: 
+system (<I>CQPweb has been installed successfully, to our knowledge,
+on Mac OS X; Sun OS 5.10; Debian; Ubuntu; and Fedora</I>). Other
+software you need to have installed: 
 </P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Apache or some other webserver (note: <I>internal
@@ -398,12 +398,11 @@ that must be must satisfy to use this option – see below. If you
 can't meet these requirements, then you can set the configuration
 variable </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$mysql_local_infile_disabled</SPAN></FONT><SPAN LANG="en-GB">
 to </SPAN><SPAN LANG="en-GB"><B>true</B></SPAN><SPAN LANG="en-GB">.
-This makes CQPweb avoid the LOAD DATA LOCAL INFILE </SPAN><SPAN LANG="en-GB">command
-</SPAN><SPAN LANG="en-GB">unconditionally. Be warned – doing this
-should fix things, but it has the potential to be a major performance
-hit (</SPAN><FONT COLOR="#0000ff"><SPAN LANG="en-GB">and to boot
-involves code that has not been thoroughly tested as of version
-2.16</SPAN></FONT><SPAN LANG="en-GB">).</SPAN></P>
+This makes CQPweb avoid the LOAD DATA LOCAL INFILE command
+unconditionally. Be warned – doing this should fix things, but it
+has the potential to be a major performance hit (</SPAN><FONT COLOR="#0000ff"><SPAN LANG="en-GB">and
+to boot involves code that has not been thoroughly tested as of
+version 2.16</SPAN></FONT><SPAN LANG="en-GB">).</SPAN></P>
 <P LANG="en-GB">Another known “gotcha”: PHP needs to know how to
 connect to the MySQL server via a <I>socket</I> in the filesystem.
 This information is often contained in the <FONT FACE="Courier New, monospace">php.ini</FONT>
@@ -651,9 +650,9 @@ you should <B>delete this script</B> – <SPAN STYLE="font-weight: normal">as
 it could compromise the security of the system. (When you use the
 “restore default system security” option (see below), one of the
 various things it does is check that this script is gone – in both
-its gzipped and non-gzipped forms – and delete it if not.) </SPAN><SPAN STYLE="font-weight: normal">If
-you need it later, you can always retrieve it from the original
-</SPAN><B>.tar.gz</B><SPAN STYLE="font-weight: normal"> again. </SPAN>
+its gzipped and non-gzipped forms – and delete it if not.) If you
+need it later, you can always retrieve it from the original </SPAN><B>.tar.gz</B>
+<SPAN STYLE="font-weight: normal">again. </SPAN>
 </P>
 <P LANG="en-GB"><SPAN STYLE="font-weight: normal">You may wish to
 change the configuration variables at some later point. If so, you
@@ -860,9 +859,8 @@ follows:</P>
 	<SPAN STYLE="font-style: normal">command-line option.</SPAN></P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_welcome_message</SPAN></FONT>
 	– <SPAN STYLE="font-style: normal">a little bit of text (can
-	include HTML </SPAN><SPAN STYLE="font-style: normal">formatting</SPAN><SPAN STYLE="font-style: normal">)
-	which will appear in the header box of the main menu page. The
-	default is “Welcome to CQPweb!”</SPAN></P>
+	include HTML formatting) which will appear in the header box of the
+	main menu page. The default is “Welcome to CQPweb!”</SPAN></P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT>
 	– <SPAN STYLE="font-style: normal">the URL (relative to the main
 	menu page or absolute) of an image to display as a logo on the left
@@ -874,8 +872,8 @@ follows:</P>
 	<SPAN STYLE="font-style: normal">. The default is no logo.</SPAN></P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_right</SPAN></FONT>
 	– <SPAN STYLE="font-style: normal">as per </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT><SPAN STYLE="font-style: normal">,
-	but it appears on the </SPAN><SPAN STYLE="font-style: normal">right
-	side</SPAN><SPAN STYLE="font-style: normal"> of the header box.</SPAN></P>
+	but it appears on the right side</SPAN> <SPAN STYLE="font-style: normal">of
+	the header box.</SPAN></P>
 	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$css_path_for_homepage</SPAN></FONT></FONT>
 	– this should be a relative or absolute URL of a CSS stylesheet to
 	use for the main menu page. By default, a lovely blue-and-grey table
@@ -907,6 +905,30 @@ follows:</P>
 	the cache limit is reached, the cache will just keep growing! Cached
 	files are never deleted simply due to age, only when the disk space
 	needs to be reused.</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">$rss_feed_available</SPAN></SPAN></FONT></FONT>
+	– this defaults to false, if you set it to true, then an RSS 2.0
+	feed of all the system-administration messages currently on the
+	system will be available in the <B>rss</B> subdirectory. (And an
+	icon linking to the feed will appear in the header bar of the the
+	system-messages block). The next thre configuration variables allow
+	you to define how you want the RSS feed to behave; they will be
+	ignored if <FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">$rss_feed_available</SPAN></SPAN></FONT></FONT>
+	is not true.</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">$rss_link</SPAN></SPAN></FONT></FONT>
+	– all RSS feeds must have a URL associated with them, by default
+	the CQPweb RSS feed's link is simply the root directory of the
+	installation, but you can configure it to be something else by
+	setting this variable. Note that if you set it to anything other
+	than valid URL the resulting RSS file probably won't parse.</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">$rss_feed_title</SPAN></SPAN></FONT></FONT>
+	– the title of the feed, by default “CQPweb System Messages”
+	but you can set it to whatever you like, e.g. to mention your
+	institution or organisation.</P>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">$rss_description</SPAN></SPAN></FONT></FONT>
+	– the basic description that will pop up in subscribers' feed
+	readers. You can set this to anything you like, but it should not be
+	longer than a short paragraph in order to be effective. It defaults
+	to “Messages from the CQPweb server's administrator”.</P>
 	<LI><P LANG="en-GB" STYLE="font-style: normal">$default_max_fullsize_dbs_in_cache</P>
 	<LI><P LANG="en-GB" STYLE="font-style: normal">$default_max_dbsize</P>
 	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$default_mysql_process_limit</SPAN></FONT></FONT>
@@ -1261,8 +1283,8 @@ created for CQPweb (and, of course, they must be run <I>within</I>
 <P LANG="en-GB">You need to run <I>all</I> <SPAN STYLE="font-style: normal">the
 commands between the version you are upgrading </SPAN><I>from</I> <SPAN STYLE="font-style: normal">and
 the version you are upgrading </SPAN><I>to</I><SPAN STYLE="font-style: normal">,
-</SPAN><SPAN STYLE="font-style: normal">inclusive</SPAN> <SPAN STYLE="font-style: normal">(i.e.
-the list that follows is cumulative).</SPAN></P>
+inclusive</SPAN> <SPAN STYLE="font-style: normal">(i.e. the list that
+follows is cumulative).</SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <TABLE WIDTH=882 CELLPADDING=4 CELLSPACING=0>

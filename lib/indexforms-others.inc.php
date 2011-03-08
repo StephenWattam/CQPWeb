@@ -693,9 +693,19 @@ function printquery_latest()
 	
 	<ul>
 		<li>
-		<b>Version 2.16</b>, 2011-xx-yy<br/>&nbsp;<br/>
+		<b>Version 2.16</b>, 2011-03-08<br/>&nbsp;<br/>
 		Added a workaround for a problem that arises with some MySQL security setups.
-		<br/>&nbsp;<br/>		
+		<br/>&nbsp;<br/>
+		Added an optional RSS feed of system messages, and made links in system messages display correctly
+		both within webpages and in the RSS feed.
+		<br/>&nbsp;</li>
+		Created a storage location for executable command-line scripts that perform offline administration
+		tasks (in a stroke of unparalleled originality, I call it "bin").
+		<br/>&nbsp;</li>
+		Added customisable headers and logos to the homepage (a default CWB logo is supplied).
+		<br/>&nbsp;</li>
+		Fixed a bug in right-to-left corpora (Arabic etc.) where collocations were referred to as being "to
+		the right" or "to the left" of the node even though this was wrong by about 180 degrees.
 		<br/>&nbsp;</li>
 
 		<li>
@@ -731,7 +741,7 @@ function printquery_latest()
 		that you need R installed in order to do anything with this.
 		<br/>&nbsp;<br/>
 		The new Web API has been established, and the first two functions "query" and "concordance" created.
-		Documentation for the Web API is still on the to-do list...
+		Documentation for the Web API is still on the to-do list, and it's not quite ready for use...
 		<br/>&nbsp;<br/>
 		Plus, a new function for creating snapshots of the system (useful for making backups); a "diagnostic"
 		interface for checking out common problems in setting up CQP (incomplete as yet); and some improvements

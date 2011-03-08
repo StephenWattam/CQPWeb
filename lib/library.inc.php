@@ -1166,6 +1166,7 @@ function display_system_messages()
 	global $username;
 	global $this_script;
 	global $corpus_sql_name;
+	global $rss_feed_available;
 	
 	if (!isset($corpus_sql_name))
 	{
@@ -1191,7 +1192,20 @@ function display_system_messages()
 	<table class="concordtable" width="100%">
 		<tr>
 			<th colspan="<?php echo ($su ? 3 : 2) ; ?>" class="concordtable">
-				System messages
+				System messages 
+				<?php
+				if ($rss_feed_available)
+				{
+					/* dirty hack: in mainhome there is no username & img/link URL is different */ 
+					$rel_add = (($username != '__unknown_user') ?  '../' : '');
+						
+					?>
+					<a href="<?php echo $rel_add;?>rss">
+						<img src="<?php echo $rel_add;?>css/img/feed-icon-14x14.png" />
+					</a> 
+					<?php	
+				}
+				?> 
 			</th>
 		</tr>
 	<?php
@@ -1226,7 +1240,14 @@ function display_system_messages()
 		</tr>
 		<tr>
 			<td class="concordgeneral">
-				<?php echo str_replace("\n", '<br/>', htmlentities(stripslashes($r->content))); ?>
+				<?php
+				/* Sanitise, then add br's, then restore whitelisted links ... */
+				echo preg_replace(	'|&lt;a\s+href=&quot;(.*?)&quot;\s*&gt;(.*?)&lt;/a&gt;|', 
+									'<a href="$1">$2</a>', 
+									str_replace("\n", '<br/>', 
+												htmlentities(stripslashes($r->content))));
+				?>
+
 			</td>
 		</tr>			
 		<?php

@@ -21,6 +21,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//TODO move this to bin
+// and generalise whatever eklements can be generalised.
+
+//TODO usage here? generalise usage for all bin scripts?
+// if --corpus=corpus is specified, change to ../corpus
 
 
 /* refuse to run unless we are in CLI mode */

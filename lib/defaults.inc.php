@@ -165,6 +165,9 @@ if (!isset($debug_messages_textonly))
 if (php_sapi_name() == 'cli')
 	$debug_messages_textonly = false;
 
+if (!isset($rss_feed_available))
+	$rss_feed_available = false;
+
 
 /* This is not a default - it cleans up the input, so we can be sure the root
  * URL ends in a slash. */
@@ -278,8 +281,8 @@ define('CQPWEB_VERSION', '2.16');
 
 
 /* "reserved words" that can't be used for corpus ids */
-$cqpweb_reserved_subdirs = array('adm', 'css', 'doc', 'lib', 'usr');
-/* note: all reserved words are 3 lowercase letters and any new ones we add will also be three letters */
+$cqpweb_reserved_subdirs = array('adm', 'bin', 'css', 'doc', 'lib', 'rss', 'usr');
+/* note: all reserved words are 3 lowercase letters and any new ones we add will also be 3 lowercase letters */
 
 
 /* SYSTEM DEFAULT SETTINGS */
