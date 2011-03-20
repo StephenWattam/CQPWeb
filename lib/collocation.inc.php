@@ -586,6 +586,9 @@ else
 						function setCollocTagFilter(fromThisSelect)
 						{
 							var newValue = fromThisSelect.options[fromThisSelect.selectedIndex].value;
+							// work around stupid, stupuid Internet Explorer bug
+							if (newValue == "")
+								newValue = fromThisSelect.options[fromThisSelect.selectedIndex].innerHTML;
 							
 							if (newValue == "-??..__any__..??-")
 								newValue = "";

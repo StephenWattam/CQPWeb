@@ -379,9 +379,9 @@ function print_freqlist_line($data, $line_number, $att, $restricts)
 	global $corpus_cqp_query_default_flags;
 	global $corpus_uses_case_sensitivity;
 
-	if ($att == 'word' && ! $corpus_uses_case_sensitivity)
-		$data->item = strtolower($data->item);
-		// TODO be careful. strtolower may not be a good function. UTF8 equivalent?
+	if ( $att == 'word' && ! $corpus_uses_case_sensitivity && function_exists('mb_strtolower') )
+		$data->item = mb_strtolower($data->item, 'UTF-8');
+		/* there may be a better function to use in future versions of PHP; the mb extension is nonstandard */
 
 	$target = CQP::escape_metacharacters($data->item);
 

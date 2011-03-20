@@ -47,13 +47,17 @@ function __autoload($plugin)
 	// end TODO
 	global $plugin_classes_transliterators;
 	global $plugin_classes_annotators;
-	//TODO more?
+	global $plugin_classes_formatcheckers;
 	
 	/* check it's a valid plugin class, listed in config */
+	/* note: these "type" strings are only used within the present fucntion */
+//TODO: if the interface is used, can we use instanceof with a string?
 	if (in_array($plugin, $plugin_classes_transliterators))
 		$type = 'translit';
-	else if (array_key_exists($plugin, $plugin_classes_annotators))
+	else if (in_array($plugin, $plugin_classes_annotators))
 		$type = 'annot';
+	else if (in_array($plugin, $plugin_classes_annotators))
+		$type = 'checker';
 	else
 		exiterror_general("Attempting to autoload an unknown plugin! Check the configuration.");
 	
@@ -70,13 +74,16 @@ function __autoload($plugin)
 	/* now that we've got it loaded, check it implements the right interface. */
 	if ($type == 'translit')
 		if (! ($plugin instanceof Transliterator) )
-			exiterror_general('Bad transliteration plugin! Doesn\'t implement the Transliterator interface.'
+			exiterror_general('Bad plugin! Doesn\'t implement the Transliterator interface.'
 				. ' Check the coding of your plugin ' . $plugin);
 	if ($type == 'annot')
 		if (! ($plugin instanceof Annotator) )
-			exiterror_general('Bad annotation plugin! Doesn\'t implement the Annotator interface.'
+			exiterror_general('Bad plugin! Doesn\'t implement the Annotator interface.'
 				. ' Check the coding of your plugin ' . $plugin);
-	//TODO more types here
+	if ($type == 'checker')
+		if (! ($plugin instanceof Annotator) )
+			exiterror_general('Bad plugin! Doesn\'t implement the FormatChecker interface.'
+				. ' Check the coding of your plugin ' . $plugin);
 }
 
 //TODO maybe add "get a list of available plugins of a particular type" function??
@@ -118,7 +125,7 @@ interface CQPwebPlugin
  * internally, by calling a library, by creating a back-end process
  * and piping data back and forth - CQPweb doesn't care.
  * 
- * What you are not allowed to do in a plugin is use any of CQPweb's
+ * What you are NOT allowed to do in a plugin is use any of CQPweb's
  * global data. (Or rather, you are ALLOWED to - it's your computer! -
  * I just don't think it would be a good idea at all.)
  */
@@ -133,7 +140,7 @@ interface Transliterator extends CQPwebPlugin
 	 * 
 	 * It must be possible to pass a raw string straight from CQP,
 	 * and get back a string that is still structured the same
-	 * (so CQPweb functions don't need ot know about whether or not
+	 * (so CQPweb functions don't need to know about whether or not
 	 * transliteration has happened).
 	 */
 	public function transliterate($string);
@@ -190,9 +197,72 @@ interface Annotator extends CQPwebPlugin
 	
 }
 
-// TODO: interface for FormatChecker plugins
+/**
+ * Interface for FormatChecker Plugins.
+ * 
+ * An FormatChecker Plugin is an object capable of checking files for their 
+ * compliance with some specified format - like, say for instance, "valid
+ * UTF 8 text", "valid XML", "valid CWB input format". It can do this either using
+ * internal PHP code, or by calling an external program.
+ */
+interface FormatChecker extends CQPwebPlugin
+{
 
-// TODO: interface for other plugins??????
+	/**
+	 * Checks the specified file to see if it complies with this FormatChecker's
+	 * particular file-formatting rules.
+	 * 
+	 * The argument can be absolute or relative path but the file it specifies
+	 * MUST NOT be changed in any way.
+	 * 
+	 * Should return true if the file meets all the rules, or false if there is
+	 * one or more problems.
+	 */
+	public function file_is_valid($path_to_input_file);
+	
+	/**
+	 * Returns a string describing the problem that made the FormatChecker
+	 * decide that the 
+	 * 
+	 * Should return false if either (a) no file has yet been processed or
+	 * (b) the last file processed did not have any problems in it.
+	 */
+	public function error_desc();
+	
+	/**
+	 * Returns the integer line number of the location, within the file that was
+	 * last checked, where the error described by $this->error_desc
+	 * was noticed. 
+	 * 
+	 * Note that this is NOT necesasarily the place where the error
+	 * actually occurred. In some types of format checker, such as an XML parser,
+	 * errors may become apparetn well after they actually happened.
+	 *
+	 * Should return NULL if either (a) the implementing class does not keep track
+	 * of the location of errors or (b) the last file processed did not have any
+	 * problems in it or (c) no file has been processed yet.
+	 * 
+	 * The first line of a file is considered to be line 1, not line 0.
+	 */ 
+	public function error_line_number();
+	
+	/**
+	 * Returns the integer byte offset of the location, within the line given by
+	 * $this->error_line_number(), where the error described by $this->error_desc
+	 * was noticed.
+	 * 
+	 * Note it is a byte offset not a character offset in the case of non-8-bit
+	 * data.
+	 * 
+	 * Should return NULL if either (a) the implementing class does not keep track
+	 * of the location of errors or (b) the last file processed did not have any
+	 * problems in it or (c) no file has been processed yet.
+	 */
+	public function error_line_byte();
+	
+	
+}
+
 
 
 ?>

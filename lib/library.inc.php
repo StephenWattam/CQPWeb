@@ -113,7 +113,7 @@ function refresh_directory_global_cqp()
 		$cqp->execute("set DataDirectory '/'");
 		$cqp->execute("set DataDirectory '/$cqpweb_tempdir'");
 		$cqp->set_corpus($corpus_cqp_name);
-		// Question: is this still necessary?
+		// TODO Question: is this still necessary?
 	}
 }
 
@@ -135,6 +135,12 @@ function connect_global_mysql()
 	 * is deactivated at the mysqld end, e.g. by my.cnf, this won't help, but 
 	 * won't hurt either.) */ 
 	$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass, false, 128);
+	/* Note, in theory there are performance gains to be had by using a 
+	 * persistent connection. However, current judgement is that the risk
+	 * of problems is too great to justify doing so, due to the use of SET
+	 * NAMES on some corpora but not all, and other uncertainties. MySQLi
+	 * does link cleanup so if ever we shift over to that, persistent 
+	 * connections are more likely to be useful.                           */
 	
 	if (! $mysql_link)
 		exiterror_general('MySQL did not connect - please try again later!');
@@ -229,7 +235,6 @@ function do_mysql_outfile_query($query, $filename)
 		$into_outfile = 'INTO OUTFILE "' . mysql_real_escape_string($filename) . '" FROM ';
 		$replaced = 0;
 		$query = str_replace("FROM ", $into_outfile, $query, $replaced);
-		// TODO: change to preg_replace, then we can limit it to 1 replacement?
 		
 		if ($replaced != 1)
 			exiterror_mysqlquery('no_number',
@@ -302,6 +307,7 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 	$table = mysql_real_escape_string($table);
 	
 	/* massive if/else: overall two branches. */
+	
 	if (! $mysql_infile_disabled)
 	{
 		/* the normal sensible way */
@@ -315,6 +321,7 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 	else
 	{
 		/* the nasty hacky workaround way */
+		
 		exiterror_general("Mysql workaround not built yet!", __SCRIPT__, __LINE__);
 		
 		/* first we need to find out about the table ... */
@@ -383,22 +390,21 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 		fclose($source);
 		
 		return $result;
-	}
+		
+	} /* end of massive if/else that branches this function */
 }
 
 /* the next two functions are really just for convenience */
 
 /** Turn off indexing for a given MySQL table. */
-function database_disable_keys($arg)
+function database_disable_keys($table)
 {
-	$arg = mysql_real_escape_string($arg);
-	do_mysql_query("alter table $arg disable keys");
+	do_mysql_query("alter table " . mysql_real_escape_string($table) . " disable keys");
 }
 /** Turn on indexing for a given MySQL table. */
-function database_enable_keys($arg)
+function database_enable_keys($table)
 {
-	$arg = mysql_real_escape_string($arg);
-	do_mysql_query("alter table $arg enable keys");
+	do_mysql_query("alter table " . mysql_real_escape_string($table) . " enable keys");
 }
 
 
@@ -499,27 +505,6 @@ function regex_add_anchors($s)
 function make_thousands($number)
 {
 	return number_format($number);
-	// TODO delete below once we're sure the above works as anticipated.
-	$string = "$number";
-	$length = strlen($string);
-
-	$figure = $length % 3;
-	if ($figure == 0)
-		$figure = 3;
-	
-	$new_string = "";
-	
-	for ( $j = 0 ; $j < ($length + 1) ; $j++ )
-	{
-		$figure--;		
-		$new_string .= substr($string, $j, 1);
-		if ($figure == 0) 
-		{
-			$new_string .= ',';
-			$figure = 3;
-		}
-	}
-	return rtrim($new_string, ",");
 }
 
 
@@ -967,66 +952,6 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 
 
 
-
-// TODO next 3 functions seem a bit non-general to be in the library.... catquery.inc.php?
-
-/**
- * Given the name of a categorised query, this function returns an array of 
- * names of categories that exist in that query.
- */
-function catquery_list_categories($qname)
-{
-	$sql_query = "select category_list from saved_catqueries where catquery_name = '"
-		. mysql_real_escape_string($qname)
-		.'\'';
-	$result = do_mysql_query($sql_query);
-	list($list) = mysql_fetch_row($result);
-	return explode('|', $list);
-}
-
-
-/**
- * Returns an array of category values for a given catquery, with ints (reference 
- * numbers) indexing strings (category names).
- *
- * The from and to parameters specify the range of refnumbers in the catquery
- * that is desired to be returned; they are to be INCLUSIVE.
- */
-function catquery_get_categorisation_table($qname, $from, $to)
-{
-	/* find out the dbname from the saved_catqueries table */
-	$dbname = catquery_find_dbname($qname);
-	
-	$from = (int)$from;
-	$to = (int)$to;
-	
-	$sql_query = "select refnumber, category from $dbname where refnumber >= $from and refnumber <= $to";
-	$result = do_mysql_query($sql_query);
-			
-	$a = array();
-	while ( ($row = mysql_fetch_row($result)) !== false)
-		$a[(int)$row[0]] = $row[1];
-	
-	return $a;
-}
-
-
-/**
- * Returns a string containing the dbname associated with the given catquery.
- */
-function catquery_find_dbname($qname)
-{
-	$qname = mysql_real_escape_string($qname);
-	$sql_query = "select dbname from saved_catqueries where catquery_name ='$qname'";
-	$result = do_mysql_query($sql_query);
-	
-	if (mysql_num_rows($result) < 1)
-		exiterror_general("The categorised query <em>$qname</em> could nto be found in the database.", 
-			__FILE__, __LINE__);
-	list($dbname) = mysql_fetch_row($result);
-
-	return $dbname;
-}
 
 /**
  * Creates a table row for the index-page left-hand-side menu, which is either a link,

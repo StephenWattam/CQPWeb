@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20110307;23212400">
+	<META NAME="CHANGED" CONTENT="20110320;2500100">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -274,31 +274,6 @@ happen in your installation!</P>
 		of <FONT FACE="Courier New, monospace">chmod()</FONT> where the
 		mode is set to <FONT FACE="Courier New, monospace">0664</FONT> to
 		set it to <FONT FACE="Courier New, monospace">0644</FONT> instead.</P>
-	</UL>
-	<LI><P LANG="en-GB">The symptom of the next “gotcha” is getting
-	a message like “Forbidden - You don't have permission to access
-	/cqpweb/adm/index.php on this server” when you try to run the
-	corpus metadata-setup function, when everything has previously been
-	running fine. This is caused by a security feature intended to
-	reduce the risk of SQL injection attacks by disallowing any HTTP
-	request which contains the words “create” and “table”.
-	Unfortunately, the command for creating a metadata table that CQPweb
-	sends is called – not unreasonably – <I><B>createMetadataTable</B></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">.
-	</SPAN></SPAN>
-	</P>
-	<UL>
-		<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">To
-		get around this, you must again edit the code to change this to
-		something inoffensive (e.g. </SPAN></SPAN><I><B>createMetadataQQQQ</B></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">).
-		The two code files that refer to this command are
-		“admin-execute.inc.php” and “indexforms-admin.inc.php”.
-		</SPAN></SPAN><I><SPAN STYLE="font-weight: normal">Warning: there
-		may be other “bad values” blocked by this same security feature
-		that we are not yet aware of</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">.</SPAN></SPAN></P>
-		<LI><P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">
-		Alternatively you could just turn that feature off. CQPweb itself
-		assumes no such security feature is active and always escapes
-		databse strings that might have an injection attack in them.</P>
 	</UL>
 	<LI><P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">CQPweb
 	uses the Apache <B>htpasswd</B> utility. You should make a note of
@@ -905,26 +880,26 @@ follows:</P>
 	the cache limit is reached, the cache will just keep growing! Cached
 	files are never deleted simply due to age, only when the disk space
 	needs to be reused.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">$rss_feed_available</SPAN></SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_feed_available</SPAN></FONT></FONT>
 	– this defaults to false, if you set it to true, then an RSS 2.0
 	feed of all the system-administration messages currently on the
 	system will be available in the <B>rss</B> subdirectory. (And an
 	icon linking to the feed will appear in the header bar of the the
 	system-messages block). The next thre configuration variables allow
 	you to define how you want the RSS feed to behave; they will be
-	ignored if <FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">$rss_feed_available</SPAN></SPAN></FONT></FONT>
+	ignored if <FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_feed_available</SPAN></FONT></FONT>
 	is not true.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">$rss_link</SPAN></SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_link</SPAN></FONT></FONT>
 	– all RSS feeds must have a URL associated with them, by default
 	the CQPweb RSS feed's link is simply the root directory of the
 	installation, but you can configure it to be something else by
 	setting this variable. Note that if you set it to anything other
 	than valid URL the resulting RSS file probably won't parse.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">$rss_feed_title</SPAN></SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_feed_title</SPAN></FONT></FONT>
 	– the title of the feed, by default “CQPweb System Messages”
 	but you can set it to whatever you like, e.g. to mention your
 	institution or organisation.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">$rss_description</SPAN></SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_description</SPAN></FONT></FONT>
 	– the basic description that will pop up in subscribers' feed
 	readers. You can set this to anything you like, but it should not be
 	longer than a short paragraph in order to be effective. It defaults

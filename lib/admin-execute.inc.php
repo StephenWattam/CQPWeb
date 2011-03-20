@@ -279,7 +279,7 @@ switch($_GET['admFunction'])
 		exit();
 		
 	
-	case 'createMetadataTable':
+	case 'createMetadataFromFile':
 		$create_text_metadata_for_info = array();
 		$create_text_metadata_for_info['filename'] = $_GET['dataFile'];
 		$create_text_metadata_for_info['file_should_be_deleted'] = false;

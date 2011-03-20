@@ -175,7 +175,9 @@ if (isset($cqpweb_root_url))
 	$cqpweb_root_url = rtrim($cqpweb_root_url, '/') . '/';
 
 
+/* --------------------------- */
 /* PER-CORPUS DEFAULT SETTINGS */
+/* --------------------------- */
 /* for if settings.inc.php don't specify them */
 
 if (!isset($corpus_main_script_is_r2l))
@@ -276,8 +278,17 @@ if (!isset($default_words_in_download_context))
 	$default_words_in_download_context = 10;
 
 
+
+
+
+/* ----------------------- */
+/* SYSTEM DEFAULT SETTINGS */
+/* ----------------------- */
+
+/* some can be overrridden in the config file -- some can't! */
+
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '2.16');
+define('CQPWEB_VERSION', '2.17');
 
 
 /* "reserved words" that can't be used for corpus ids */
@@ -285,16 +296,14 @@ $cqpweb_reserved_subdirs = array('adm', 'bin', 'css', 'doc', 'lib', 'rss', 'usr'
 /* note: all reserved words are 3 lowercase letters and any new ones we add will also be 3 lowercase letters */
 
 
-/* SYSTEM DEFAULT SETTINGS */
-/* for if config.inc.php don't specify them */
-
 /* control the size of the history table */
 if (!isset($history_maxentries))
 	$history_maxentries = 5000;
 if (!isset($history_weekstokeep))
 	$history_weekstokeep = 12;
-// note: this doesn't seem to be working ... dunno why...
-// but the latest version of BNCweb doesn't delete from query_history anyway
+// TODO note: this doesn't seem to be working ... dunno why...
+// TODO but the latest version of BNCweb doesn't delete from query_history anyway
+// TODO all history-deleting code should be deleted.
 
 
 /* other maximums for mysql, NOT settable in config.inc.php */
@@ -306,7 +315,7 @@ if (!isset($cache_size_limit))
 	$cache_size_limit = 3221225472;
 
 //TODO the way DB maxima are calculated is dodgy, to say the least.
-// PROBLEMS: (1) names beginnign $default thataren;t defaults is confusing, as above
+// PROBLEMS: (1) names beginning $default that aren;t defaults is confusing, as above
 // (2) are the limits working as they should?
 
 /* Default maximum size for DBs -- can be changed on a per-user basis */
@@ -354,6 +363,12 @@ $mysql_process_name = array(
 	);
 
 
+
+
+/* --------------------------------------------- */
+/* VARIABLES SPECIFIC TO THIS INSTANCE OF CQPWEB */
+/* --------------------------------------------- */
+
 /* if apache (or the like) is not being used, then $username should be set by code in config.inc.php */
 if (!isset($username))
 	$username = $_SERVER['REMOTE_USER'];
@@ -388,7 +403,8 @@ if (! isset($this_script))
 /* MAGIC QUOTES */
 /* ------------ */
 
-/* a simplified version of the code here: http://php.net/manual/en/security.magicquotes.disabling.php */
+/* a simplified version of the code here: http://php.net/manual/en/security.magicquotes.disabling.php 
+ * (simplified because we know that in CQPweb $_GET/$_POST is always a one-dimensional array) */
 
 if (get_magic_quotes_gpc()) 
 {

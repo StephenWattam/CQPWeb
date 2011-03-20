@@ -799,7 +799,7 @@ function printquery_managemeta()
 			
 		</table>
 		
-			<input type="hidden" name="admFunction" value="createMetadataTable" />
+			<input type="hidden" name="admFunction" value="createMetadataFromFile" />
 			<input type="hidden" name="fieldCount" value="<?php echo $number_of_fields_in_form; ?>" />
 			<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name; ?>" />
 			<input type="hidden" name="uT" value="y" />

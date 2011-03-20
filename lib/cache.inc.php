@@ -569,6 +569,72 @@ function clear_cache($protect_user_saved = true)
 
 
 /**
+ * Given the name of a categorised query, this function returns an array of 
+ * names of categories that exist in that query.
+ */
+function catquery_list_categories($qname)
+{
+	$sql_query = "select category_list from saved_catqueries where catquery_name = '"
+		. mysql_real_escape_string($qname)
+		.'\'';
+	$result = do_mysql_query($sql_query);
+	list($list) = mysql_fetch_row($result);
+	return explode('|', $list);
+}
+
+
+/**
+ * Returns an array of category values for a given catquery, with ints (reference 
+ * numbers) indexing strings (category names).
+ *
+ * The from and to parameters specify the range of refnumbers in the catquery
+ * that is desired to be returned; they are to be INCLUSIVE.
+ */
+function catquery_get_categorisation_table($qname, $from, $to)
+{
+	/* find out the dbname from the saved_catqueries table */
+	$dbname = catquery_find_dbname($qname);
+	
+	$from = (int)$from;
+	$to = (int)$to;
+	
+	$sql_query = "select refnumber, category from $dbname where refnumber >= $from and refnumber <= $to";
+	$result = do_mysql_query($sql_query);
+			
+	$a = array();
+	while ( ($row = mysql_fetch_row($result)) !== false)
+		$a[(int)$row[0]] = $row[1];
+	
+	return $a;
+}
+
+
+/**
+ * Returns a string containing the dbname associated with the given catquery.
+ */
+function catquery_find_dbname($qname)
+{
+	$qname = mysql_real_escape_string($qname);
+	$sql_query = "select dbname from saved_catqueries where catquery_name ='$qname'";
+	$result = do_mysql_query($sql_query);
+	
+	if (mysql_num_rows($result) < 1)
+		exiterror_general("The categorised query <em>$qname</em> could nto be found in the database.", 
+			__FILE__, __LINE__);
+	list($dbname) = mysql_fetch_row($result);
+
+	return $dbname;
+}
+
+
+
+
+
+
+
+
+
+/**
  * Adds a trace of a query performed by the user to the query history.
  * 
  * Note that the "hits" field is set by default to -3; scripts should update

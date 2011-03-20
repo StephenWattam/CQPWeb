@@ -170,7 +170,7 @@ class CQP
 				exit("ERROR: CQP version too old ($version_string). v"
 					. self::default_required_version() . 
 					" or higher required.\n");			
-    	}
+		}
 
 
 		/* set other members */
