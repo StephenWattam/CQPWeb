@@ -692,9 +692,11 @@ function printquery_latest()
 	<p>&nbsp;</p>
 	
 	<ul>
+<!--		Did a lot of new work on the help pages.
+-->
 		<li>
-		<b>Version 2.17</b>, 2011-xx-yy<br/>&nbsp;<br/>
-		Did a lot of new work on the help pages.
+		<b>Version 2.17</b>, 2011-05-18<br/>&nbsp;<br/>
+		Fixed a fairly critical (and very silly) bug that was blocking compression of indexed corpora.
 		<br/>&nbsp;<br/>
 		Added extra significance-threshold options for keywords analysis.
 		<br/>&nbsp;</li>

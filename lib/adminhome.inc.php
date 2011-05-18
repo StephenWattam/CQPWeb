@@ -1168,7 +1168,7 @@ function printquery_useradmin()
 		
 		/* before we start, add the javascript function that inserts password cxandidates */
 		
-		echo print_javascript_for_password_insert('password_insert_lancaster');
+		echo print_javascript_for_password_insert();
 		?>
 		<table class="concordtable" width="100%">
 			<tr>

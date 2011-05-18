@@ -388,52 +388,74 @@ function install_new_corpus()
 	else
 	{
 		/* cwb-create the file */
-		$datadir = "/$cwb_datadir/$corpus";
-	
+		$datadir = "/$cwb_datadir/$corpus";	
 		if (is_dir($datadir))
 			recursive_delete_directory($datadir);
 		mkdir($datadir, 0775);
 	
-	
 		/* run the commands one by one */
-	
-		$encode_output_file = "/$cqpweb_tempdir/{$corpus}__php-cwb-encode.txt";
+		
+		$exit_status_from_cwb = 0;
+		/* NB this array collects both the command used and the output sent back (via stderr, stdout) */ 
+		$output_lines_from_cwb = array();
 	
 		$encode_command =  "/$path_to_cwb/cwb-encode -xsB -c {$info->encode_charset} -d $datadir -f " 
 			. implode(' -f ', $info->file_list)
 			. " -R /$cwb_registry/$corpus "
 			. ( empty($info->p_attributes) ? '' : (' -P ' . implode(' -P ', $info->p_attributes)) )
 			. ' -S ' . implode(' -S ', $info->s_attributes)
-					/* NB don't need possibility of no S-atts because there is always text:0+id */
-			. " > $encode_output_file";
+			. ' 2>&1';
+			/* NB don't need possibility of no S-atts because there is always text:0+id */
+			/* NB the 2>&1 works on BOTH Win32 AND Unix */
 	
-		exec($encode_command);
-		
-		chmod("/$cwb_registry/$corpus", 0664);
-	
-		$make_output_file = "/$cqpweb_tempdir/{$corpus}__php-cwb-make.txt";
-		
-		exec("/$path_to_cwb/cwb-makeall -r /$cwb_registry -V $CORPUS > $make_output_file");
-	
-		$huffcode_output_file = "/$cqpweb_tempdir/{$corpus}__php-cwb-huffcode.txt";
-		
-		exec("/$path_to_cwb/cwb-huffcode     -A $CORPUS >  $huffcode_output_file");
-		exec("/$path_to_cwb/cwb-compress-rdx -A $CORPUS >> $huffcode_output_file");
-	
-	
-		$huffblob = file_get_contents($huffcode_output_file);
-		
-		preg_match_all('/!! You can delete the file <(.*)> now/', $huffblob, $matches, PREG_PATTERN_ORDER );
-	
-		foreach($matches[1] as $del)
-			unlink($del);
-	
-		/* clear the trash */
-		unlink($encode_output_file);
-		unlink($make_output_file);
-		unlink($huffcode_output_file);
-	}
+		exec($encode_command, $output_lines_from_cwb, $exit_status_from_cwb);
+		if ($exit_status_from_cwb != 0)
+			exiterror_fullpage("cwb-encode reported an error! Corpus indexing aborted. <pre>"
+				. implode("\n", $output_lines_from_cwb) . '</pre>'
+				, __FILE__, __LINE__);
 
+		chmod("/$cwb_registry/$corpus", 0664);
+		
+		$output_lines_from_cwb[] = $makeall_command = "/$path_to_cwb/cwb-makeall -r /$cwb_registry -V $CORPUS 2>&1";
+		exec($makeall_command, $output_lines_from_cwb, $exit_status_from_cwb);
+		if ($exit_status_from_cwb != 0)
+			exiterror_fullpage("cwb-makeall reported an error! Corpus indexing aborted. <pre>"
+				. implode("\n", $output_lines_from_cwb) . '</pre>'
+				, __FILE__, __LINE__);
+
+		/* use a separate array for the compression utilities (merged into main output block later) */
+		$compression_output = array();
+		$compression_output[] = $huffcode_command = "/$path_to_cwb/cwb-huffcode -r /$cwb_registry -A $CORPUS 2>&1";
+		exec($huffcode_command, $compression_output, $exit_status_from_cwb);
+		if ($exit_status_from_cwb != 0)
+			exiterror_fullpage("cwb-huffcode reported an error! Corpus indexing aborted. <pre>"
+				. implode("\n", $output_lines_from_cwb) . '</pre>'
+				, __FILE__, __LINE__);
+
+		$compression_output[] = $compress_rdx_command = "/$path_to_cwb/cwb-compress-rdx -r /$cwb_registry -A $CORPUS 2>&1";
+		exec($compress_rdx_command, $compression_output, $exit_status_from_cwb);
+		if ($exit_status_from_cwb != 0)
+			exiterror_fullpage("cwb-compress-rdx reported an error! Corpus indexing aborted. <pre>"
+				. implode("\n", $output_lines_from_cwb) . '</pre>'
+				, __FILE__, __LINE__);
+
+		foreach($compression_output as $line)
+		{
+			$output_lines_from_cwb[] = $line;
+			if (0 < preg_match('/!! You can delete the file <(.*)> now/', $line, $m))
+				if (is_file($m[1]))
+					unlink($m[1]);
+		}
+
+		
+		/*
+		 TODO save the entire output blob in a mysql table that preserves its contents for a day 
+		 (clean out on next update).
+		 Then, the "finished" screen can have an extra link:Javascript function to display the
+		 output from CWB.
+		 This will allow you to see, f'rinstance, any dodgy 
+		 */ 
+	}
 	
 	
 		
@@ -472,6 +494,24 @@ function install_new_corpus()
 		= "index.php?thisF=installCorpusDone&newlyInstalledCorpus={$info->corpus_mysql_name}&uT=y";
 
 }
+
+
+
+/**
+ * Compresses a corpus.
+ * 
+ * Parameters: path to registry (absolute or relative); the CWB name of the corpus in uppercase form
+ * 
+ * TODO: make the paths actually absolute, relative. For now it follows the rules of CQPweb-oldstyle
+ */
+function cwb_compress_corpus($path_to_cwb, $cwb_registry, $CORPUS, $output)
+{
+
+
+
+
+}
+
 
 
 function install_create_settings_file($filepath, $info)
