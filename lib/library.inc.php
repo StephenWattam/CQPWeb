@@ -150,6 +150,7 @@ function connect_global_mysql()
 	/* utf-8 setting is dependent on a variable defined in config.inc.php */
 	if ($utf8_set_required)
 		mysql_query("SET NAMES utf8", $mysql_link);
+	// TODO but see: http://www.php.net/manual/en/function.mysql-set-charset.php
 }
 /**
  * Disconnects from the MySQL server.

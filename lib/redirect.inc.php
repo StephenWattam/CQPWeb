@@ -61,7 +61,8 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		break;
 
 	case 'freqList':
-		require("../lib/conc-freqlist.inc.php");
+	case 'breakdown':
+		require("../lib/breakdown.inc.php");
 		break;
 
 	case 'distribution':
@@ -203,21 +204,21 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 
 
 
-	/* from control box in conc-freqlist.php */
+	/* from control box in breakdown.php */
 	
 	case 'concBreakdownWords':
 		$_GET['concBreakdownOf'] = 'words';
-		require("../lib/conc-freqlist.inc.php");
+		require("../lib/breakdown.inc.php");
 		break;
 
 	case 'concBreakdownAnnot':
 		$_GET['concBreakdownOf'] = 'annot';
-		require("../lib/conc-freqlist.inc.php");
+		require("../lib/breakdown.inc.php");
 		break;
 
 	case 'concBreakdownBoth':
 		$_GET['concBreakdownOf'] = 'both';
-		require("../lib/conc-freqlist.inc.php");
+		require("../lib/breakdown.inc.php");
 		break;
 
 	case 'concBreakdownNodeSort':

@@ -687,6 +687,9 @@ function printquery_keywords()
 					<option value="1">1%</option>
 					<option value="0.1">0.1%</option>
 					<option value="0.01" selected="selected">0.01%</option>
+					<option value="0.001">0.001%</option>
+					<option value="0.0001">0.0001%</option>
+					<option value="0.00001">0.00001%</option>
 					<option value="0">show all</option>
 				</select>
 			</td>

@@ -177,6 +177,9 @@ case '5':		$threshold = '3.84';	break;
 case '1':		$threshold = '6.63';	break;
 case '0.1':		$threshold = '10.83';	break;
 case '0.01':	$threshold = '15.13';	break;
+case '0.001':	$threshold = '19.52';	break;
+case '0.0001':	$threshold = '23.99';	break;
+case '0.00001':	$threshold = '29.27';	break;
 default:		$threshold = '0';		break;
 }
 

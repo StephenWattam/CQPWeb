@@ -693,17 +693,24 @@ function printquery_latest()
 	
 	<ul>
 		<li>
+		<b>Version 2.17</b>, 2011-xx-yy<br/>&nbsp;<br/>
+		Did a lot of new work on the help pages.
+		<br/>&nbsp;<br/>
+		Added extra significance-threshold options for keywords analysis.
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 2.16</b>, 2011-03-08<br/>&nbsp;<br/>
 		Added a workaround for a problem that arises with some MySQL security setups.
 		<br/>&nbsp;<br/>
 		Added an optional RSS feed of system messages, and made links in system messages display correctly
 		both within webpages and in the RSS feed.
-		<br/>&nbsp;</li>
+		<br/>&nbsp;<br/>
 		Created a storage location for executable command-line scripts that perform offline administration
 		tasks (in a stroke of unparalleled originality, I call it "bin").
-		<br/>&nbsp;</li>
+		<br/>&nbsp;<br/>
 		Added customisable headers and logos to the homepage (a default CWB logo is supplied).
-		<br/>&nbsp;</li>
+		<br/>&nbsp;<br/>
 		Fixed a bug in right-to-left corpora (Arabic etc.) where collocations were referred to as being "to
 		the right" or "to the left" of the node even though this was wrong by about 180 degrees.
 		<br/>&nbsp;</li>

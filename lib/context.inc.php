@@ -78,7 +78,7 @@ if (isset($_GET['theData']))
 /* parameters unique to this script */
 
 if (isset($_GET['batch']))
-	$batch = $_GET['batch'];
+	$batch = (int)$_GET['batch'];
 else
 	exit('<p class="errormessage">Critical parameter "batch" was not defined!</p></body></html>');
 

@@ -261,7 +261,7 @@ else
 		$navlinks .= '<td align="center" class="concordgrey"><b><a class="page_nav_links" ';
 		if ( $nav_page_no[$key] != 0 )
 			/* this should be an active link */
-			$navlinks .= 'href="redirect.php?redirect=freqList&'
+			$navlinks .= 'href="redirect.php?redirect=breakdown&'
 				. url_printget(array(
 					array('uT', ''), array('pageNo', $nav_page_no[$key]), array('qname', $qname)
 					) )
@@ -294,7 +294,7 @@ else
 			. url_printinputs(array(
 				array('tableDownloadMode', '1'), array('uT', ''), array('qname', $qname)
 				) )  
-			. '<input type="hidden" name="redirect" value="freqList" />
+			. '<input type="hidden" name="redirect" value="breakdown" />
 			<input type="hidden" name="uT" value="y"/>
 		</td>
 		</form>
@@ -393,7 +393,7 @@ function freqbreakdown_write_download(&$result, $description, $total_for_percent
 	$description = str_replace('<br/>', $da, $description);
 	
 	header("Content-Type: text/plain; charset=utf-8");
-	header("Content-disposition: attachment; filename=concordance_frequency_list.txt");
+	header("Content-disposition: attachment; filename=concordance_frequency_breakdown.txt");
 
 	echo "$description$da";
 	echo "__________________$da$da";
