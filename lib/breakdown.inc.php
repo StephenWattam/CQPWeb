@@ -46,9 +46,6 @@ require('../lib/concordance-post.inc.php');
 require('../lib/subcorpus.inc.php');
 require('../lib/db.inc.php');
 require('../lib/user-settings.inc.php');
-
-/* and because I'm using the next two modules I need to... */
-//create_pipe_handle_constants();
 require("../lib/cwb.inc.php");
 require("../lib/cqp.inc.php");
 
@@ -79,17 +76,19 @@ else
 
 
 
-
-/* this must be set because create_db globals it * /
-$sort_position = 0; 
-I have stopped using sort_position
-*/
-
-// will also be needed later
-// for sorting, this might be different
-$sql_position = 'node'; /* the root of the SQL fieldname for the thing we are searching for */
-
-
+/* the root of the SQL fieldname for the thing we are breaking down */
+switch ($_GET['conBreakdownAt'])
+{
+// TODO stick hre some kind of detection of the comand to breakdown contents of sort position.
+default:
+	$sql_position = 'node';
+	break;
+}
+//TODO need ot make this conditional on an option, and needs to be
+// before2, before3, after1, after4, etcetc
+// need also to create a stirng for rendering in the display
+// and of course a dropdown that configures this.
+// how does it work in BNCweb?
 
 /* might as well set up this array now */
 $breakdown_of_info = array(
@@ -178,8 +177,8 @@ if ($query_record === false)
 	exiterror_fullpage("The specified query $qname was not found in cache!", __FILE__, __LINE__);
 
 
-/* now, search the db list for a db whose parameters match those of the query  */
-/* named as qname; if it doesn't exist, we need to create one */
+/* now, search the db list for a db whose parameters match those of the query
+ * named as qname; if it doesn't exist, we need to create one */
 $db_record = check_dblist_parameters('sort', $query_record['cqp_query'],
 				$query_record['restrictions'], $query_record['subcorpus'],
 				$query_record['postprocess']);

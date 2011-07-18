@@ -21,8 +21,56 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* ------------------------------- */
+/* Constant definitions for CQPweb */
+/* ------------------------------- */
 
 
+define('PLUGIN_TYPE_UNKNOWN',				0);
+define('PLUGIN_TYPE_ANNOTATOR', 			1);
+define('PLUGIN_TYPE_FORMATCHECKER',			2);
+define('PLUGIN_TYPE_TRANSLITERATOR',		4);
+define('PLUGIN_TYPE_POSTPROCESSOR',			8);
+define('PLUGIN_TYPE_ANY',					1|2|4|8);
+/**
+ * Declares a plugin for later use.
+ *
+ * This function will normally be used only in the config file.
+ * It does not do any error checking, that is done later by the plugin
+ * autoload function.
+ * 
+ * TODO: if I later have an "initialisation" file for all the username setup stuff,
+ * this func wou be an obvious candidate for moving there. It has to be in defaults,
+ * not library, because the function is called in config.inc.php. But obviously, this
+ * is really messy.
+ * 
+ * @param class                The classname of the plugin. This should be the same as the
+ *                             file that contains it, minus .php.
+ * @param type                 The type of plugin. One of the following constants:
+ *                             PLUGIN_TYPE_ANNOTATOR,
+ *                             PLUGIN_TYPE_FORMATCHECKER,
+ *                             PLUGIN_TYPE_TRANSLITERATOR,
+ *                             PLUGIN_TYPE_POSTPROCESSOR.
+ * @param path_to_config_file  What it says on the tin; optional.
+ * @return                     No return value.
+ */
+function declare_plugin($class, $type, $path_to_config_file = NULL)
+{
+	global $plugin_registry;
+	if (!isset($plugin_registry))
+		$plugin_registry = array();
+	
+	$temp = new stdClass();
+	
+	$temp->class = $class;
+	$temp->type  = $type;
+	$temp->path  = $path_to_config_file;
+	
+	$plugin_registry[] = $temp;
+}
+
+
+// TODO remember the idea I had for using 'cd bin' if we're operating from the homepage?
 /* because this might be called from the root directory rather than a corpus */
 if (file_exists('lib/config.inc.php'))
 	require_once('lib/config.inc.php');
@@ -169,6 +217,8 @@ if (!isset($rss_feed_available))
 	$rss_feed_available = false;
 
 
+
+
 /* This is not a default - it cleans up the input, so we can be sure the root
  * URL ends in a slash. */
 if (isset($cqpweb_root_url))
@@ -288,7 +338,7 @@ if (!isset($default_words_in_download_context))
 /* some can be overrridden in the config file -- some can't! */
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '2.17');
+define('CQPWEB_VERSION', '3.0.0');
 
 
 /* "reserved words" that can't be used for corpus ids */
@@ -359,7 +409,8 @@ $mysql_process_name = array(
 	'colloc'=> 'collocation',
 	'dist' => 'distribution',
 	'sort' => 'query sort',
-	'freq_table' => 'frequency list'
+	'freq_table' => 'frequency list' // TODO shjould this be freqtable?????????
+	// TODO do we need catquery here? see where this is used.
 	);
 
 

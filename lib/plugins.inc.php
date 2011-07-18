@@ -22,76 +22,13 @@
  */
 
 
-
-/**
- * An autoload function is defined for plugin classes.
- * 
- * All plugin classes must be files of the form ClassName.php,
- * within the lib/plugins subdirectory.
- * 
- * Note that in CQPweb, plugins are the ONLY classes that can be
- * autoloaded.
- * 
- * The autoload function therefore doesn't need to be included unless
- * either transliteration or annotation is going to be happening.
- * 
- * The $plugin parameter is, of course, the classname.
- */ 
-function __autoload($plugin)
-{
-	// TODO create these global arrays from config strings.
-	// they should be set to empty arrays in defaults.inc.php if necessary.
-	// then modify Visualisations mangement to allow it to be engaged
-	// then modify conocrdance and context to run it on the strings that
-	// cmoe from CQP if the ncessary global variables are TRUE.
-	// end TODO
-	global $plugin_classes_transliterators;
-	global $plugin_classes_annotators;
-	global $plugin_classes_formatcheckers;
-	
-	/* check it's a valid plugin class, listed in config */
-	/* note: these "type" strings are only used within the present fucntion */
-//TODO: if the interface is used, can we use instanceof with a string?
-	if (in_array($plugin, $plugin_classes_transliterators))
-		$type = 'translit';
-	else if (in_array($plugin, $plugin_classes_annotators))
-		$type = 'annot';
-	else if (in_array($plugin, $plugin_classes_annotators))
-		$type = 'checker';
-	else
-		exiterror_general("Attempting to autoload an unknown plugin! Check the configuration.");
-	
-	/* if the file exists, load it. f not, fall over and die. */
-	$file = "../lib/plugins/$plugin.php";
-	if (is_file($file))
-		require_once($file);
-	else
-		exiterror_general('Attempting to load a plugin file that could not be found! Check the configuration.');
-	
-	if (!class_exists($plugin))
-		exiterror_general('Plugin autoload failure, CQPweb aborts.');
-	
-	/* now that we've got it loaded, check it implements the right interface. */
-	if ($type == 'translit')
-		if (! ($plugin instanceof Transliterator) )
-			exiterror_general('Bad plugin! Doesn\'t implement the Transliterator interface.'
-				. ' Check the coding of your plugin ' . $plugin);
-	if ($type == 'annot')
-		if (! ($plugin instanceof Annotator) )
-			exiterror_general('Bad plugin! Doesn\'t implement the Annotator interface.'
-				. ' Check the coding of your plugin ' . $plugin);
-	if ($type == 'checker')
-		if (! ($plugin instanceof Annotator) )
-			exiterror_general('Bad plugin! Doesn\'t implement the FormatChecker interface.'
-				. ' Check the coding of your plugin ' . $plugin);
-}
-
-//TODO maybe add "get a list of available plugins of a particular type" function??
-
-
 /**
  * General plugin interface that defines the protoype of the constructor,
  * don't actually use this, only the interfaces that inherit from it.
+ * 
+ * Please note, if you update ANY of the phpdoc blocks for this interface or
+ * any that inherit from it, then make sure that the equivalent text in 
+ * doc/CQPweb-plugins.html is still correct! 
  */
 interface CQPwebPlugin
 {
@@ -262,6 +199,165 @@ interface FormatChecker extends CQPwebPlugin
 	
 	
 }
+
+//TODO: helper functions
+/**
+ * Interface for Postprocess Plugins.
+ * 
+ * A Postprocess Plugin is an object capable of transmuting a CQP query in some way.
+ * These postprosses are "custom" versions of the built-in query postprocessing
+ * tools - distribution, collocation, thin, sort and so on.
+ * 
+ * It does not need to actually interface with CQP in any way - all it needs to do
+ * is operate on the integer indexes that the query result consists of.
+ *
+ * Postprocess helper functions are provided to help access CQP so that the actual
+ * content of concordances can be retrieved. Of course the plugin can access CQPweb's
+ * internal functions at liberty, if you so choose; it's your funeral!
+ */
+interface Postprocessor extends CQPwebPlugin
+{
+	/**
+	 * Runs the defined custom postprocess on the query.
+	 *
+	 * The parameter is an array of arrays. Each inner array contains the four
+	 * numbers that result from "dumping" a CQP query. See the CQP documentation
+	 * for more info on this. Basically each match is represented by two, three or
+	 * four numbers: match, matchend, [target, [keyword]]. The outer array will have sequential
+	 * integer indexes beginning at 0.
+	 *
+	 * The return value should be the same array, but edited as necessary - for example,
+	 * entries removed, or expanded, or results added... as appropriate to the purpose
+	 * of the custom postprocess.
+	 * 
+	 * The inner arrays can contain integers or integers-as-strings (both will be OK as
+	 * a result of PHP's automatic type juggling). All inner arrays must be of the same
+	 * length (i.e. you do not have to supply target and keyword if you don't want to, 
+	 * but if you do, every match must have them). The indexes in the inner arrays 
+	 * are not important, only the --order-- of the elements; but the outer array 
+	 * will be re-sorted, so order in that does not matter.
+	 */
+	public function postprocess_query($query_array);
+	
+	/**
+	 * Returns the menu label to invoke this postprocess.
+	 *
+	 * Postprocesses are invoked from the dropdown on the concordance screen. So, custom
+	 * postprocesses must tell CQPweb what they want their label on that dropdown to be.
+	 * (The corresponding value for the HTML form will always be just Custom_ + the 
+	 * classname.)
+	 *
+	 * This function should return either a string, or any empty value if this postprocess
+	 * is not to be displayed in the dropdown menu.
+	 * 
+	 * The string may not be identical to any of the options present on the built-in dropdown 
+	 * menu. (Nothing in particular would go wrong if they were - it would just be 
+	 * extremely confusing.)
+	 */ 
+	public function get_label();
+	
+	/**
+	 * Returns a string to be used in header descriptions in the CQPweb visual interface.
+	 * 
+	 * This is best phrased as a past participial clause. For example, "manipulated by the 
+	 * Jones system", or "reduced in an arbitrary way", or something else. It should be 
+	 * compatible with the description returned by ->get_label(), as both are shown to the
+	 * user. 
+	 * 
+	 * Note that this function will often be called on a SEPARATE instance of the object to the 
+	 * one that does the actual postprocessing. So, you cannot include particulars about 
+	 * a specific run of the postprocessor. It can only be a generic description.  
+	 * 
+	 * If the empty string '' is returned, then this postprocess will not be mentioned in
+	 * the header interface -- but the reduced number of hits will still be shown (it has
+	 * to be, to make sense. So on balance, it's better to say something!
+	 */
+	public function get_postprocess_description();
+}
+
+
+/**
+ * An autoload function is defined for plugin classes.
+ * 
+ * All plugin classes must be files of the form ClassName.php,
+ * within the lib/plugins subdirectory.
+ * 
+ * Note that in CQPweb, plugins are the ONLY classes that can be
+ * autoloaded.
+ * 
+ * The autoload function therefore doesn't need to be included unless
+ * either transliteration or annotation is going to be happening.
+ * 
+ * The $plugin parameter is, of course, the classname.
+ */ 
+function __autoload($plugin)
+{
+	// TODO on transliterator plugins: 
+	// modify Visualisations management to allow transliteration to be engaged
+	// then modify concordance and context to run it on the strings that
+	// come from CQP if the ncessary user options (d admin setup choices) are TRUE.
+	// end TODO
+	
+	// TODO on format checker plugins:
+	// modify the upload area to give each file a chec format link; that takes you to
+	// the little interface that I have sethced out.
+	// TODO on annotator pugins:
+	// actually, what we need for these is actually pretty similar to format checker
+	// so look if there is the possibility of integration.
+	// TODO for both: someday, individual non-sysadmin users may want to do this..........
+	
+	global $plugin_registry;
+	
+	/* Check it's a valid plugin class, ie one that has been declared.
+	 * We do not load plugins willy-nilly. Only those that have been
+	 * declared in the configuration. */
+	if (false == ($record = retrieve_plugin_info($plugin)) )
+		exiterror_general('Attempting to autoload an unknown plugin! Check the configuration.');
+	
+	/* if the file exists, load it. If not, fall over and die. */
+	$file = "../lib/plugins/$plugin.php";
+	if (is_file($file))
+		require_once($file);
+		/* note that apparently, from the PHP manual, this puts it into global scope... */
+	else
+		exiterror_general('Attempting to load a plugin file that could not be found! Check the configuration.');
+	
+	if (!class_exists($plugin))
+		exiterror_general('Plugin autoload failure, CQPweb aborts.');
+	
+	/* now that we've got it loaded, check it implements the right interface. */
+	switch ($record->type)
+	{
+	case PLUGIN_TYPE_TRANSLITERATOR:
+		if (! in_array('Transliterator', class_implements($plugin, false)) )
+			exiterror_general('Bad plugin! Doesn\'t implement the Transliterator interface.'
+				. ' Check the coding of your plugin ' . $plugin);
+		break;
+	case PLUGIN_TYPE_ANNOTATOR:
+		if (! in_array('Annotator', class_implements($plugin, false)) )
+			exiterror_general('Bad plugin! Doesn\'t implement the Annotator interface.'
+				. ' Check the coding of your plugin ' . $plugin);
+		break;
+	case PLUGIN_TYPE_FORMATCHECKER:
+		if (! in_array('FormatChecker', class_implements($plugin, false)) )
+			exiterror_general('Bad plugin! Doesn\'t implement the FormatChecker interface.'
+				. ' Check the coding of your plugin ' . $plugin);
+		break;
+	case PLUGIN_TYPE_POSTPROCESSOR:
+		if (! in_array('Postprocessor', class_implements($plugin, false)) )
+			exiterror_general('Bad plugin! Doesn\'t implement the Postprocessor interface.'
+				. ' Check the coding of your plugin ' . $plugin);
+		break;
+	default:
+		exiterror_general('Unrecognised type of plugin!'
+			. ' Check the declaration of your plugin ' . $plugin);
+		break;
+	}
+	
+	/* all done -- assuming we haven't died, the plugin is ready to construct. */
+}
+
+
 
 
 

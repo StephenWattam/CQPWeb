@@ -34,14 +34,12 @@
 
 
 
-
-
 /*
  * If mysql extension does not exist, include fake-mysql.inc.php to restore the functions
  * that are actually used and emulate them via mysqli.
  * 
  * This is global code in a library file; normally a no-no.
- * it -only- addresses what files need ot be included and which don't.
+ * it -only- addresses what files need to be included and which don't.
  */
 if  (!extension_loaded('mysql'))
 {
@@ -631,7 +629,7 @@ function url_printget($changes = "Nope!")
 {
 	$change_me = is_array($changes);
 
-	$first = true;
+	$string = '';
 	foreach ($_GET as $key => $val)
 	{
 		if (!empty($string))
@@ -1187,6 +1185,9 @@ function display_system_messages()
  */
 function recursive_delete_directory($path)
 {
+	if (!is_dir($path))
+		return;
+
 	$files_to_delete = scandir($path);
 	foreach($files_to_delete as &$f)
 	{
@@ -1249,7 +1250,28 @@ function longvalue_retrieve($id)
 
 
 
+// TODO move these to plugins.inc.php?
+
+/** Returns an object from the plugin register, or else false if not found. */
+function retrieve_plugin_info($class)
+{
+	global $plugin_registry;
+	foreach ($plugin_registry as $p)
+		if ($p->class == $class)
+			return $p;
+	return false;
+}
 
 
+/** Returns a list of the available plugins (array of objects from the global registry). */ 
+function list_plugins_of_type($type)
+{
+	global $plugin_registry;
+	$result = array();
+	foreach ($plugin_registry as $p)
+		if ($p->type & $type)
+			$result[] = $p;
+	return $result;
+}
 
 ?>

@@ -204,6 +204,7 @@ function create_solution_heading($record, $include_corpus_size = true)
 
 function format_time_string($timeTaken, $not_from_cache = true)
 {
+	$str = '';
 	if (isset($timeTaken) )
 		$str .= " <span class=\"concord-time-report\">[$timeTaken seconds"
 			. ($not_from_cache ? '' : ' - retrieved from cache') . ']</span>';
@@ -352,6 +353,16 @@ function print_control_row()
 	/* -------------------------- */
 	/* create action control form */
 	/* -------------------------- */
+
+	$custom_options = '';
+	foreach (list_plugins_of_type(PLUGIN_TYPE_POSTPROCESSOR) as $record)
+	{
+		$obj = new $record->class($record->path);
+		$label = $obj->get_label();
+		$custom_options .= "<option value=\"CustomPost:{$record->class}\">$label</option>\n\t\t\t";
+		unset($obj);
+	}
+	
 	$final_string .= '<form action="redirect.php" method="get"><td class="concordgrey" nowrap="nowrap">&nbsp;';
 		
 	$final_string .= '
@@ -365,6 +376,7 @@ function print_control_row()
 			<option value="download">Download...</option>
 			<option value="categorise">Categorise...</option>
 			<option value="saveHits">Save current set of hits...</option>
+			' . $custom_options . '
 		</select>
 		&nbsp;
 		<input type="submit" value="Go!"/>';
@@ -445,13 +457,6 @@ function print_sort_control($primary_annotation, $postprocess_string)
 		$current_settings_thin_str_inv = 0;
 	}
 
-
-/*
-show_var($d = array($current_settings_position, 
-			$current_settings_thin_tag, $current_settings_thin_tag_inv,
-			$current_settings_thin_str, $current_settings_thin_str_inv));
-*/
-	
 	/* create a select box: the "position" dropdown */
 	$position_select = '<select name="newPostP_sortPosition">';
 	
@@ -711,7 +716,7 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	{
 		/* print one cell - line view */
 		
-		/* glue it all togeer, then wrap the translation if need be */
+		/* glue it all together, then wrap the translation if need be */
 		$subfinal_string =  $lc_final . ' ' . $node_final . ' ' . $rc_final;
 		if ($visualise_translate_in_concordance)
 			$subfinal_string = concordance_wrap_translationbox($subfinal_string, $translation_content);

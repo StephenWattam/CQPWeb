@@ -695,6 +695,18 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.0.0</b>, 2011-07-18<br/>&nbsp;<br/>
+		New feature: custom postprocess plugins!
+		<br/>&nbsp;<br/>
+		Fixed some bugs in unused parts of the CQP interface.
+		<br/>&nbsp;<br/>
+		Added support for all ISO-8859 character sets.
+		<br/>&nbsp;<br/>
+		Version number bumped to 3.0.0 to match new CWB versioning rules, though CQPweb is in fact now
+		compatible with the post-Unicode versions of CWB.
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 2.17</b>, 2011-05-18<br/>&nbsp;<br/>
 		Fixed a fairly critical (and very silly) bug that was blocking compression of indexed corpora.
 		<br/>&nbsp;<br/>

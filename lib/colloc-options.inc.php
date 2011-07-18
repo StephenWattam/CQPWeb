@@ -53,6 +53,7 @@ echo '<title>' . $corpus_title . ' -- CQPweb Collocation Options</title>';
 echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 ?>
 <script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
+<script type="text/javascript" src="../lib/javascript/colloc-options.js"></script> 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 </head>
@@ -98,11 +99,11 @@ if ($query_record === false)
 ?>
 
 
-<table width="100%" class="concordtable">
+<table width="100%" class="concordtable" id="tableCollocProximity">
 	<form action="collocation.php" method="get">
 		<tr>
 			<th colspan="3" class="concordtable">
-				Choose collocation settings:
+				Choose settings for proximity-based collocations:
 			</th>
 		</tr>
 		<tr>
@@ -203,8 +204,150 @@ if ($query_record === false)
 	</form>	
 </table>
 
+<?php 
+
+
+
+/* ---------------------------------------------------- */
+/* end of proximity control; start of syntactic control */
+/* ---------------------------------------------------- */
+
+
+
+// if false: I don't want this switched on just yet!
+if (false) 
+{
+	/* ultimate intention: this if will check whether any syntactic collocations are actually available */
+	?> 
+
+
+<table width="100%" class="concordtable" id="tableCollocSyntax">
+	<form action="collocation.php" method="get">
+		<tr>
+			<th colspan="3" class="concordtable">
+				Syntactic collocations - choose settings:
+			</th>
+		</tr>
+		<tr>
+			<?php
+			/* get a list of annotations && the primary && count them for this corpus */
+			$sql_query = "select * from annotation_metadata where corpus = '$corpus_sql_name'";
+			$result_annotations = do_mysql_query($sql_query);
+			
+			$num_annotation_rows = mysql_num_rows($result_annotations);
+			
+			$sql_query = "select primary_annotation from corpus_metadata_fixed 
+				where corpus = '$corpus_sql_name'";
+			$result_fixed = do_mysql_query($sql_query);
+			/* this will only contain a single row */
+			list($primary_att) = mysql_fetch_row($result_fixed);
+
+			?>
+			
+			<td rowspan="<?php echo $num_annotation_rows; ?>" class="concordgrey">
+				Include annotation:
+			</td>
+
+			<?php
+			$i = 1;
+			while (($annotation = mysql_fetch_assoc($result_annotations)) != false)
+			{
+				echo '<td class="concordgeneral" align="left">';
+				if ($annotation['description'] != '')
+					echo $annotation['description'];
+				else
+					echo $annotation['handle'];
+
+				if ($annotation['handle'] == $primary_att) 
+				{
+					$vc_include = 'value="1" checked="checked"';
+					$vc_exclude = 'value="0"';
+				}
+				else
+				{
+					$vc_include = 'value="1"';
+					$vc_exclude = 'value="0" checked="checked"';
+				}
+					
+				echo "</td>
+					<td class=\"concordgeneral\" align=\"center\">
+						<input type=\"radio\" name=\"collAtt_{$annotation['handle']}\" $vc_include />
+						Include
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<input type=\"radio\" name=\"collAtt_{$annotation['handle']}\" $vc_exclude />
+						Exclude				
+					</td>
+					</tr>
+					";
+				if ($i < $num_annotation_rows)
+					echo '  <tr>';
+				$i++;
+			}
+			?>
+
+		<tr>
+			<td class="concordgrey">Maximum window span:</td>
+			<td class="concordgeneral" align="center" colspan="2">
+				+ / -
+				<select name="maxCollocSpan">
+					<option>4</option>
+					<option selected="selected">5</option>
+					<!-- shouldn't this be related to the default option? -->
+					<option>6</option>
+					<option>7</option>
+					<option>8</option>
+					<option>9</option>
+					<option>10</option>
+				</select>
+			</td>
+		</tr>
+		<?php 
+		/*
+		Other potential options: 
+		the one about rossing/not crossing s-attributes that was mentioned above prob does not apply here, since 
+		*/
+		
+		// TODO. Work out what kind of warning, if any, is needed here.
+		//echo print_warning_cell($query_record);
+		
+		
+		?>
+		
+		<tr>
+			<th colspan="3" class="concordtable">
+				<input type="submit" value="Create database of syntactic collocations"/>
+			</th>
+		</tr>
+		<?php   echo "\n<input type=\"hidden\" name=\"qname\" value=\"$qname\" />\n";  ?> 
+		<input type="hidden" name="uT" value="y" />
+	</form>	
+</table>
 <?php
 
+	/* end if syntactic collocations are available */
+}
+
+if (false) // also temp, the next html block will be unconditional
+{
+?>
+
+
+
+<table width="100%" class="concordtable">
+	<tr>
+		<td class="concordgrey" align="center">
+			&nbsp;<br/>
+			<a href="" class="menuItem" id="linkSwitchControl">
+				<!-- no inner HTML, assigned via JavaScript -->
+			</a>
+			<br/>&nbsp;
+		</td>
+	</tr>
+</table>
+
+
+<?php
+}
 
 /* create page end HTML */
 print_footer();
@@ -287,7 +430,6 @@ function print_warning_cell($query_record)
 
 	return $s;
 }
-
 
 
 

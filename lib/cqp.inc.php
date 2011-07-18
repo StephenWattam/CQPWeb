@@ -24,7 +24,6 @@
 
 
 
-
 /**
  * Class representing a CQP child process and handling 
  * all interaction with that excellent program.
@@ -69,18 +68,51 @@ class CQP
 	/* character set handling */
 	private $corpus_charset;
 	
-	const CHARSET_UTF8 = 0;
-	const CHARSET_LATIN1 = 1;
-	
+	/* Note, unlike the CWB internals, there is no separate value for ASCII. ASCII counts as UTF8. */ 
+	const CHARSET_UTF8 		= 0;
+	const CHARSET_LATIN1 	= 1;
+	const CHARSET_LATIN2 	= 2;
+	const CHARSET_LATIN3 	= 3;
+	const CHARSET_LATIN4 	= 4;
+	const CHARSET_CYRILLIC 	= 5;
+	const CHARSET_ARABIC 	= 6;
+	const CHARSET_GREEK 	= 7;
+	const CHARSET_HEBREW 	= 8;
+	const CHARSET_LATIN5 	= 9;
+	const CHARSET_LATIN6 	= 10;
+	const CHARSET_LATIN7 	= 13;
+	const CHARSET_LATIN8 	= 14;
+	const CHARSET_LATIN9 	= 15;
+	/* the literal values are ISO-8859 part numbers, but this is only for neatness; these numbers
+	 * are not actually used for their values. */
+
+
+	/* array mapping the constants above to strings for iconv() */
+	private static $charset_labels = array(
+		self::CHARSET_UTF8			=> 'UTF-8',
+	 	self::CHARSET_LATIN1		=> 'ISO-8859-1',
+	 	self::CHARSET_LATIN2		=> 'ISO-8859-2',
+		self::CHARSET_LATIN3 		=> 'ISO-8859-3',
+		self::CHARSET_LATIN4 		=> 'ISO-8859-4',
+		self::CHARSET_CYRILLIC		=> 'ISO-8859-5',
+		self::CHARSET_ARABIC 		=> 'ISO-8859-6',
+		self::CHARSET_GREEK 		=> 'ISO-8859-7',
+		self::CHARSET_HEBREW 		=> 'ISO-8859-8',
+		self::CHARSET_LATIN5 		=> 'ISO-8859-9',
+		self::CHARSET_LATIN6 		=> 'ISO-8859-10',
+		self::CHARSET_LATIN7 		=> 'ISO-8859-13',
+		self::CHARSET_LATIN8 		=> 'ISO-8859-14',
+		self::CHARSET_LATIN9 		=> 'ISO-8859-15'
+		);
 	
 	/* the version of CWB that this class requires */
 	const VERSION_MAJOR_DEFAULT = 2;
 	const VERSION_MINOR_DEFAULT = 2;
 	const VERSION_BETA_DEFAULT = 101;
 //	const VERSION_MAJOR_DEFAULT = 3;
-//	const VERSION_MINOR_DEFAULT = 2;
+//	const VERSION_MINOR_DEFAULT = 0;
 //	const VERSION_BETA_DEFAULT = 0;
-//	temporary reversion while I work out build issues with 3.2.0
+//	temporary reversion while I work out build issues with CWB in server env
 	
 
 
@@ -280,12 +312,12 @@ class CQP
 
 	
 	/**
-	 * sets the corpus.
+	 * Sets the corpus.
 	 * 
 	 * note: this is the same as running "execute" on the corpus name
 	 * except that it implements a "wrapper" around the charset
-	 * if necessary, allowing utf8 input to be converted to some other
-	 * character set for future calls to $this->execute() 
+	 * if necessary, allowing Utf8 input to be converted to some other
+	 * character set for future calls to $this->execute(). 
 	 */
 	public function set_corpus($corpus_id)
 	{
@@ -325,22 +357,25 @@ class CQP
 	}
 		
 	
-	/** Executes a CQP command & returns an array of results (output lines from CQP). */
+	/** 
+	 * Executes a CQP command & returns an array of results (output lines from CQP),
+	 * or false if an error is detected.
+	 */
 	public function execute($command, $my_line_handler = false)
 	{
 		$result = array();
 		if ( (!is_string($command)) || $command == "" )
 		{
-			$this->status = 'error';
-			array_unshift($this->error_message, "ERROR: CQP->execute was called with no command");
-			$this->error($this->error_message);
+			$this->add_error("ERROR: CQP->execute was called with no command");
+			$this->error();
+			return false;
 		}
 		$command = $this->filter_input($command);
-				
+		
 		/* change any newlines in command to spaces */
-		preg_replace('/\n/', '/ /', $command);			//TODO the "replace" looks wrong, and nothing is done with the return value!
+		$command = preg_replace("/\n/", ' ', $command);
 		/* check for ; at end and remove if there */
-		preg_replace('/\n/', '/;\s*$/', $command);			//TODO the "replace" looks wrong, and nothing is done with the return value!
+		$command = preg_replace('/;\s*$/', '', $command);
 		
 		if ($this->debug_mode == true)
 			echo "CQP << $command;\n";
@@ -385,7 +420,8 @@ class CQP
 		}
 
 		/* check for error messages */
-		$this->checkerr();
+		if ($this->checkerr())
+			return false;
 
 		/* return the array of results */
 		return $this->filter_output($result);
@@ -408,10 +444,8 @@ class CQP
 		
 		if ( (!is_string($command)) || $command == "" )
 		{
-			$this->status = 'error';
-			$this->error_message = array_merge("ERROR: CQP->query was called with no command",
-				$this->error_message);
-			$this->error($this->error_message);
+			$this->add_error("ERROR: CQP->query was called with no command");
+			$this->error();
 		}
 
 		/* enter query lock mode */
@@ -438,6 +472,9 @@ class CQP
 			$error = true;
 		}
 		
+		/* note, we will probably not get to here, since ->execute()
+		 * will have clled ->error() already. But this works if no
+		 * external error handler was called. */
 		if ($error)
 			$this->status = 'error';
 		else
@@ -458,10 +495,8 @@ class CQP
 	{
 		if ((!is_string($name)) || $name == "")
 		{
-			$this->status = 'error';
-			$this->error_message = array_merge("ERROR: CQP->querysize was passed an invalid argument",
-				$this->error_message);
-			$this->error($this->error_message);
+			$this->add_error("ERROR: CQP->querysize was passed an invalid argument");
+			$this->error();
 		}
 			
 		$result = $this->execute("size $name");
@@ -476,23 +511,20 @@ class CQP
 
 
 
-	
 	/**
 	 * Dumps a named query result into table of corpus positions.
-	 * returns an array of results 
+	 * Returns an array of results. 
 	 */
 	public function dump($subcorpus, $from = '', $to = '')
 	{
 		if ( !is_string($subcorpus)  || $subcorpus == ""  )
 		{
-			$this->status = 'error';
-			$this->error_message = array_merge("ERROR: CQP->dump was passed an invalid argument",
-				$this->error_message);
-			$this->error($this->error_message);
+			$this->add_error("ERROR: CQP->dump was passed an invalid argument");
+			$this->error();
+			return false;
 		}
 		
 		$temp_returned = $this->execute("dump $subcorpus $from $to");
-		// TODO will this work with a charset filter?
 
 		$rows = array();
 
@@ -505,82 +537,99 @@ class CQP
 
 
 	/**
-	 * undump named query result from table of corpus positions 
+	 * Undumps a named query result from a table of corpus positions.
+	 * 
+	 * Usage:
 	 * $cqp->undump($named_query, $matches); 
 	 *
-	 * Construct a named query result from a table of corpus positions 
-	 * (i.e. the opposite of the ->dump() method).  Each element of matches 
-	 * is an array as follows:           [match, matchend, target, keyword] 
+	 * Constructs a named query result from a table of corpus positions 
+	 * (i.e. the opposite of the ->dump() method).  Each element of $matches 
+	 * is an array as follows:
+	 *           [match, matchend, target, keyword] 
 	 * that represents the anchor points of a single match.  The target and 
 	 * keyword anchors are optional, but every anonymous array in the arg 
 	 * list has to have the same length.  When the matches are not sorted in 
 	 * ascending order, CQP will automatically create an appropriate sort 
 	 * index for the undumped query result. 
+	 * 
+	 * An optional extra argument specifies an absolute path to a directory 
+	 * where the necessary temporary file can be stored; if none is given,
+	 * the method will attempt to use the temporary directory (i.e. /tmp, which
+	 * is the default location for CWB temp files).
 	 */
-	public function undump($subcorpus, $matches)
+	public function undump($subcorpus, $matches, $datadir = '')
 	{
-		//TODO will this function work with a charset filter?
-		
 		if ( (!is_string($subcorpus)) || $subcorpus == "" || (!is_array($matches)) )
 		{
-			$this->status = 'error';
-			$this->error_message = array_merge("ERROR: CQP->undump was passed an invalid argument",
-				$this->error_message);
-			$this->error($this->error_message);
+			$this->add_error("ERROR: CQP->undump was passed an invalid argument");	
+			$this->error();
+			return false;
 		}
 
 		/* undump with target and keyword? this variable will determine it */
 		$with = '';
 		
-		/* number of matches (= remaining arguments) */
+		/* number of matches ( = remaining hits) */
 		$n_matches = count($matches);
 
-		/* need to read undump table from temporary file */
-		$tempfile = new TempFile("this_undump.gz");
-		
+		/* need to read undump table from a temporary file, because entering a dumpfile
+		 * from stdin requires cqp -e, which we don't have.
+		 * 
+		 * Allow a place on disk to be specified.
+		 */
+		if ($datadir != '')
+			$datadir = rtrim($datadir, '/') . '/';
+
+		$tempfile = new CQPInterchangeFile($datadir, true, 'this_undump');
+		/* is this next line still necessary? Possibly not, but may be more efficient */
 		$tempfile->write("$n_matches\n");
-		foreach ($matches as $row)
+		
+		/* find out whether we're doing targets, keywords etc */
+		$n_anchors = count(reset($matches));
+		if ($n_anchors < 2 || $n_anchors > 4)
+		{
+			$this->add_error("CQP: row arrays in undump table must have between "
+				. "2 and 4 elements (first row has $n_anchors)");
+			$this->error();
+			$tempfile->close();
+			return false;
+		}
+		if ($n_anchors >= 3)
+			$with = "with target";
+		if ($n_anchors == 4)
+			$with .= " keyword";
+		
+		/* we iterate the array,  making sure it's valid, before writing to temp */
+		foreach	($matches as &$row)
 		{
 			$row_anchors = count($row);
-			if (! isset($n_anchors))
+			/* check that row matches */
+			if (! ($row_anchors == $n_anchors) )
 			{
-				$n_anchors = $row_anchors;
-				/* find out whether we're doing targets, keywords etc */
-				if ($n_anchors < 2 || $n_anchors > 4)
-					exit("CQP: row arrays in undump table must have between "
-						. "2 and 4 elements (first row has $n_anchors)");
-				if ($n_anchors >= 3)
-					$with = "with target";
-				if ($n_anchors == 4)
-					$with .= " keyword";
+				$this->add_error("CQP: all rows in undump table must have the same "
+					. "length (first row = $n_anchors, this row = $row_anchors)");
+				$this->error();
+				$tempfile->close();
+				return false;
 			}
-			else
-			{
-				/* check that row matches */
-				if (! ($row_anchors == $n_anchors) )
-					exit("CQP: all rows in undump table must have the same "
-						. "length (first row = $n_anchors, " 
-						. "this row = $row_anchors)");
-			}						
-			$row_string = implode("\t", $row);
-			$row_string .= "\n";
-			$tempfile->write($row_string);
+			$tempfile->write(implode("\t", $row) . "\n");
 		}
 
 		$tempfile->finish();
 
 		/* now send undump command with filename of temporary file */
 		$tempfile_name = $tempfile->get_filename();
-
 		$this->execute("undump $subcorpus $with < 'gzip -cd $tempfile_name |'");
+		// TODO. Does this *really* need gzipping?
 
 		/* delete temporary file */
 		$tempfile->close();
 		
 		/* return success status of undump command */
-		return $this->ok;
+		return $this->ok();
 	}
-	/* end of method undumnp() */
+	/* end of method undump() */
+
 
 
 
@@ -589,40 +638,49 @@ class CQP
 
 
 	/**
-	 * compute frequency distribution over attribute values (single values
-	 * or pairs) using group command; note that the arguments are specified
-	 * in the logical order, in contrast to "group".
+	 * Computes frequency distribution over attribute values (single values
+	 * or pairs) using CQP's group command.
+	 * 
+	 * Note that the arguments are specified in the logical order, in contrast to "group".
 	 * 
 	 * USAGE:  $cqp->group($named_query, "$anchor.$att", "$anchor.$att", $cutoff]);
-	 * note: in this PHP version, unlike the Perl, all args are compulsory 
+	 * note: in this PHP version, unlike the Perl, all args are compulsory.
 	 * 
 	 * NB. Not tested yet.
 	 */
 	public function group($subcorpus, $spec1, $spec2, $cutoff)
 	{
+	//TODO tests should be for "empty" really....
 		if ( $subcorpus == "" || $spec1 == "")
 		{
-			$this->status = 'error';
-			$this->error_message = array_merge("ERROR: CQP->group was passed an invalid argument",
-				$this->error_message);
-			$this->error($this->error_message);
+			$this->add_error("ERROR: CQP->group was passed an invalid argument");
+			$this->error();
+			return false;
 		}
 
-		if (preg_match(
-			'/^(match|matchend|target[0-9]?|keyword)\.([A-Za-z0-9_-]+)$/',
-			$spec1, $matches) == 0)
-			exit("CQP:  invalid key \"$spec1\" in group() method\n");
+		if (0 == preg_match(
+					'/^(match|matchend|target[0-9]?|keyword)\.([A-Za-z0-9_-]+)$/',
+					$spec1, $matches) )
+		{
+			$this->add_error("CQP:  invalid key \"$spec1\" in group() method\n");
+			$this->error;
+			return false;
+		}
 			
 		$spec1 = $matches[1] . " " . $matches[2];
 		unset($matches);
 		
 		if ($spec2 != "")
 		{
-			if (preg_match(
-				'/^(match|matchend|target[0-9]?|keyword)\.([A-Za-z0-9_-]+)$/',
-				$spec2, $matches) == 0)
-				exit("CQP:  invalid key \"$spec2\" in group() method\n");
-			$spec2 = $matches[1] . " " . $matches[2];
+			if (0 == preg_match(
+						'/^(match|matchend|target[0-9]?|keyword)\.([A-Za-z0-9_-]+)$/',
+						$spec2, $matches) )
+			{
+				$this->add_error("CQP:  invalid key \"$spec2\" in group() method\n");
+				$this->error;
+				return false;
+			}
+			$spec2 = "{$matches[1]} {$matches[2]}";
  		}
 
 		if ($spec2 != "")
@@ -634,9 +692,8 @@ class CQP
 		
 		$temp_returned = $this->execute($command);
 		
-		foreach($temp_returned as $t)
-			/* erm, I think this will work! */
-			$rows = array_merge($rows, split("\t", $t));
+		foreach($temp_returned as &$t)
+			$rows[] = explode("\t", $t);
 		
 		return $rows;
 	}
@@ -653,11 +710,10 @@ class CQP
 	{
 		if ($subcorpus == "" || $sort_clause == "")
 		{
-			$this->status = 'error';
-			$this->error_message = array_merge('ERROR: in CQP->count. ' 
-				. 'USAGE: $cqp->count($named_query, $sort_clause [, $cutoff]);',
+			$this->add_error('ERROR: in CQP->count. USAGE: $cqp->count($named_query, $sort_clause [, $cutoff]);',
 				$this->error_message);
-			$this->error($this->error_message);
+			$this->error();
+			return false;
 		}
 		
 		$rows = array();
@@ -682,7 +738,7 @@ class CQP
 	
 	
 	/**
-	 * Checks CQP's stderr stream for error messages .
+	 * Checks CQP's stderr stream for error messages.
 	 * 
 	 * IF THERE IS AN ERROR ON THE CHILD PROCESS'S STDERR, this function: 
 	 * (1) moves the error message from stderr to $this->error_message 
@@ -781,7 +837,7 @@ class CQP
 	
 	/** 
 	 * Clears out all the error messages, returning the error message array
-	 * to its original state (contains only 1 empty string.
+	 * to its original state (contains only 1 empty string).
 	 * 
 	 * Can only be called by user, the object itself won't call it from within
 	 * another method. 
@@ -797,24 +853,41 @@ class CQP
 	/**
 	 * Function to call when the object encounters an error.
 	 *  
-	 * It takes as argument an array of strings to return to caller; these 
+	 * It takes as argument an array of strings to print; these 
 	 * strings report errors in the object and CQP error messages. 
+	 *
+	 * If no argument is specified, the internal array of error 
+	 * messages is used instead.
+	 * 
+	 * The strings are just printed to stdout if there is no error
+	 * handler set; otherwise, the error handler callback is used.
 	 */
-	private function error($message)
+	private function error($messages = NULL)
 	{
+		if (!is_array($messages))
+			$messages =& $this->error_message;
+		/* we need call_user_func() because trying to call $this->error_handler directly
+		 * may cause PHP to think we are trying to call a method called "error_handler". */
 		if ($this->error_handler != false)
-		{
-			$local_handler = $this->error_handler;
-			$local_handler($message);
-		}
+			call_user_func($this->error_handler, $messages);
 		else
-		{
-			foreach($message as $current)
-				echo "$current\n";		
-		}
+			echo implode("\n", $messages);
 	}
 
-
+	/**
+	 * Adds an error at the top of the stack, without triggering the error
+	 * handler or printing errors.
+	 * 
+	 * The ->status is also set to "error".
+	 *
+	 * Normal internal usage: first call add_error with the new error message,
+	 * then EITHER carry on, OR call ->error() and then return false.
+	 */
+	private function add_error($message)
+	{
+		$this->status = 'error';
+		array_unshift($this->error_message, $message);
+	}
 
 
 
@@ -895,6 +968,8 @@ class CQP
 	}
 
 
+
+
 	/* --------------- */
 	/* Charset methods */
 	/* --------------- */
@@ -909,14 +984,19 @@ class CQP
 	 */
 	private function filter_input($string)
 	{
+		if ($this->corpus_charset == self::CHARSET_UTF8)
+			return $string;
+		else
+			return iconv('UTF-8', self::$charset_labels[$this->corpus_charset] . '//TRANSLIT', $string);
+		/* 
 		switch($this->corpus_charset)
 		{
 		case self::CHARSET_UTF8:
 			return $string;
 		case self::CHARSET_LATIN1:
 			return utf8_decode($string);
-			//TODO better to use iconv
 		}
+		*/
 	}
 	/** 
 	 * Switch the character set encoding of an output string to be sent to the caller.
@@ -930,25 +1010,25 @@ class CQP
 	private function filter_output($string)
 	{
 		/* output may be an array of strings: in which case map across all strings within it
-		 * this is done WITHIN the switch, rather than by calling this function recursively,
+		 * this is done WITHIN the else, rather than by calling this function recursively,
 		 * to save function call overhead in the (most common) case where the underlying
 		 * corpus is UTF8. 
 		 */
-		switch($this->corpus_charset)
-		{
-		case self::CHARSET_UTF8:
+		if ($this->corpus_charset == self::CHARSET_UTF8)
 			return $string;
-		case self::CHARSET_LATIN1:
+		else
+		{
 			if (is_array($string))
 			{
 				foreach($string as $k => &$v)
-					$string[$k] = utf8_encode($v);
+//					$string[$k] = utf8_encode($v);
+					$string[$k] = iconv(self::$charset_labels[$this->corpus_charset], 'UTF-8', $v);	 
 				return $string;
 			}
 			else
-				return utf8_encode($string);
+//				return utf8_encode($string);
+				return iconv(self::$charset_labels[$this->corpus_charset], 'UTF-8', $string);			
 		}
-		// TODO. Use the iconv function to add other Latin-X charsets, once CWB itself supports them.
 	}
 	/** 
 	 * Gets a string describing the charset of the currently loaded corpus,
@@ -958,9 +1038,20 @@ class CQP
 	{
 		switch ($this->corpus_charset)
 		{
-		case self::CHARSET_UTF8: 	return 'utf8';
-		case self::CHARSET_LATIN1:	return 'latin1';
-		default:					return NULL;
+		case self::CHARSET_UTF8: 		return 'utf8';
+		case self::CHARSET_LATIN1:		return 'latin1';
+		case self::CHARSET_LATIN2:		return 'latin2';
+		case self::CHARSET_LATIN3:		return 'latin3';
+		case self::CHARSET_CYRILLIC:	return 'cyrillic';
+		case self::CHARSET_ARABIC:		return 'arabic';
+		case self::CHARSET_GREEK:		return 'greek';
+		case self::CHARSET_HEBREW:		return 'hebrew';
+		case self::CHARSET_LATIN5:		return 'latin5';
+		case self::CHARSET_LATIN6:		return 'latin6';
+		case self::CHARSET_LATIN7:		return 'latin7';
+		case self::CHARSET_LATIN8:		return 'latin8';
+		case self::CHARSET_LATIN9:		return 'latin9';
+		default:						return NULL;
 		}
 	}
 	
@@ -1112,5 +1203,251 @@ class CQP
 	}
 
 } /* end of class CQP */
+
+
+
+
+
+
+/**
+ * Interchange files are self-deleting temporary files. 
+ * 
+ * They are used to write some data; when you then 'finish' the file it hangs around
+ * as a closed file, whose name you can send to another program (or you can read from it
+ * via the object instead). 
+ * 
+ * The file is automatically deleted when you 'close' it, or when the object is destroyed.
+ * 
+ * The file will be either a plain file or a gzipped plain file.
+ * 
+ * Typical usage is as follows.
+ * 
+ * $intfile = new CQPInterchangeFile($my_temp_directory);
+ * 
+ * $intfile->write($my_data);
+ * 
+ * $intfile->finish();
+ * 
+ * send_to_some_other_module($intfile->get_filename());
+ * 
+ * // or...
+ * 
+ * $lines_to_do_something_with = $intfile->read();
+ * 
+ * $intfile->close();
+ * 
+ * This object is based on the CWB::TempFile object from the PErl interface, but with
+ * simplified internals (doesn't use pipes, only gives two file fomrat options instead 
+ * of several).
+ * 
+ * This class requires the Zlib extension.
+ */
+class CQPInterchangeFile
+{
+	/* Members */
+	
+	/** Stores a reading/writing handle */
+	private $handle;
+	
+	/** Full filepath (absolute or relative) */
+	private $name;
+	
+	/** Status flag: W == writing, F == finished, R == reading, D == deleted */
+	private $status;
+	
+	/** Is the file written/read as a gz file or not?  */
+	private $compression;
+	
+	/** The file protocol wrapper (dependent on $this->compression */
+	private $protocol;
+	
+	/** Callback for error handler function. */
+	private $callback;
+
+
+	/* METHODS */
+	
+		
+	/**
+	 * Note, the constructor interface is a bit different to the CWB::TempFile interface in the Perl
+	 * module.
+	 * 
+	 * You MUST specify a directory for the file to be put in, the default is the working directory.
+	 * 
+	 * If $gzip is true, the file will be compressed.
+	 * 
+	 * If $nameroot is specified (letters, numbers, dash and underscore only!) it will be used as the 
+	 * basis for the file's name. But it won't be precisely this name, of course. 
+	 */
+	public function __construct($location = '.', $gzip = false, $nameroot = 'CQPInterchangeFile')
+	{
+		/* process arguments */
+		$this->compression = (bool)$gzip;
+		
+		$nameroot = preg_replace('/[^A-Za-z0-9_\-]/', '', $nameroot);
+		if (empty($nameroot))
+			$nameroot = 'CQPInterchangeFile';
+			
+		/* remove rightmost / or \ from folder, as below it assumed there will be no slash */
+		$location = rtrim($location, '/\\');
+		if (empty($location))
+			$location = '.';
+		
+		$unique = base_convert(uniqid(), 16, 36);
+		$suffix = ( $this->compression ? '.gz' : '' );
+		
+		/* deeply unlikely you'll need this bit.... */
+		for ($this->name = "$location/$nameroot-$unique$suffix", $n = 1; file_exists($this->name) ; $n++ )
+			$this->name = "$location/$nameroot-$unique-$n$suffix";
+		
+		$this->protocol = ( $this->compression ? 'compress.zlib://' : '' );
+		$this->handle = fopen($this->protocol . $this->name, 'w');
+		$this->status = "W";
+	}
+	
+	/** Destructor; closes the file if not closed manually. */
+	public function __destruct()
+	{
+		if ($this->status != "D")
+			$this->close();
+	}
+	
+	/** Writes a line to the interchange file. */
+	public function write($line)
+	{
+		if ($this->status != "W")
+			$this->error( "CQPInterchangeFile: Can't write to file {$this->name} with status {$this->status}" );
+		
+		if ( false === fwrite($this->handle, $line) )
+ 			$this->error("CQPInterchangeFile: Error writing to file {$this->name}");
+	}
+	
+	
+	/** Stops writing the file, and closes its handle */
+	public function finish()
+	{
+		if (! ($this->status == "W") )
+			$this->error("CQPInterchangeFile: Can't finish file {$this->name} with status {$this->status}");
+
+		/* close the file */
+		if ( ! fclose($this->handle))
+ 			$this->error("CQPInterchangeFile: Error closing file {$this->name}");
+		$this->status = "F";
+	}
+	
+	/** Reads a line from the file (opening before doing so if necessary). */
+	public function read()
+	{
+		if ($this->status == "D")
+			$this->error("CQPInterchangeFile: Can't read from file {$this->name}, already deleted.");
+				
+		if ($this->status == "W")
+			$this->finish();
+			
+		if ($this->status != "R")
+		{
+			$this->handle = fopen($this->protocol . $this->name, 'r');
+			$this->status = "R";
+		}
+		/* read a line */
+		return fgets($this->handle);
+	}
+
+	/** Restart reading of the tempfile, by closing and re-opening it. */
+	public function rewind()
+	{
+		if ($this->status == "D" || $this->status == "W")
+			$this->error("CQPInterchangeFile: Can't rewind file {$this->name} with status {$this->status}");
+		
+		/* if rewind is called before first read, it does nothing */
+		if ($this->status != "R")
+			;
+		else
+		{
+			if (!fclose($this->handle))
+	 			$this->error("CQPInterchangeFile: Error closing file " . $this->name . "\n");
+			$this->handle = fopen($this->protocol . $this->name, "r");
+		}
+	}
+	
+	/**
+	 * Finishes reading or writing, and closes and deletes the file.
+	 * 
+	 * No return value as an error will happen if closing fails.
+	 */
+	public function close()
+	{
+		if ( ($this->status == "W" || $this->status == "R") && isset($this->handle) )
+		{
+			if (! fclose($this->handle))
+ 				$this->error( "CQPInterchangeFile: Error closing file " . $this->name);
+ 			unset ($this->handle);
+  		}
+  		
+		if (is_file($this->name)) 
+		{
+			if (!unlink($this->name))
+				$this->error( "CQPInterchangeFile: Could not unlink file " . $this->name);
+		}
+		$this->status = "D";
+	}
+	
+	
+	/**
+	 * Get the path of the temporary file.
+	 * 
+	 * It may be relative or absolute.
+	 */
+	public function get_filename()
+	{
+		return $this->name;
+	}
+
+
+
+	/**
+	 * Get the file's current status as an (uppercase) string.
+	 * 
+	 * Example usage: echo $interchange_file->status() . "\n"; 
+	 */
+	public function get_status()
+	{
+		switch($this->status)
+		{
+		case "W":		return "WRITING";
+		case "F":		return "FINISHED";
+		case "R":		return "READING";
+		case "D":		return "DELETED";
+		}
+	}
+	
+	
+	
+	
+	
+	/* error handling functions */
+	
+	/**
+	 * Allows a callback function to be specified for error messages
+	 * (rather than exiting the program, which is the default error handling).
+	 */
+	public function set_error_callback($callback)
+	{
+		$this->callback = $callback;
+	}
+	
+	/**
+	 * Sends an error meessage to the user-specified callback, or aborts the program
+	 * if no callback is set.
+	 */ 
+	private function error($message)
+	{
+		if ( ! empty($this->error_callback) )
+			call_user_func($this->error_callback, $message);
+		else
+			exit($message);
+	}
+	
+} /* end of class CQPInterchangeFile */
 
 ?>

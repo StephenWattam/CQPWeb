@@ -36,8 +36,6 @@ require("../lib/defaults.inc.php");
 require("../lib/library.inc.php");
 require("../lib/exiterror.inc.php");
 require("../lib/cache.inc.php");
-//require("../lib/freqtable.inc.php");
-//require("../lib/concordance-lib.inc.php");
 
 if (!url_string_is_valid())
 	exiterror_bad_url();

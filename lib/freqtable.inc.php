@@ -292,12 +292,10 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	
 	/* import the base frequency list */
 	database_disable_keys($temp_table);
-	//$sql_query = "$mysql_LOAD_DATA_INFILE_command '$temp_table_loadfile' into table $temp_table fields escaped by ''";
-	//do_mysql_query($sql_query);
 	do_mysql_infile_query($temp_table, $temp_table_loadfile, true);
 	database_enable_keys($temp_table);
 	
-//	unlink($temp_table_loadfile);
+	unlink($temp_table_loadfile);
 	
 
 	/* now, create separate frequency lists for each att from the master table */

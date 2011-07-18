@@ -51,6 +51,7 @@ require_once('../lib/cache.inc.php');
 require_once('../lib/subcorpus.inc.php');
 require_once('../lib/db.inc.php');
 require_once('../lib/user-settings.inc.php');
+require_once('../lib/plugins.inc.php');
 
 /* and because I'm using the next two modules I need to... */
 require_once("../lib/cwb.inc.php"); /* TODO NOT TESTED YET - used by dump and undump, I think */
@@ -350,6 +351,9 @@ $run_new_query = false;
 /* and set $num_of_solutions so it fails-safe to 0   */
 $num_of_solutions = 0;
 
+/* and flag a history insertion as NOT done (this variable will be set to true when it is) */
+$history_inserted = false;
+
 
 
 /* ------------------------------------------------------------------------ */
@@ -575,7 +579,6 @@ if ($new_postprocess)
 	$postprocess = $new_postprocess->add_to_postprocess_string($postprocess);
 
 
-
 	/*	If it exists, the orig qname is replaced by this one */
 	if ( ! (($check_cache_record = check_cache_parameters($cqp_query, $restrictions, $subcorpus, $postprocess)) === false) )
 	{
@@ -765,6 +768,8 @@ $kwic = $cqp->execute("cat $qname $batch_start $batch_end");
 /* get a table of corpus positions */
 $table = $cqp->dump($qname, $batch_start, $batch_end);
 // !!!!!!!!!!!!!!!!!! TODO is this used? it is passed to print_concordance_line, but does that use it?
+// go and check in bncweb, i suspect this USED to be used for identifying the token to highlight,
+// but poss not any more.
 
 /* n = number of concordances we have to display in this run of the script */
 $n = count($kwic);

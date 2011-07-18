@@ -3,18 +3,18 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="LibreOffice 3.3  (Unix)">
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20110320;2500100">
+	<META NAME="CHANGED" CONTENT="20110718;1394400">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1 LANG="en-GB">Some notes on how to set up CQPweb (v 2.16 or
+<H1 LANG="en-GB">Some notes on how to set up CQPweb (v 3.0.0 or
 higher)</H1>
 <P LANG="en-GB"><BR><BR>
 </P>
@@ -22,8 +22,9 @@ higher)</H1>
 you will need</B></FONT></FONT></P>
 <P LANG="en-GB">You'll need a machine with a Unix-style operating
 system (<I>CQPweb has been installed successfully, to our knowledge,
-on Mac OS X; Sun OS 5.10; Debian; Ubuntu; and Fedora</I>). Other
-software you need to have installed: 
+on Mac OS X; Sun OS 5.10; Debian; Ubuntu; and Fedora – Windows
+compatibility is planned but not yet achieved</I>). Other software
+you need to have installed: 
 </P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Apache or some other webserver (note: <I>internal
@@ -41,8 +42,15 @@ software you need to have installed:
 	</P>
 </UL>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB">PHP (v5 or higher) 
+	<LI><P LANG="en-GB">PHP (v5.3.0 or higher) 
 	</P>
+	<UL>
+		<LI><P LANG="en-GB">The <B>zlib</B> <SPAN STYLE="font-weight: normal">extension
+		is required</SPAN></P>
+		<LI><P LANG="en-GB"><SPAN STYLE="font-weight: normal">Either the
+		</SPAN><B>mysql</B> <SPAN STYLE="font-weight: normal">or the </SPAN><B>mysqli</B>
+		<SPAN STYLE="font-weight: normal">extension is required</SPAN></P>
+	</UL>
 </UL>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Perl (v5.8 or higher) 
@@ -51,7 +59,7 @@ software you need to have installed:
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Open Corpus Workbench (at least version 3.2.0 if
 	you want UTF8-compliant regular expression matching, otherwise at
-	least 2.2.101)</P>
+	least 3.0.0)</P>
 	<UL>
 		<LI><P LANG="en-GB"><SPAN LANG="en-GB">See
 		<A HREF="http://cwb.sourceforge.net/">http://cwb.sourceforge.net</A></SPAN></P>
@@ -126,7 +134,7 @@ you may have recompile PHP to make the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN ST
 </SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">extension
 available.</SPAN></SPAN></P>
 <P LANG="en-GB"><SPAN LANG="en-GB">Certain aspects of the behaviour
-of PHP is controlled by its </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
+of PHP are controlled by its </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
 file (see <A HREF="http://www.php.net/manual/en/ini.php">here</A>).
 The precise settings in this file may be different depending on how
 you installed PHP (or your system administrator may have subsequently
@@ -198,9 +206,9 @@ not work. </SPAN></SPAN>
 	you. All these operations will stop working.</SPAN></SPAN></FONT></FONT></P>
 </UL>
 <P LANG="en-GB" STYLE="font-style: normal; font-weight: normal"><FONT COLOR="#000000"><FONT FACE="Times New Roman">Note
-that the “safe-mode” feature of PHP has, in any case, been
-deprecated as of recent versions (5.3.0 or later) of PHP – so web
-servers should ideally not be relying on it anyway.</FONT></FONT></P>
+that the “safe-mode” feature of PHP is, in any case, deprecated
+as of recent versions (5.3.0 or later) of PHP – so web servers
+should not be relying on it anyway.</FONT></FONT></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -752,7 +760,7 @@ follows:</P>
 	<SPAN STYLE="font-weight: normal">where </SPAN><B>a</B> <SPAN STYLE="font-weight: normal">is
 	a lowercase letter and </SPAN><B>d</B> <SPAN STYLE="font-weight: normal">is
 	a digit. You can optionally use Lancaster University's web-based
-	random password generator to get nicer, more-wordlike passwords: to
+	random password generator to get nicer, more wordlike passwords: to
 	do this, set the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">$create_password_function</SPAN></FONT>
 	<SPAN STYLE="font-weight: normal">to the quoted string
 	</SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">'password_insert_lancaster'</SPAN></FONT><SPAN STYLE="font-weight: normal">.
@@ -1303,18 +1311,16 @@ follows is cumulative).</SPAN></P>
 			to 2.17</P>
 		</TD>
 		<TD WIDTH=708 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
-			</P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
-			</P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">2.17
+			to 3.0.0</P>
 		</TD>
 		<TD WIDTH=708 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
-			</P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
@@ -1356,9 +1362,9 @@ follows is cumulative).</SPAN></P>
 </P>
 <HR>
 <P LANG="en-GB"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
-v2.16</SPAN></SPAN></SPAN></FONT></FONT></FONT><FONT COLOR="#808080"><SPAN LANG="en-GB">
+v3.0.0</SPAN></SPAN></SPAN></FONT></FONT></FONT><FONT COLOR="#808080"><SPAN LANG="en-GB">
 </SPAN></FONT><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">©
-2008-2011</SPAN></SPAN></SPAN></FONT></FONT></FONT><FONT COLOR="#808080"><SPAN LANG="en-GB">
+2008-today</SPAN></SPAN></SPAN></FONT></FONT></FONT><FONT COLOR="#808080"><SPAN LANG="en-GB">
 – </SPAN></FONT><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">documentation
 by Andrew Hardie, <A HREF="mailto:andrewhardie@user.ssourceforge.net">andrewhardie@users.sourceforge.net</A>
 </SPAN></SPAN></SPAN></FONT></FONT></FONT>

@@ -121,9 +121,24 @@ for ( $i = 0 ; $i < $n ; $i++ )
 	/* don't show the CQP delimiters for the file */
 	if ($att['field'] == 'cqp_begin' || $att['field'] == 'cqp_end')
 		continue;
+
 	/* don't allow empty cells */
-	if ($att['value'] === '')
+	if ($att['value'] == '')
 		$att['value'] = '&nbsp;';
+	/* if the value is a URL, convert it to a link */
+	if ( 0 < preg_match('#^(https?|ftp)://#', $att['value']) )
+	{
+		/* pipe is used as a delimiter between URL and linktext to show. */
+		if (false !== strpos($att['value'], '|'))
+		{
+			list($url, $linktext) = explode('|', $att['value']);
+			$att['value'] = '<a href="'.$url.'">'.$linktext.'</a>';
+		}
+		else
+			$att['value'] = '<a href="'.$att['value'].'">'.$att['value'].'</a>';
+	}
+	// TODO: check the above is the entire feature as planned. 
+	// TODO: AND, document it in the indexing manual.
 	
 	echo '<tr><td class="concordgrey">' . $att['field']
 		. '</td><td class="concordgeneral">' . $att['value'] . '</td></tr>

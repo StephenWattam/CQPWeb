@@ -22,23 +22,7 @@
  */
 
 
-// TODO get rid of the CWBTempFile object.
 
-
-/* CWBTempFile objects are temporary file objects 
-
- 	examples of usage of constructor:
-
-	$tf = new CWBTempFile();               (chooses name automatically)
-	
-	$tf = new CWBTempFile("NP-Chunks");    (uses name beginning with 
-									 "NP-Chunks")
-	$tf = new CWBTempFile("NP-Chunks.gz"); (tell module to write gzipped 
-									 tempfile, using OpenFile magic)
-*/
-
-
-/* depends on create_pipe_handle_constants(); having previously been called */
 
 
 
@@ -76,6 +60,9 @@ class CWB
 	// TODO
 	// public functions for setting $path_*, each of which should return the current value if
 	// they are passed NULL
+	public function registry_location() {}
+	public function datadir() {} // actually, do we need to specify this (except as a default) as the registry "knows"?
+	public function binary_location() {}
 	
 	// the only methods writen so far are to-be-used replacements for the cwb_* functions in the file
 	
@@ -86,7 +73,7 @@ class CWB
 		return  (	
 					is_file("{$this->path_registry}/$corpus_name") 
 					&& 
-					is_dir("{$this->path_datadir}/$corpus_name")
+					is_dir("{$this->path_datadir}/$corpus_name") //TODO what if registry "knows" it is in a different location?
 				);
 	}
 	
@@ -170,38 +157,35 @@ function cwb_uncreate_corpus($corpus_name)
 
 
 
+// TODO this is depracated in favour of CQPInterchangeFile. Delete when possible, as it contains bugs and incompatibilities.
 
+// TODO follow back the dependencies and Unix'isms that might cause problems for CWB-perl
 
+/** CWBTempFile objects are temporary file objects.
 
+ 	examples of usage of constructor:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	$tf = new CWBTempFile();				(chooses name automatically)
+	
+	$tf = new CWBTempFile("NP-Chunks");		(uses name beginning with 
+											"NP-Chunks")
+	$tf = new CWBTempFile("NP-Chunks.gz");	(tell module to write gzipped 
+											tempfile, using OpenFile magic)
+*/
 class CWBTempFile
 {
 	/* MEMBERS */
 	
-	/* handle */
+	/** handle */
 	var $file_handle;
 
-	/* filename */
+	/** filename */
 	var $name;
 
-	/* W == writing, F == finished, R == reading, D == deleted */
+	/** Status flag: W == writing, F == finished, R == reading, D == deleted */
 	var $status;
 	
-	/* is the file opened using OpenFile compressed or not?  */
+	/** is the file opened using OpenFile compressed or not?  */
 	var $compression;
 
 	var $pipe_handle;
@@ -211,8 +195,8 @@ class CWBTempFile
 
 	/* METHODS */
 	
-	/* constructor */
-	function CWBTempFile($prefix)
+	/** Constructor; chooses location and opens the file to write. */
+	function __construct($prefix = NULL)
 	{
 		if (!isset($prefix))
 			$prefix = "CWBTempFile";
@@ -226,13 +210,12 @@ class CWBTempFile
 			// need to check the line above works
 		}
 		
-		/* if $prefix isn't absolute or relative path */
-		/* create temp file in /tmp directory */
+		/* if $prefix isn't absolute or relative path, create temp file in /tmp directory */
 
 		if (preg_match('/\//', $prefix) > 0)
 			$basedir = "";
 		else
-			$basedir = "/tmp/";	
+			$basedir = "/tmp/";	 // TODO windows incompatible!
 		
 		/* orig perl uses process number */
 		/* but I suppose unix epoch time is as good */
@@ -240,13 +223,9 @@ class CWBTempFile
 			
 		$fn = $basedir . $prefix . "." . $unique . $suffix;
 		
-		/* deeply unlikely you'd need this */
-		$num = 1;
-		while(file_exists($fn))
-		{
-			$fn = basedir . $prefix . "." . $unique . "-" . $num . $suffix;
-			$num++;
-		}
+		/* deeply unlikely you'll need this bit.... */
+		for ( $num = 1; file_exists($fn) ; $num++ )
+			$fn = $basedir . $prefix . "." . $unique . "-" . $num . $suffix;
 		
 		$this->file_handle = $this->OpenFile($fn, "w");
 		$this->name = $fn;
@@ -255,13 +234,15 @@ class CWBTempFile
 
 
 
-	/* fake destructor */
-	function destroyme()
+	/** Destructor; closes the file if not closed manually. */
+	function __destruct()
 	{
 		if ($this->status != "D")
 			$this->close();
 	}
 
+
+	
 
 
 
@@ -273,7 +254,7 @@ class CWBTempFile
 	   decompression. 
 	   
 	   EITHER sets up a process in the class members, & returns pipe to 
-	   stdin or stdout, depending onwhether this was a read or write open;
+	   stdin or stdout, depending on whether this was a read or write open;
 	   
 	   OR just returns a read or write file pointer, if no pipe was involved
 	   
@@ -282,17 +263,26 @@ class CWBTempFile
 	   note: this function takes its mode as a separate arg, like C and PHP 
 	   not as tags all over the filename, as in Perl. So don't pass any! 
 	   note also that it doesn't like + in its mode, append will only work 
-	   if tis writing to file - not if it's using pipes 
+	   if it is writing to file - not if it's using pipes 
 	*/
-	function OpenFile($name, $mode) 
+	private function OpenFile($name, $mode) 
 	{
 		if (preg_match('/^[arw]$/', $mode) == 0)
 			exit("CWB::OpenFile: incorrect mode flag $mode\n");
 	
 		$this->compression = false;
+		// TODO. Couldn't the compression pipes be replaced wtih PHP streams?
+		// http://uk.php.net/manual/en/intro.zlib.php for gzip
+		// (but note, except on windows zlib is nto available by default)
+		// http://uk.php.net/manual/en/intro.bzip2.php
+		// (not available by default)
+		// there are no tar functions however, but we could use PharData?
+		// compress/zcat stump me, dunno which format you'd use...
 	
 		/* the following if-else ladder looks for the file type */
 		/* and works out the correct program call for that */
+		//hmm, if mode is w and the filename ends in tar or .tar.gz, 
+		//it looks as if this is written *as just a normal text file*. No pipe.
 	
 		if (preg_match('/\.(tgz|tar\.(gz|Z))$/', $name) > 0 ) 
 		{
@@ -300,7 +290,7 @@ class CWBTempFile
 			if ($mode == "r")
 			{
 				$this->compression = true;
-				$prog = "gtar xzfO";
+				$prog = "gtar xzfO"; // TODO see below. Note also, are these gtar issues laos problems for the Perl version?
 			}
 		}
 		else if (preg_match('/\.tar$/', $name) > 0 )
@@ -309,7 +299,7 @@ class CWBTempFile
 			if ($mode == "r")
 			{
 				$this->compression = true;
-				$prog = "gtar xfO";
+				$prog = "gtar xfO"; // TODO some Linuxes do not have a gtar symlinked to tar. On Win32, Gnu tar is tar not gtar. 
 			}
 		}
 		else if (preg_match('/\.gz$/', $name) > 0 )
@@ -322,13 +312,13 @@ class CWBTempFile
 		{
 			/* .bz2 :  two types of program */
 			$this->compression = true;
-			$prog = ($mode != "r") ? "bzip2" : "bzcat"; 
+			$prog = ($mode != "r") ? "bzip2" : "bzcat"; // TODO: dependnecy - windows?
 		}
 		else if (preg_match('/\.Z$/', $name) > 0 )
 		{
 			/* .Z : two types of pipe */
 			$this->compression = true;
-			$prog = ($mode != "r") ? "compress" : "zcat";
+			$prog = ($mode != "r") ? "compress" : "zcat"; // TODO : dependency - windows?
 		}
 		
 		if ($this->compression)
@@ -349,8 +339,8 @@ class CWBTempFile
 			switch($mode)
 			{
 			case "r" :	$fh = $this->pipe_handle[1];	break;
-			case "w" :	$fh = $this->pipe_handle[0];		break;
-			case "a" :	$fh = $this->pipe_handle[0];		break;
+			case "w" :	$fh = $this->pipe_handle[0];	break;
+			case "a" :	$fh = $this->pipe_handle[0];	break;
 			default  :	exit("CWB::OpenFile: incorrect mode: $mode\n");
 			}	
 		}
@@ -364,21 +354,23 @@ class CWBTempFile
 	}
 	
 	
-	function CloseFile($fh)
+	/**
+	 * Returns the same values as fclose().
+	 */
+	private function CloseFile($fh)
 	{
 		if ($this->compression)
 		{
+			$ret = true;
 			if (isset($this->pipe_handle[0]))
-				fclose($this->pipe_handle[0]);
+				$ret = $ret && fclose($this->pipe_handle[0]);
 			if (isset($this->pipe_handle[1]))
-				fclose($this->pipe_handle[1]);
+				$ret = $ret && fclose($this->pipe_handle[1]);
 			if (isset($this->pipe_handle[2]))
-				fclose($this->pipe_handle[2]);
+				$ret = $ret && fclose($this->pipe_handle[2]);
 			if (isset($this->process))
-				proc_close($this->process);
-			
-			/* bit of a dirty hack this line */
-			return true;
+				$ret = $ret && proc_close($this->process);
+			return $ret;
 		}
 		else
 			return fclose($fh);
@@ -388,18 +380,17 @@ class CWBTempFile
 
 	
 
-	/* finish reading and delete */
-	/* but note, it will cope if you pass it a writeable file as well */
+	/**
+	 * Finishes reading or writing, and closes / deletes the file.
+	 */
 	function close()
 	{
-		if ( ($this->status == "W" || $this->status == "R") 
-			&& isset($this->file_handle) )
+		if ( ($this->status == "W" || $this->status == "R") && isset($this->file_handle) )
 		{
 			if (! $this->CloseFile($this->file_handle))
  				echo "CWBTempFile: Error closing tempfile " . $this->name;
   		}
   		
-		/* in perl it was -f name, dunno what this is */
 		if (is_file($this->name)) 
 		{
 			if (!unlink($this->name))
@@ -471,7 +462,7 @@ class CWBTempFile
 			
 		if ($this->status != "R")
 		{
-			$this->file_handle = OpenFile($this->name);
+			$this->file_handle = $this->OpenFile($this->name);
 			$this->status = "R";
 		}
 		/* read a line */

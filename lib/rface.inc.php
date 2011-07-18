@@ -93,13 +93,13 @@ class RFace
 	/** has there been an error? */
 	private $ok = true;
 	
-	/* most recent error message */
+	/** most recent error message */
 	private $last_error_message;
 	
-	/* should the object exit the program on detection of an error? */
+	/** should the object exit the program on detection of an error? */
 	private $exit_on_error = false;
 	
-	/* if true, debug info will be printed to stdout */
+	/** if true, debug info will be printed to stdout */
 	private $debug_mode;
 	
 	
@@ -124,12 +124,14 @@ class RFace
 			/* try to deduce the path using Unix "which" if available */
 			// TODO add check that "which" really is available.
 			// TODO add need for "which" to the setup manual. 
+			// TODO actually, this is pointless, non? if which can detext the R executable,
+			// then it is on the path anyway!
 			exec("which R", $exec_output);
 			if (is_executable($exec_output[0]))
 				$path_to_r = substr($exec_output[0], 0, -2);
 		}
 		if ( ! is_dir($path_to_r) )
-			exit("ERROR: directory $path_to_r for R executable not found.\n");
+			exit("RFace: ERROR: directory $path_to_r for R executable not found.\n");
 		
 		/* array of settings for the three pipe-handles */
 		$io_settings = array(
@@ -143,9 +145,9 @@ class RFace
 		$this->process = proc_open($command, $io_settings, $this->handle);
 		
 		if (! is_resource($this->process))
-			$this->error("ERROR: R backend startup failed; command: $command\n");
+			$this->error("RFace: ERROR: R backend startup failed; command: $command\n");
 		else if ($this->debug_mode)
-			echo "R backend successfully started up.\n";
+			echo "RFace: R backend successfully started up.\n";
 	}
 	
 	
@@ -164,15 +166,15 @@ class RFace
 			fclose($this->handle[2]);
 		
 		if ($this->debug_mode)
-			echo "Pipes to R backend successfully closed.\n";
+			echo "RFace: Pipes to R backend successfully closed.\n";
 		
 		/* and finally shut down the child process so script doesn't hang*/
 		if (isset($this->process))
 			$stat = proc_close($this->process);
 
 		if ($this->debug_mode)
-			echo  "R slave process has been closed with termination status [ $stat ].\n"
-				. "RFace object will now destruct.\n";
+			echo  "RFace: R slave process has been closed with termination status [ $stat ].\n"
+				. "\tRFace object will now destruct.\n";
 	}
 
 
@@ -211,7 +213,7 @@ class RFace
 				
 
 		if ($this->debug_mode == true)
-			echo "R << $command;\n";
+			echo "RFace: R << $command;\n";
 
 		/* send the command to R's stdin */			
 		fwrite($this->handle[0], $command);		// TODO do we need a \n here?
@@ -227,13 +229,13 @@ class RFace
 			$line = trim($line, " \t\r\n");
 			if (empty($line))
 				continue;
-				
+			
 			/* an output line we ALWAYS ignore; an empty statement terminated by ; is not invalid! */
 			if ($line == 'Error: unexpected \';\' in ";"')
 				continue;
 
 			if ($this->debug_mode)
-				echo "R >> $line\n";
+				echo "RFace: R >> $line\n";
 			
 			if ($line_handler_callback !== false)
 			{
@@ -259,7 +261,9 @@ class RFace
 	
 	/**
 	 * Specify a callback function to be used on lines as they are retrieved by ->execute().
-	 * 
+	 *
+	 * The callback can be anything that PHP will accept as callable.
+	 *  
 	 * To use no line handler, pass false (or something else which typecasts to bool as false).
 	 */
 	public function set_line_handler($func)
@@ -272,7 +276,7 @@ class RFace
 		// so: first answer here :
 		// http://stackoverflow.com/questions/2835627/php-is-function-to-determine-if-a-variable-is-a-function
 		// also use of is_callable is recommended here: http://bugs.php.net/bug.php?id=50037
-		// but note, there are three options: (1) an array with a class or object plus a amethod name; (2) a function name;
+		// but note, there are three options: (1) an array with a class or object plus a method name; (2) a function name;
 		// (3) a closure.
 		// so the else-if needs to be a good bit more complicated. 
 		if ($func == false)
@@ -303,7 +307,7 @@ class RFace
 	/**
 	 * Sets exit-on-error mode on/off (parameter is a bool).
 	 * 
-	 * (Byt default, this mode is OFF.)
+	 * (By default, this mode is OFF.)
 	 */
 	public function set_exit_on_error($new_value)
 	{
@@ -336,7 +340,7 @@ class RFace
 	private function error($msg = false, $line = false)
 	{
 		if ($msg == false)
-			$msg = "ERROR: Non specific R interface error!";
+			$msg = "ERROR: General R interface error!";
 		if ($line != false)
 			$msg .= "\n\t... at line $line";
 		$this->last_error_message = $msg;
@@ -531,7 +535,7 @@ class RFace
 		default:
 			$this->error("Unacceptable object read-mode $mode!");
 			return;
-		}			
+		}
 		
 		return $output;
 	}

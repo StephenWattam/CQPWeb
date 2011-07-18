@@ -1,0 +1,708 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="LibreOffice 3.3  (Unix)">
+	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
+	<META NAME="CREATED" CONTENT="20090607;11102800">
+	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
+	<META NAME="CHANGED" CONTENT="20110718;1595400">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1 LANG="en-GB">CQPweb plugins: a guide for server administrators</H1>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Introduction</B></FONT></FONT></P>
+<P LANG="en-GB">A <SPAN STYLE="font-style: normal">plugin is a little
+bit of code you (the CQPweb server administrator) write yourself,
+which is then accessed in a predefined way by CQPweb.</SPAN></P>
+<P LANG="en-GB" STYLE="font-style: normal">Several forms of plugin
+are under development. The different types of plugin do not have much
+in common, they just represent a set of things that we thought users
+of CQP{web might want to have an easy way to customise!</P>
+<P LANG="en-GB"><SPAN STYLE="font-style: normal">As of CQPweb v3.0.0,
+only </SPAN><I>Custom Postprocesses</I> <SPAN STYLE="font-style: normal">are
+implemented. This document explains some general things about
+plugins, and some specific things about Custom Postprocesses.</SPAN></P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>How
+to write a plugin</B></FONT></FONT></P>
+<P LANG="en-GB"><SPAN STYLE="font-style: normal">A plugin takes the
+form of a PHP class that performs one or more defined tasks. For
+example, a </SPAN><I>Custom Postprocess</I> <SPAN STYLE="font-style: normal">plugin
+takes a defined CQP query and changes it (“postprocesses” it) in
+a certain way.</SPAN></P>
+<P LANG="en-GB"><SPAN STYLE="font-style: normal">Each time you create
+a plugin, you should place it in a single file which has the same
+name as the plugin itself. So, for instance, to create My_Plugin you
+should create the PHP file </SPAN><SPAN STYLE="font-style: normal"><B>My_Plugin.php</B></SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">.
+You should then put the plugin file into the </SPAN></SPAN><SPAN STYLE="font-style: normal"><B>plugins</B></SPAN>
+<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">subdirectory
+of the </SPAN></SPAN><SPAN STYLE="font-style: normal"><B>lib</B></SPAN>
+<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">directory.
+Like all CQPweb scripts, his file must be readable by the username
+your web server runs under.</SPAN></SPAN></P>
+<P LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">The
+file should contain nothing except the class that represents your
+plugin. Each type of plugin has a separate PHP </SPAN></SPAN><I><SPAN STYLE="font-weight: normal">interface</SPAN></I>
+<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">and
+your class must implement that interface to be recognised as a
+plugin. So the overall shape of the plugin file will be a bit like
+this:</SPAN></SPAN></P>
+<P LANG="en-GB" STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=1012 CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=1004>
+	<TR>
+		<TD WIDTH=1004 VALIGN=TOP STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>&lt;?php</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>class
+			My_Plugin implements Postprocessor</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>{</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>//
+			you will need to add the methods here... plus any private member
+			variables you want to use</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>}</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>?&gt;</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB" STYLE="border: none; padding: 0cm">There should be no
+whitespace before or after the <FONT FACE="Courier New"><FONT SIZE=2>&lt;?php</FONT></FONT>
+and <FONT FACE="Courier New"><FONT SIZE=2>?&gt;</FONT></FONT>
+delimiters. If there is, CQPweb may stop working.</P>
+<P LANG="en-GB" STYLE="border: none; padding: 0cm"><I>Implementing an
+interface</I> <SPAN STYLE="font-style: normal">in PHP, as in some
+other object-oriented systems, means that the class must have methods
+that meet certain defined signatures. These are explained below. If
+your plugin does not </SPAN>
+</P>
+<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">The
+interface that your class needs to implement depends on what type of
+plugin you are writing, as follows:</P>
+<TABLE WIDTH=928 CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=407>
+	<COL WIDTH=226>
+	<COL WIDTH=272>
+	<TR VALIGN=TOP>
+		<TD WIDTH=407 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Type
+			of plugin</B></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=226 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Interface
+			to implement</B></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=272 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Symbolic
+			constant</B></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=407 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Custom
+			postprocess</FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=226 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>Postprocessor</FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=272 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>PLUGIN_TYPE_POSTPROCESSOR</FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=407 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=CENTER STYLE="border: none; padding: 0cm; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><I>(others
+			to follow)</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=226 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+		<TD WIDTH=272 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=407 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+		<TD WIDTH=226 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+		<TD WIDTH=272 STYLE="; border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Declaring
+a plugin</B></FONT></FONT></P>
+<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">Once
+you have added your plugin file to the correct place on the system,
+you must <I>declare</I> it in your configuration file
+(<B>lib/config.inc.php</B>), so that CQPweb knows it should activate
+this plugin where necessary.</P>
+<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">Declarations
+take the following form:</P>
+<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal"><FONT FACE="Courier New, monospace">declare_plugin('My_Plugin',
+PLUGIN_TYPE_POSTPROCESSOR, '/path/to/config/file');</FONT></P>
+<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">This
+is a function call with three arguments. The first is the name of the
+class you have chosen. The second is the symbolic constant for the
+type of plugin it is (see table in previous section). 
+</P>
+<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">The
+third argument is optional. It is a path to a plugin-specific
+configuration file. If the third argument is given, this path will be
+passed to the plugin object when it is created (and you then handle
+it however you like). See discussion of the <FONT FACE="Courier New, monospace">__construct()</FONT>
+method below. The idea is to allow the same plugin file to be used on
+different machines without modification, with the differences
+abstracted into configuration variables which can be stored
+separately. The predefined plugins, which are intended to be use don
+many systems, use this approach. Of course, if you do specify a
+configuration file, you need ot make sure that that file actually
+exists and is readable!</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Choosing
+a name for a plugin</B></FONT></FONT></P>
+<P LANG="en-GB"><SPAN LANG="en-GB">All plugin names must be legal PHP
+class names (see <A HREF="http://php.net/class">http://php.net/class</A>).
+They share a namespace with the internal CQPweb classes, so try to
+make sure you don't clash (PHP will crash if you do). To be safe,
+always prefix your plugin classes with a unique element (e.g. your
+name). Also, class names beginning with </SPAN><SPAN LANG="en-GB"><B>My_</B></SPAN><SPAN LANG="en-GB">
+are guaranteed to be safe.</SPAN></P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>What
+each type of plugin does</B></FONT></FONT></P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB">A <I><B>Custom Postprocess</B></I> allows you to
+	define an additional way in which a query can be postprocessed.</P>
+</UL>
+<P LANG="en-GB">The built-in postprocesses in CQPweb are things like
+the Randomise, Sort, and Thin functions. Producing a reduced set of
+hits by clicking on a specific item in the Distribution, Frequency
+Breakdown or Collocation Displays, also counts as a postprocess, as
+does splitting up a Categorised Query. The header bar of the
+concordane display always keeps a record of all the postprocesses
+that have run on a query since it was originally produced by a
+from-scratch search.</P>
+<P LANG="en-GB">When you add a Custom Postprocess, it will appear on
+the dropdown menu in the Concordance display just like the built-in
+options. It can then be applied to any query. It is up to you to
+write the internals of the Custom Postprocess so that it makes sense!</P>
+<P LANG="en-GB"><FONT COLOR="#0000ff">[The other types of plugin will
+be added here once they have been finalised.]</FONT></P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Implementing
+plugin methods</B></FONT></FONT></P>
+<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">This
+section describes each of the methods that you must implement to
+fulfil the demands of the interface for each type of plugin. You can,
+of course, have other methods if you want, but nothing outside the
+plugin will call them.</P>
+<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">It is
+quite possible, and indeed expected, that in many cases the major
+work of the plugin will be don eoutside PHP – for example, by a
+command-line utility or by a Perl or Python script. In which case,
+the PHP methods will be a thin wrapper round a call to an external
+system. CQPweb does not care about this, as long as it can use the
+methods in the interfaces to get the information it needs!</P>
+<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">Note
+the documentation here is largely derived from that in
+lib/plugins.inc.php. If the comments there are different from what
+you find here, then they should be considered definitive as they may
+be more recently updated ro more extensive.</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=3 STYLE="font-size: 13pt"><I><B>Methods
+required by every type of plugin</B></I></FONT></FONT></P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">public
+	function __construct($config_file = '')</FONT></P>
+</UL>
+<P LANG="en-GB">This method initialises the plugin. If a
+configuration file was declared for the plugin, its path will be
+passed into the object here – so you will need to catch this
+variable and do something with it if you want to access that path.</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=3 STYLE="font-size: 13pt"><I><B>Methods
+required by Custom Postprocess plugins</B></I></FONT></FONT></P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">public
+	function postprocess_query($query_array) </FONT>
+	</P>
+</UL>
+<P LANG="en-GB">This is the method that actually does the
+postprocessing – it takes a CQP query, and does something with it,
+and then returns the altered query.</P>
+<P LANG="en-GB">The parameter is an array of arrays. Each inner array
+contains the four numbers that result from &quot;dumping&quot; a CQP
+query. See the CQP documentation for more info on this. Basically
+each match is represented by two, three or four numbers: 
+</P>
+<P LANG="en-GB"><FONT FACE="Courier New, monospace">match, matchend,
+[target, [keyword]]. </FONT>
+</P>
+<P LANG="en-GB">The outer array will have sequential integer indexes
+beginning at 0. 
+</P>
+<P LANG="en-GB">The return value should be the same array, but edited
+as necessary - for example, entries removed, or expanded, or results
+added... as appropriate to the purpose of the custom postprocess. 
+</P>
+<P LANG="en-GB">The inner arrays can contain integers or
+integers-as-strings (both will be OK as a result of PHP's automatic
+type juggling). All inner arrays must be of the same length (i.e. you
+do not have to supply <B>target</B> and <B>keyword</B> if you don't
+want to, but if you do, every match must have them). The indexes in
+the inner arrays are not important, only the <I>order</I> of the
+elements; but the outer array will be re-sorted, so order in that
+does not matter.</P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">public
+	function get_label() </FONT>
+	</P>
+</UL>
+<P LANG="en-GB">This method needs to return a string to be used as
+the menu label to invoke this postprocess. 
+</P>
+<P LANG="en-GB">Postprocesses are invoked from the dropdown on the
+concordance screen. So, custom postprocesses must tell CQPweb what
+they want their label on that dropdown to be. (The corresponding
+value for the HTML form will always be just Custom_ + the classname.)
+This function should return either a string, or any empty value if
+this postprocess is not to be displayed in the dropdown menu. 
+</P>
+<P LANG="en-GB">The string may not be identical to any of the options
+present on the built-in dropdown menu. (Nothing in particular would
+go wrong if they were - it would just be extremely confusing.)</P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace">public
+	function get_postprocess_description()</FONT></P>
+</UL>
+<P LANG="en-GB">This method needs to return a string to be used in
+header descriptions in the CQPweb visual interface. 
+</P>
+<P LANG="en-GB">This is best phrased as a past participial clause.
+For example, &quot;manipulated by the Jones system&quot;, or &quot;reduced
+in an arbitrary way&quot;, or something else. It should be compatible
+with the description returned by <FONT FACE="Courier New, monospace">-&gt;get_label()</FONT>,
+as both are shown to the user. 
+</P>
+<P LANG="en-GB">Note that this function will often be called on a
+<I>separate</I> instance of the object to the one that does the
+actual postprocessing. So, you cannot include particulars about a
+specific run of the postprocessor. It can only be a generic
+description. 
+</P>
+<P LANG="en-GB">If the empty string '' is returned, then this
+postprocess will not be mentioned in the header interface -- but the
+reduced number of hits will still be shown (it has to be, to make
+sense). So on balance, it's better to say something!</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Accessing
+other information from CQPweb</B></FONT></FONT></P>
+<P LANG="en-GB">When you write a plugin, the whole of CQPweb's
+internal function library is theoretically available for you to call.
+However, unless you really know what you are doing, it is not
+recommended to just start calling functions all over the place.
+Something may go wrong. 
+</P>
+<P LANG="en-GB">That said, there are clearly bits of information that
+you might need inside a plugin that are not provided via the methods'
+parameters. For instance, in a Custom Postprocess where you need ot
+keep or reject each concordance hit, it would be nice if you could
+find out what each concordance hit actually contains! You could do
+this by accessing CQPweb's interaction layer with the CQP back-end
+for yourself, but that's prone to all those problems I was just
+talking about.</P>
+<P LANG="en-GB">So CQPweb provides a set of helper functions that you
+can call to access other bits of info in such a way that it's
+“guaranteed” not to mess things up (barring bugs we don't know
+about yet). There are currently three such functions (not tested as
+of v3.0.0), all designe dot be of use in writing Custom
+Postprocesses. Their function prototypes and internal documentation
+are provided below.</P>
+<P LANG="en-GB" STYLE="margin-bottom: 0cm"><FONT COLOR="#3f5fbf"><FONT FACE="Courier New, monospace"><FONT SIZE=2>/**</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">Gets</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">a</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">full</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">concordance</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">from</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">a</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">set</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">of</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">matches.</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT></FONT></FONT>
+</P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">The</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">concordance</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">is</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">returned</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">as</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">an</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">array</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">of</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">arrays.</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">The</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">outer</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">array</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">contains</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">as</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">many</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">members</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">as</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">$matches</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">argument,</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">in</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">corresponding</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">order.</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">Each</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">inner</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">array</FONT><FONT COLOR="#1a1a1a">
+</FONT></FONT></FONT>
+</P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">represents</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">one</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">hit,</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">and</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">corresponds</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">to</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">a</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">single</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">group</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">of</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">two</FONT><FONT COLOR="#7f7f9f">-</FONT><FONT COLOR="#3f5fbf">to</FONT><FONT COLOR="#7f7f9f">-</FONT><FONT COLOR="#3f5fbf">four</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">integers.</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">Moreover,</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">each</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">inner</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">array</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">contains</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">three</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">members</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">(all</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">strings):</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">context</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">before,</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">context</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">after,</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">and</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">hit</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">itself.</FONT><FONT COLOR="#1a1a1a"> </FONT></FONT></FONT>
+</P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#3f5fbf"><FONT FACE="Courier New, monospace"><FONT SIZE=2>*</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">The</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">$matches</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">array</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">is</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">an</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">array</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">of</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">arrays</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">of</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">integers</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">or</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">integers</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">as</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">strings,</FONT><FONT COLOR="#1a1a1a">
+</FONT></FONT></FONT>
+</P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">in</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">same</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">format</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">used</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">to</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">convey</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">a</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">query</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">to</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">a</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">custom</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">postprocess.</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#3f5fbf"><FONT FACE="Courier New, monospace"><FONT SIZE=2>*</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">You</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">can</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">specify</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">what</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">p</FONT><FONT COLOR="#7f7f9f">-</FONT><FONT COLOR="#3f5fbf">attributes</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">and</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">s</FONT><FONT COLOR="#7f7f9f">-</FONT><FONT COLOR="#3f5fbf">attributes</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">you</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">wish</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">to</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">be</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">displayed</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">in</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">the</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">concordance.</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">The</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">default</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">is</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">to</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">show</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">words</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">only,</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">and</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">no</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">XML.</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">Use</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">an</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">array</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">of</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">strings</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">to</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">specify</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">attributes</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">you</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">want</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">shown</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">in</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">each</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">case.</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT></FONT></FONT>
+</P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">You</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">can</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">also</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">specify</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">how</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">much</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">context</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">is</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">to</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">be</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">shown,</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">and</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">unit</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">it</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">should</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">be</FONT><FONT COLOR="#1a1a1a"> </FONT></FONT></FONT>
+</P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">measured</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">in.</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">The</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">default</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">is</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">ten</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">words.</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT></FONT></FONT>
+</P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">Individual</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">tokens</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">in</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">concordance</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">are</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">rendered</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">using</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">slashes</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">to</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">delimit</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">the</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">different</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">annotations.</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#3f5fbf"><FONT FACE="Courier New, monospace"><FONT SIZE=2>*/</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#000000"><B>function</B></FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#0000ff">pphelper_get_concordance</FONT><FONT COLOR="#000000">(</FONT><FONT COLOR="#ff0000">$matches</FONT><FONT COLOR="#000000">,</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#ff0000">$p_atts_to_show</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#000000">=</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#32785a">'word'</FONT><FONT COLOR="#000000">,</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#ff0000">$s_atts_to_show</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#000000">=</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#32785a">''</FONT><FONT COLOR="#000000">,</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#ff0000">$context_n</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#000000">=</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#0000ff">10</FONT><FONT COLOR="#000000">,</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#ff0000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>$context_units</FONT></FONT></FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>=</FONT></FONT></FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#32785a"><FONT FACE="Courier New, monospace"><FONT SIZE=2>'words'</FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>);</FONT></FONT></FONT></P>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB" STYLE="margin-bottom: 0cm"><FONT COLOR="#3f5fbf"><FONT FACE="Courier New, monospace"><FONT SIZE=2>/**</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">Determines</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">whether</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">or</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">not</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">specified</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">corpus</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">position</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">(integer</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">index)</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">occurs</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">within</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">an</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">instance</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">of</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">specified</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">structural</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">attribute</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">(XML</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">element).</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT></FONT></FONT>
+</P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">Returns</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">a</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">boolean</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">(true</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">or</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">false,</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">or</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">NULL</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">in</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">case</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">of</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">error).</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#3f5fbf"><FONT FACE="Courier New, monospace"><FONT SIZE=2>*/</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B>function</B></FONT></FONT></FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#0000ff"><FONT FACE="Courier New, monospace"><FONT SIZE=2>pphelper_cpos_within_structure</FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>(</FONT></FONT></FONT><FONT COLOR="#ff0000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>$cpos</FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>,</FONT></FONT></FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#ff0000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>$struc_attribute</FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>);</FONT></FONT></FONT></P>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB" STYLE="margin-bottom: 0cm"><FONT COLOR="#3f5fbf"><FONT FACE="Courier New, monospace"><FONT SIZE=2>/**</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">Gets</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">value</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">of</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">a</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">given</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">positional</FONT><FONT COLOR="#7f7f9f">-</FONT><FONT COLOR="#3f5fbf">attribute</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">(word</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">annotation)</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">at</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">a</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">given</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">token</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">position</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">in</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">the</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">active</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">corpus.</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT></FONT></FONT>
+</P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT COLOR="#3f5fbf">*</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">Returns</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">a</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">single</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">string,</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">or</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">false</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">in</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">case</FONT><FONT COLOR="#1a1a1a"> </FONT><FONT COLOR="#3f5fbf">of</FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#3f5fbf">error.</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#3f5fbf"><FONT FACE="Courier New, monospace"><FONT SIZE=2>*/</FONT></FONT></FONT></P>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B>function</B></FONT></FONT></FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#0000ff"><FONT FACE="Courier New, monospace"><FONT SIZE=2>pphelper_cpos_get_attribute</FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>(</FONT></FONT></FONT><FONT COLOR="#ff0000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>$cpos</FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>,</FONT></FONT></FONT><FONT COLOR="#1a1a1a">
+</FONT><FONT COLOR="#ff0000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>$attribute</FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2>)</FONT></FONT></FONT><FONT COLOR="#1a1a1a"><FONT FACE="Courier New, monospace"><FONT SIZE=2>;</FONT></FONT></FONT></P>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Pre-defined
+plugins</B></FONT></FONT></P>
+<P LANG="en-GB">There are a few plugins that have been made part of
+the CQPweb distribution. These are ones that we anticipate being
+generally useful, either as examples for writing your own, or in and
+of themselves. These files can be found in the usual place; they are
+not active by default, so if you want to use them you must declare
+them. In general, the code files contain enough documentation to
+explain what they do.</P>
+<P LANG="en-GB">But beware! These files may be under development (or
+may relate to types of plugin whose integration into CQPweb is not
+yet complete).</P>
+<P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Some
+example plugins</B></FONT></FONT></P>
+<P LANG="en-GB">The examples in this section are designed to show you
+how to write a plugin. They are not necessarily very good plugins.
+The first, <B>SillyPostprocess.php</B>, is an example of a custom
+postprocess.</P>
+<P LANG="en-GB"><BR><BR>
+</P>
+<TABLE WIDTH=1012 CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=1004>
+	<TR>
+		<TD WIDTH=1004 VALIGN=TOP STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>&lt;?php</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2></FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>/**</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			 <FONT FACE="Courier New"><FONT SIZE=2>* This postprocess deletes
+			every third example from the query.</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			 <FONT FACE="Courier New"><FONT SIZE=2>*</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			 <FONT FACE="Courier New"><FONT SIZE=2>* Of course, you are not
+			expected to actually want to do this. </FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			 <FONT FACE="Courier New"><FONT SIZE=2>* It is just to demonstrate
+			what a custom postprocess looks like.</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			 <FONT FACE="Courier New"><FONT SIZE=2>*/</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>class SillyPostprocess
+			implements Postprocessor</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>{</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	/* member variables */</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	private $config_data;</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2></FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	/* methods */</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	public function
+			__construct($path = '')</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	{</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>		/* stash the contents of
+			the config file in a private variable</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>		 * for use later,
+			presumably (?) */</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>		if (is_file($path))</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>			$this-&gt;config_data  =
+			file_get_contents($path);</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	}</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	public function
+			postprocess_query($query_array)</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	{</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>		$n = count($query_array);</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>		for ($i = 0 ; $i &lt; $n;
+			$i++)</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>		{</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>			if (0 == $i % 3)</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>				unset($query_array[$i]);</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>		}</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>		return $query_array;</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	}</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	public function
+			get_label()</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	{</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>		return &quot;Apply
+			silliness!&quot;;</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	}</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	public function
+			get_postprocess_description()</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	{</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>		return &quot;amended in a
+			silly way&quot;;</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>	}</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2>}</FONT></FONT></P>
+			<P LANG="en-GB" STYLE="margin-bottom: 0cm; border: none; padding: 0cm">
+			<FONT FACE="Courier New"><FONT SIZE=2></FONT></FONT></P>
+			<P LANG="en-GB" STYLE="border: none; padding: 0cm"><FONT FACE="Courier New"><FONT SIZE=2>?&gt;</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB"><BR><BR>
+</P>
+<P LANG="en-GB"><BR><BR>
+</P>
+<HR>
+<P LANG="en-GB"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
+v3.0.0 © 2008-today – documentation by Andrew Hardie,
+<A HREF="mailto:andrewhardie@user.ssourceforge.net">andrewhardie@users.sourceforge.net</A>
+</SPAN></SPAN></SPAN></FONT></FONT></FONT>
+</P>
+</BODY>
+</HTML>

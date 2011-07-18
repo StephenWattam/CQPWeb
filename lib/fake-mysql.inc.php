@@ -45,7 +45,6 @@
  */
 
 
-//TODO write functions
 
 /* functions for the mysql_link object/resource */
 

@@ -44,12 +44,24 @@ function get_xml_all()
 	global $cwb_registry;
 	global $corpus_cqp_name;
 	
+	// TODO make this function cache its return value in a static var, 
+	// so that we can reduce the number of file accesses.
+	
 	// TODO note use of strtolower is almost certainly THE WRONG THING
 	$data = file_get_contents("/$cwb_registry/" . strtolower($corpus_cqp_name));
 	
 	preg_match_all("/STRUCTURE\s+(\w+)\s*[#\n]/", $data, $m, PREG_PATTERN_ORDER);
 
 	return $m[1];
+}
+
+/**
+ * Checks whether or not the specified s-attribute exists in this corpus.
+ * (A convenience wrapper around get_xml_all().)
+ */
+function xml_exists($element)
+{
+	return in_array($element, get_xml_all());
 }
 
 /**

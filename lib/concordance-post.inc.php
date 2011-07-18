@@ -47,6 +47,7 @@
 	unrand  ... usually (but not always) a pseudo-value, it really means take out rand
 	cat		... a particular "categorisation" has been applied
 	item	... a particular item was selected on the "frequency distribution" page aka "item thinning"
+	custom  ... a custom postprocess was run, doing "something".
 	
 	
 	Some of these have parameters. These are in the format:
@@ -94,7 +95,9 @@
 	item[form~tag]
 		EITHER of these can be an empty string.
 		
-		
+	custom[class]
+		The name of the class that did the postprocessing is stored here. The class will be queried for
+		a description!
 	
 	Postprocesses are listed in the order they were applied.
 	
@@ -111,14 +114,14 @@ class POSTPROCESS {
 	/* all variables are public for backward compatability -- this was originally a PHP4 object */
 	/* but many SHOULD be private */
 	
-	/* this variable contains one of the 4-letter abbreviations of the different postprocess types */
+	/* this variable contains one of the lowercase abbreviations of the different postprocess types */
 	private $postprocess_type;
 	
 	/* boolean: true if the $_GET was parsed OK, false if not */
 	private $i_parsed_ok;
 	
-	/* this stops the function "add to postprocess string" running more than once */
-	/* unless its "override" is true */
+	/* this stops the function "add to postprocess string" running more than once,
+	 * unless its "override" is true */
 	public $stored_postprocess_string;
 	
 	public $run_function_name;
@@ -158,6 +161,8 @@ class POSTPROCESS {
 	/* variables for text-distribution-thinning */
 	public $text_target_id;
 	
+	/* variables for custom postprocesses */
+	public $custom_class;
 	
 	/** 
 	 * string - name of the function to use when the postprocess is being run.
@@ -171,7 +176,8 @@ class POSTPROCESS {
 		'sort' => 'run_postprocess_sort',
 		'item' => 'run_postprocess_item',
 		'dist' => 'run_postprocess_dist',
-		'text' => 'run_postprocess_text'
+		'text' => 'run_postprocess_text',
+		'custom' => 'run_postprocess_custom'
 		);
 	
 	
@@ -333,6 +339,17 @@ class POSTPROCESS {
 			break;
 		
 		default:
+			/* it might be a custom postprocess */
+			if (substr($_GET['newPostP'], 0, 11) == 'CustomPost:')
+			{
+				$this->custom_class = preg_replace('/\W/', '', substr($_GET['newPostP'], 11));
+				$this->postprocess_type = 'custom';
+				$record = retrieve_plugin_info($this->custom_class);
+				$this->custom_obj = new $this->custom_class($record->path);
+				break;
+			}
+
+			/* no, it's not a custom process - it's just a bd value. */
 			$this->i_parsed_ok = false;
 			break;
 		}
@@ -392,7 +409,6 @@ class POSTPROCESS {
 		
 		/* case sort : remove the immediately previous postprocess if it is '(un)rand' or a sort */
 		case 'sort':
-
 			if ($string_to_work_on == 'rand' || substr($string_to_work_on, -6) == '~~rand')
 			{
 				$string_to_work_on = substr($string_to_work_on, 0, -6);
@@ -425,6 +441,10 @@ class POSTPROCESS {
 		
 		case 'text':
 			$string_to_work_on .= "~~text[$this->text_target_id]";
+			break;
+		
+		case 'custom':
+			$string_to_work_on .= "~~custom[$this->custom_class]";
 			break;
 		
 		default:
@@ -469,7 +489,7 @@ class POSTPROCESS {
 			WHERE {$this->colloc_att} = '{$this->colloc_target}'
 			"  . $this->colloc_tag_filter_clause() . "
 			AND dist BETWEEN {$this->colloc_dist_from} AND {$this->colloc_dist_to}";
-			//TODO: does this need an order by like dist does, to make sure resutls are in corpus order?
+			//TODO: does this need an order by like dist does, to make sure results are in corpus order?
 	}
 	
 	function colloc_tag_filter_clause()
@@ -522,8 +542,12 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 
 	function colloc_sql_capable()
 	{
-		return ( isset($this->colloc_db, $this->colloc_dist_from, 
-			$this->colloc_dist_to, $this->colloc_att, $this->colloc_target) );
+		return ( isset(	$this->colloc_db, 
+						$this->colloc_dist_from, 
+						$this->colloc_dist_to, 
+						$this->colloc_att, 
+						$this->colloc_target
+					) );
 	}
 	
 	
@@ -555,7 +579,7 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 			touch_db($db_record['dbname']);
 			$this->sort_db = $db_record['dbname'];
 		}
-			
+		
 	}
 
 	/* the "orig" query record is needed to be passed to sort_set_dbname */
@@ -1202,6 +1226,45 @@ function run_postprocess_text($cache_record, &$descriptor)
 
 
 
+
+
+function run_postprocess_custom($cache_record, &$descriptor)
+{
+	global $instance_name;
+	global $cqp;
+	global $username;
+	global $cqpweb_tempdir;
+
+	$old_qname = $cache_record['query_name'];	
+
+	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
+	$cache_record['user'] = $username;
+	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
+
+	/* actually run it */
+
+	/* the heart of it: dump, process, undump */	
+	$matches = $cqp->dump($old_qname);
+	$matches = $descriptor->custom_obj->postprocess_query($matches);
+	$cqp->undump($new_qname, $matches, "/$cqpweb_tempdir");
+	$cqp->execute("save $new_qname");
+
+	/* get the size of the new query */
+	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . count($matches) ;
+	$cache_record['file_size'] = cqp_file_sizeof($new_qname);
+
+	// TODO note, the two calls below are ACHING to be made into a function -- cache_query_from_record, maybe
+	// TODO -- check what the diff is from the existing "cache a query" .... 
+	
+	/* put this newly-created query in the cache */
+	do_mysql_query("insert into saved_queries (query_name) values ('$new_qname')");
+
+	update_cached_query($cache_record);
+
+	return $cache_record;
+}
+
+
 /*
 ////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 /// very important note -- this won't work as well as bncWeb in the (sole) case where randomisation is applied *after* collocation thinning
@@ -1260,6 +1323,7 @@ function get_highlight_position_table($qname, $postprocess_string, &$show_tags_i
 		return $highlight_positions;
 		
 	case 'rand':
+//TODO
 // take the rand off
 // is what's left a coll?
 // if not, return false
@@ -1268,6 +1332,7 @@ function get_highlight_position_table($qname, $postprocess_string, &$show_tags_i
 		break;
 
 	case 'unrand':
+//TODO
 // take the unrand off
 // is what's left a coll?
 // if not, return false
@@ -1283,9 +1348,13 @@ function get_highlight_position_table($qname, $postprocess_string, &$show_tags_i
 		$sql_query_from_coll = true;
 		break;
 	
-	/* case dist, case thin, (or...) an additional rand, a syntax error, or anything else */	
+	/* case dist, case thin, case custom, (or...) an additional rand, a syntax error, or anything else */	
 	default:
 		return false;
+	/* note that arguably, "custom" should be possible to do... e.g. by using the "keyword" field as an indication of what
+	 * should be highlit.
+	 *  
+	 * But this can be added later, if necessary. */
 	}
 
 	/* this is out here in an IF so that three different cases can access it */
@@ -1450,7 +1519,17 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 			$description .= '(' . make_thousands($hit_array[$i]) . ' hits)';
 			$i++;
 			break;
-			
+		
+		case 'custom':
+			$record = retrieve_plugin_info($args[0]);
+			$obj = new $record->class($record->path);
+			/* custom PP descs are allowd to be empty, in which case, we just add the
+			 * new number of hits. */
+			$description .= $obj->get_postprocess_description()
+				. " $bdo_tag1("	. make_thousands($hit_array[$i]) . ' hits)'. $bdo_tag2;
+			$i++;
+			unset($obj);
+			break;
 			
 		default:
 			/* malformed postprocess string; so add an error to the return */
@@ -1463,6 +1542,161 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 }
 
 
+
+// TODO this function not tested yet.
+/*
+ * 
+ * Postprocess helper functions.
+ * 
+ * For use by custom postprocessors, to allow them to find out something 
+ * about the data they are acting on.
+ * 
+ * 
+ */ 
+/**
+ * Gets the value of a given positional-attribute (word annotation)
+ * at a given token position in the active corpus.
+ * 
+ * Returns a single string, or false in case of error.
+ */
+function pphelper_cpos_get_attribute($cpos, $attribute) 
+{
+	/* typecast in case anyone is foolish enough to pass a float... */
+	$num_of_token = (int)$cpos;
+	if ($num_of_token < 0)
+		exiterror_general("pphelper_cpos_within_structure: invalid corpus index [$cpos]");
+
+	/* work out whether cpos is within an instance of the structure */
+	$cmd = "/$path_to_cwb/cwb-decode -C -s $num_of_token -e $num_of_token -r /$cwb_registry  $corpus_cqp_name -P $attribute";
+	$proc = popen($cmd, 'r');
+	$value = fgets($proc);
+	pclose($proc);
+	
+	if (empty($value))
+		return false;
+	else
+		return trim($value);
+}
+
+
+//TODO this function not tested yet.
+/**
+ * Gets a full concordance from a set of matches.
+ * 
+ * The concordance is returned as an array of arrays. The outer array contains
+ * as many members as the $matches argument, in corresponding order. Each inner array 
+ * represents one hit, and corresponds to a single group of two-to-four integers.
+ * Moreover, each inner array contains three members (all strings): the context
+ * before, the context after, and the hit itself. 
+ *
+ * The $matches array is an array of arrays of integers or integers as strings, 
+ * in the same format used to convey a query to a custom postprocess.
+ *
+ * You can specify what p-attributes and s-attributes you wish to be displayed in the
+ * concordance. The default is to show words only, and no XML. Use an array of strings
+ * to specify the attributes you want shown in each case.
+ * 
+ * You can also specify how much context is to be shown, and the unit it should be 
+ * measured in. The default is ten words.
+ * 
+ * Individual tokens in the concordance are rendered using slashes to delimit the
+ * different annotations.
+ */
+function pphelper_get_concordance($matches,
+                                  $p_atts_to_show = 'word',
+                                  $s_atts_to_show = '',
+                                  $context_n = 10,
+                                  $context_units = 'words')
+{
+	global $cqp;
+	global $cqpweb_tempdir;
+	global $instance_name;
+	
+	/* don't allow an empty array */
+	if (empty($p_atts_to_show))
+	
+	/* for the default, but also in case someone passes a single argument. */
+	if (!is_array($p_atts_to_show))
+		$p_atts_to_show = array ($p_atts_to_show);
+
+	if ( $context_units != 'words' && !xml_exists($context_units) )
+		$context_units = 'words';
+
+	/* get a new identifier by suffixing the instance name */
+	$temp_qname = $instance_name . 'pph';
+
+	/* undump matches to that uniqid */
+	$cqp->undump($temp_qname, $matches, "/$cqpweb_tempdir/");
+	unset($matches);
+
+	/* Set up CQP cponcordance output stuff:
+	 * The main script will not have set up its options at this point!
+	 * so we can do what we like, and it will be re-done
+	 */
+	$cqp->execute("set Context $context_n $context_units");
+	$cqp->execute("show +" . implode (' +', $p_atts_to_show));
+	if (!empty($s_atts_to_show))
+		$cqp->execute("set PrintStructures \"" . implode(' ', $s_atts_to_show) . "\""); 
+	$cqp->execute("set LeftKWICDelim '--%%%--'");
+	$cqp->execute("set RightKWICDelim '--%%%--'");
+
+	/* cat concordance */
+	$kwic = $cqp->execute("cat $qname");
+
+	/* extract lines to arrays. */
+	$result = array();
+	foreach ($kwic as &$line)
+	{
+		$result[] = explode ('--%%%--', $line);
+		unset($line);
+		/* so that as one array grows, the other shrinks. */
+	}
+	
+	/* delete the query in CQP 
+	 * (it shouldn't have been saved to file, so just get it out of memory....) */
+	$cqp->execute("discard $temp_qname");
+
+	return $result;
+}
+
+
+// TODO this function not tested yet.
+/**
+ * Determines whether or not the specified corpus position (integer index) occurs
+ * within an instance of the specified structural attribute (XML element).
+ * 
+ * Returns a boolean (true or false, or NULL in case of error).
+ */
+function pphelper_cpos_within_structure($cpos, $struc_attribute)
+{
+	global $corpus_cqp_name;
+	
+	/* typecast in case anyone is foolish enough to pass a float... */
+	$num_of_token = (int)$cpos;
+	if ($num_of_token < 0)
+		exiterror_general("pphelper_cpos_within_structure: invalid corpus index [$cpos]");
+	
+	/* Is $struc_attribute a valid s-att for this corpus? */
+	if (! in_array($struc_attribute, get_xml_all()) )
+		exiterror_general("pphelper_cpos_within_structure: invalid s-attribute index [$struc_attribute]");
+	
+	/* work out whether cpos is within an instance of the structure */
+	$cmd = "/$path_to_cwb/cwb-s-decode -r /$cwb_registry $corpus_cqp_name -S $struc_attribute";
+	$proc = popen($cmd, 'r');
+	$within = false;
+	while ( false !== ($line = fgets($proc)) )
+	{
+		list($begin, $end) = explode ("\t", trim($line));
+		if ($begin <= $cpos && $cpos <= $end)
+		{
+			$within = true;
+			break;
+		}
+	}
+	pclose($proc);
+
+	return $within;
+}
 
 
 

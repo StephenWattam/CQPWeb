@@ -233,8 +233,6 @@ function process_simple_query($query, $case_sensitive)
 	global $restrictions;
 	global $subcorpus;
 	
-	global $path_to_perl;
-	global $cwb_extra_perl_directories;
 	
 	/* return as is if nothing but whitespace */
 	if (preg_match('/^\s*$/', $query) > 0)
@@ -245,22 +243,10 @@ function process_simple_query($query, $case_sensitive)
 	$script = get_ceql_script_for_perl($query, $case_sensitive);
 
 
-	$cqp_query = '';
-	$ceql_errors = array();
-		
-	$io_settings = array(
-		0 => array("pipe", "r"), // stdin 
-		1 => array("pipe", "w"), // stdout 
-		2 => array("pipe", "w")  // stderr 
-	); 
-	
-	$cmd = "/$path_to_perl/perl";
-	foreach($cwb_extra_perl_directories as $d)
-		$cmd .= " -I \"/$d\"";
-	
+	/*
+	// farmed out to separate function.
 	if (is_resource($process = proc_open($cmd, $io_settings, $handles))) 
 	{
-		/* write the script to perl's stdin */
 		fwrite($handles[0], $script);
 		fclose($handles[0]);
 
@@ -278,10 +264,13 @@ function process_simple_query($query, $case_sensitive)
 	}
 	else
 		exiterror_cqp_full(array("The CEQL parser could not be run (problem with perl)!"));
+	*/
+	
+	if ( ! run_perl_script($script, $cqp_query, $ceql_errors))
+		exiterror_cqp_full(array("The CEQL parser could not be run (problem with perl)!"));
 
 
-
-	if ( ! isset($cqp_query) || $cqp_query == "")
+	if ( empty($cqp_query) )
 	{
 		/* if conversion fails, add to history & then add syntax error code */
 		/* and then call an error -- script terminates */
@@ -301,8 +290,57 @@ function process_simple_query($query, $case_sensitive)
 }
 
 
+/**
+ * Runs the specified perl script (by piping to STDIN); collects Perl's
+ * STDOUT (and, if STDOUT is empty, STDERR) and places it at the referenced arguments.
+ *
+ * Note that $ouptput will always be overwritten by a single string, possibly
+ * empty. Iff $output is empty, $errors wil be overwritten by an array of lines
+ * from STDERR.
+ *
+ * $script is actually a script, not a path to a script on disk!
+ *
+ * Maximum output length is currently 10240 bytes.
+ */
+function run_perl_script($script, &$output, &$errors)
+{
+	global $path_to_perl;
+	global $cwb_extra_perl_directories;
 
+	$io_settings = array(
+		0 => array("pipe", "r"), // stdin 
+		1 => array("pipe", "w"), // stdout 
+		2 => array("pipe", "w")  // stderr 
+	); 
+	
+	$cmd = "/$path_to_perl/perl";
+	foreach($cwb_extra_perl_directories as $d)
+		$cmd .= " -I \"/$d\"";
+	
+	if (is_resource($process = proc_open($cmd, $io_settings, $handles))) 
+	{
+		/* write the script to perl's stdin */
+		fwrite($handles[0], $script);
+		fclose($handles[0]);
 
+		/* read output */
+		if (stream_select($r=array($handles[1]), $w=NULL, $e=NULL, 10) > 0 )
+			$output = fread($handles[1], 10240);
+		// TODO, possibly : should it check STDERR even when we have got output?
+		if (empty($output))
+		{
+			if (stream_select($r=array($handles[2]), $w=NULL, $e=NULL, 10) > 0 )
+				$errors = explode("\n", fread($handles[2], 10240));
+		}
+
+		fclose($handles[1]);
+		fclose($handles[2]);
+		proc_close($process);
+		return true;
+	}
+	else
+		return false;
+}
 
 
 

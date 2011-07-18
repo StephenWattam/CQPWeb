@@ -132,7 +132,7 @@ function exiterror_endpage($backlink = false)
 /**
  * Function internal to exiterror module.
  * 
- * Add s aascript/line location to a specified array of error messages.
+ * Adds a script/line location to a specified array of error messages.
  */
 function exiterror_msg_location(&$array, $script=NULL, $line=NULL)
 {
@@ -260,7 +260,7 @@ function exiterror_parameter($errormessage, $script=NULL, $line=NULL)
 	exiterror_printlines($msg);
 	exiterror_endpage();
 }
-
+// TODO: begin, printlines($msg), end --> exiterror_finalise_page($msg);
 
 
 function exiterror_arguments($argument, $errormessage, $script=NULL, $line=NULL)

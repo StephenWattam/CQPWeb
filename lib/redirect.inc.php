@@ -41,6 +41,15 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 	$redirect_script_redirector = $_GET['redirect'];
 	unset ($_GET['redirect']);
 	
+	/* allow for custom plugins in concordance.php, whose redirect could be ANYTHING */
+	if (substr($redirect_script_redirector, 0, 11) == 'CustomPost:')
+	{
+		$custom_pp_parameter = $redirect_script_redirector;
+		$redirect_script_redirector = 'customPostprocess';
+	}
+	
+	
+	
 	switch($redirect_script_redirector)
 	{
 	
@@ -97,6 +106,12 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		
 	case 'saveHits':
 		require("../lib/savequery.inc.php");
+		break;
+
+	case 'customPostprocess':
+		$_GET['newPostP'] = $custom_pp_parameter;
+		unset($_GET['pageNo']);
+		require("../lib/concordance.inc.php");
 		break;
 
 
