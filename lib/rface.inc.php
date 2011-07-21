@@ -84,9 +84,6 @@ class RFace
 	/** function for handling lines as they are passed */
 	private $line_handler_callback = false;
 	
-	/* path directory separator character - use instead of literal '/' */
-	private $DIRSEP;
-	
 	
 	/* variables for error handling */
 	
@@ -97,49 +94,66 @@ class RFace
 	private $last_error_message;
 	
 	/** should the object exit the program on detection of an error? */
-	private $exit_on_error = false;
+	private $exit_on_error;
 	
 	/** if true, debug info will be printed to stdout */
 	private $debug_mode;
+
+	// TODO change from  stdout to  "a specified handle" (and stdout if none specified)
+	// andn then  pass the handle in, switch to stdout if not specified; use fputs not echo.
 	
 	
 	
-		
+	
+	
 	
 	
 	
 	
 	/* constructor */
-	function __construct($path_to_r = false, $debug = false)
+	function __construct($path_to_r = false, $debug = false, $debug_dest = STDOUT)
 	{
-		/* misc initialisation -- get this out of the way first */
-		$this->DIRSEP = (strtoupper(substr(php_uname('s'), 0, 3)) == 'WIN' ? '\\' : '/');
+		/* Constructor errors are critical, so let's turn on exit_on_error. */
+		$this->exit_on_error = true;
 
 		/* set debug mode for this object */
 		$this->debug_mode = (bool) $debug;
 
-		/* check that we know where the R program is... */
-		if ($path_to_r === false && $this->DIRSEP == '/')
+		if ($debug)
 		{
-			/* try to deduce the path using Unix "which" if available */
-			// TODO add check that "which" really is available.
-			// TODO add need for "which" to the setup manual. 
-			// TODO actually, this is pointless, non? if which can detext the R executable,
-			// then it is on the path anyway!
-			exec("which R", $exec_output);
-			if (is_executable($exec_output[0]))
-				$path_to_r = substr($exec_output[0], 0, -2);
+			if (($restype = get_resource_type($debug_dest)) == 'stream' || $restype == 'file')
+				$this->debug_dest = $debug_dest;
+			else
+				$this->error("RFace: ERROR: Stream specified for printing debug messages is not valid.\n");
 		}
-		if ( ! is_dir($path_to_r) )
-			exit("RFace: ERROR: directory $path_to_r for R executable not found.\n");
-		
+
+		/* check that we know where the R program is... */
+		if (empty($path_to_r))
+		{
+			/* detect whether or not R is on the path.... */
+			$found = false;
+			foreach(explode(PATH_SEPARATOR, $_ENV['PATH']) as $path)
+			{
+				// TODO: do I need a .exe here in Windows, or will it work regardless?
+				if (is_executable(rtrim($path, DIRECTORY_SEPARATOR) . '/R'))
+				{
+					$found = true;
+					break;
+				}
+			}
+			if ( ! $found)
+				$this->error("RFace: ERROR: no location supplied for R executable, and it is not in the PATH.\n");
+		}
+		else if ( ! is_dir($path_to_r = rtrim($path_to_r, DIRECTORY_SEPARATOR)) )
+			$this->error("RFace: ERROR: directory $path_to_r for R executable not found.\n");
+
 		/* array of settings for the three pipe-handles */
 		$io_settings = array(
 			0 => array("pipe", "r"), /* pipe allocated to child's stdin  */
 			1 => array("pipe", "w"), /* pipe allocated to child's stdout */
 			2 => array("pipe", "w")  /* pipe allocated to child's stderr */
 			);
-	
+		
 		$command = "$path_to_r/R --slave";
 		
 		$this->process = proc_open($command, $io_settings, $this->handle);
@@ -147,7 +161,10 @@ class RFace
 		if (! is_resource($this->process))
 			$this->error("RFace: ERROR: R backend startup failed; command: $command\n");
 		else if ($this->debug_mode)
-			echo "RFace: R backend successfully started up.\n";
+			$this->debug_alert("RFace: R backend successfully started up.\n");
+
+		/* finally, turn down the severity level of errors... */
+		$this->exit_on_error = false;
 	}
 	
 	
@@ -203,7 +220,7 @@ class RFace
 				$line_handler_callback = $this->line_handler_callback;
 		
 		/* execute can change the number of objects, so clear object-list cache */
-		$$this->object_list_cache = false;
+		$this->object_list_cache = false;
 		
 		if ( (!is_string($command)) || $command == "" )
 		{
@@ -215,7 +232,7 @@ class RFace
 		if ($this->debug_mode == true)
 			echo "RFace: R << $command;\n";
 
-		/* send the command to R's stdin */			
+		/* send the command to R's stdin */
 		fwrite($this->handle[0], $command);		// TODO do we need a \n here?
 		/* that executes the command */
 
@@ -263,7 +280,7 @@ class RFace
 	 * Specify a callback function to be used on lines as they are retrieved by ->execute().
 	 *
 	 * The callback can be anything that PHP will accept as callable.
-	 *  
+	 *
 	 * To use no line handler, pass false (or something else which typecasts to bool as false).
 	 */
 	public function set_line_handler($func)
@@ -311,7 +328,7 @@ class RFace
 	 */
 	public function set_exit_on_error($new_value)
 	{
-		$this->exit_on_error = (bool) $new_value;	
+		$this->exit_on_error = (bool) $new_value;
 	}
 	
 	
@@ -329,11 +346,16 @@ class RFace
 	 */
 	public function error_message()
 	{
-		return $this->last_error_message;	
+		return $this->last_error_message;
 	}
 	
 	/**
 	 * Raise an error from within the RFace.
+	 * 
+	 * When an error is raised, it will exit PHP if the "exit_on_error" variable
+	 * is set to true. Otherwise, the error is stored.
+	 * 
+	 * In non-fatal mode, errors will be sent to the debug output stream as well.
 	 * 
 	 * Method can optionally be passed a message and line number.
 	 */
@@ -347,8 +369,17 @@ class RFace
 		$this->ok = false;
 		if ($this->exit_on_error)
 			exit($this->last_error_message);
-		else if ($this->debug_mode)
-			echo $this->last_error_message;
+		else
+			$this->debug_alert($this->last_error_message);
+	}
+	
+	/**
+	 * Print a debug message, if debug output is enabled.
+	 */
+	private function debug_alert($msg)
+	{
+		if ($this->debug_mode)
+			fputs($this->debug_dest, $msg);
 	}
 	
 	
@@ -497,7 +528,7 @@ class RFace
 	 *                     'solo' -- for a one-element vector: returns it as a single variable,
 	 *                               not as an array, with the appropriate type. If this option is
 	 *                               used for a multi-element vector, you only get the first element.
-	 *                     //TODO others? 
+	 *                     //TODO others?
 	 * 
 	 * TODO Points to pointer. What if the object is a data frame, special object etc?
 	 */
@@ -640,7 +671,7 @@ class RFace
 	public function save_workspace($path)
 	{
 		if (is_dir($path))
-			$this->execute("save.image(file=\"$path{$this->DIRSEP}.RData\")");
+			$this->execute("save.image(file=\"$path/.RData\")");
 		else 
 			$this->execute("save.image(file=\"$path\")");
 	}
@@ -657,10 +688,10 @@ class RFace
 	{
 		if (is_dir($path))
 		{
-			if (is_file("$path{$this->DIRSEP}.RData"))
-				$this->execute("load(file\"=$path{$this->DIRSEP}.RData\")");
+			if (is_file("$path/.RData"))
+				$this->execute("load(file\"=$path/.RData\")");
 			else
-				$this->error("ERROR: can't load workspace, no file found at $path{$this->DIRSEP}.Rdata!");
+				$this->error("ERROR: can't load workspace, no file found at $path/.Rdata!");
 		}
 		else if (is_file($path))
 			$this->execute("load(file\"=$path\")");

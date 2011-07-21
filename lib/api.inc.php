@@ -26,7 +26,7 @@
  * This file contains the main script for the CQPweb API-via-HTTP.
  * 
  * It processes incoming requests and calls other bits of CQPweb in
- * such a way as to send back the results of each function in 
+ * such a way as to send back the results of each function in
  * accordance with the API documentation.
  * 
  * This is generally as plain text (easily explode()-able or otherwise
@@ -73,7 +73,7 @@ if (!url_string_is_valid())
  * 
  * If the included file produces output that we don't want, then we need to turn on
  * output buffering, capture the HTML, extract what we need from it, then throw it away.
- * e.g. the qname form the concordance output in the query function.
+ * e.g. the qname from the concordance output in the query function.
  * 
  * In some cases, just writing a simpler version of the script may be justifiable.
  */
@@ -96,6 +96,19 @@ case 'concordance':
 	break;
 	/* endcase concordance */
 	
+case 'collocationTable':
+	/* get a collocation table for an existing query */
+	break;
+case 'collocationSoloInfo':
+	/* interface to collocation solo mode */
+	break;
+case 'collocationThin':
+	/* postprocess the query according to a specified collocate */
+	break;
+case 'distributionTable':
+	break;
+case 'frequencyBreakdownTable':
+	break;
 /* insert other cases HERE */
 
 /*
