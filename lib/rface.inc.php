@@ -83,6 +83,11 @@ class RFace
 	
 	/** function for handling lines as they are passed */
 	private $line_handler_callback = false;
+	/** if a class name is placed here, $line_handler_callback will be treated as a static method of that class */
+	private $line_handler_class = false;
+	/** if an object is placed here, $line_handler_callback will be treated as a method of that object */
+	private $line_handler_object = false;
+	
 	
 	
 	/* variables for error handling */
@@ -96,12 +101,11 @@ class RFace
 	/** should the object exit the program on detection of an error? */
 	private $exit_on_error;
 	
-	/** if true, debug info will be printed to stdout */
+	/** if true, debug info will be printed to debug_dest */
 	private $debug_mode;
-
-	// TODO change from  stdout to  "a specified handle" (and stdout if none specified)
-	// andn then  pass the handle in, switch to stdout if not specified; use fputs not echo.
 	
+	/** stream that debug messages will be sent to */
+	private $debug_dest;
 	
 	
 	
@@ -142,7 +146,7 @@ class RFace
 				}
 			}
 			if ( ! $found)
-				$this->error("RFace: ERROR: no location supplied for R executable, and it is not in the PATH.\n");
+				$this->error("RFace: ERROR: no location supplied for R program, and it is not in the PATH.\n");
 		}
 		else if ( ! is_dir($path_to_r = rtrim($path_to_r, DIRECTORY_SEPARATOR)) )
 			$this->error("RFace: ERROR: directory $path_to_r for R executable not found.\n");
@@ -182,16 +186,15 @@ class RFace
 		if (isset($this->handle[2]))
 			fclose($this->handle[2]);
 		
-		if ($this->debug_mode)
-			echo "RFace: Pipes to R backend successfully closed.\n";
+		$this->debug_alert( "RFace: Pipes to R backend successfully closed.\n");
 		
 		/* and finally shut down the child process so script doesn't hang*/
 		if (isset($this->process))
 			$stat = proc_close($this->process);
 
 		if ($this->debug_mode)
-			echo  "RFace: R slave process has been closed with termination status [ $stat ].\n"
-				. "\tRFace object will now destruct.\n";
+		$this->debug_alert("RFace: R slave process has been closed with termination status [ $stat ].\n"
+					. "\tRFace object will now destruct.\n");
 	}
 
 
@@ -225,16 +228,18 @@ class RFace
 		if ( (!is_string($command)) || $command == "" )
 		{
 			$this->ok = false;
-			$this->error("ERROR: RFace::execute() was called with no command");
+			$this->error("RFace: ERROR: RFace::execute() was called with no command\n");
+			return;
 		}
-				
 
-		if ($this->debug_mode == true)
-			echo "RFace: R << $command;\n";
 
-		/* send the command to R's stdin */
-		fwrite($this->handle[0], $command);		// TODO do we need a \n here?
-		/* that executes the command */
+		$this->debug_alert("RFace: R << $command;\n");
+
+		/* send the command to R's [IN] */
+		// TODO do we need a \n here after the command?
+		if (false === fwrite($this->handle[0], $command))
+			$this->error("RFace: ERROR: problem writing to the R input stream\n");
+		/* that executes the command ... */
 
 		$result = array();
 		
@@ -246,13 +251,12 @@ class RFace
 			$line = trim($line, " \t\r\n");
 			if (empty($line))
 				continue;
-			
+
 			/* an output line we ALWAYS ignore; an empty statement terminated by ; is not invalid! */
 			if ($line == 'Error: unexpected \';\' in ";"')
 				continue;
 
-			if ($this->debug_mode)
-				echo "RFace: R >> $line\n";
+			$this->debug_alert("RFace: R >> $line\n");
 			
 			if ($line_handler_callback !== false)
 			{
@@ -269,6 +273,7 @@ class RFace
 				/* add the line to an array of results */
 				$result[] = $line;
 		}
+		/* Note, no attempt is made to do anything with R's [ERR] stream. */
 
 		/* return the array of results */
 		return $result;
@@ -279,30 +284,57 @@ class RFace
 	/**
 	 * Specify a callback function to be used on lines as they are retrieved by ->execute().
 	 *
-	 * The callback can be anything that PHP will accept as callable.
+	 * The callback can be  (a) a closure (b) a string naming a function (c) an array of an object plus a method name
+	 * (d) an array of a class name plus a method name.
 	 *
-	 * To use no line handler, pass false (or something else which typecasts to bool as false).
+	 * To use no line handler, pass false.
 	 */
-	public function set_line_handler($func)
+	public function set_line_handler($callback)
 	{
-		// TODO, this will work on callbacks specified as strings, but what if
-		// the callback is passed in as a return value from create_function
-		// or as a closure created with the function keyword?
-		// maybe use is_callable() or is_a with class type Closure (though this is an "internal impelementation detail which 
-		// should not be relied on" (so actualyl is_a is a BAD idea).
-		// so: first answer here :
-		// http://stackoverflow.com/questions/2835627/php-is-function-to-determine-if-a-variable-is-a-function
-		// also use of is_callable is recommended here: http://bugs.php.net/bug.php?id=50037
-		// but note, there are three options: (1) an array with a class or object plus a method name; (2) a function name;
-		// (3) a closure.
-		// so the else-if needs to be a good bit more complicated. 
-		if ($func == false)
+		if (false === $callback)
+		{
+			$this->line_handler_class = false;
+			$this->line_handler_object = false;
 			$this->line_handler_callback = false;
-		else if (function_exists($func))
-			$this->line_handler_callback = $func;
+			$this->debug_alert("RFace: Line handler wiped, line handling disabled.\n");
+		}
+		else if (is_array($callback))
+		{
+			if ( isset($callback[0], $callback[1]) && count($callback) == 2)
+			{
+				/* case one:  we have been passed an object or class and its method */
+				$callback_name = '[not known]';
+				if ( is_object($callback[0]) && is_callable($callback, false, $callback_name) )
+				{
+					$this->line_handler_class = false;
+					$this->line_handler_object = $callback[0];
+					$this->line_handler_callback = $callback[1];
+					$this->debug_alert("RFace: Line handler accepted ( $callback_name, object call ).\n";
+				}
+				else if (class_exists($callback[0] && method_exists($callback[0], $callback[1]))
+				{
+					$this->line_handler_class = $callback[0];
+					$this->line_handler_object = false;
+					$this->line_handler_callback = $callback[1];
+					$this->debug_alert("RFace: Line handler accepted ( $callback[0]::$callback[1], static call ).\n";
+			 	}
+				else
+					$this->error("RFace: ERROR: Uncallable object/class method passed as line handler.\n");
+			}
+			else
+				$this->error("RFace: ERROR: Invalid array layout for line handler callback.\n");
+		}
+		else if  (is_callable($callback))
+		{
+			$this->line_handler_class = false;
+			$this->line_handler_object = false;
+			$this->line_handler_callback = $callback;
+			$callback_name = ( is_string($callback) ? $callback : '[anonymous function]');
+			$this->debug_alert("RFace: Line handler accepted ( $callback_name ).\n");
+		}
 		else
-			$this->error('ERROR: Unrecognised callback function specified.');
-	} 
+			$this->error("RFace: ERROR: Unrecognisable line handler function was passed ( $callback ).\n");
+	}
 	
 	
 	/**
@@ -313,7 +345,7 @@ class RFace
 	 */
 	public function set_debug($new_value)
 	{
-		$this->debug_mode = (bool) $new_value;	
+		$this->debug_mode = (bool) $new_value
 	}
 	
 	
@@ -353,9 +385,10 @@ class RFace
 	 * Raise an error from within the RFace.
 	 * 
 	 * When an error is raised, it will exit PHP if the "exit_on_error" variable
-	 * is set to true. Otherwise, the error is stored.
+	 * is set to true. Otherwise, the error is stored, and can be accessed using
+	 * the error_message() and ok() methods.
 	 * 
-	 * In non-fatal mode, errors will be sent to the debug output stream as well.
+	 * In debug mode, errors will be sent to the debug output stream as well.
 	 * 
 	 * Method can optionally be passed a message and line number.
 	 */
@@ -462,11 +495,11 @@ class RFace
 	public function load_factor($varname, &$array)
 	{
 		$temp_obj = $this->new_object_name();
-		
+
 		$this->load_vector_of_strings($temp_obj, $array);
 
 		$this->execute("$varname = factor($temp_obj)");
-		
+
 		$this->drop_object($temp_obj);
 	}
 	
@@ -534,16 +567,11 @@ class RFace
 	 */
 	public function read($varname, $mode = 'vector')
 	{
-		// OH no, hang on, what if this is the return value of a function
-		// or the result of an operation
-		// of PART of a vector???
-		// so don't check if exists.
-			// In retrospect, I don't understand what I meant by that column.
 		
 		
 		if (!$this->object_exists($varname))
 		{
-			$this->error("Cannot fetch contents of nonexistent object $varname!");
+			$this->error("RFace: ERROR: Cannot read contents of nonexistent R object $varname!\n");
 			return;
 		}
 		/* first, request the variable's contents */
@@ -558,13 +586,14 @@ class RFace
 			
 			if ($mode == 'solo')
 				$output = $output[0];
+				//  TODO: does type need adjusting?
 			break;
 		case 'verbatim':
 			/* this one is easy */
 			$output = $data;
 			break;
 		default:
-			$this->error("Unacceptable object read-mode $mode!");
+			$this->error("RFace: ERROR: Unacceptable object read-mode $mode!");
 			return;
 		}
 		
@@ -636,10 +665,11 @@ class RFace
 			}
 		}
 		/* sanity check, should not be reached */
-		$this->error('New object name could not be generated', __LINE__);
+		$this->error("RFace: ERROR: New object name could not be generated.\n");
 	}
 	
 	//TODO finish this method
+	// I need to understand R charts system better to get things sorted out
 	/**
 	 * Saves the chart created by the given command to the specified filename.
 	 */
@@ -647,7 +677,8 @@ class RFace
 	{
 		if (is_dir($filename))
 			$filename .= '.' . self::DEFAULT_CHART_FILENAME;
-			
+			// TODO: need to check for slash at end of varname
+		
 		// TODO set the graphics output to save to this file
 		
 		$this->execute($chart_command);
