@@ -59,7 +59,7 @@
  * get list of current objects as an array
  * get info about a named object (size, type etc)
  * save workspace as specified filename
- * check argument array 
+ * check argument array
  * 
  */
 class RFace 
@@ -81,12 +81,8 @@ class RFace
 	/** cache of the list of object names */
 	private $object_list_cache = false;
 	
-	/** function for handling lines as they are passed */
+	/** function (or array of object/classname + method at [0] and [1]) for handling lines as they are passed */
 	private $line_handler_callback = false;
-	/** if a class name is placed here, $line_handler_callback will be treated as a static method of that class */
-	private $line_handler_class = false;
-	/** if an object is placed here, $line_handler_callback will be treated as a method of that object */
-	private $line_handler_object = false;
 	
 	
 	
@@ -135,16 +131,15 @@ class RFace
 		if (empty($path_to_r))
 		{
 			/* detect whether or not R is on the path.... */
+			/* work out whether the call to R will need a '.exe' */
+			$ext = (strtoupper(substr(php_uname('s'), 0, 3)) == 'WIN' ? '.exe' : '' );
 			$found = false;
 			foreach(explode(PATH_SEPARATOR, $_ENV['PATH']) as $path)
-			{
-				// TODO: do I need a .exe here in Windows, or will it work regardless?
-				if (is_executable(rtrim($path, DIRECTORY_SEPARATOR) . '/R'))
+				if (is_executable(rtrim($path, DIRECTORY_SEPARATOR) . '/R' . $ext))
 				{
 					$found = true;
 					break;
 				}
-			}
 			if ( ! $found)
 				$this->error("RFace: ERROR: no location supplied for R program, and it is not in the PATH.\n");
 		}
@@ -192,7 +187,6 @@ class RFace
 		if (isset($this->process))
 			$stat = proc_close($this->process);
 
-		if ($this->debug_mode)
 		$this->debug_alert("RFace: R slave process has been closed with termination status [ $stat ].\n"
 					. "\tRFace object will now destruct.\n");
 	}
@@ -208,7 +202,7 @@ class RFace
 	 * If $line_handler_callback is specified, it will be called on each line of
 	 * output. If it returns a value, that value will be added to the return-array
 	 * instead of the line. If it does not return a value, nothing will be added
-	 * to the return-array (and thus, the caller will ultimately get back an empty 
+	 * to the return-array (and thus, the caller will ultimately get back an empty
 	 * array).
 	 * 
 	 * If $line_handler_callback is NOT specified, the function checks whether
@@ -257,12 +251,12 @@ class RFace
 				continue;
 
 			$this->debug_alert("RFace: R >> $line\n");
-			
-			if ($line_handler_callback !== false)
+
+			if (!empty($this->line_handler_callback)
 			{
-				/* call the specified function */
-				$callback_return = $line_handler_callback($line);
-				if (isset($callback_return))
+				/* call the specified function or class/object method */
+				$callback_return = call_user_func($this->line_handler_callback, $line);
+				if ($callback_return)
 				{
 					$result[] = $callback_return;
 					unset($callback_return);
@@ -279,13 +273,13 @@ class RFace
 		return $result;
 
 	}
-	
-	
+
+
 	/**
 	 * Specify a callback function to be used on lines as they are retrieved by ->execute().
 	 *
 	 * The callback can be  (a) a closure (b) a string naming a function (c) an array of an object plus a method name
-	 * (d) an array of a class name plus a method name.
+	 * (d) an array of a class name plus a method name (that is, any of the usual options for callbacks in PHP).
 	 *
 	 * To use no line handler, pass false.
 	 */
@@ -293,8 +287,6 @@ class RFace
 	{
 		if (false === $callback)
 		{
-			$this->line_handler_class = false;
-			$this->line_handler_object = false;
 			$this->line_handler_callback = false;
 			$this->debug_alert("RFace: Line handler wiped, line handling disabled.\n");
 		}
@@ -306,16 +298,12 @@ class RFace
 				$callback_name = '[not known]';
 				if ( is_object($callback[0]) && is_callable($callback, false, $callback_name) )
 				{
-					$this->line_handler_class = false;
-					$this->line_handler_object = $callback[0];
-					$this->line_handler_callback = $callback[1];
+					$this->line_handler_callback = $callback;
 					$this->debug_alert("RFace: Line handler accepted ( $callback_name, object call ).\n";
 				}
 				else if (class_exists($callback[0] && method_exists($callback[0], $callback[1]))
 				{
-					$this->line_handler_class = $callback[0];
-					$this->line_handler_object = false;
-					$this->line_handler_callback = $callback[1];
+					$this->line_handler_callback = $callback;
 					$this->debug_alert("RFace: Line handler accepted ( $callback[0]::$callback[1], static call ).\n";
 			 	}
 				else
@@ -326,8 +314,6 @@ class RFace
 		}
 		else if  (is_callable($callback))
 		{
-			$this->line_handler_class = false;
-			$this->line_handler_object = false;
 			$this->line_handler_callback = $callback;
 			$callback_name = ( is_string($callback) ? $callback : '[anonymous function]');
 			$this->debug_alert("RFace: Line handler accepted ( $callback_name ).\n");
@@ -339,13 +325,13 @@ class RFace
 	
 	/**
 	 * Sets debug messages on or off (parameter is a bool).
-	 * 
+	 *
 	 * (By default, debug messages are off. They can also be turned on when
 	 * the constructor is called.)
 	 */
 	public function set_debug($new_value)
 	{
-		$this->debug_mode = (bool) $new_value
+		$this->debug_mode = (bool) $new_value;
 	}
 	
 	
@@ -366,6 +352,7 @@ class RFace
 	
 	/**
 	 * Checks whether everything has gone OK.
+	 *
 	 * Returns false if there has been an error.
 	 */
 	public function ok()
@@ -374,7 +361,7 @@ class RFace
 	}
 	
 	/**
-	 * Gets the most recent error message
+	 * Gets the most recent error message.
 	 */
 	public function error_message()
 	{
@@ -382,7 +369,7 @@ class RFace
 	}
 	
 	/**
-	 * Raise an error from within the RFace.
+	 * Raises an error from within the RFace.
 	 * 
 	 * When an error is raised, it will exit PHP if the "exit_on_error" variable
 	 * is set to true. Otherwise, the error is stored, and can be accessed using
@@ -395,9 +382,9 @@ class RFace
 	private function error($msg = false, $line = false)
 	{
 		if ($msg == false)
-			$msg = "ERROR: General R interface error!";
+			$msg = "RFace: ERROR: General R interface error!\n";
 		if ($line != false)
-			$msg .= "\n\t... at line $line";
+			$msg .= "\t... at line $line";
 		$this->last_error_message = $msg;
 		$this->ok = false;
 		if ($this->exit_on_error)
@@ -407,7 +394,7 @@ class RFace
 	}
 	
 	/**
-	 * Print a debug message, if debug output is enabled.
+	 * Print a message to the debug stream, if debug output is enabled.
 	 */
 	private function debug_alert($msg)
 	{
@@ -480,8 +467,7 @@ class RFace
 			$instring .= ',' . self::num($a);
 		
 		/* now, add start and end of command, before sending to R */
-		$instring = preg_replace('/\A,/', "$varname = c(", $instring);
-		$instring .= ')';
+		$instring = preg_replace('/\A,/', "$varname = c(", $instring) . ')';
 		$this->execute($instring);
 		
 		//TODO: check this method works esp. with various kinds of zero
@@ -590,10 +576,10 @@ class RFace
 			break;
 		case 'verbatim':
 			/* this one is easy */
-			$output = $data;
+			$output = implode(PHP_EOL, $data);
 			break;
 		default:
-			$this->error("RFace: ERROR: Unacceptable object read-mode $mode!");
+			$this->error("RFace: ERROR: Unacceptable object read-mode $mode!\n");
 			return;
 		}
 		
@@ -624,7 +610,7 @@ class RFace
 			$this->error('Error parsing output from ls() >> R!', __LINE__);
 		
 		$this->object_list_cache = $matches[1];
-		return $matches[1]; 
+		return $matches[1];
 	}
 	
 	/**
@@ -632,7 +618,7 @@ class RFace
 	 */
 	public function object_exists($obj)
 	{
-		return in_array($obj, $this->list_objects());	
+		return in_array($obj, $this->list_objects());
 	}
 	
 	/**
@@ -714,9 +700,10 @@ class RFace
 	 * 
 	 * Otherwise, $path is treated as a filename (the method will add the .RData extension
 	 * by default if the filename it is passed does not exist).
-	 */	
+	 */
 	public function load_workspace($path)
 	{
+		$path = rtrim($path, '/\\');
 		if (is_dir($path))
 		{
 			if (is_file("$path/.RData"))
@@ -736,7 +723,7 @@ class RFace
 	/** 
 	 * Checks whether the requested R library package is available, and
 	 * loads it if it is.
-	 */ 
+	 */
 	public function load_package()
 	{
 		//TODO	
@@ -762,14 +749,14 @@ class RFace
 	 * Returns a string describing the type: this is "string" if
 	 * every value in the array is a string, "number" if every value
 	 * is either an int or a float, "mixed" if a value of the type
-	 * contrary to the established type was detected, "undefined" if 
-	 * a value that is neither string nor number was detected.
+	 * contrary to the initially established type was detected, "undefined"
+	 * if a value that is neither string nor number was detected.
 	 * 
 	 * The string "array" can also be returned, if every component of
-	 * the array is itself an array. NB: currently no recursive checking, TODO ?
+	 * the array is itself an array. NB: in this case there is no recursive checking.
 	 * 
 	 * Note: "mixed" and "undefined" are error values, and if they are
-	 * returned, it says nothing about the presence of errors of the 
+	 * returned, it says nothing about the presence of errors of the
 	 * *other* type further down the array.
 	 */
 	public static function deduce_array_type(&$array)
@@ -786,7 +773,7 @@ class RFace
 			else if (is_array($a))
 				$currtype = 'array';
 			else
-				return 'undefined';	
+				return 'undefined';
 			
 			/* check the type against the type established so far */
 			if ($type == 'UNKNOWN')
@@ -794,7 +781,7 @@ class RFace
 			else
 				if ($type != $currtype)
 					return 'mixed';
-		}	
+		}
 		return $type;
 	}
 	
@@ -803,14 +790,13 @@ class RFace
 	 * represents a float or an int.
 	 * 
 	 * More reliable when building arrays of numbers than a typecast!
+	 * (Because a typecast would have to be to either int or float, but
+	 * using PHP's context-based type juggling covers either).
 	 */
 	public static function num($string)
 	{
 		return 1 * $string;
 	}
-		
-
-
 
 
 
