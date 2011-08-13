@@ -46,7 +46,7 @@
 
 
 
-/* functions for the mysql_link object/resource */
+/* functions for the mysql_link resource (actually a mysqli object masquerading as a mysql_link resource) */
 
 
 /**
@@ -167,7 +167,7 @@ function mysql_affected_rows($link_identifier = NULL)
 
 
 /**
- * Module-internal utility function. Returns Boolean (whether the link was successfully made.)
+ * Module-internal utility function. Returns Boolean (whether the link was successfully made).
  */
 function mysql_fake_force_link_set(&$link_identifier)
 {

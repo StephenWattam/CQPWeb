@@ -108,6 +108,7 @@ $user_settings = get_all_user_settings($username);
  */
 if (isset($_GET['qname']) && $_GET['qname'] != 'INIT')
 {
+	// TODO. INIT is a silly flag. Use __INIT.
 	$qname = $_GET['qname'];
 	$incoming_qname_specified = true;
 }
@@ -486,9 +487,11 @@ if ($run_new_query && ! $new_postprocess && ! $user_settings->conc_corpus_order)
 	$_GET['newPostP'] = 'rand';
 	$new_postprocess = new POSTPROCESS();
 	/* no need to check whether it parsed correctly, cos we know it did! */
+	// TODO is the above comment actually true? the POSTPROCESS constructor does not seem to abort on 
+	// bad parse. It just sets i_parsed_ok to false.
 	$page_no = 1;
 	unset($_GET['pageNo']);
-	/* so that we know it will go to page 1 of the postprocessed query */
+	/* so that we know the display will go to page 1 of the postprocessed query */
 }
 
 
@@ -858,6 +861,8 @@ if ($num_of_solutions_final > 15 && $per_page > 15)
 
 /* create page end HTML */
 print_footer();
+
+//TODO: can we detach the client session at this point?
 
 /* clear out old stuff from the query cache (left till here to increase speed for user) */
 delete_cache_overflow();

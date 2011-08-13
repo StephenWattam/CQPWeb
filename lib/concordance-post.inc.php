@@ -349,7 +349,7 @@ class POSTPROCESS {
 				break;
 			}
 
-			/* no, it's not a custom process - it's just a bd value. */
+			/* no, it's not a custom process - it's just a bad value. */
 			$this->i_parsed_ok = false;
 			break;
 		}

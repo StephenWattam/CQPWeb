@@ -1251,14 +1251,16 @@ function longvalue_retrieve($id)
 
 
 // TODO move these to plugins.inc.php?
+// TODO can we remoev the if ! empty call? or is it needed for the case where no registry exists?
 
 /** Returns an object from the plugin register, or else false if not found. */
 function retrieve_plugin_info($class)
 {
 	global $plugin_registry;
-	foreach ($plugin_registry as $p)
-		if ($p->class == $class)
-			return $p;
+	if (!empty($plugin_registry))
+		foreach ($plugin_registry as $p)
+			if ($p->class == $class)
+				return $p;
 	return false;
 }
 
@@ -1268,9 +1270,10 @@ function list_plugins_of_type($type)
 {
 	global $plugin_registry;
 	$result = array();
-	foreach ($plugin_registry as $p)
-		if ($p->type & $type)
-			$result[] = $p;
+	if (!empty($plugin_registry))
+		foreach ($plugin_registry as $p)
+			if ($p->type & $type)
+				$result[] = $p;
 	return $result;
 }
 

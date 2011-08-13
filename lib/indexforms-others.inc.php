@@ -694,6 +694,15 @@ function printquery_latest()
 	<ul>
 <!--		Did a lot of new work on the help pages.
 -->
+		
+		<li>
+		<b>Version 3.0.1</b>, 2011-xx-yy<br/>&nbsp;<br/>
+		Fixed an uninformative error message when textual restrictions are selected that no texts actually 
+		match (zero-sized section of the corpus). The new error message explains the issue more clearly.
+		<br/>&nbsp;<br/>
+		...
+		<br/>&nbsp;</li>
+
 		<li>
 		<b>Version 3.0.0</b>, 2011-07-18<br/>&nbsp;<br/>
 		New feature: custom postprocess plugins!
@@ -703,7 +712,7 @@ function printquery_latest()
 		Added support for all ISO-8859 character sets.
 		<br/>&nbsp;<br/>
 		Version number bumped to 3.0.0 to match new CWB versioning rules, though CQPweb is in fact now
-		compatible with the post-Unicode versions of CWB.
+		compatible with the post-Unicode versions of CWB (3.2.0+).
 		<br/>&nbsp;</li>
 
 		<li>

@@ -500,6 +500,9 @@ function translate_restrictions_to_text_list($restrictions)
 
 
 
+/**
+ * Loads a subcorpus into CQP for use in a subsequent query.
+ */
 function load_subcorpus_to_cqp($subcorpus)
 {
 	global $corpus_sql_name;
@@ -552,7 +555,9 @@ function load_subcorpus_to_cqp($subcorpus)
 
 
 
-
+/**
+ * Loads a set of textual metadata restrictions into CQP for use in a subsequent query.
+ */
 function load_restrictions_to_cqp($restrictions)
 {
 	global $cqpweb_tempdir;
@@ -568,7 +573,14 @@ function load_restrictions_to_cqp($restrictions)
 	$sql_query = "SELECT cqp_begin, cqp_end 
 		FROM text_metadata_for_$corpus_sql_name 
 		WHERE $restrictions ORDER BY cqp_begin ASC";
-	do_mysql_outfile_query($sql_query, $sqlfile);
+	$n = do_mysql_outfile_query($sql_query, $sqlfile);
+	
+	/* check for restrictions that match nothing */
+	if ($n < 1)
+	{
+		unlink($sqlfile);
+		exiterror_general('There are no texts in the corpus that match those restrictions!');
+	}
 
 	/* we load the mysql outfile to CQP */
 	load_limits_to_cqp($sqlfile);
@@ -576,7 +588,10 @@ function load_restrictions_to_cqp($restrictions)
 }
 
 
-/* only called by load_restrictions_to_cqp and load_subcorpus_to_cqp */
+/**
+ * Do not call this function: only to be used
+ * by load_restrictions_to_cqp and load_subcorpus_to_cqp 
+ */
 function load_limits_to_cqp($limits_file)
 {
 	global $cqp;

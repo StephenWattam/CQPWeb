@@ -27,28 +27,31 @@
 
 
 /**
-   script that allows superusers direct access to the function library via the URL / get method
-   
-   in the format
-   
-   execute.php?function=foo&args=["string"#1#2]&locationAfter=[index.php?thisQ=search]&uT=y
-   
-   (note that everything within [] needs to be url-encoded for non-alphanumerics)
-   
-      
-   ANOTHER IMPORTANT NOTE:
-   =======================
-   
-   It is quite possible to **break CQPweb** using this script.
-   
-   It has been written on the assumption that anyone who is a superuser is sufficiently
-   non-idiotic to avoid doing so.
-   
-   If for any given superuser this assumption is false, then that is his/her/your problem.
-   
-   Not CQPweb's.
-   
-**/
+ * 
+ * @file
+ * 
+ * Script that allows superusers direct access to the function library via the URL / get method.
+ * 
+ * in the format:
+ * 
+ * execute.php?function=foo&args=["string"#1#2]&locationAfter=[index.php?thisQ=search]&uT=y
+ * 
+ * (note that everything within [] needs to be url-encoded for non-alphanumerics)
+ * 
+ *    
+ * ANOTHER IMPORTANT NOTE:
+ * =======================
+ * 
+ * It is quite possible to **break CQPweb** using this script.
+ * 
+ * It has been written on the assumption that anyone who is a superuser is sufficiently
+ * non-idiotic to avoid doing so.
+ * 
+ * If for any given superuser this assumption is false, then that is his/her/your problem.
+ * 
+ * Not CQPweb's.
+ * 
+ */
 
 
 /* include defaults and settings */
@@ -77,7 +80,7 @@ include('../lib/indexforms-others.inc.php');
 include('../lib/indexforms-subcorpus.inc.php');
 include('../lib/exiterror.inc.php');
 include('../lib/user-settings.inc.php');
-include('../lib/rface.inc.php');
+//include('../lib/rface.inc.php');
 include('../lib/corpus-settings.inc.php');
 include('../lib/xml.inc.php');
 include('../lib/uploads.inc.php');
@@ -106,7 +109,7 @@ if (!user_is_superuser($username))
 
 
 if (!url_string_is_valid())
-	execute_print_and_exit('Bad URL', 'Your URL was badly formed (didn\'t end in the uT=y flag.)');
+	execute_print_and_exit('Bad URL', 'Your URL was badly formed (didn\'t end in the uT=y flag).');
 
 
 
@@ -187,9 +190,7 @@ disconnect_all();
 
 
 if ( isset($_GET['locationAfter']) && headers_sent() == false )
-{
 	header('Location: ' . url_absolutify($_GET['locationAfter']));
-}
 else if ( ! isset($_GET['locationAfter']) && headers_sent() == false )
 	execute_print_and_exit( 'CQPweb -- execute.php', 
 'Your function call has been finished executing!

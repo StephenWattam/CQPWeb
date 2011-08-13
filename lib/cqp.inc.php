@@ -106,13 +106,9 @@ class CQP
 		);
 	
 	/* the version of CWB that this class requires */
-	const VERSION_MAJOR_DEFAULT = 2;
-	const VERSION_MINOR_DEFAULT = 2;
-	const VERSION_BETA_DEFAULT = 101;
-//	const VERSION_MAJOR_DEFAULT = 3;
-//	const VERSION_MINOR_DEFAULT = 0;
-//	const VERSION_BETA_DEFAULT = 0;
-//	temporary reversion while I work out build issues with CWB in server env
+	const VERSION_MAJOR_DEFAULT = 3;
+	const VERSION_MINOR_DEFAULT = 0;
+	const VERSION_BETA_DEFAULT = 0;
 	
 
 
@@ -1232,12 +1228,12 @@ class CQP
  * 
  * // or...
  * 
- * $lines_to_do_something_with = $intfile->read();
+ * $lines_to_do_something_with = $infile->read();
  * 
  * $intfile->close();
  * 
- * This object is based on the CWB::TempFile object from the PErl interface, but with
- * simplified internals (doesn't use pipes, only gives two file fomrat options instead 
+ * This object is based on the CWB::TempFile object from the Perl interface, but with
+ * simplified internals (doesn't use pipes, only gives two file format options instead 
  * of several).
  * 
  * This class requires the Zlib extension.
@@ -1373,7 +1369,7 @@ class CQPInterchangeFile
 	/**
 	 * Finishes reading or writing, and closes and deletes the file.
 	 * 
-	 * No return value as an error will happen if closing fails.
+	 * No return value (for either success or error conditions
 	 */
 	public function close()
 	{
@@ -1430,6 +1426,9 @@ class CQPInterchangeFile
 	/**
 	 * Allows a callback function to be specified for error messages
 	 * (rather than exiting the program, which is the default error handling).
+	 * 
+	 * The callback can be anything that will work as the first argument of the PHP function
+	 * call_user_func().
 	 */
 	public function set_error_callback($callback)
 	{
