@@ -252,7 +252,7 @@ class RFace
 
 			$this->debug_alert("RFace: R >> $line\n");
 
-			if (!empty($this->line_handler_callback)
+			if (!empty($this->line_handler_callback))
 			{
 				/* call the specified function or class/object method */
 				$callback_return = call_user_func($this->line_handler_callback, $line);
@@ -299,12 +299,12 @@ class RFace
 				if ( is_object($callback[0]) && is_callable($callback, false, $callback_name) )
 				{
 					$this->line_handler_callback = $callback;
-					$this->debug_alert("RFace: Line handler accepted ( $callback_name, object call ).\n";
+					$this->debug_alert("RFace: Line handler accepted ( $callback_name, object call ).\n");
 				}
-				else if (class_exists($callback[0] && method_exists($callback[0], $callback[1]))
+				else if (class_exists($callback[0] && method_exists($callback[0], $callback[1])))
 				{
 					$this->line_handler_callback = $callback;
-					$this->debug_alert("RFace: Line handler accepted ( $callback[0]::$callback[1], static call ).\n";
+					$this->debug_alert("RFace: Line handler accepted ( $callback[0]::$callback[1], static call ).\n");
 			 	}
 				else
 					$this->error("RFace: ERROR: Uncallable object/class method passed as line handler.\n");

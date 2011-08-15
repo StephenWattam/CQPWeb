@@ -87,6 +87,7 @@ $result = do_mysql_query("SELECT * from text_metadata_for_$corpus_sql_name
 
 if (mysql_num_rows($result) < 1)
 {
+	// TODO use a proper exiterror_ call here, and also elsewhere in this file.
 	?>
 	<p class="errormessage">
 		The database doesn't appear to contain any metadata for text <?php echo $text_id; ?>!
@@ -132,13 +133,11 @@ for ( $i = 0 ; $i < $n ; $i++ )
 		if (false !== strpos($att['value'], '|'))
 		{
 			list($url, $linktext) = explode('|', $att['value']);
-			$att['value'] = '<a href="'.$url.'">'.$linktext.'</a>';
+			$att['value'] = '<a target="_blank" href="'.$url.'">'.$linktext.'</a>';
 		}
 		else
-			$att['value'] = '<a href="'.$att['value'].'">'.$att['value'].'</a>';
+			$att['value'] = '<a target="_blank" href="'.$att['value'].'">'.$att['value'].'</a>';
 	}
-	// TODO: check the above is the entire feature as planned. 
-	// TODO: AND, document it in the indexing manual.
 	
 	echo '<tr><td class="concordgrey">' . $att['field']
 		. '</td><td class="concordgeneral">' . $att['value'] . '</td></tr>

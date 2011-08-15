@@ -1254,7 +1254,7 @@ class CQPInterchangeFile
 	/** Is the file written/read as a gz file or not?  */
 	private $compression;
 	
-	/** The file protocol wrapper (dependent on $this->compression */
+	/** The file protocol wrapper (dependent on $this->compression) */
 	private $protocol;
 	
 	/** Callback for error handler function. */
@@ -1331,7 +1331,11 @@ class CQPInterchangeFile
 		$this->status = "F";
 	}
 	
-	/** Reads a line from the file (opening before doing so if necessary). */
+	/** 
+	 * Reads a line from the file (opening before doing so if necessary). 
+	 * 
+	 * In case of error, the return values are the same as for fgets().
+	 */
 	public function read()
 	{
 		if ($this->status == "D")
