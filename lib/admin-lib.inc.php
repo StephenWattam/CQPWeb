@@ -1289,7 +1289,8 @@ function cqpweb_mysql_total_reset()
 					'freq_corpus_', 
 					'freq_sc_', 
 					'temporary_freq_', 
-					'text_metadata_for_'
+					'text_metadata_for_',
+					'__freqmake_temptable'
 					)
 			as $prefix)
 	{
@@ -1308,7 +1309,7 @@ function cqpweb_mysql_total_reset()
 }
 
 /**
- * Gives you the create table statements for setup as an array
+ * Gives you the create table statements for setup as an array.
  */
 function cqpweb_mysql_recreate_tables()
 {
@@ -1442,7 +1443,7 @@ function cqpweb_mysql_recreate_tables()
 			`combo_annotation` varchar(20) default NULL,
 			`external_url` varchar(255) default NULL,
 			`public_freqlist_desc` varchar(150) default NULL,
-			`corpus_cat` varchar(256) default 'Uncategorised',
+			`corpus_cat` int DEFAULT 1,
 			`cwb_external` tinyint(1) NOT NULL default 0,
 			PRIMARY KEY (corpus)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
@@ -1563,6 +1564,15 @@ function cqpweb_mysql_recreate_tables()
 			`visualisation_code` text,
 			key(`corpus`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
+	
+	
+	$create_statements['corpus_categories'] =
+		"CREATE TABLE `corpus_categories` (
+			`idno` int NOT NULL AUTO_INCREMENT,
+			`label` varchar(255) DEFAULT '',
+			`sort_n` int NOT NULL DEFAULT 0,
+			PRIMARY KEY (`idno`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 	
 	
 	return $create_statements;

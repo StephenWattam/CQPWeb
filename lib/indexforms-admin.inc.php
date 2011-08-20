@@ -136,6 +136,8 @@ function printquery_corpusoptions()
 			<input type="hidden" name="function" value="update_corpus_uses_case_sensitivity" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
+		
+		
 		<!-- 
 		
 		following two rows are commented out because they are not needed any longer.
@@ -257,7 +259,18 @@ function printquery_corpusoptions()
 					The corpus is currently in the following category:
 				</td>
 				<td class="concordgeneral" align="center">
-					<input type="text" name="args" value="<?php echo get_corpus_metadata('corpus_cat'); ?>" />
+					<!-- <input type="text" name="args" value="<?php /*echo get_corpus_metadata('corpus_cat'); */?>" /> -->
+					<select name="args">
+						<?php
+						$this_corpus_cat = get_corpus_metadata('corpus_cat');
+						//show_var($this_corpus_cat);
+						foreach (list_corpus_categories() as $i => $c)
+							echo "<option value=\"$i\"", 
+								( ($this_corpus_cat == $i) ? ' selected="selected"': ''), 
+								">$c</option>\n\t\t";
+						?>
+					
+					</select>
 				</td>
 				<td class="concordgeneral" align="center">
 					<input type="submit" value="Update" />

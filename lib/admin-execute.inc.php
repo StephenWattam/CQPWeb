@@ -119,8 +119,18 @@ switch($_GET['admFunction'])
 		$_GET['args'] = $_GET['corpus'];
 		$_GET['locationAfter'] = 'index.php';
 		require('../lib/execute.inc.php');
-		exit();		
+		exit();
 	
+	
+	case 'newCorpusCategory':
+		$_GET['function'] = 'add_corpus_category';
+		/* there is just a chance a legit category label might contain #, so replace with UTF-8 sharp U+266f */
+		$_GET['args'] = str_replace('#',"\xE2\x99\xAF",$_GET['newCategoryLabel']) . '#' . $_GET['newCategoryInitialSortKey'];
+		$_GET['locationAfter'] = 'index.php?thisF=manageCorpusCategories&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
+
+
 	case 'accessRemoveGroup':
 		$_GET['function'] = 'deny_group_access_to_corpus';
 		$_GET['args'] = $_GET['corpus'] . '#' . $_GET['groupToRemove'];

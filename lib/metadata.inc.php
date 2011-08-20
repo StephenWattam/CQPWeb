@@ -31,6 +31,50 @@
 
 
 
+/** 
+ * Returns a list of currently-defined corpus categories, as an array (integer keys = id numbers).
+ * 
+ * This list is never empty (if the database table is empty, a default entry "uncategorised" is created
+ * with id number 1 (since 1 is the default category that new corpora have first off....).
+ */
+function list_corpus_categories()
+{
+	$result = do_mysql_query("select idno, label from corpus_categories order by sort_n asc");
+	if (mysql_num_rows($result) < 1)
+	{
+		do_mysql_query("ALTER TABLE corpus_categories AUTO_INCREMENT=1");
+		do_mysql_query("insert into corpus_categories (idno, label, sort_n) values (1, 'Uncategorised', 0)");
+		return array(0=>'Uncategorised');
+	}	
+	$list_of_cats = array();
+	while ( ($r=mysql_fetch_row($result)) !== false )
+		$list_of_cats[$r[0]] = $r[1];
+	return $list_of_cats;
+}
+
+
+function update_corpus_category_sort($category_idno, $new_sort_n)
+{
+	$category_idno = (int)$category_idno;
+	$new_sort_n = (int)$new_sort_n;
+	show_var($x="update corpus_categories set sort_n = $new_sort_n where idno = $category_idno");
+	do_mysql_query("update corpus_categories set sort_n = $new_sort_n where idno = $category_idno");
+}
+
+function delete_corpus_category($category_idno)
+{
+	$category_idno = (int)$category_idno;
+	do_mysql_query("delete from corpus_categories where idno = $category_idno");	
+}
+
+function add_corpus_category($label, $initial_sort_n = 0)
+{
+	$label = mysql_real_escape_string($label);
+	$initial_sort_n = (int)$initial_sort_n;
+	do_mysql_query("insert into corpus_categories (label, sort_n) values ('$label', $initial_sort_n)");
+}
+
+
 /** returns a list of all the corpora currently in the system, as an array */
 function list_corpora()
 {
@@ -40,6 +84,9 @@ function list_corpora()
 		$list_of_corpora[] = $r[0];
 	return $list_of_corpora;
 }
+
+
+
 
 /** returns a list of all the texts in the specified corpus, as an array */
 function corpus_list_texts($corpus)
@@ -119,7 +166,9 @@ function get_corpus_metadata($field)
 
 function update_corpus_category($newcat)
 {
-	update_corpus_metadata('corpus_cat', $newcat);
+	global $corpus_sql_name;
+	$newcat = (int)$newcat;
+	do_mysql_query("update corpus_metadata_fixed set corpus_cat = $newcat where corpus = '$corpus_sql_name'");
 }
 
 function update_corpus_title($newtitle)

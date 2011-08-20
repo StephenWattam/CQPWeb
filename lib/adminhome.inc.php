@@ -207,6 +207,7 @@ function add_p_attribute_row()
 <?php
 echo print_menurow_admin('showCorpora', 'Show corpora');
 echo print_menurow_admin('installCorpus', 'Install new corpus');
+echo print_menurow_admin('manageCorpusCategories', 'Manage corpus categories');
 echo print_menurow_admin('publicTables', 'Public frequency lists');
 ?>
 <tr>
@@ -317,6 +318,10 @@ case 'installCorpusDone':
 case 'deleteCorpus':
 	/* note - this never has a menu entry -- it must be triggered from showCorpora */
 	printquery_deletecorpus();
+	break;
+
+case 'manageCorpusCategories':
+	printquery_corpuscategories();
 	break;
 	
 case 'publicTables':
@@ -501,14 +506,6 @@ function printquery_showcorpora()
 					<strong><?php echo $r['corpus']; ?></strong>
 				</a>
 			</td>
-			<!-- odd quirk on latest version of chromium 13-08-2010 (linux):
-			     the "form" opening tag uses up a column in the table. 
-			     
-			     Bizarre.
-			     
-			     Gives a 9-column effect not an 8-column effect.
-			     
-			     Not happening in Firefox. -->
 			<form action="index.php" method="get">
 				
 				<td align="center" class="concordgeneral">
@@ -1009,6 +1006,142 @@ function printquery_deletecorpus()
 		
 	<?php
 }
+
+
+function printquery_corpuscategories()
+{
+	global $use_corpus_categories_on_homepage;
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="5">
+				Manage corpus categories
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="5">
+				Corpus categories are used to organise links to corpora on CQPweb's home page.
+				<br/>&nbsp;<br/>
+				This behaviour can be turned on or off using the setting 
+					<code>$use_corpus_categories_on_homepage</code>
+				in your configuration file.
+				<br/>&nbsp;<br/>
+				Currently, it is turned <strong><?php echo ($use_corpus_categories_on_homepage?'on':'off'); ?></strong>.
+				<br/>&nbsp;<br/>
+				Categories are displayed on the home page in the defined <em>sort order</em>, with low numbers shown first
+				(in the case of a numerical tie, categories are sorted alphabetically).
+				<br/>&nbsp;<br/>
+				The available categories are listed below. Use the form at the bottom to ad a new category.
+				<br/>&nbsp;<br/>
+				Important note: you cannot have two categories with the same name, and you cannot delete 
+				<em>&ldquo;Uncategorised&rdquo;</em>, which is the default category of a new corpus.
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable">
+				Category label
+			</th>
+			<th class="concordtable">
+				Sort order
+			</th>
+			<th class="concordtable" colspan="3">
+				Actions
+			</th>
+		</tr>
+		
+		<?php
+		/* this function call is a bit wasteful, but it makes sure "Uncategorised" exists... */
+		list_corpus_categories();
+		
+		$result = do_mysql_query("select idno, label, sort_n from corpus_categories order by sort_n asc, label asc");
+		$sort_key_max = 0;
+		$sort_key_min = 0; 
+		while (false !== ($r = mysql_fetch_object($result)))
+		{
+			echo '<tr><td class="concordgeneral">', $r->label, '</td>',
+				'<td class="concordgeneral" align="center">', $r->sort_n, '</td>',
+				'<td class="concordgeneral" align="center">',
+					'<a class="menuItem" href="index.php?admFunction=execute&function=update_corpus_category_sort&args=',
+					$r->idno, urlencode('#'), $r->sort_n - 1, 
+					'&locationAfter=', urlencode('index.php?thisF=manageCorpusCategories&uT=y'), '&uT=y">',
+					'[Move up]</a></td>',
+				'<td class="concordgeneral" align="center">',
+					'<a class="menuItem" href="index.php?admFunction=execute&function=update_corpus_category_sort&args=',
+					$r->idno, urlencode('#'), $r->sort_n + 1, 
+					'&locationAfter=', urlencode('index.php?thisF=manageCorpusCategories&uT=y'), '&uT=y">',
+					'[Move down]</a></td>',
+				'<td class="concordgeneral" align="center">',
+					'<a class="menuItem" href="index.php?admFunction=execute&function=delete_corpus_category&args=',
+					$r->idno, '&locationAfter=', urlencode('index.php?thisF=manageCorpusCategories&uT=y'), '&uT=y">',
+					'[Delete]</a></td>',
+				"</tr>\n";
+			if ($sort_key_max < $r->sort_n)
+				$sort_key_max = $r->sort_n;
+			if ($sort_key_min > $r->sort_n)
+				$sort_key_min = $r->sort_n;
+		}
+		?>
+		
+	</table>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="5">
+				Create a new category
+			</th>
+		</tr>
+		<form action="index.php" method="GET">
+			<tr>
+				<td class="concordgrey" align="center">
+					&nbsp;<br/>
+					Specify a category label
+					<br/>&nbsp;
+				</td>
+				<td class="concordgeneral" align="center">
+					&nbsp;<br/>
+					<input name="newCategoryLabel" size="50" type="text" maxlength="255"/>
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey" align="center">
+					&nbsp;<br/>
+					Initial sort key for this category
+					<br/>
+					<em>(lower numbers appear higher up)</em>
+					<br/>&nbsp;
+				</td>
+				<td class="concordgeneral" align="center">
+					&nbsp;<br/>
+					<select name="newCategoryInitialSortKey">
+					
+						<?php
+						/* give options for intial sort key of zero to existing range, plus one */
+						for ($sort_key_min--; $sort_key_min < 0; $sort_key_min++)
+							echo "\t\t<option>$sort_key_min</option>\n";
+						echo "\t\t<option selected=\"selected\">0</option>\n";
+						for ($sort_key_max++, $i = 1; $i <= $sort_key_max; $i++)
+							echo "\t\t<option>$i</option>\n";
+						?>
+						 
+					</select>
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="3" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Click here to create the new category" />
+					<br/>&nbsp;
+				</td>
+				<input type="hidden" name="admFunction" value="newCorpusCategory" />
+				<input type="hidden" name="uT" value="y" />
+			</tr>
+		</form>
+	</table>
+	
+	<?php
+}
+
 
 function printquery_newupload()
 {

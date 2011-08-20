@@ -696,11 +696,13 @@ function printquery_latest()
 -->
 		
 		<li>
-		<b>Version 3.0.1</b>, 2011-xx-yy<br/>&nbsp;<br/>
+		<b>Version 3.0.1</b>, 2011-08-20<br/>&nbsp;<br/>
+		Implemented a better system for sorting corpora into categories on the homepage.
+		<br/>&nbsp;<br/>
+		Fixed a fairly nasty bug that was blocking corpus indexing.
+		<br/>&nbsp;<br/>
 		Fixed an uninformative error message when textual restrictions are selected that no texts actually 
 		match (zero-sized section of the corpus). The new error message explains the issue more clearly.
-		<br/>&nbsp;<br/>
-		...
 		<br/>&nbsp;</li>
 
 		<li>
@@ -1016,7 +1018,7 @@ function printquery_latest()
 		
 		<li>
 		<b>Autumn 2007</b>.<br/>&nbsp;<br/>
-		Development of core PHP scripts, the CQP interface object model and the mySQL database 
+		Development of core PHP scripts, the CQP interface object model and the MySQL database 
 		architecture.
 		<br/>&nbsp;</li>
 		

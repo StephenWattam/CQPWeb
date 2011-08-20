@@ -25,6 +25,9 @@
 /* Constant definitions for CQPweb */
 /* ------------------------------- */
 
+/* version number of CQPweb */
+define('CQPWEB_VERSION', '3.0.1');
+
 
 define('PLUGIN_TYPE_UNKNOWN',				0);
 define('PLUGIN_TYPE_ANNOTATOR', 			1);
@@ -337,10 +340,6 @@ if (!isset($default_words_in_download_context))
 
 /* some can be overrridden in the config file -- some can't! */
 
-/* version number of CQPweb */
-define('CQPWEB_VERSION', '3.0.0');
-
-
 /* "reserved words" that can't be used for corpus ids */
 $cqpweb_reserved_subdirs = array('adm', 'bin', 'css', 'doc', 'lib', 'rss', 'usr');
 /* note: all reserved words are 3 lowercase letters and any new ones we add will also be 3 lowercase letters */
@@ -422,9 +421,7 @@ $mysql_process_name = array(
 
 /* if apache (or the like) is not being used, then $username should be set by code in config.inc.php */
 if (!isset($username))
-	$username = $_SERVER['REMOTE_USER'];
-if (!isset($username))
-	$username = '__unknown_user';
+	$username = ( isset($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] :  '__unknown_user' );
 
 
 

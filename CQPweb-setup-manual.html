@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20110718;1394400">
+	<META NAME="CHANGED" CONTENT="20110820;2374900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -1325,12 +1325,23 @@ follows is cumulative).</SPAN></P>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
-			</P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">3.0.0
+			to 3.0.1</P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><FONT SIZE=2><I>Note:
+			this will wipe out your existing corpus categories, you must
+			re-add them!</I></FONT></P>
 		</TD>
 		<TD WIDTH=708 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
-			</P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>CREATE
+			TABLE `corpus_categories` (<BR> `idno` int NOT NULL
+			AUTO_INCREMENT,<BR> `label` varchar(255) DEFAULT '',<BR>
+			`sort_n` int DEFAULT 0,<BR> PRIMARY KEY (`idno`)<BR>) CHARACTER
+			SET utf8 COLLATE utf8_general_ci;</FONT></FONT></FONT></P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
+			TABLE `corpus_metadata_fixed`<BR> MODIFY COLUMN `corpus_cat` int
+			DEFAULT 1;</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
