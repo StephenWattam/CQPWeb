@@ -1014,12 +1014,12 @@ function printquery_corpuscategories()
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable" colspan="5">
+			<th class="concordtable" colspan="6">
 				Manage corpus categories
 			</th>
 		</tr>
 		<tr>
-			<td class="concordgrey" colspan="5">
+			<td class="concordgrey" colspan="6">
 				Corpus categories are used to organise links to corpora on CQPweb's home page.
 				<br/>&nbsp;<br/>
 				This behaviour can be turned on or off using the setting 
@@ -1042,6 +1042,9 @@ function printquery_corpuscategories()
 				Category label
 			</th>
 			<th class="concordtable">
+				No. corpora
+			</th>
+			<th class="concordtable">
 				Sort order
 			</th>
 			<th class="concordtable" colspan="3">
@@ -1058,7 +1061,9 @@ function printquery_corpuscategories()
 		$sort_key_min = 0; 
 		while (false !== ($r = mysql_fetch_object($result)))
 		{
+			list($n) = mysql_fetch_row(do_mysql_query("select count(*) from corpus_metadata_fixed where corpus_cat={$r->idno}"));
 			echo '<tr><td class="concordgeneral">', $r->label, '</td>',
+				'<td class="concordgeneral" align="center">', $n, '</td>',
 				'<td class="concordgeneral" align="center">', $r->sort_n, '</td>',
 				'<td class="concordgeneral" align="center">',
 					'<a class="menuItem" href="index.php?admFunction=execute&function=update_corpus_category_sort&args=',

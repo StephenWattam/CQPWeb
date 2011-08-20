@@ -57,7 +57,6 @@ function update_corpus_category_sort($category_idno, $new_sort_n)
 {
 	$category_idno = (int)$category_idno;
 	$new_sort_n = (int)$new_sort_n;
-	show_var($x="update corpus_categories set sort_n = $new_sort_n where idno = $category_idno");
 	do_mysql_query("update corpus_categories set sort_n = $new_sort_n where idno = $category_idno");
 }
 
@@ -70,6 +69,8 @@ function delete_corpus_category($category_idno)
 function add_corpus_category($label, $initial_sort_n = 0)
 {
 	$label = mysql_real_escape_string($label);
+	if (empty($label))
+		return;
 	$initial_sort_n = (int)$initial_sort_n;
 	do_mysql_query("insert into corpus_categories (label, sort_n) values ('$label', $initial_sort_n)");
 }

@@ -26,11 +26,9 @@
 
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
 include ("lib/defaults.inc.php");
 include ("lib/library.inc.php");
+include ("lib/metadata.inc.php");
 include ("lib/exiterror.inc.php");
 
 /* connect to mySQL */
@@ -40,12 +38,14 @@ connect_global_mysql();
 
 if ($use_corpus_categories_on_homepage)
 {
-	/* get a list of categories */
+	/* get a list of categories 
 	$sql_query = "select distinct (corpus_cat) from corpus_metadata_fixed where visible = 1 order by corpus_cat asc";
 	$result = do_mysql_query($sql_query);
 	
 	while ( ($r = mysql_fetch_row($result)) != false)
 		$categories[] = $r[0];
+		*/
+	$categories = list_corpus_categories();
 	
 	/* how many categories? if only one, it is either uncategorised or a single assigned cat: ergo don't use cats */
 	$n = count($categories);
@@ -54,7 +54,8 @@ if ($use_corpus_categories_on_homepage)
 }
 else
 {
-	$categories[0] = '%';
+	/* empty string: to make the loops cycle once */
+	$categories = array(0=>'');
 }
 
 
@@ -86,16 +87,13 @@ header('Content-Type: text/html; charset=utf-8');
 <?php
 
 
-foreach ($categories as $cat)
+foreach ($categories as $idno => $cat)
 {
-	if ($use_corpus_categories_on_homepage)
-		echo '<tr><th colspan="3" class="concordtable">' . $cat . "</th></tr>\n\n";
-
-
 	/* get a list of corpora */
 	
-	$sql_query = "select corpus, visible from corpus_metadata_fixed
-		where visible = 1 and corpus_cat like '$cat' order by corpus asc";
+	$sql_query = "select corpus, visible from corpus_metadata_fixed where visible = 1 "
+		. ($use_corpus_categories_on_homepage ? "and corpus_cat = '$idno'" : '') 
+		. " order by corpus asc";
 
 	$result = do_mysql_query($sql_query);
 	
@@ -103,6 +101,14 @@ foreach ($categories as $cat)
 	while ( ($x = mysql_fetch_object($result)) != false)
 		$corpus_list[] = $x;
 	
+	/* don't print a table for empty categories */
+	if(empty($corpus_list))
+		continue;
+	
+
+
+	if ($use_corpus_categories_on_homepage)
+		echo '<tr><th colspan="3" class="concordtable">' . $cat . "</th></tr>\n\n";
 	
 	
 	
