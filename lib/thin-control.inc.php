@@ -83,7 +83,7 @@ $query_record = check_cache_qname($qname);
 if ($query_record === false)
 	exiterror_general("The specified query $qname was not found in cache!", __FILE__, __LINE__);
 
-$hits = ( isset($query_record['hits_left']) ? $query_record['hits_left'] : $query_record['hits'] );
+$hits = ( empty($query_record['hits_left']) ? $query_record['hits']: $query_record['hits_left'] );
 
 $num_of_hits_text = '(current no. of instances: ' . make_thousands($hits) . ')';
 

@@ -134,8 +134,7 @@ case 'ready_to_save':
 		exit();
 	}
 	/* check if a saved query with this savename exists */
-	$result = do_mysql_query("select query_name from saved_queries where user = '$username' and save_name = '$savename'");
-	if (mysql_num_rows($result) > 0)
+	if (save_name_in_use($savename))
 	{
 		$url = 'redirect.php?' 
 			. url_printget(array(array('redirect', 'saveHits'), array('saveScriptSaveName', ''), 
@@ -143,7 +142,7 @@ case 'ready_to_save':
 		disconnect_all();
 		header('Location: ' . url_absolutify($url));
 		exit();
-	}	
+	}
 	
 	$newqname = qname_unique($instance_name);
 

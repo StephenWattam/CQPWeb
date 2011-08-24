@@ -46,9 +46,6 @@
 /* ------------ */
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
 
 /* initialise variables from settings files  */
 
@@ -112,9 +109,9 @@ connect_global_mysql();
 
 
 
+/* before anything else */
+header('Content-Type: text/html; charset=utf-8');
 ?>
-
-
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -182,6 +179,7 @@ echo print_menurow_index('userSettings', 'User settings');
 echo print_menurow_index('history', 'Query history');
 echo print_menurow_index('savedQs', 'Saved queries');
 echo print_menurow_index('categorisedQs', 'Categorised queries');
+echo print_menurow_index('uploadQ', 'Upload a query');
 echo print_menurow_index('subcorpus', 'Create/edit subcorpora');
 ?>
 
@@ -359,6 +357,10 @@ case 'savedQs':
 	
 case 'categorisedQs':
 	printquery_catqueries();
+	break;
+
+case 'uploadQ':
+	printquery_uploadquery();
 	break;
 	
 case 'subcorpus':

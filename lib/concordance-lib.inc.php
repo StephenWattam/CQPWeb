@@ -146,12 +146,17 @@ function create_solution_heading($record, $include_corpus_size = true)
 
 	$final_string = 'Your query &ldquo;';
 
-	if ( $qmode == 'cqp' || $simple_query == '' )
-		$final_string .= htmlspecialchars($cqp_query, ENT_QUOTES, 'UTF-8', false);
+	if ($qmode != 'uploaded')
+	{
+		if ( $qmode == 'cqp' || $simple_query == '' )
+			$final_string .= htmlspecialchars($cqp_query, ENT_QUOTES, 'UTF-8', false);
+		else
+			$final_string .= htmlspecialchars($simple_query, ENT_QUOTES, 'UTF-8', false);
+	
+		$final_string .= "&rdquo;";
+	}
 	else
-		$final_string .= htmlspecialchars($simple_query, ENT_QUOTES, 'UTF-8', false);
-
-	$final_string .= "&rdquo;";
+		$final_string = 'Your uploaded query';
 
 
 	if ($subcorpus != 'no_subcorpus')
@@ -160,7 +165,7 @@ function create_solution_heading($record, $include_corpus_size = true)
 		$final_string .= ', restricted to ' . translate_restrictions_to_prose($restrictions) . ',';
 
 		
-	$final_string .= ' returned '. make_thousands($num_of_solutions) . ' matches';	
+	$final_string .= ' returned ' . make_thousands($num_of_solutions) . ' matches';	
 
 
 	if ($num_of_files > 1) 

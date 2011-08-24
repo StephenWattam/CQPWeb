@@ -453,7 +453,8 @@ function install_new_corpus()
 		 (clean out on next update).
 		 Then, the "finished" screen can have an extra link:Javascript function to display the
 		 output from CWB.
-		 This will allow you to see, f'rinstance, any dodgy 
+		 This will allow you to see, f'rinstance, any dodgy messages about XML elements that were droppped
+		 or encoded as literals.
 		 */ 
 	}
 	
@@ -497,23 +498,6 @@ function install_new_corpus()
 
 
 
-/**
- * Compresses a corpus.
- * 
- * Parameters: path to registry (absolute or relative); the CWB name of the corpus in uppercase form
- * 
- * TODO: make the paths actually absolute, relative. For now it follows the rules of CQPweb-oldstyle
- */
-function cwb_compress_corpus($path_to_cwb, $cwb_registry, $CORPUS, $output)
-{
-
-
-
-
-}
-
-
-
 function install_create_settings_file($filepath, $info)
 {
 	$data = "<?php\n\n"
@@ -530,11 +514,8 @@ function install_create_settings_file($filepath, $info)
 
 function install_create_corpus_script_files($in_dir)
 {
-	foreach (array( 'api', 'collocation', 'concordance', 'context',
-					'distribution', 'execute', 'freqlist',
-					'freqtable-compile', 'help', 'index',
-					'keywords', 'redirect', 'subcorpus-admin',
-					'textmeta') as $c)
+	global $cqpweb_script_files;
+	foreach ($cqpweb_script_files as $c)
 	{
 		file_put_contents("$in_dir/$c.php", "<?php require('../lib/$c.inc.php'); ?>");
 		chmod("$in_dir/$c.php", 0664);

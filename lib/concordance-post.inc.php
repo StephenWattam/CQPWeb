@@ -591,6 +591,8 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 
 		/* use the sort settings to create the where and order by clause */
 		
+		$extra_sort_pos_sql = '';
+		
 		/* the variable "sort_position_sql" is beforeX, afterX, or node */
 		if ($this->sort_position < 0)
 		{
@@ -609,7 +611,7 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 		}
 		else if ($this->sort_position > 0)
 		{
-			$sort_position_sql .= 'after' . $this->sort_position;
+			$sort_position_sql = 'after' . $this->sort_position;
 			for ($i = $this->sort_position ; $i < 6 ; $i++)
 				$extra_sort_pos_sql .= ", after$i COLLATE utf8_general_ci";
 		}
@@ -866,7 +868,9 @@ function run_postprocess_sort($cache_record, &$descriptor)
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
-
+	$cache_record['saved'] = 0;
+	$cache_record['time_of_query'] = time();
+	
 	/* first, write a "dumpfile" to temporary storage */
 	$tempfile  = "/$cqpweb_tempdir/temp_sort_$new_qname.tbl";
 
@@ -934,6 +938,9 @@ function run_postprocess_randomise($cache_record, &$descriptor)
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
+	$cache_record['saved'] = 0;
+	$cache_record['time_of_query'] = time();
+	
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
 	/* note for randomisation, "hits left" doesn't need changing */
@@ -972,6 +979,9 @@ function run_postprocess_unrandomise($cache_record, &$descriptor)
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
+	$cache_record['saved'] = 0;
+	$cache_record['time_of_query'] = time();
+	
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
 	/* note for unrandomisation, "hits left" doesn't need changing */
@@ -1009,6 +1019,9 @@ function run_postprocess_thin($cache_record, &$descriptor)
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
+	$cache_record['saved'] = 0;
+	$cache_record['time_of_query'] = time();
+	
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $descriptor->thin_target_hit_count;
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
@@ -1054,7 +1067,8 @@ function run_postprocess_item($cache_record, &$descriptor)
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
-	
+	$cache_record['saved'] = 0;
+	$cache_record['time_of_query'] = time();
 	
 	/* actually do it ! */
 
@@ -1121,6 +1135,8 @@ function run_postprocess_dist($cache_record, &$descriptor)
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
+	$cache_record['saved'] = 0;
+	$cache_record['time_of_query'] = time();
 	
 	/* actually do it ! */
 
@@ -1185,6 +1201,8 @@ function run_postprocess_text($cache_record, &$descriptor)
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
+	$cache_record['saved'] = 0;
+	$cache_record['time_of_query'] = time();
 	
 	/* actually do it ! */
 
@@ -1239,6 +1257,9 @@ function run_postprocess_custom($cache_record, &$descriptor)
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
+	$cache_record['saved'] = 0;
+	$cache_record['time_of_query'] = time();
+	
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
 
 	/* actually run it */

@@ -2401,12 +2401,61 @@ function printquery_systemdiagnostics()
 {
 	global $path_to_cwb;
 	global $cwb_registry;
+	if (empty($_GET['runDiagnostic']))
+		$_GET['runDiagnostic'] = 'none';
+		
 	/* every case of this switch should print an entire table, then return */
 	switch ($_GET['runDiagnostic'])
 	{
 	case 'general':
 		//TODO
 		return;
+		
+	case 'phpStubs':
+		global $cqpweb_script_files;
+		$probfiles = array();
+		foreach (list_corpora() as $corpus)
+			foreach ($cqpweb_script_files as $file)
+				if (!file_exists($curr_file = "../$corpus/$file.php"))
+				{
+					file_put_contents($curr_file, "<?php require('../lib/$file.inc.php'); ?>");
+					chmod($curr_file, 0664);
+					$probfiles[] = $curr_file;
+					
+				}
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					Done diagnosing issues with PHP inclusion scripts
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					&nbsp;<br/>
+					<?php echo count($probfiles); ?> missing files were identified. All should now be fixed.
+					<br/>&nbsp;<br/>
+					<?php
+					if (!empty($probfiles))
+					{
+						?>
+						The missing files were:
+						
+						<ul>
+						<?php
+							foreach ($probfiles as $p)
+								echo "<li>$p</li>" 
+						?>
+						</ul>
+						<?php
+					}
+					?> 
+				</td>
+			</tr>
+		</table>
+		<?php
+		return;
+	
 		
 	case 'cqp':
 		?>
@@ -2427,6 +2476,8 @@ function printquery_systemdiagnostics()
 		<?php
 		return;
 		
+		
+	case 'none':
 	default:
 		/* this is the only route to the rest of the function */
 		break;
@@ -2442,7 +2493,7 @@ function printquery_systemdiagnostics()
 			<td class="concordgrey">
 				&nbsp;<br/>
 				Use the controls below to run diagnostics for parts of CQPweb that aren't working properly.
-				<br/><b>UNDER DEVELOPMENT -- DO NOT WORK YET</b>
+				<br/><b>UNDER DEVELOPMENT. Only some of them work.</b>
 				<br/>&nbsp;<br/>
 			</td>
 		</tr>
@@ -2459,6 +2510,23 @@ function printquery_systemdiagnostics()
 					<br/>
 					<input type="hidden" name="thisF" value="systemDiagnostics"/>
 					<input type="hidden" name="runDiagnostic" value="general"/>
+					<input type="hidden" name="uT" value="y" />
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable">
+				Check corpus PHP inclusion files
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral" align="center" colspan="3">
+				<form action="index.php" method="get">
+					<br/>
+					<input type="submit" value="Run a check for missing PHP script inclusion files in corpus webfolders" />
+					<br/>
+					<input type="hidden" name="thisF" value="systemDiagnostics"/>
+					<input type="hidden" name="runDiagnostic" value="phpStubs"/>
 					<input type="hidden" name="uT" value="y" />
 				</form>
 			</td>

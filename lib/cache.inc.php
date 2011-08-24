@@ -151,6 +151,8 @@ function qname_unique($qname)
 
 
 
+
+
 /**
  * Write a query to the cache table : assumption - this query has just been run in CQP.
  * 
@@ -561,6 +563,28 @@ function clear_cache($protect_user_saved = true)
 	}
 	
 	php_execute_time_relimit();
+}
+
+
+
+
+/**
+ * Checks a proposed save name to see if it is in use. 
+ * 
+ * Save names cannot be duplicated within a (user + corpus) combination.
+ * 
+ * Returns true if the save name is already in use; otherwise false
+ */
+function save_name_in_use($save_name)
+{
+	global $corpus_sql_name;
+	global $username;
+	$save_name = mysql_real_escape_string($save_name);
+	
+	$result = do_mysql_query("select query_name from saved_queries 
+								where corpus = '$corpus_sql_name' and user = '$username' and save_name = '$save_name'");
+	
+	return (mysql_num_rows($result) > 0);
 }
 
 

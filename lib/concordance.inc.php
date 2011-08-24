@@ -606,11 +606,9 @@ if ($new_postprocess)
 		$post_function = $new_postprocess->get_run_function_name();
 		
 		$cache_record = $post_function($cache_record, $new_postprocess);
-		/* the postprocess functions all re-set cr['postprocess'] and cr['hits_left'] etc. */
-		/* in the new query that is created */
+		/* the postprocess functions all re-set cr['postprocess'] and cr['hits_left'] etc.
+		 * in the new query that is created; also touches the time and setas the new query to unsaved. */
 		$qname = $cache_record['query_name'];
-		if ($cache_record['saved'] == 0)
-			touch_cached_query($qname);
 				
 		/* and, because this means we are dealing with a query new-created in cache... */
 		$run_new_query = true;

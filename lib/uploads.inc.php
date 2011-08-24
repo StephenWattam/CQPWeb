@@ -1,41 +1,100 @@
 <?php
+/*
+ * CQPweb: a user-friendly interface to the IMS Corpus Query Processor
+ * Copyright (C) 2008-today Andrew Hardie and contributors
+ *
+ * See http://cwb.sourceforge.net/cqpweb.php
+ *
+ * This file is part of CQPweb.
+ * 
+ * CQPweb is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * CQPweb is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-// TODO note. Should annotated query files be dealt with otherwise? e.g. in subfolder called "usr"?
-function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $temp_path, $error_code)
+
+/**
+ * Puts an uploaded file into the upload area.
+ * 
+ * Some of the parameters are not used, but are passed through in case later changes need them. 
+ * 
+ * Returns an absolute path to the new file. The name of the new file may have been extended by "_"
+ * if necessary to avoid a clash with an existing file.
+ * 
+ * @param original_name  The name from the client machine:       normally $_FILES[$name]['name'].
+ * @param file_type      The file type (MIME, if present):       normally $_FILES[$name]['type'].
+ * @param file_size      The file size in bytes:                 normally $_FILES[$name]['size'].
+ * @param temp_path      The location it was uploaded to:        normally $_FILES[$name]['tmp_name'].
+ * @param error_code     The error code from the upload process: normally $_FILES[$name]['error'].
+ * @param user_upload    Boolean (default false): if true, the file goes into the user upload folder
+ *                       rather than the main folder (which is sysadmin only).
+ */
+function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $temp_path, $error_code, $user_upload = false)
 {
 	global $cqpweb_uploaddir;
 	global $username;
 
-	/* convert back to int: execute.inc.php may have turned it to a string */
-	$error_code = (int)$error_code;
-	if ($error_code !== UPLOAD_ERR_OK)
-		exiterror_fullpage('The file did not upload correctly! Please try again.', __FILE__, __LINE__);
+	/* Check for upload errors; convert back to int: execute.inc.php may have turned it to a string */
+	switch ($error_code = (int)$error_code )
+	{
+	case UPLOAD_ERR_OK:
+		break;
+	case UPLOAD_ERR_INI_SIZE:
+	case UPLOAD_ERR_FORM_SIZE:
+		exiterror_fullpage('That file is too big to upload! Contact your system administrator.');
+	default:
+		exiterror_fullpage('The file did not upload correctly! Please try again.');
+	}
 	
-	/* only superusers can upload REALLY BIG files
-	 * TODO maybe make this variable - a user setting? */
+	/* We've checked the global restriction, now check the restriction for ordinary users 
+	 * (only superusers can upload REALLY BIG files).
+	 * 		TODO make this variable - a user setting? Or a constant? 
+	 * 		Actually, no make it conifgurable  by superuser even if not peruser*/
 	if (!user_is_superuser($username))
 	{
 		/* normal user limit is 2MB */
 		if ($file_size > 2097152)
-			exiterror_fullpage('The file did not upload correctly! Please try again.', __FILE__, __LINE__);
+			exiterror_fullpage('That file is too big to upload! Contact your system administrator.');
+	}
+	
+	/* check the directory exists for user-uploaded files */
+	if ($user_upload)
+	{	
+		if (!is_dir("/$cqpweb_uploaddir/usr"))
+			mkdir("/$cqpweb_uploaddir/usr", 0775);
+		if (!is_dir("/$cqpweb_uploaddir/usr/$username"))
+			mkdir("/$cqpweb_uploaddir/usr/$username", 0775);
 	}
 	
 	/* find a new name - a file that does not exist */
 	for ($filename = basename($original_name); 1 ; $filename = '_' . $filename)
 	{
-		$new_path = "/$cqpweb_uploaddir/$filename";
-		if (file_exists($new_path) === false)
+		$new_path = "/$cqpweb_uploaddir/" . ($user_upload ? "usr/$username/" : '' ) . "$filename";
+		if ( ! file_exists($new_path) )
 			break;
 	}
 	
 	if (move_uploaded_file($temp_path, $new_path)) 
 		chmod($new_path, 0664);
 	else
-		exiterror_fullpage("The file could not be processed! Possible file upload attack", __FILE__, __LINE__);
+		exiterror_fullpage("The file could not be processed! Possible file upload attack.");
+	
+	return $new_path;
 }
 
 /**
  * Change linebreaks in the named file in the upload area to Unix-style.
+ * 
+ * TODO windows compatability will require some major changes here here.
  */
 function uploaded_file_fix_linebreaks($filename)
 {
@@ -63,10 +122,11 @@ function uploaded_file_fix_linebreaks($filename)
 	
 	unlink($path);
 	rename($intermed_path, $path);
-	chmod($path, 0666);
+	chmod($path, 0664);
 }
 
 
+// TODO - account for files in the usr directory
 function uploaded_file_delete($filename)
 {	
 	global $cqpweb_uploaddir;
@@ -80,6 +140,7 @@ function uploaded_file_delete($filename)
 	unlink($path);
 }
 
+// TODO - account for files in the usr directory
 function uploaded_file_gzip($filename)
 {	
 	global $cqpweb_uploaddir;
@@ -115,6 +176,7 @@ function uploaded_file_gzip($filename)
 }
 
 
+// TODO - account for files in the usr directory
 function uploaded_file_gunzip($filename)
 {
 	global $cqpweb_uploaddir;
@@ -149,6 +211,8 @@ function uploaded_file_gunzip($filename)
 	chmod($unzip_path, 0666);
 }
 
+
+// TODO - account for files in the usr directory
 function uploaded_file_view($filename)
 {
 	global $cqpweb_uploaddir;

@@ -122,8 +122,8 @@ class CQP
 	 * 
 	 * This function calls exit() if the backend startup is unsuccessful.
 	 * 
-	 * @param $path_to_cqp  String : Directory containing the cqp executable
-	 * @param $cwb_registry String : Where to look for corpus registry files
+	 * @param path_to_cqp  String : Directory containing the cqp executable
+	 * @param cwb_registry String : Where to look for corpus registry files
 	 */
 	public function __construct($path_to_cqp, $cwb_registry)
 	{

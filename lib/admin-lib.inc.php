@@ -1443,7 +1443,7 @@ function cqpweb_mysql_recreate_tables()
 			`combo_annotation` varchar(20) default NULL,
 			`external_url` varchar(255) default NULL,
 			`public_freqlist_desc` varchar(150) default NULL,
-			`corpus_cat` int DEFAULT 1,
+			`corpus_cat` int NOT NULL DEFAULT 1,
 			`cwb_external` tinyint(1) NOT NULL default 0,
 			PRIMARY KEY (corpus)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
@@ -1559,10 +1559,12 @@ function cqpweb_mysql_recreate_tables()
 		"CREATE TABLE `xml_visualisations` (
 			`corpus` varchar(20) NOT NULL,
 			`element` varchar(50) NOT NULL,
+			`xml_attributes` varchar(100) NOT NULL default '',
 			`in_concordance` tinyint(1) NOT NULL default 1,
 			`in_context` tinyint(1) NOT NULL default 1,
-			`visualisation_code` text,
-			key(`corpus`)
+			`bb_code` text,
+			`html_code` text,
+			key(`corpus`, `element`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
 	
 	

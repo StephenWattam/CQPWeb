@@ -696,6 +696,13 @@ function printquery_latest()
 -->
 		
 		<li>
+		<b>Version 3.0.2</b>, 2011-08-<br/>&nbsp;<br/>
+		Added the long-awaited "upload user's own query" function.
+		<br/>&nbsp;<br/>
+		Made it possible to have the same saved-query name in two different corpora.
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.0.1</b>, 2011-08-20<br/>&nbsp;<br/>
 		Implemented a better system for sorting corpora into categories on the homepage.
 		<br/>&nbsp;<br/>

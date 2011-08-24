@@ -626,7 +626,6 @@ function printquery_savedqueries()
 	global $corpus_sql_name;
 
 
-
 	if (isset($_GET['beginAt']))
 		$begin_at = $_GET['beginAt'];
 	else
@@ -637,9 +636,6 @@ function printquery_savedqueries()
 	else
 		$per_page = $default_history_per_page;
 
-
-
-	$show_unsaved = false;
 
 	if (isset($_GET['showUser']) && user_is_superuser($username))
 		$user_to_show = $_GET['showUser'];
@@ -736,9 +732,76 @@ function printquery_savedqueries()
 
 
 
-	print_cache_table($begin_at, $per_page, $user_to_show, $show_unsaved, false);
+	print_cache_table($begin_at, $per_page, $user_to_show, false, false);
 }
 
+
+
+function printquery_uploadquery()
+{
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th colspan="2" class="concordtable">Upload a query from an external data file</th>
+		</tr>
+		<form action="upload-query.php" method="POST" enctype="multipart/form-data">
+			<tr>
+				<td class="concordgrey">
+					&nbsp;<br/>
+					Select file for upload:
+					<br/>&nbsp;
+				</td>
+				<td class="concordgeneral">
+					&nbsp;<br/>
+					<input type="file" name="uploadQueryFile" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey">
+					&nbsp;<br/>
+					Enter a name for the new saved query:
+					<br/>&nbsp;
+				</td>
+				<td class="concordgeneral">
+					&nbsp;<br/>
+					<input type="text" size="30" maxlength="30" name="uploadQuerySaveName" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="concordgeneral" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Upload file" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<input type="hidden" name="uT" value="y" />			
+		</form>
+		<tr>
+			<td colspan="2" class="concordgrey">
+				<strong>Instructions:</strong>
+				<ul>
+					<li>You can use this page to upload a file to CQPweb and create a new saved query from it.</li>
+					<li>The file must contain (only) two columns of corpus positions, separated by tabs.</li>
+					<li>
+						The numbers refer to the start point and end point of each individual &ldquo;hits&rdquo;
+						of the query you want create.
+					</li>
+					<li>Normally, you would use (a subset of the) lines from a previously-exported query.</li>
+					<li>Your query will be generated within <em>the current corpus only</em>.</li>
+					<li>
+						The name of the saved query can only contain letters, numbers and the underscore 
+						character ("_"); it cannot contain any spaces.
+					</li>
+				</ul>
+			</td>
+		</tr>
+	</table>
+	<?php
+	/* TODO wouldn't it be pretty easy to upload a subcorpus through another form here,
+	 * will relatively minor tweaks only to the code (parameterisable!) ? */
+}
 
 
 

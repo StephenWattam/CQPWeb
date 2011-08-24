@@ -44,19 +44,26 @@ function get_xml_all()
 	global $cwb_registry;
 	global $corpus_cqp_name;
 	
-	// TODO make this function cache its return value in a static var, 
-	// so that we can reduce the number of file accesses.
+	/* we stick the result in a static cache var to reduce the number of file accesses */
+	static $cache = NULL;
 	
-	// TODO note use of strtolower is almost certainly THE WRONG THING
-	$data = file_get_contents("/$cwb_registry/" . strtolower($corpus_cqp_name));
+	if (is_null($cache))
+	{
+		/* use of strtolower() is OK because CWB identifiers *MUST ALWAYS* be ASCII */ 
+		$data = file_get_contents("/$cwb_registry/" . strtolower($corpus_cqp_name));
+		// but long-term consider caching the lowercase CWB name somewhere....
+		
+		preg_match_all("/STRUCTURE\s+(\w+)\s*[#\n]/", $data, $m, PREG_PATTERN_ORDER);
 	
-	preg_match_all("/STRUCTURE\s+(\w+)\s*[#\n]/", $data, $m, PREG_PATTERN_ORDER);
-
-	return $m[1];
+		$cache = $m[1];
+	}
+	
+	return $cache;
 }
 
 /**
  * Checks whether or not the specified s-attribute exists in this corpus.
+ * 
  * (A convenience wrapper around get_xml_all().)
  */
 function xml_exists($element)
@@ -65,29 +72,53 @@ function xml_exists($element)
 }
 
 /**
- * Gets an array of all s-attributes that are annotations.
- * (That is, they have a value that can be printed...)
+ * Gets an array of all s-attributes that have annotration valueas 
+ * (includes all those derived from attribute-value annotations
+ * of another s-attribute that was specifieds xml-style).
+ * 
+ * That is, the listed attributes definitely have a value that can be printed.
  */
 function get_xml_annotations()
 {
-	/* there has GOT to be an easier way than this to work out whether an s-att has values... 
-	 * but I can't work out what that might be just now!!
-	 * 
-	 * Even this method might not actually work in some conceivable situations.
-	 */
+	/* TODO - eventually this info should prob be in the DB rather than using cwb-d-c every time*/
 	
+/* --old version of code......
 	$full_list = get_xml_all();
 	
-	/* for each s-attribute, extract all its annotations */
+	/* for each s-attribute, extract all its annotations * /
 	foreach ($full_list as $tester)
 		foreach($full_list as $k=>$found)
 			if (substr($found, 0, strlen($tester)+1) == $tester.'_')
 			{
-				/* embedded string creates new var, not reference */
+				/* embedded string creates new var, not reference * /
 				$return_list[] = "$found";
-				/* so that we don't look for annotations of annotations */
+				/* so that we don't look for annotations of annotations * /
 				unset($full_list[$k]);
 			}
+
+	return $return_list;
+*/
+
+	global $path_to_cwb;
+	global $cwb_registry;
+	global $corpus_cqp_name;
+	
+	/* we stick the result in a static cache var to reduce the number of slave processes
+	 * - there is no point xcalling cwb-describe-corpus more than once per  */
+	static $return_list = NULL;
+	
+	if (is_null($return_list))
+	{
+		$cmd = "/$path_to_cwb/cwb-describe-corpus -r /$cwb_registry -s $corpus_cqp_name";
+		
+		exec($cmd, $results);
+		
+		$return_list = array();
+		
+		foreach($results as $r)
+			if (0 < preg_match('/s-ATT\s+(\w+)\s+\d+\s+regions?\s+\(with\s+annotations\)/', $r, $m))
+				$return_list[] = $m[1];
+	}
 
 	return $return_list;
 }
@@ -98,20 +129,22 @@ function xml_visualisation_delete($corpus, $element)
 	$corpus = mysql_real_escape_string($corpus);
 	$element = mysql_real_escape_string($element);
 	
-	do_mysql_query("delete from xml_visualisations 
-		where corpus='$corpus' and element = '$element'");
+	do_mysql_query("delete from xml_visualisations where corpus='$corpus' and element = '$element'");
 }
 
 function xml_visualisation_create($corpus, $element, $code, $in_concordance = true, $in_context = true)
 {
 	$corpus = mysql_real_escape_string($corpus);
 	$element = mysql_real_escape_string($element);
-	$code = xml_visualisation_code_make_safe($code);
+	
+	$html = xml_visualisation_code_make_safe($code);
 	// TODO other filtering required? separate filter function?
 	
 	$in_concordance = ($in_concordance ? 1 : 0);
 	$in_context     = ($in_context     ? 1 : 0);
 	
+	
+	// TODO rewrite insert
 	do_mysql_query("insert into xml_visualisations
 		(corpus, element, in_context, in_concordance, code)
 		values
@@ -123,6 +156,8 @@ function xml_visualisation_create($corpus, $element, $code, $in_concordance = tr
  */
 function xml_visualisation_use_in_context($corpus, $element, $new)
 {
+	$corpus = mysql_real_escape_string($corpus);
+	$element = mysql_real_escape_string($element);
 	$newval = ($new ? 1 : 0);
 	do_mysql_query("update xml_visualisations set in_context = $newval 
 		where corpus='$corpus' and element = '$element'");	
@@ -133,6 +168,8 @@ function xml_visualisation_use_in_context($corpus, $element, $new)
  */
 function xml_visualisation_use_in_concordance($corpus, $element, $new)
 {
+	$corpus = mysql_real_escape_string($corpus);
+	$element = mysql_real_escape_string($element);
 	$newval = ($new ? 1 : 0);
 	do_mysql_query("update xml_visualisations set in_concordance = $newval 
 		where corpus='$corpus' and element = '$element'");	
@@ -208,5 +245,74 @@ plus attributes
 */
 	return mysql_real_escape_string($code);		
 }
+
+function xml_visualisation_bb_to_html($bb_code, $is_for_end_tag = false)
+{
+	$html = cqpweb_htmlspecialchars($bb_code);
+	
+	/* OK, we have made the string safe. 
+	 * 
+	 * Now let's un-safe each of the BBcode sequences that we allow.
+	 */ 
+	
+	/* begin with tags that are straight replacements and do not require PCRE. */
+	
+	static $direct_replacements = array(
+		'[b]' => '<strong>',		/* emboldeneed text: we use <strong>, not <b> */
+		'[B]' => '<strong>',
+		'[/b]' => '</strong>',
+		'[/B]' => '</strong>',
+		'[i]' => '<em>',			/* italic text: we use <em>, not <i> */
+		'[I]' => '<em>',
+		'[/i]' => '</em>',
+		'[/I]' => '</em>',
+		'[u]' => '<u>',				/* underlined text: we use <u>, not <ins> or anything silly. */
+		'[U]' => '<u>',
+		'[/u]' => '</u>',
+		'[/U]' => '</u>',
+		'[s]' => '<s>',				/* struckthrough text: just use <s> */
+		'[S]' => '<s>',
+		'[/s]' => '</s>',
+		'[/S]' => '</s>',
+		'[list]' => '<ul>',			/* unmnumered lsit is easy enough. BUT SEE BELOW for the [*] that creates <li>. */
+		'[/list]' => '</ul>',
+		'[List]' => '<ul>',
+		'[/List]' => '</ul>',
+		'[LIST]' => '<ul>',
+		'[/LIST]' => '</ul>',
+		'[quote]' => '<blockquote>',	/* quote is how we get at HTML blockquote. No other styling specified. */
+		'[/quote]' => '</blockquote>',
+		'[QUOTE]' => '<blockquote>',
+		'[/QUOTE]' => '</blockquote>',
+		'[Quote]' => '<blockquote>',
+		'[/Quote]' => '</blockquote>',
+//TODO		'[quote]' => '<blockquote>',	/* code gives us <pre>. */
+		'[/quote]' => '</blockquote>',
+		'[QUOTE]' => '<blockquote>',
+		'[/QUOTE]' => '</blockquote>',
+		'[Quote]' => '<blockquote>',
+		'[/Quote]' => '</blockquote>',
+		);
+	
+	
+	$html = strtr($html, $direct_replacements);
+	
+	
+	if ($is_for_end_tag)
+	{
+		/* remove all attribute values: end-tags don't have them */
+		$html = preg_replace('/$$$\w*$$$/', '', $html);
+	}
+	
+	
+	return $html;
+}
+
+// important TODO note. 
+// There is nothing to stop the BBCODES creating unbalanced HTML which could spill 
+// across the end of the concordance line.
+// Ideally, we dopn't want the XML visualisation to affect anything outside itslf.
+// So, if we can wangle it, ideally when the HTML is initially generated from BB code,
+// any dangling open [brackets] should be closed automatically. 
 
 ?>

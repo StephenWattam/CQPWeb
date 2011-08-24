@@ -76,7 +76,7 @@ function add_corpus_category($label, $initial_sort_n = 0)
 }
 
 
-/** returns a list of all the corpora currently in the system, as an array */
+/** returns a list of all the corpora (referred to by mysql ID codes) currently in the system, as an array */
 function list_corpora()
 {
 	$list_of_corpora = array();

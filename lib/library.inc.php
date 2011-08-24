@@ -503,7 +503,7 @@ function regex_add_anchors($s)
  */
 function make_thousands($number)
 {
-	return number_format($number);
+	return number_format((float)$number);
 }
 
 
@@ -528,6 +528,8 @@ function cqpweb_htmlspecialchars($string)
  * Removes any characters that match PCRE \W from a string.
  *  
  * A "handle" can only contain word characters.
+ * 
+ * TODO: add length requirement?
  */
 function cqpweb_handle_enforce($string)
 {
@@ -535,11 +537,15 @@ function cqpweb_handle_enforce($string)
 }
 
 /**
- * Returns true iff there are no non-word characters (i.e. no \W) in the argument string.
+ * Returns true iff the argument string is OK as a handle,
+ * that is, iff there are no non-word characters (i.e. no \W)
+ * in the string and it is not empty.
+ * 
+ * TODO: add length restriction?
  */
 function cqpweb_handle_check($string)
 {
-	return (bool) preg_match('/\W/', $string);
+	return ( $string !== ''  &&  0 >= preg_match('/\W/', $string) );
 }
 
 
@@ -1253,7 +1259,7 @@ function longvalue_retrieve($id)
 // TODO move these to plugins.inc.php?
 // TODO can we remoev the if ! empty call? or is it needed for the case where no registry exists?
 
-/** Returns an object from the plugin register, or else false if not found. */
+/** Returns an object from the plugin registry, or else false if not found. */
 function retrieve_plugin_info($class)
 {
 	global $plugin_registry;
@@ -1265,7 +1271,7 @@ function retrieve_plugin_info($class)
 }
 
 
-/** Returns a list of the available plugins (array of objects from the global registry). */ 
+/** Returns a list of the available plugins (array of objects from the global registry) of the specified type. */ 
 function list_plugins_of_type($type)
 {
 	global $plugin_registry;

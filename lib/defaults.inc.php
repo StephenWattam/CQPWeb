@@ -28,6 +28,20 @@
 /* version number of CQPweb */
 define('CQPWEB_VERSION', '3.0.1');
 
+/* php stubs in each corpus directory; we can't make this constant, but it should be treated as if it was! */ 
+$cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
+						'distribution', 'execute', 'freqlist',
+						'freqtable-compile', 'help', 'index',
+						'keywords', 'redirect', 'subcorpus-admin',
+						'textmeta', 'upload-query');
+
+/* "reserved words" that can't be used for corpus ids;
+ * note: all reserved words are 3 lowercase letters and any new ones we add will also be 3 lowercase letters */
+$cqpweb_reserved_subdirs = array('adm', 'bin', 'css', 'doc', 'lib', 'rss', 'usr');
+
+
+
+/* plugin type constants */
 
 define('PLUGIN_TYPE_UNKNOWN',				0);
 define('PLUGIN_TYPE_ANNOTATOR', 			1);
@@ -339,10 +353,6 @@ if (!isset($default_words_in_download_context))
 /* ----------------------- */
 
 /* some can be overrridden in the config file -- some can't! */
-
-/* "reserved words" that can't be used for corpus ids */
-$cqpweb_reserved_subdirs = array('adm', 'bin', 'css', 'doc', 'lib', 'rss', 'usr');
-/* note: all reserved words are 3 lowercase letters and any new ones we add will also be 3 lowercase letters */
 
 
 /* control the size of the history table */

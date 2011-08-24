@@ -1887,7 +1887,7 @@ function printquery_visualisation()
 	<table class="concordtable" width="100%">
 		<tr>
 			<th  colspan="2" class="concordtable">
-				(3) Transliteration
+				(3) Transliteration    [NOT WORKING YET!!]
 			</th>
 		</tr>
 		<tr>
@@ -1949,17 +1949,35 @@ function printquery_xmlvisualisation()
 {
 	global $corpus_sql_name;
 	
+	/* PROCESS INCOMING */
+	
+	/* process incoming NEW */
+	
+	
+	/* process incoming UPDATE */
+	
+	
+	
+	
+	/* OK, now the processing is done, let's render the form */
+	
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
 			<th  colspan="4" class="concordtable">
-				XML visualisation
+				(3) XML visualisation
 			</th>
 		</tr>
 		<tr>
 			<td  colspan="4" class="concordgrey">
 				&nbsp;<br/>
-				Explanation here
+				XML visualisations are commands stored in the database which describe how an indexed
+				XML element (or, in CWB terms, an &ldquo;s-attribute&rdquo;) is to appear in the concordance.
+				<br/>&nbsp;<br/>
+				By default, all XML elements are invisible. You must create and enable a visualisation for
+				each XML element in each corpus that you wish to display to the user.  
+				<br/>&nbsp;<br/>
+				You can use the forms below to manage your visualisations.
 				<br/>&nbsp;
 			</td>
 		</tr>
@@ -1974,7 +1992,7 @@ function printquery_xmlvisualisation()
 		<tr>
 			<th class="concordtable">XML tag</th>
 			<th class="concordtable">Visualisation code</th>
-			<th class="concordtable">Used where? (in concordances, in context, both, neither)</th>
+			<th class="concordtable">Used where? (concordance, context, both, neither)</th>
 			<th class="concordtable">Actions (update, delete)</th>
 		</tr>
 		
@@ -1990,6 +2008,11 @@ function printquery_xmlvisualisation()
 			);
 			
 		$result = do_mysql_query("select * from xml_visualisations where corpus = '$corpus_sql_name'"); 
+		
+		if (mysql_num_rows($result) == 0)
+			echo '<tr><td colspan="4" class="concordgrey" align="center">'
+				. '&nbsp;<br/>There are currently no XML visualisations in the database.<br/>&nbsp;'
+				. '</td></tr>';
 		
 		while (false !== ($v = mysql_fetch_object($result)))
 		{
@@ -2043,7 +2066,7 @@ function printquery_xmlvisualisation()
 			
 			<tr>
 				<td class="concordgrey">
-					Select one of the XML element which does not yet have a visualisation specified:
+					Select one of the XML elements which does not yet have a visualisation specified:
 				</td>
 				<td class="concordgeneral">
 					<?php
