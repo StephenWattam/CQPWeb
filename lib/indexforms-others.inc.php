@@ -696,10 +696,14 @@ function printquery_latest()
 -->
 		
 		<li>
-		<b>Version 3.0.2</b>, 2011-08-<br/>&nbsp;<br/>
+		<b>Version 3.0.2</b>, 2011-08-28<br/>&nbsp;<br/>
 		Added the long-awaited "upload user's own query" function.
 		<br/>&nbsp;<br/>
-		Made it possible to have the same saved-query name in two different corpora.
+		Finished the administrator's management of XML visualisations. Coming next, implementation in concordance view.
+		<br/>&nbsp;<br/>
+		Made it possible for a user to have the same saved-query name in two different corpora.
+		<br/>&nbsp;<br/>
+		Fixed a bug that made non-reproducible random thinning, actually always reproducible!
 		<br/>&nbsp;</li>
 
 		<li>

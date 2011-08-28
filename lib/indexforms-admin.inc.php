@@ -1951,25 +1951,37 @@ function printquery_xmlvisualisation()
 	
 	/* PROCESS INCOMING */
 	
-	/* process incoming NEW */
-	
-	
-	/* process incoming UPDATE */
-	
-	
-	
+	/* process incoming NEW or UPDATE */
+	if (isset($_GET['xmlTheElement']))
+	{
+		/* change the update form's "select" to the two-value pair of variables used in the create form... */
+		if (isset($_GET['xmlUseInSelector']))
+		{
+			$_GET['xmlUseInConc']    = ( $_GET['xmlUseInSelector'] == 'in_conc'    || $_GET['xmlUseInSelector'] == 'both' );
+			$_GET['xmlUseInContext'] = ( $_GET['xmlUseInSelector'] == 'in_context' || $_GET['xmlUseInSelector'] == 'both' );
+		}
+		xml_visualisation_create(	$corpus_sql_name, 
+									$_GET['xmlTheElement'], 
+									$_GET['xmlVisCode'], 
+									(bool) $_GET['xmlIsStartTag'], 
+									(bool) $_GET['xmlUseInConc'], 
+									(bool) $_GET['xmlUseInContext'] );
+	}
+	/* process incoming DELETE */
+	if (isset($_GET['xmlDeleteVisualisation']))
+		xml_visualisation_delete($corpus_sql_name, $_GET['xmlDeleteVisualisation']);
 	
 	/* OK, now the processing is done, let's render the form */
 	
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
-			<th  colspan="4" class="concordtable">
+			<th  colspan="6" class="concordtable">
 				(3) XML visualisation
 			</th>
 		</tr>
 		<tr>
-			<td  colspan="4" class="concordgrey">
+			<td  colspan="6" class="concordgrey">
 				&nbsp;<br/>
 				XML visualisations are commands stored in the database which describe how an indexed
 				XML element (or, in CWB terms, an &ldquo;s-attribute&rdquo;) is to appear in the concordance.
@@ -1984,16 +1996,18 @@ function printquery_xmlvisualisation()
 		
 		
 		<!-- display current visualisations for this corpus -->
+		<!-- note we use the SAME FORM for updates as for creates -->
 		<tr>
-			<th colspan="4" class="concordtable">
+			<th colspan="6" class="concordtable">
 				Existing XML visualisation commands
 			</th>
 		</tr>
 		<tr>
 			<th class="concordtable">XML tag</th>
 			<th class="concordtable">Visualisation code</th>
-			<th class="concordtable">Used where? (concordance, context, both, neither)</th>
-			<th class="concordtable">Actions (update, delete)</th>
+			<th class="concordtable">Show</th>
+			<th class="concordtable">Used where?</th>
+			<th class="concordtable" colspan="2">Actions</th>
 		</tr>
 		
 		<?php
@@ -2006,23 +2020,41 @@ function printquery_xmlvisualisation()
 			'both' => "In concordance AND context displays",
 			'neither' => "Nowhere (visualisation disabled)"
 			);
-			
+
 		$result = do_mysql_query("select * from xml_visualisations where corpus = '$corpus_sql_name'"); 
 		
 		if (mysql_num_rows($result) == 0)
-			echo '<tr><td colspan="4" class="concordgrey" align="center">'
+			echo '<tr><td colspan="6" class="concordgrey" align="center">'
 				. '&nbsp;<br/>There are currently no XML visualisations in the database.<br/>&nbsp;'
 				. '</td></tr>';
 		
 		while (false !== ($v = mysql_fetch_object($result)))
 		{
 			echo '
+				<form action="index.php" method="get">
 				<tr>
 				';
 			
-			echo '<td>' . $v->element . '</td>';
+			list($tag, $startend) = explode('~', $v->element);
+			$startend = ($startend=='end' ? '/' : ''); 
 			
-			echo '<td>' . $v->visualisation_code . '</td>';
+			echo '
+				<td class="concordgeneral">&lt;' . $startend . $tag . '&gt;</td>
+				';
+			
+			echo '
+				<td class="concordgeneral" align="center"><textarea cols="40" rows="2" name="xmlVisCode">' 
+				. $v->bb_code 
+				. '</textarea></td>
+				';
+			
+			echo '<td class="concordgeneral" align="center">'
+				. '<span onmouseover="return escape(\'' 
+				  /* note we need double-encoding to get the actual code to show up in a tooltip ! */
+				. htmlspecialchars(htmlspecialchars($v->html_code, ENT_QUOTES, 'UTF-8', true) , ENT_QUOTES, 'UTF-8', true) 
+				.'\')">[HTML]</span>'
+				. '</td>
+				';
 			
 			switch (true)
 			{
@@ -2035,20 +2067,38 @@ function printquery_xmlvisualisation()
 			foreach ($where_values as $val=>$label)
 			{
 				$blob = ($checked == $val ? ' selected="selected"' : '');
-				$options .= "<option value=\"\"$blob>$label</option>\n";
+				$options .= "\n\t\t\t\t\t<option value=\"$val\"$blob>$label</option>\n";
 			}
 			
-			echo '<td><select name="">'
+			echo '
+				<td class="concordgeneral" align="center">
+				<select name="xmlUseInSelector">'
 				. $options
-				. '</select></td>';
+				. '
+				</select>
+				</td>
+				';
 
-			echo '<td>'
-				. 'Update Delete'
+			echo '
+				<td class="concordgeneral" align="center">'
+				. '<input type="submit" value="Update" />' 
 				. '</td>';
-			
-			
+						
+			echo '
+				<td class="concordgeneral" align="center">'
+				. '<a class="menuItem" href="index.php?thisQ=manageVisualisation&xmlDeleteVisualisation='
+				. $tag . '~' . ($startend=='/' ? 'end' : 'start') 
+				. '&uT=y">[Delete]</a>'
+				. '</td>
+				';
+						
 			echo '
 				</tr>
+				<input type="hidden" name="xmlTheElement" value="' . $tag . '" />
+				<input type="hidden" name="xmlIsStartTag" value="' . ($startend=='/' ? '0' : '1') . '" />
+				<input type="hidden" name="thisQ" value="manageVisualisation" />
+				<input type="hidden" name="uT" value="y" />
+				</form>
 				';
 
 		}
@@ -2057,7 +2107,7 @@ function printquery_xmlvisualisation()
 	</table>
 	<table class="concordtable" width="100%">		
 		<!-- form to create new visualisation -->
-		<form action="../adm/index.php" method="get">
+		<form action="index.php" method="get">
 			<tr>
 				<th colspan="2" class="concordtable">
 					Create new XML visualisation command
@@ -2066,21 +2116,38 @@ function printquery_xmlvisualisation()
 			
 			<tr>
 				<td class="concordgrey">
-					Select one of the XML elements which does not yet have a visualisation specified:
+					Select one of the available XML elements:
 				</td>
 				<td class="concordgeneral">
-					<?php
+					<select name="xmlTheElement">
 					
-					?>
-					<!-- drop down of s-attributes not in table above-->
+						<?php
+						foreach (get_xml_all() as $x)
+							echo "<option>$x</option>\n\t\t\t\t\t\t";
+						?>
+						
+					</select>					
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey">Create visualisation for start or end tag?</td>
+				<td class="concordgeneral">
+					<input type="radio" checked="checked" name="xmlIsStartTag" value="1" /> Start tag
+					<input type="radio" name="xmlIsStartTag" value="0" /> End tag
+				</td>
+			</tr>
+			<tr>
+				<td align="center" colspan="2" class="concordgrey">
+					<em>Note: if you choose an element start/end for which a visualisation 
+					already exists, the existing visualisation will be overwritten.</em>
 				</td>
 			</tr>
 			<tr>
 				<td class="concordgrey">
-					Enter the HTML code to use for visualising this XML element:
+					Enter the code for the visualisation you want to create.
 					<br/>&nbsp;<br/>
-					The following tags are not allowed:
-					applet embed object script
+					See <a target="_blank" href="../doc/CQPweb-visualisation-manual.html">this file</a> for more
+					information.
 				</td>
 				<td class="concordgeneral">
 					<textarea cols="40" rows="12" name="xmlVisCode"></textarea>
@@ -2107,7 +2174,8 @@ function printquery_xmlvisualisation()
 				</td>
 			</tr>
 			
-		<input type="hidden" name="uT" value="y" />
+			<input type="hidden" name="thisQ" value="manageVisualisation" />
+			<input type="hidden" name="uT" value="y" />
 			
 		</form>
 	</table>

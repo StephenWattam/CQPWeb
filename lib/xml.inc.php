@@ -124,31 +124,13 @@ function get_xml_annotations()
 }
 
 
+/** "element" must be specified with either the '~start' or '~end' suffixes. */
 function xml_visualisation_delete($corpus, $element)
 {
 	$corpus = mysql_real_escape_string($corpus);
 	$element = mysql_real_escape_string($element);
 	
 	do_mysql_query("delete from xml_visualisations where corpus='$corpus' and element = '$element'");
-}
-
-function xml_visualisation_create($corpus, $element, $code, $in_concordance = true, $in_context = true)
-{
-	$corpus = mysql_real_escape_string($corpus);
-	$element = mysql_real_escape_string($element);
-	
-	$html = xml_visualisation_code_make_safe($code);
-	// TODO other filtering required? separate filter function?
-	
-	$in_concordance = ($in_concordance ? 1 : 0);
-	$in_context     = ($in_context     ? 1 : 0);
-	
-	
-	// TODO rewrite insert
-	do_mysql_query("insert into xml_visualisations
-		(corpus, element, in_context, in_concordance, code)
-		values
-		('$corpus', '$element', $in_context,$in_concordance, '$code')");
 }
 
 /**
@@ -175,78 +157,81 @@ function xml_visualisation_use_in_concordance($corpus, $element, $new)
 		where corpus='$corpus' and element = '$element'");	
 }
 
-/**
- * Unfinished HTML-sanitiser for XML visualisations.
- * 
- * TODO.
- */
-function xml_visualisation_code_make_safe($code)
-{
-	/* delete possible malignant HTML code */
-	
-	/* dangerous elements */
-	$code = preg_replace('/<script\s.*?>/', '', $code);
-	$code = preg_replace('/</script>/', '', $code);
-	$code = preg_replace('/<applet\s.*?>/', '', $code);
-	$code = preg_replace('/</applet>/', '', $code);
-	$code = preg_replace('/<embed\s.*?>/', '', $code);
-	$code = preg_replace('/</embed>/', '', $code);
-	$code = preg_replace('/<object\s.*?>/', '', $code);
-	$code = preg_replace('/</object>/', '', $code);
-	
-	/* dangerous attributes: on.* */
-	$code = preg_replace('/\bon\w+?=/', '', $code);
-	// but note that this denies functionality... but reallowing allows arbitrary javascript to be executed.
 
-	// TODO !!!!
-	/*
-	 * problem: the list of potentially dangerous tags includes one or two that I would really 
-	 * rather like to allow here, namely img (And presumably <a> though the list below, which
-	 * I got off a microsoft help page, doesn't include it, it takes href which could
-	 * contain malicious javascript code).
-	 * 
-	 * This looks as if it might be rather more complex than I had hoped.
-	 * 
-	 * Issue: given CQPweb doesn't use cookies, exactly what could an exploiter get access to 
-	 * with malicious javascript that could cause a problem??
-	 * 
-	 * Assume we allow on.*= , img, a, etc.
-	 * 
-	 * And that someone got bad javascript into the src or the href or the on.*
-	 * 
-	 * Would they have access to anything dangerous?
-	 * 
-	 * They could redirect to a bad site I suppose. That would be the worst.
-	 * 
-	 * We DON'T PUT anything into cookies, so they couldn't be accessed by a bad site.
-	 * 
-	 * The only alternative approach I can think of is to create a subset metalanguage of HTML
-	 * for the definition of visualisations. Bu that would be complex and would not rule out
-	 * bad urls in src= or href=.
-	 */ 
-/*
-<applet>
-<body>
-<embed>
-<frame>
-<script>
-<frameset>
-<html>
-<iframe>
-<img>
-<style>
-<layer>
-<link>
-<ilayer>
-<meta>
-<object>
-plus attributes
- src, lowsrc, style, and href
-*/
-	return mysql_real_escape_string($code);		
+/**
+ * Creates an entry in the visualisation list.
+ * 
+ * A previously-existing visualisation for that same tag is deleted.
+ * 
+ * The "code" supplied should be the input BB-code format.
+ */
+function xml_visualisation_create($corpus, $element, $code, $is_start_tag = true, $in_concordance = true, $in_context = true)
+{
+	$corpus = mysql_real_escape_string($corpus);
+	$element = mysql_real_escape_string($element);
+	
+	$element .= ($is_start_tag ? '~start' : '~end');
+	
+	xml_visualisation_delete($corpus, $element);
+	
+	$html = xml_visualisation_bb2html($code, !$is_start_tag);
+	
+	$in_concordance = ($in_concordance ? 1 : 0);
+	$in_context     = ($in_context     ? 1 : 0);
+	
+	/* what fields are used? check the html not the bbcode, so $$$*$$$ is already removed from end tags */
+	$xml_attributes = implode('~', xml_visualisation_extract_fields($html, 'xml'));
+	$text_metadata  = implode('~', xml_visualisation_extract_fields($html, 'text'));
+
+
+	do_mysql_query("insert into xml_visualisations
+		(corpus, element, xml_attributes, text_metadata, in_context, in_concordance, bb_code, html_code)
+		values
+		('$corpus', '$element', '$xml_attributes', '$text_metadata',$in_context,$in_concordance, '$code', '$html')");
 }
 
-function xml_visualisation_bb_to_html($bb_code, $is_for_end_tag = false)
+
+
+/** 
+ * Returns an array of all fields used in the argument string.
+ * 
+ * XML-attributes are specified in the form $$$NAME$$$ .
+ * 
+ * Text metadata attributes are specified in the form ~~~NAME~~~ . 
+ * 
+ * Specify mode by having second argument be "text" or "xml".
+ * 
+ * If anything other than those two is specified, "xml" is assumed.
+ * 
+ * The special markers $$$$$$ and ~~~~~~ are not extracted.
+ */
+function xml_visualisation_extract_fields($code, $type='xml')
+{
+	/* set delimiter */
+	if ($type == 'text' || $type == 'TEXT')
+		$del = '~~~';
+	else
+		$del = '\$\$\$';
+	
+	$fields = array();
+	
+	$n = preg_match_all("/$del(\w*)$del/", $code, $m, PREG_SET_ORDER);
+	
+	foreach($m as $match)
+	{
+		/* note that $$$$$$ means value of this s-attribute, whereas ~~~~~~ means the ID of the current text;
+		 * in both cases, we want to ignore it from this array, as it is not stored in the DB. */
+		if (empty($match[1]))
+			continue;
+		if ( ! in_array($match[1], $fields))
+			$fields[] = $match[1];
+	}
+	
+	return $fields;
+}
+
+
+function xml_visualisation_bb2html($bb_code, $is_for_end_tag = false)
 {
 	$html = cqpweb_htmlspecialchars($bb_code);
 	
@@ -256,63 +241,133 @@ function xml_visualisation_bb_to_html($bb_code, $is_for_end_tag = false)
 	 */ 
 	
 	/* begin with tags that are straight replacements and do not require PCRE. */
+	static $from = NULL;
+	static $to = NULL;
+	if (is_null($from))
+		initialise_visualisation_simple_bbcodes($from, $to);
+	$html = str_ireplace($from, $to, $html);
 	
-	static $direct_replacements = array(
-		'[b]' => '<strong>',		/* emboldeneed text: we use <strong>, not <b> */
-		'[B]' => '<strong>',
-		'[/b]' => '</strong>',
-		'[/B]' => '</strong>',
-		'[i]' => '<em>',			/* italic text: we use <em>, not <i> */
-		'[I]' => '<em>',
-		'[/i]' => '</em>',
-		'[/I]' => '</em>',
-		'[u]' => '<u>',				/* underlined text: we use <u>, not <ins> or anything silly. */
-		'[U]' => '<u>',
-		'[/u]' => '</u>',
-		'[/U]' => '</u>',
-		'[s]' => '<s>',				/* struckthrough text: just use <s> */
-		'[S]' => '<s>',
-		'[/s]' => '</s>',
-		'[/S]' => '</s>',
-		'[list]' => '<ul>',			/* unmnumered lsit is easy enough. BUT SEE BELOW for the [*] that creates <li>. */
-		'[/list]' => '</ul>',
-		'[List]' => '<ul>',
-		'[/List]' => '</ul>',
-		'[LIST]' => '<ul>',
-		'[/LIST]' => '</ul>',
-		'[quote]' => '<blockquote>',	/* quote is how we get at HTML blockquote. No other styling specified. */
-		'[/quote]' => '</blockquote>',
-		'[QUOTE]' => '<blockquote>',
-		'[/QUOTE]' => '</blockquote>',
-		'[Quote]' => '<blockquote>',
-		'[/Quote]' => '</blockquote>',
-//TODO		'[quote]' => '<blockquote>',	/* code gives us <pre>. */
-		'[/quote]' => '</blockquote>',
-		'[QUOTE]' => '<blockquote>',
-		'[/QUOTE]' => '</blockquote>',
-		'[Quote]' => '<blockquote>',
-		'[/Quote]' => '</blockquote>',
-		);
+	/* get rid of empty <li>s */
+	$html = preg_replace('|<li>\s*</li>|', '', $html);
 	
+	/* if there are newlines, convert to just normal spaces */
+	$html = strtr($html, "\r\n", "  ");
 	
-	$html = strtr($html, $direct_replacements);
+	/* table cells - in normal BBcode these are invariant, however, we allow
+	 * [td c=num] for colspan and [td r=num] for rowspan */
+	function for_table_cell_callback($m)
+	{
+		$span = '';
+		if (!empty($m[2]))
+		{
+			if (0 < preg_match('/r=\d+/', $m[2], $n))
+				$span .= " rowspan={$n[1]}";
+			if (0 < preg_match('/c=\d+/', $m[2], $n))
+				$span .= " colspan={$n[1]}";
+		}
+		return "<t{$m[1]}$span>";
+	}
+	$html = preg_replace_callback('|\[t([hd])\s+([^\]]*)\]|i',  'for_table_cell_callback', $html );
+	
+	/* color opening tags: allow the "colour" alleged-misspelling (curse these US-centric HTML standards! */
+	$html = preg_replace('|\[colou?r=(#?\w+)\]|i', '<span style="color:$1">', $html);
+	
+	/* size opening tags: always in px rather than pt */
+	$html = preg_replace('|\[size=(\d+)\]|i', '<span style="font-size:$1px">', $html);
+	
+	/* an extension for CQPweb: create popup boxes! */
+	$html = preg_replace('|\[popup=([^\]]*])\]|', '<span onmouseover="return escape(\'$1\')">', $html);
+	
+	/* This is another CQPweb extension to BBCode, allow block and nonblock style appliers */
+	$html = preg_replace('~\[(div|span)=(\w+)\]~i', '<$1 class="XmlViz__$2">', $html);
+	
+	/* img is an odd case, in theory we could do it with simple replaces, but since it collapses down to
+	 * just one tag, let's be safe and only allow it in cases where the tags match. */
+	$html = preg_replace('|\[img\]([^"]+?)\[/img\]|i', '<img src="$1" />', $html);
+	/* we also have a variant form with height and width */	
+	$html = preg_replace('|\[img=(\d+)x(\d+)\]([^"]+?)\[/img\]|i', '<img width="$1" height="$2" src="$3" />', $html);
+	$html = preg_replace('|\[img\s+width=(\d+)\s+height=(\d+)\s*\]([^"]+?)\[/img\]|i', 
+							'<img width="$1" height="$2" src="$3" />', $html);
+	$html = preg_replace('|\[img\s+height=(\d+)\s+width=(\d+)\s*\]([^"]+?)\[/img\]|i', 
+							'<img width="$2" height="$1" src="$3" />', $html);
+	
+	/* now links - two sorts of these */
+	$html = preg_replace('|\[url\]([^"]+?)\[/url\]|i', '<a target="_blank" href="$1">$1</a>', $html);
+	$html = preg_replace('|\[url=([^"]+?)\](.+?)\[/url\]|i', '<a target="_blank" href="$1">$2</a>', $html);
 	
 	
 	if ($is_for_end_tag)
 	{
-		/* remove all attribute values: end-tags don't have them */
+		/* remove all attribute values: end-tags don't have them in CQP concordances. */
 		$html = preg_replace('/$$$\w*$$$/', '', $html);
 	}
-	
 	
 	return $html;
 }
 
-// important TODO note. 
-// There is nothing to stop the BBCODES creating unbalanced HTML which could spill 
-// across the end of the concordance line.
-// Ideally, we dopn't want the XML visualisation to affect anything outside itslf.
-// So, if we can wangle it, ideally when the HTML is initially generated from BB code,
-// any dangling open [brackets] should be closed automatically. 
+
+/** Initialise arrays of simple bbcode translations */
+function initialise_visualisation_simple_bbcodes(&$from, &$to)
+{
+	/* emboldened text: we use <strong>;  not <b> */
+	$from[0] = '[b]';			$to[0] =  '<strong>'; 
+	$from[1] = '[/b]';			$to[1] =  '</strong>'; 
+	
+	/* italic text: we use <em>;  not <i> */
+	$from[2] = '[i]';			$to[2] =  '<em>'; 
+	$from[3] = '[/i]';			$to[3] =  '</em>'; 
+	
+	/* underlined text: we use <u>;  not <ins> or anything silly. */
+	$from[4] = '[u]';			$to[4] =  '<u>'; 	
+	$from[5] = '[/u]';			$to[5] =  '</u>'; 
+	
+	/* struckthrough text: just use <s> */
+	$from[6] = '[s]';			$to[6] =  '<s>'; 			
+	$from[7] = '[/s]';			$to[7] =  '</s>'; 
+	
+	/* unnumbered list is easy enough. BUT the [*] that creates <li> makes life trickier. */
+	$from[8] =  '[list]';		$to[8] =   '<ul><li>';
+	$from[9] =  '[/list]';		$to[9] =   '</li></ul>';
+	$from[10] = '[*]';			$to[10] =  '</li><li>';
+	/* note we will need a regex to get rid of empty <li>s.  See main processing function. */
+
+ 	/* quote is how we get at HTML blockquote. No other styling specified. */
+	$from[11] = '[quote]';		$to[11] =  '<blockquote>';
+	$from[12] = '[/quote]';		$to[12] =  '</blockquote>'; 
+	
+	/* code gives us <pre>. */
+	$from[13] = '[code]';		$to[13] =  '<pre>'; 
+	$from[14] = '[/code]';		$to[14] =  '</pre>';
+	
+	/* table main holder; td and tr are more complex */
+	$from[15] = '[table]';		$to[15] =  '<table>'; 
+	$from[16] = '[/table]';		$to[16] =  '</table>';
+	$from[17] = '[tr]';			$to[17] =  '<tr>'; 
+	$from[18] = '[/tr]';		$to[18] =  '</tr>';
+
+	/* close tags for elements with complicated opening tags */
+	$from[19] = '[/td]';		$to[19] =  '</td>';
+	$from[20] = '[/th]';		$to[20] =  '</th>';
+	$from[21] = '[/size]';		$to[21] =  '</span>';
+	$from[22] = '[/color]';		$to[22] =  '</span>';
+	$from[23] = '[/colour]';	$to[23] =  '</span>';
+	$from[24] = '[/div]';		$to[24] =  '</div>';
+	$from[25] = '[/span]';		$to[25] =  '</span>';
+	$from[34] = '[/popup]';		$to[34] =  '</span>';  // NOTE out of order number cos this was added later
+	
+	/* alternative bbcode list styles - let's support as many as possible */
+	$from[26] = '[ul]';			$to[26] =  '<ul><li>';
+	$from[27] = '[/ul]';		$to[27] =  '</li></ul>';
+	$from[28] = '[ol]';			$to[28] =  '<ol><li>';
+	$from[29] = '[/ol]';		$to[29] =  '</li></ol>';
+	
+	/* something not needed in most cases, but throw it in anyway.... */
+	$from[30] = '[centre]';		$to[30] =  '<center>';
+	$from[31] = '[center]';		$to[31] =  '<center>';
+	$from[32] = '[/centre]';	$to[32] =  '</center>';
+	$from[33] = '[/center]';	$to[33] =  '</center>';
+
+// next number: 35
+}
 
 ?>

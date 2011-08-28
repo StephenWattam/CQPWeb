@@ -259,6 +259,7 @@ function check_cache_parameters($cqp_query, $restrictions, $subcorpus, $postproc
 		and restrictions collate utf8_bin = '$restrictions' 
 		and subcorpus collate utf8_bin = '$subcorpus'
 		and postprocess $postprocess_cond
+		and saved = 0
 		limit 1";
 
 	$result = do_mysql_query($sql_query);
@@ -327,9 +328,9 @@ function update_cached_query($record)
 		if ($key == 'date_of_saving')
 			continue;
 
+		/* don't update if it's not set or if it's a zero string */
 		if (isset($record[$key]) && $record[$key] != "" )
 		{
-			/* don't update if it's not set or if it's a zero string */
 			if ($first)
 				$first = false;
 			else
@@ -340,8 +341,15 @@ function update_cached_query($record)
 	$sql_query .= " WHERE query_name = '" . mysql_real_escape_string($record['query_name']) . "'";
 
 	do_mysql_query($sql_query);
+}
 
-	/* no need to return anything - the update either works, or CQPweb dies */
+// TODO: This is a clunky way to set a field to NULL. 
+//TODO: Not currently used. Is there a need for this?
+function null_cached_query_field($qname, $field)
+{
+	$field = mysql_real_escape_string($field);
+	$qname = mysql_real_escape_string($qname);
+	do_mysql_query("UPDATE saved_queries SET $field = NULL where query_name = $qname");	
 }
 
 

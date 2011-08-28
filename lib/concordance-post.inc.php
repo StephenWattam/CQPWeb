@@ -73,6 +73,8 @@
 	thin[count~method]
 		count=the number of queries REMAINING after it has been thinned
 		method=r|n : r for "random reproducible", n for "random nonreproducible"
+		When the method is "n", it is always followed by an instance identifier. This ensures that
+		this method can never be matched in the cache.
 	
 	dist[categorisation~class]
 		categorisation=handle of the field that the distribution is being done over
@@ -363,6 +365,8 @@ class POSTPROCESS {
 	/* general functions */
 	function add_to_postprocess_string($string_to_work_on, $override=false)
 	{
+		global $instance_name;
+		
 		if (isset ($this->stored_postprocess_string) && $override == false)
 			return $this->stored_postprocess_string;
 	
@@ -382,7 +386,7 @@ class POSTPROCESS {
 			break;
 		
 		case 'thin':
-			$r_or_n = ($this->thin_genuinely_random ? 'n' : 'r');
+			$r_or_n = ($this->thin_genuinely_random ? ('n' . $instance_name) : 'r');
 			$string_to_work_on .= "~~thin[$this->thin_target_hit_count~$r_or_n]";
 			break;
 			
@@ -764,15 +768,6 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 			WHERE text_id = '{$this->text_target_id}'";
 	}
 	
-	/*
-	// deletable function I think
-	function text_sql_count_remaining_hits()
-	{
-		return "select count(*)
-			from {$this->dist_db}
-			where text_id = '{$this->text_target_id}'";
-	}*/
-
 
 } /* end of class POSTPROCESS */
 
@@ -808,9 +803,12 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 	global $username;
 	
 	
-
+	// TODO: could the following be part of an "unsave" function????
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
+	$cache_record['saved'] = 0;
+	$cache_record['save_name'] = NULL;
+	$cache_record['time_of_query'] = time();
 
 	/* first, write a "dumpfile" to temporary storage */
 	$tempfile  = "/$cqpweb_tempdir/temp_coll_$new_qname.tbl";
@@ -869,6 +867,7 @@ function run_postprocess_sort($cache_record, &$descriptor)
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
 	$cache_record['saved'] = 0;
+	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
 	
 	/* first, write a "dumpfile" to temporary storage */
@@ -939,6 +938,7 @@ function run_postprocess_randomise($cache_record, &$descriptor)
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
 	$cache_record['saved'] = 0;
+	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
 	
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
@@ -980,6 +980,7 @@ function run_postprocess_unrandomise($cache_record, &$descriptor)
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
 	$cache_record['saved'] = 0;
+	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
 	
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
@@ -1020,6 +1021,7 @@ function run_postprocess_thin($cache_record, &$descriptor)
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
 	$cache_record['saved'] = 0;
+	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
 	
 	$cache_record['hits_left'] .= (empty($cache_record['hits_left']) ? '' : '~') . $descriptor->thin_target_hit_count;
@@ -1027,7 +1029,8 @@ function run_postprocess_thin($cache_record, &$descriptor)
 
 	/* actually thin */
 	$cqp->execute("$new_qname = $old_qname");
-	if ($descriptor->thin_genuinely_random)
+	/* constant seed of 42 results in reproducibly-random thinning */
+	if ( ! $descriptor->thin_genuinely_random)
 		$cqp->execute("randomize 42");
 	$cqp->execute("reduce $new_qname to $descriptor->thin_target_hit_count");
 	$cqp->execute("save $new_qname");
@@ -1068,6 +1071,7 @@ function run_postprocess_item($cache_record, &$descriptor)
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
 	$cache_record['saved'] = 0;
+	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
 	
 	/* actually do it ! */
@@ -1136,6 +1140,7 @@ function run_postprocess_dist($cache_record, &$descriptor)
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
 	$cache_record['saved'] = 0;
+	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
 	
 	/* actually do it ! */
@@ -1202,6 +1207,7 @@ function run_postprocess_text($cache_record, &$descriptor)
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
 	$cache_record['saved'] = 0;
+	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
 	
 	/* actually do it ! */
@@ -1258,6 +1264,7 @@ function run_postprocess_custom($cache_record, &$descriptor)
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
 	$cache_record['user'] = $username;
 	$cache_record['saved'] = 0;
+	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
 	
 	$cache_record['postprocess'] = $descriptor->get_stored_postprocess_string();
@@ -1504,7 +1511,7 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 			break;
 			
 		case 'thin':
-			$method = ($args[1] == 'n' ? 'random selection (non-reproducible)' : 'random selection');
+			$method = ($args[1] == 'r' ? 'random selection' : 'random selection (non-reproducible)');
 			$count = make_thousands($hit_array[$i]);
 			$description .= "thinned with method <em>$method</em> to $count hits";
 			$i++;

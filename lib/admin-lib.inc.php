@@ -1560,6 +1560,7 @@ function cqpweb_mysql_recreate_tables()
 			`corpus` varchar(20) NOT NULL,
 			`element` varchar(50) NOT NULL,
 			`xml_attributes` varchar(100) NOT NULL default '',
+			`text_metadata` varchar(255) NOT NULL default '',
 			`in_concordance` tinyint(1) NOT NULL default 1,
 			`in_context` tinyint(1) NOT NULL default 1,
 			`bb_code` text,
