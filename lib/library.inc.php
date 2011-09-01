@@ -522,18 +522,19 @@ function cqpweb_htmlspecialchars($string)
 
 	return preg_replace('/&amp;(\#?\w+;)/', '&$1', $string);
 }
+// TODO - still needed now we have the double_encode flag???
 
 
 /**
- * Removes any characters that match PCRE \W from a string.
+ * Removes any nonhandle characters from a string.
  *  
- * A "handle" can only contain word characters.
+ * A "handle" can only contain ascii letters, numbers, and underscore.
  * 
  * TODO: add length requirement?
  */
 function cqpweb_handle_enforce($string)
 {
-	return preg_replace('/\W/', '', $string);
+	return preg_replace('/[^a-zA-Z0-9_]/', '', $string);
 }
 
 /**

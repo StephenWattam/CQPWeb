@@ -73,12 +73,10 @@ function delete_corpus_from_cqpweb($corpus)
 	do_mysql_query("delete from saved_subcorpora where corpus = '$corpus'");
 	
 	/* delete main frequency tables */
-	// TODO possible bug here if someone has one corpus called XXX and another called XXX_YYY
-	// deleting freq tables for the former will take the tables of the latter with it!
-	// to fix this, instead of using "show tables", get a list of p-atts and build each delete query
-	$result = do_mysql_query("show tables like 'freq_corpus_($corpus}_%'");
+	$result = do_mysql_query("select handle from annotation_metadata where corpus = '$corpus'");
 	while (($r = mysql_fetch_row($result)) !== false)
-		do_mysql_query("drop table if exists ${r[0]}");
+		do_mysql_query("drop table if exists freq_corpus_{$corpus}_{$r[0]}");
+	do_mysql_query("drop table if exists freq_corpus_{$corpus}_word");
 	
 	/* delete CWB freq-index table */
 	do_mysql_query("drop table if exists freq_text_index_$corpus");
@@ -1093,7 +1091,6 @@ function cqpweb_undump_userdata($dump_file_path)
 
 		do_mysql_query("drop table if exists {$m[1]}");
 		do_mysql_query($create_statement);
-		//do_mysql_query("$mysql_LOAD_DATA_INFILE_command '{$m[1]}' into table {$m[1]}");
 		do_mysql_infile_query($m[1], $m[1]);
 	}
 	
@@ -1559,14 +1556,18 @@ function cqpweb_mysql_recreate_tables()
 		"CREATE TABLE `xml_visualisations` (
 			`corpus` varchar(20) NOT NULL,
 			`element` varchar(50) NOT NULL,
+			`cond_attribute` varchar(50) NOT NULL default '',
+			`cond_regex` varchar(100) NOT NULL default '',
 			`xml_attributes` varchar(100) NOT NULL default '',
 			`text_metadata` varchar(255) NOT NULL default '',
 			`in_concordance` tinyint(1) NOT NULL default 1,
 			`in_context` tinyint(1) NOT NULL default 1,
 			`bb_code` text,
 			`html_code` text,
-			key(`corpus`, `element`)
+			primary key(`corpus`, `element`, `cond_attribute`, `cond_regex`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
+	/* note that, becuase the attribute/regex condition must be part of the primary key, the regex is limited to
+	 * 100 UTF8 characters (keys cannot exceed 1000 bytes = 333 utf8 chars) */ 
 	
 	
 	$create_statements['corpus_categories'] =
@@ -1604,7 +1605,7 @@ function cqpweb_import_css_file($filename)
 	if (is_file($orig))
 	{
 		if (is_file($new))
-			exiterror_general("A CSS file of that name already exists ($new). File not copied.");
+			exiterror_general("A CSS file with that name already exists. File not copied.");
 		else
 			copy($orig, $new);
 	}

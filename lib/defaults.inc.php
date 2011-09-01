@@ -26,7 +26,7 @@
 /* ------------------------------- */
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '3.0.2');
+define('CQPWEB_VERSION', '3.0.3');
 
 /* php stubs in each corpus directory; we can't make this constant, but it should be treated as if it was! */ 
 $cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
@@ -290,6 +290,13 @@ if (!isset($default_extended_context))
 
 if (!isset($default_max_context))
 	$default_max_context = 1100;
+
+/* position labels default off */
+if (!isset($visualise_position_labels))
+	$visualise_position_labels = false;
+else
+	if (!isset($visualise_position_label_attribute))
+		$visualise_position_labels = false;
 
 /* interlinear glossing default off */
 if (!isset($visualise_gloss_in_concordance))

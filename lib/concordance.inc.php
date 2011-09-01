@@ -52,6 +52,7 @@ require_once('../lib/subcorpus.inc.php');
 require_once('../lib/db.inc.php');
 require_once('../lib/user-settings.inc.php');
 require_once('../lib/plugins.inc.php');
+require_once('../lib/xml.inc.php');
 
 /* and because I'm using the next two modules I need to... */
 require_once("../lib/cwb.inc.php"); /* TODO NOT TESTED YET - used by dump and undump, I think */
@@ -738,14 +739,27 @@ if ($program == "sort")
 /* set up CQP options for the concordance display */
 $cqp->execute("set Context $context_scope " . ($context_scope_is_based_on_s ? $context_s_attribute : 'words'));
 
+/* what p-attributes to show? (annotations) */
 if ($visualise_gloss_in_concordance)
 	$cqp->execute("show +word +$visualise_gloss_annotation ");
 else
 	$cqp->execute('show +word ' . (empty($primary_tag_handle) ? '' : "+$primary_tag_handle "));
 	/* note that $primary_tag_handle should only be empty in an unannotated corpus. */
-$cqp->execute("set PrintStructures \"" 
+
+/* what inline s-attributes to show? (xml elements) */
+$xml_tags_to_show = xml_visualisation_s_atts_to_show();
+if ( ! empty($xml_tags_to_show) )
+	$cqp->execute('show +' . implode(' +', $xml_tags_to_show));
+
+/* what corpus location attributes to show? */
+$cqp->execute('set PrintStructures "' 
+				// TODO. Will this work along with XML visualisation? Should it be one or the other?
+				// TODO does it work along wiht position labels???
 				. ($visualise_translate_in_concordance ? "$visualise_translate_s_att " : '') 
-				. "text_id\""); 
+				. 'text_id'
+				. ($visualise_position_labels ? " $visualise_position_label_attribute" : '')
+				. '"');
+
 $cqp->execute("set LeftKWICDelim '--%%%--'");
 $cqp->execute("set RightKWICDelim '--%%%--'");
 

@@ -645,9 +645,7 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	}
 
 	/* extract the text_id and delete that first bit of the line */
-	preg_match("/\A\s*\d+: <text_id (\w+)>:/", $cqp_line, $m);
-	$text_id = $m[1];
-	$cqp_line = preg_replace("/\A\s*\d+: <text_id \w+>:/", '', $cqp_line);
+	extract_cqp_line_position_labels($cqp_line, $text_id, $position_label);
 	
 	/* divide up the CQP line */
 	list($kwic_lc, $kwic_match, $kwic_rc) = explode('--%%%--', $cqp_line);	
@@ -694,8 +692,8 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 		
 		/* the untidy HTML here is inherited from BNCweb. */
 		$full_tool_tip = "onmouseover=\"return escape('"
-			. str_replace('\'', '\\\'', $lc_tool_string . '<FONT COLOR=&quot;#DD0000&quot;>'
-				. $node_tool_string . '</FONT> ' . $rc_tool_string)	
+			. str_replace('\'', '\\\'', $lc_tool_string . '<font color=&quot;#DD0000&quot;>'
+				. $node_tool_string . '</font> ' . $rc_tool_string)	
 			. "')\"";
 		$node_final = '<b><a class="nodelink" href="' . $context_url . '" '
 				. $full_tool_tip . '>' . $node_string . '</a></b>';
@@ -706,11 +704,12 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	$final_string = "<td class=\"text_id\"><b>$line_number</b></td>";
 	
 	$final_string .= "<td class=\"text_id\"><a href=\"textmeta.php?text=$text_id&uT=y\" "
-		. metadata_tooltip($text_id) . '>' . $text_id . '</a></td>';
+		. metadata_tooltip($text_id) . '>' . $text_id . ($position_label ? " $position_label" : '') . '</a></td>';
 	
 	if ($viewMode == 'kwic') 
 	{
 		/* print three cells - kwic view */
+
 		$final_string .= '<td class="before" nowrap="nowrap">' . $lc_final . '</td>';
 
 		$final_string .= '<td class="node" nowrap="nowrap">'. $node_final . '</td>';
@@ -771,8 +770,8 @@ function concordance_line_blobprocess($lineblob, $type, $highlight_position, $hi
 	{
 		$main_begin_high = '<span class="contexthighlight">';
 		$main_end_high = '</span> ';
-		$other_begin_high = '<B>';
-		$other_end_high = '</B> ';
+		$other_begin_high = '<b>';
+		$other_end_high = '</b> ';
 		$glossbox_nodelink_begin = '';
 		$glossbox_nodelink_end = '';
 	}
@@ -986,8 +985,14 @@ function concordance_invert_tds($string)
 }
 
 
-/* used by print_concordance_line above and also by context.inc.php */
-/* returns an array of word, tag */
+/**
+ * Function used by print_concordance_line. 
+ * 
+ * Also used in context.inc.php.
+ * 
+ * It takes a single word/tag string from the CQP concordance line, and
+ * returns an array of 0 => word, 1 => tag 
+ */
 function extract_cqp_word_and_tag(&$cqp_source_string)
 {
 	global $visualise_gloss_in_concordance;
@@ -1027,6 +1032,38 @@ function extract_cqp_word_and_tag(&$cqp_source_string)
 	return array($word, $tag);
 }
 
+/**
+ * Extract the position inidicators (text_id and, optionally, one other) and place them
+ * in the given variables; scrub them from the CQP line and put the new CQP line
+ * back in the variable the old one came from.
+ * 
+ * Returns nothing; modifies all its parameters.
+ * 
+ * Note that if the corpus is set up to not use a position label, that argument will be
+ * set to an empty string.
+ */ 
+function extract_cqp_line_position_labels(&$cqp_line, &$text_id, &$position_label)
+{
+	global $visualise_position_labels;
+	global $visualise_position_label_attribute;
+
+	if ($visualise_position_labels)
+	{
+		/* if a position label is to be used, it is extracted from between <text_id ...> and the colon. */
+		preg_match("/\A\s*\d+: <text_id (\w+)><$visualise_position_label_attribute ([^>]+)>:/", $cqp_line, $m);
+		$text_id = $m[1];
+		$position_label = cqpweb_htmlspecialchars($m[2]);
+		$cqp_line = preg_replace("/\A\s*\d+: <text_id \w+><$visualise_position_label_attribute ([^>]+)>:/", '', $cqp_line);
+	}
+	else
+	{
+		/* otherwise just extract text_id */
+		preg_match("/\A\s*\d+: <text_id (\w+)>:/", $cqp_line, $m);
+		$text_id = $m[1];
+		$position_label = '';
+		$cqp_line = preg_replace("/\A\s*\d+: <text_id \w+>:/", '', $cqp_line);
+	}
+}
 
 
 /* print a sorry-no-solutions page, shut down CQP, and end */

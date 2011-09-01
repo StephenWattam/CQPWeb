@@ -50,7 +50,11 @@ class CQPwebSettings
 		
 	private $visualise_translate_in_concordance;
 	private $visualise_translate_in_context;
-	private $visualise_translate_s_att; 
+	private $visualise_translate_s_att;
+	
+	/* and for position labels: */
+	private $visualise_position_labels;
+	private $visualise_position_label_attribute;
 	
 	/* management variables */
 	private $cqpweb_root_directory_path;
@@ -137,6 +141,18 @@ class CQPwebSettings
 		else
 			$this->visualise_translate_s_att = $this->disallow_nonwords($new_value);
 	}
+	
+	public function get_visualise_position_labels() { return $this->visualise_position_labels; }
+	public function set_visualise_position_labels($new_value) { $this->visualise_position_labels = (bool) $new_value; }
+	public function set_visualise_position_label_attribute($new_value) 	
+	{
+		if ($new_value == NULL)
+			$this->visualise_position_label_attribute = NULL;
+		else
+			$this->visualise_position_label_attribute = $this->disallow_nonwords($new_value);
+	}
+	
+
 
 	/**
 	 * Constructor's sole parameter is path to the root directory of CQPweb; 
@@ -195,6 +211,10 @@ class CQPwebSettings
 			$this->visualise_translate_in_context = (bool)$visualise_translate_in_context;
 		if (isset($visualise_translate_s_att))
 			$this->visualise_translate_s_att = $visualise_translate_s_att;
+		if (isset($visualise_position_labels))
+			$this->visualise_position_labels = (bool)$visualise_position_labels;
+		if (isset($visualise_position_label_attribute))
+			$this->visualise_position_label_attribute = $visualise_position_label_attribute;
 		return 0;
 	}
 	
@@ -240,6 +260,11 @@ class CQPwebSettings
 			$data .= "\$visualise_translate_in_context = " . ($this->visualise_translate_in_context ? 'true' : 'false') . ";\n";
 		if (isset($this->visualise_translate_s_att))
 			$data .= "\$visualise_translate_s_att = '{$this->visualise_translate_s_att}';\n";
+			
+		if (isset($this->visualise_position_labels))
+			$data .= "\$visualise_position_labels = " . ($this->visualise_position_labels ? 'true' : 'false') . ";\n";
+		if (isset($this->visualise_position_label_attribute))
+			$data .= "\$visualise_position_label_attribute = '{$this->visualise_position_label_attribute}';\n";		
 				
 		$data .= "?>";
 		

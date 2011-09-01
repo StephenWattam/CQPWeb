@@ -230,6 +230,16 @@ function update_corpus_directory_override($type, $newdir)
 }
 */
 
+function update_corpus_visualisation_position_labels($show, $attribute)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$settings->set_visualise_position_labels($show);
+	$settings->set_visualise_position_label_attribute($attribute);
+	$settings->save();
+}
+
 function update_corpus_visualisation_gloss($in_concordance, $in_context, $annot)
 {
 	global $corpus_sql_name;

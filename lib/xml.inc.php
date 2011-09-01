@@ -125,38 +125,48 @@ function get_xml_annotations()
 
 
 /** "element" must be specified with either the '~start' or '~end' suffixes. */
-function xml_visualisation_delete($corpus, $element)
+function xml_visualisation_delete($corpus, $element, $cond_attribute, $cond_regex)
 {
-	$corpus = mysql_real_escape_string($corpus);
-	$element = mysql_real_escape_string($element);
-	
-	do_mysql_query("delete from xml_visualisations where corpus='$corpus' and element = '$element'");
+	do_mysql_query("delete from xml_visualisations "
+		. xml_visualisation_primary_key_whereclause($corpus, $element, $cond_attribute, $cond_regex));
 }
 
 /**
  * Turn on/off the use of an XML visualisation in context display.
  */
-function xml_visualisation_use_in_context($corpus, $element, $new)
+function xml_visualisation_use_in_context($corpus, $element, $cond_attribute, $cond_regex, $new)
 {
-	$corpus = mysql_real_escape_string($corpus);
-	$element = mysql_real_escape_string($element);
 	$newval = ($new ? 1 : 0);
-	do_mysql_query("update xml_visualisations set in_context = $newval 
-		where corpus='$corpus' and element = '$element'");	
+	do_mysql_query("update xml_visualisations set in_context = $newval "
+		. xml_visualisation_primary_key_whereclause($corpus, $element, $cond_attribute, $cond_regex));	
 }
 
 /**
  * Turn on/off the use of an XML visualisation in concordance display.
  */
-function xml_visualisation_use_in_concordance($corpus, $element, $new)
+function xml_visualisation_use_in_concordance($corpus, $element, $cond_attribute, $cond_regex, $new)
 {
-	$corpus = mysql_real_escape_string($corpus);
-	$element = mysql_real_escape_string($element);
 	$newval = ($new ? 1 : 0);
-	do_mysql_query("update xml_visualisations set in_concordance = $newval 
-		where corpus='$corpus' and element = '$element'");	
+	do_mysql_query("update xml_visualisations set in_concordance = $newval "
+		. xml_visualisation_primary_key_whereclause($corpus, $element, $cond_attribute, $cond_regex));	
 }
 
+/** 
+ * Generate a where clause for db changes that must affect just one visualisation;
+ * does all the string-checking and returns a full whereclause.
+ */ 
+function xml_visualisation_primary_key_whereclause($corpus, $element, $cond_attribute, $cond_regex)
+{
+	$corpus = cqpweb_handle_enforce($corpus);
+	$element = mysql_real_escape_string($element);
+	$cond_attribute = cqpweb_handle_enforce($cond_attribute);
+	$cond_regex = mysql_real_escape_string($cond_regex);
+	
+	return " where corpus='$corpus' 
+			and element = '$element' 
+			and cond_attribute = '$cond_attribute' 
+			and cond_regex = '$cond_regex'";
+}
 
 /**
  * Creates an entry in the visualisation list.
@@ -164,15 +174,26 @@ function xml_visualisation_use_in_concordance($corpus, $element, $new)
  * A previously-existing visualisation for that same tag is deleted.
  * 
  * The "code" supplied should be the input BB-code format.
+ * 
+ * IMPORTANT NOTE: here, $element does NOT include the "~(start|end)", whereas the other xml_vs functions
+ * assume that it DOES.
  */
-function xml_visualisation_create($corpus, $element, $code, $is_start_tag = true, $in_concordance = true, $in_context = true)
+function xml_visualisation_create($corpus, $element, $code, $cond_attribute = '', $cond_regex = '', 
+	$is_start_tag = true, $in_concordance = true, $in_context = true)
 {
-	$corpus = mysql_real_escape_string($corpus);
-	$element = mysql_real_escape_string($element);
+	/* disallow conditions in end tags (because they have no attributes) */
+	if (! $is_start_tag)
+		$cond_attribute = $cond_regex = '';
 	
-	$element .= ($is_start_tag ? '~start' : '~end');
+	/* make safe all db inputs: use handle enforce, where possible */
+	$corpus = cqpweb_handle_enforce($corpus);
+	$element = cqpweb_handle_enforce($element);
+	$cond_attribute = cqpweb_handle_enforce($cond_attribute);
+	$cond_regex = mysql_real_escape_string($cond_regex);
 	
-	xml_visualisation_delete($corpus, $element);
+	$element_db = $element . ($is_start_tag ? '~start' : '~end');
+	
+	xml_visualisation_delete($corpus, $element_db, $cond_attribute, $cond_regex);
 	
 	$html = xml_visualisation_bb2html($code, !$is_start_tag);
 	
@@ -180,14 +201,20 @@ function xml_visualisation_create($corpus, $element, $code, $is_start_tag = true
 	$in_context     = ($in_context     ? 1 : 0);
 	
 	/* what fields are used? check the html not the bbcode, so $$$*$$$ is already removed from end tags */
-	$xml_attributes = implode('~', xml_visualisation_extract_fields($html, 'xml'));
+	$xml_attributes = implode('~', $fields = xml_visualisation_extract_fields($html, 'xml'));
+	if ($cond_attribute != '' && !in_array($cond_attribute, $fields))
+		$xml_attributes .= "~$cond_attribute";
 	$text_metadata  = implode('~', xml_visualisation_extract_fields($html, 'text'));
 
 
 	do_mysql_query("insert into xml_visualisations
-		(corpus, element, xml_attributes, text_metadata, in_context, in_concordance, bb_code, html_code)
+		(corpus, element, cond_attribute, cond_regex,
+			xml_attributes, text_metadata, 
+			in_context, in_concordance, bb_code, html_code)
 		values
-		('$corpus', '$element', '$xml_attributes', '$text_metadata',$in_context,$in_concordance, '$code', '$html')");
+		('$corpus', '$element_db', '$cond_attribute', '$cond_regex', 
+			'$xml_attributes', '$text_metadata',
+			$in_context,$in_concordance, '$code', '$html')");
 }
 
 
@@ -235,7 +262,8 @@ function xml_visualisation_bb2html($bb_code, $is_for_end_tag = false)
 {
 	$html = cqpweb_htmlspecialchars($bb_code);
 	
-	/* OK, we have made the string safe. 
+	/* 
+	 * OK, we have made the string safe. 
 	 * 
 	 * Now let's un-safe each of the BBcode sequences that we allow.
 	 */ 
@@ -368,6 +396,37 @@ function initialise_visualisation_simple_bbcodes(&$from, &$to)
 	$from[33] = '[/center]';	$to[33] =  '</center>';
 
 // next number: 35
+}
+
+
+/** 
+ * Gets an array of s-attributes that need to be shown in the CQP concordance line
+ * in order for visualisation to work. 
+ */
+function xml_visualisation_s_atts_to_show()
+{
+	global $corpus_sql_name;
+
+	$atts = array();
+
+	$result = do_mysql_query("select element, xml_attributes from xml_visualisations where corpus='$corpus_sql_name'");
+
+	while (false !== ($r = mysql_fetch_object($result)))
+	{
+		list($r->element) = explode('~', $r->element); 
+		if ( ! in_array($r->element, $atts) )
+			$atts[] = $r->element;
+		if ($r->xml_attributes == '')
+			continue;
+		foreach (explode('~', $r->xml_attributes) as $a)
+		{
+			$s_a = "{$r->element}_$a";
+			if ( ! in_array($s_a, $atts) )
+				$atts[] = $s_a;
+		}
+	}
+	
+	return $atts;
 }
 
 ?>

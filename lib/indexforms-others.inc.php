@@ -696,6 +696,17 @@ function printquery_latest()
 -->
 		
 		<li>
+		<b>Version 3.0.3</b>, 2011-09-xx<br/>&nbsp;<br/>
+		
+		<br/>&nbsp;<br/>
+		
+		<br/>&nbsp;<br/>
+		New feature: optional position labels in concordance (just like "sentence numbers" in BNCweb). 
+		<br/>&nbsp;<br/>
+		Extended the XML visualisation system to allow conditional visualisations.
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.0.2</b>, 2011-08-28<br/>&nbsp;<br/>
 		Added the long-awaited "upload user's own query" function.
 		<br/>&nbsp;<br/>

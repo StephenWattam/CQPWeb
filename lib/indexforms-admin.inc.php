@@ -492,7 +492,7 @@ function printquery_managemeta()
 		/* we need to create a text metadata table for this corpus */
 		
 		/* first, test for the "alternate" form. */
-		if ($_GET['createMetadataFromXml'] == '1')
+		if (isset($_GET['createMetadataFromXml']) && $_GET['createMetadataFromXml'] == '1')
 		{
 			?><table class="concordtable" width="100%">
 		
@@ -1857,6 +1857,81 @@ function printquery_visualisation()
 		</form>
 	</table>
 
+	<?php
+
+	/* THIRD SECTION --- POSITION LABELS */
+	/* process incoming */
+	
+	/* these don't really need to be improted from global namespace, but let's be consistent */
+	global $visualise_position_labels;
+	global $visualise_position_label_attribute;
+	/* and we can re-use $s_attributes from above */
+
+	if (isset($_GET['settingsUpdatePositionLabelAttribute']))
+	{
+		$visualise_position_labels = true;
+		$visualise_position_label_attribute = $_GET['settingsUpdatePositionLabelAttribute'];
+		
+		if ($visualise_position_label_attribute == '~~none~~')
+		{
+			$visualise_position_labels = false;
+			$visualise_position_label_attribute = NULL;
+		}
+		else if ( ! in_array($visualise_position_label_attribute, $s_attributes) )
+		{
+			exiterror_parameter("A non-existent s-attribute was specified for position labels.");
+		}
+		/* so we know at this point that $visualise_position_label_attribute contains an OK s-att */ 
+		update_corpus_visualisation_position_labels($visualise_position_labels, $visualise_position_label_attribute);
+	}
+	
+	$position_label_options = "\t\t\t\t\t\t<option value=\"~~none~~\""
+								. ($visualise_position_labels ? '' : ' selected="selected"')
+								. ">No position labels will be shown in the concordance</option>";		
+	foreach($s_attributes as $s)
+		$position_label_options .= "\t\t\t\t\t\t<option value=\"$s\""
+							. ($s == $visualise_position_label_attribute ? ' selected="selected"' : '')
+							. ">$s will used for position labels</option>\n";
+
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th  colspan="2" class="concordtable">
+				(4) Position labels
+			</th>
+		</tr>
+		<tr>
+			<td  colspan="2" class="concordgrey">
+				&nbsp;<br/>
+				You can select an XML element/attribute to be used to indicate the position <em>within</em> its text
+				where each concordance result appears. A typical choice for this would be sentence or utterance number.
+				<br/>&nbsp;<br/>
+				<strong>Warning</strong>: If you select an element/attribute pair that does not cover the entire corpus, you
+				will get error messages whenever you display a page that contains a hit with no value for the selected
+				attribute!
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<form id="formSetPositionLabelAttribute" action="index.php" method="get">
+			<tr>
+				<td class="concordgrey">Select XML element/attribute to use for position labels:</td>
+				<td class="concordgeneral">
+					<select name="settingsUpdatePositionLabelAttribute">
+						<?php echo $position_label_options; ?>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="center" class="concordgeneral">
+					<input type="submit" value="Update setting" />
+					<input type="hidden" name="thisQ" value="manageVisualisation" />
+					<input type="hidden" name="uT" value="y" />
+				</td>
+			</tr>
+		</form>
+	</table>
+	
+
 	<!-- 
 	
 	
@@ -1871,13 +1946,13 @@ function printquery_visualisation()
 	
 	
 	-->
-
+	
 	<?php
 	
 	// for now, don't display
 	return;
 	
-	/* THIRD SECTION --- TRANSLITERATION VISUALIASATION */
+	/* FOURTH SECTION --- TRANSLITERATION VISUALIASATION */
 	/* process incoming */
 
 	
@@ -1962,14 +2037,19 @@ function printquery_xmlvisualisation()
 		}
 		xml_visualisation_create(	$corpus_sql_name, 
 									$_GET['xmlTheElement'], 
-									$_GET['xmlVisCode'], 
+									$_GET['xmlVisCode'],
+									$_GET['xmlCondAttribute'],
+									$_GET['xmlCondRegex'],
 									(bool) $_GET['xmlIsStartTag'], 
 									(bool) $_GET['xmlUseInConc'], 
 									(bool) $_GET['xmlUseInContext'] );
 	}
 	/* process incoming DELETE */
 	if (isset($_GET['xmlDeleteVisualisation']))
-		xml_visualisation_delete($corpus_sql_name, $_GET['xmlDeleteVisualisation']);
+		xml_visualisation_delete(	$corpus_sql_name, 
+									$_GET['xmlDeleteVisualisation'],
+									$_GET['xmlCondAttribute'],
+									$_GET['xmlCondRegex'] );
 	
 	/* OK, now the processing is done, let's render the form */
 	
@@ -1977,7 +2057,7 @@ function printquery_xmlvisualisation()
 	<table class="concordtable" width="100%">
 		<tr>
 			<th  colspan="6" class="concordtable">
-				(3) XML visualisation
+				(5) XML visualisation
 			</th>
 		</tr>
 		<tr>
@@ -1988,6 +2068,16 @@ function printquery_xmlvisualisation()
 				<br/>&nbsp;<br/>
 				By default, all XML elements are invisible. You must create and enable a visualisation for
 				each XML element in each corpus that you wish to display to the user.  
+				<br/>&nbsp;<br/>
+				An XML visualisation can be unconditional, in which case it will always apply. Or, it can have
+				a condition attached to it - a regular expresion that will be matched against an attribute on
+				the XML tag, with the visualisation only displayed if the regular expression matches. This allows
+				you to have different visualisations for &lt;element type="A"&gt; and &lt;element type="B"&gt;.
+				<br/>&nbsp;<br/>
+				You can define an unconditional visualisation for the same element as one or more conditional
+				visualisations, in which case, the unconditional visualisation applies in any cases where none of the 
+				conditional visualisations apply. In addition, note that conditions are only possible on start tags, 
+				not end tags.
 				<br/>&nbsp;<br/>
 				You can use the forms below to manage your visualisations.
 				<br/>&nbsp;
@@ -2003,7 +2093,7 @@ function printquery_xmlvisualisation()
 			</th>
 		</tr>
 		<tr>
-			<th class="concordtable">XML tag</th>
+			<th class="concordtable">Applies to ... </th>
 			<th class="concordtable">Visualisation code</th>
 			<th class="concordtable">Show</th>
 			<th class="concordtable">Used where?</th>
@@ -2037,9 +2127,13 @@ function printquery_xmlvisualisation()
 			
 			list($tag, $startend) = explode('~', $v->element);
 			$startend = ($startend=='end' ? '/' : ''); 
+			$cond_regex_print = htmlspecialchars($v->cond_regex, ENT_QUOTES, 'UTF-8', true);
 			
 			echo '
-				<td class="concordgeneral">&lt;' . $startend . $tag . '&gt;</td>
+				<td class="concordgeneral">&lt;' . $startend . $tag . '&gt;'
+				. (empty($v->cond_attribute) ? '' 
+					: "<br/>where <em>{$v->cond_attribute}</em> matches <em>" . $cond_regex_print . "</em>\n")  
+				. '</td>
 				';
 			
 			echo '
@@ -2087,7 +2181,9 @@ function printquery_xmlvisualisation()
 			echo '
 				<td class="concordgeneral" align="center">'
 				. '<a class="menuItem" href="index.php?thisQ=manageVisualisation&xmlDeleteVisualisation='
-				. $tag . '~' . ($startend=='/' ? 'end' : 'start') 
+				. $tag . ($startend=='/' ? '~end' : '~start')
+				. '&xmlCondAttribute=' . $v->cond_attribute
+				. '&xmlCondRegex=' . urlencode($v->cond_regex)
 				. '&uT=y">[Delete]</a>'
 				. '</td>
 				';
@@ -2096,6 +2192,8 @@ function printquery_xmlvisualisation()
 				</tr>
 				<input type="hidden" name="xmlTheElement" value="' . $tag . '" />
 				<input type="hidden" name="xmlIsStartTag" value="' . ($startend=='/' ? '0' : '1') . '" />
+				<input type="hidden" name="xmlCondAttribute" value="' . $v->cond_attribute . '" />
+				<input type="hidden" name="xmlCondRegex" value="' . $v->cond_regex . '" />
 				<input type="hidden" name="thisQ" value="manageVisualisation" />
 				<input type="hidden" name="uT" value="y" />
 				</form>
@@ -2139,7 +2237,8 @@ function printquery_xmlvisualisation()
 			<tr>
 				<td align="center" colspan="2" class="concordgrey">
 					<em>Note: if you choose an element start/end for which a visualisation 
-					already exists, the existing visualisation will be overwritten.</em>
+					already exists, the existing visualisation will be overwritten UNLESS 
+					there are different conditions.</em>
 				</td>
 			</tr>
 			<tr>
@@ -2165,6 +2264,21 @@ function printquery_xmlvisualisation()
 				<td class="concordgeneral">
 					<input type="radio" checked="checked" name="xmlUseInContext" value="1" /> Yes
 					<input type="radio" name="xmlUseInContext" value="0" /> No
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey">
+					Specify a condition?
+					<br/>&nbsp;<br/>
+					<em>(Leave blank for an unconditional visualisation.)</em></td>
+				<td class="concordgeneral">
+					The attribute 
+					<input type="text" name="xmlCondAttribute" />
+					must have a value which contains
+					<br/> 
+					a match for the regular expression
+					<input type="text" name="xmlCondRegex" />
+					.
 				</td>
 			</tr>
 			<tr>
