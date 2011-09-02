@@ -36,8 +36,8 @@
  *  satisfy any
  *  
  *  EXTRA_DIRECTIVES
- * 
- * 
+ *  
+ *  
  *  see http://httpd.apache.org/docs/1.3/howto/auth.html 
  *  
  *  We don't need to put methods in a Limit -- if it's not there, then the restrictions 
@@ -138,7 +138,7 @@ class apache_htaccess
 		else
 			$this->AuthName = $newAuthName;
 	}
-
+	
 	
 	
 	
@@ -161,7 +161,7 @@ class apache_htaccess
 	function disallow_user($user)
 	{
 		if ($this->permitted_users === NULL)
-			return;	
+			return;
 		$key = array_search($user, $this->permitted_users);
 		if ($key !== false)
 			unset($this->permitted_users[$key]);
@@ -269,14 +269,14 @@ class apache_htaccess
 	
 	/**
 	 * Writes the Apache htaccess file.
-	 * 
+	 *
 	 * returns true for all OK, false for something went wrong 
 	 */
 	function save()
 	{
 		if (!$this->check_ok_for_htaccess_save())
 			return false;
-			
+		
 		if (file_put_contents("{$this->path_to_web_directory}/.htaccess", $this->make_htaccess_contents()) === false)
 			return false;
 		
@@ -348,7 +348,7 @@ class apache_htaccess
 		/* get a list of all groups from the htgroup file, and return as an array */
 		if (!$this->check_ok_for_group_op())
 			return false;
-	
+		
 		$data = file_get_contents($this->path_to_groups_file);
 		
 		if (preg_match_all("/(\w+): .*\n/", $data, $m) > 0)
@@ -356,7 +356,7 @@ class apache_htaccess
 		else
 			return array();
 	}
-
+	
 	/**
 	 * Gets a list of all the users in the specified group from the htgroup file, 
 	 * and returns it as an array; the array is empty if the group was not found,
@@ -366,10 +366,10 @@ class apache_htaccess
 	{
 		if (!$this->check_ok_for_group_op())
 			return false;
-	
+		
 		$data = file_get_contents($this->path_to_groups_file);
 		
-		if (preg_match("/$group: (.*)\n/", $data, $m) > 0)
+		if (preg_match("/^$group: (.*)\$/m", $data, $m) > 0)
 		{
 			$returnme = explode(' ', $m[1]);
 			if ( ($k = array_search('', $returnme, true)) !== false)
@@ -379,7 +379,7 @@ class apache_htaccess
 			$returnme = array();
 		return $returnme;
 	}
-
+	
 	/** true for all OK, otherwise false */
 	function add_user_to_group($user, $group)
 	{
@@ -389,11 +389,11 @@ class apache_htaccess
 		$data = file_get_contents($this->path_to_groups_file);
 		
 		/* check whether the group contains the user already */
-		preg_match("/$group:([^\n]*)/", $data, $m);
+		preg_match("/\b$group:([^\n]*)/", $data, $m);
 		if (preg_match("/\b$user\b/",$m[1]) > 0)
 			return true;
-			
-		$data = preg_replace("/$group: /", "$group: $user ", $data);
+		
+		$data = preg_replace("/\b$group: /", "$group: $user ", $data);
 
 		if (copy($this->path_to_groups_file, $this->path_to_groups_file.'_backup_'.time()) === false)
 			return false;
@@ -410,8 +410,8 @@ class apache_htaccess
 			return false;
 
 		$data = file_get_contents($this->path_to_groups_file);
-	
-		if (preg_match("/$group: .*/", $data, $m) == 0 )
+		
+		if (preg_match("/\b$group: .*/", $data, $m) == 0 )
 			return false;
 		$oldline = $m[0];
 		$newline = preg_replace("/ $user\b/", '', $oldline);
@@ -452,7 +452,7 @@ class apache_htaccess
 
 		$data = file_get_contents($this->path_to_groups_file);
 		
-		$data = preg_replace("/$group: .*\n/", '', $data);
+		$data = preg_replace("/\b$group: [^\n]*\n/", '', $data);
 
 		if (copy($this->path_to_groups_file, $this->path_to_groups_file.'_backup_'.time()) === false)
 			return false;
@@ -462,7 +462,7 @@ class apache_htaccess
 		return true;
 	}
 
-	/** 
+	/**
 	 * Creates a new user; returns the return value from htpasswd, or 1 in case of unix copy fail.
 	 * 
 	 * Note this is the opposite to most methods in this class, which return true for all-OK;
@@ -518,7 +518,7 @@ class apache_htaccess
 
 		$data = file_get_contents($this->path_to_password_file);
 
-		preg_match_all("/(\w+):.+\n/", $data, $m);
+		preg_match_all("/\b(\w+):.+\n/", $data, $m);
 		
 		return $m[1];
 	}
@@ -531,7 +531,7 @@ class apache_htaccess
 
 		$data = file_get_contents($this->path_to_password_file);
 
-		$data = preg_replace("/$username:.+\n/", '', $data);
+		$data = preg_replace("/\b$username:.+\n/", '', $data);
 
 		if (file_put_contents($this->path_to_password_file, $data) === false)
 			return false;
@@ -579,7 +579,7 @@ class apache_htaccess
 			&&
 			$this->path_to_web_directory !== NULL
 			&&
-			( $this->permitted_users !== NULL || 
+			( $this->permitted_users !== NULL ||
 				($this->permitted_groups !== NULL && $this->path_to_groups_file !== NULL)
 			)
 		? true : false );
@@ -597,7 +597,6 @@ class apache_htaccess
 
 
 } /* end of class apache_htaccess */
-
 
 
 
