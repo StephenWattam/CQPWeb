@@ -1906,9 +1906,8 @@ function printquery_visualisation()
 				You can select an XML element/attribute to be used to indicate the position <em>within</em> its text
 				where each concordance result appears. A typical choice for this would be sentence or utterance number.
 				<br/>&nbsp;<br/>
-				<strong>Warning</strong>: If you select an element/attribute pair that does not cover the entire corpus, you
-				will get error messages whenever you display a page that contains a hit with no value for the selected
-				attribute!
+				<strong>Warning</strong>: If you select an element/attribute pair that does not cover the entire corpus, no
+				position label will be shown next to a result at a corpus position with no value for the selected attribute!
 				<br/>&nbsp;
 			</td>
 		</tr>

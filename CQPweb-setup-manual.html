@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20110827;15510000">
+	<META NAME="CHANGED" CONTENT="20110901;10384000">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -1384,7 +1384,7 @@ alongside the MySQL commands where applicable.</SPAN></P>
 			tinyint(1) NOT NULL default 1,<BR>  `in_context` tinyint(1) NOT
 			NULL default 1,<BR>  `bb_code` text,<BR>  `html_code` text,<BR>
 			 key(`corpus`, `element`)<BR>) CHARACTER SET utf8 COLLATE
-			utf8_bin</FONT></FONT></FONT></P>
+			utf8_bin;</FONT></FONT></FONT></P>
 		</TD>
 		<TD WIDTH=178 STYLE="; border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">Go
@@ -1395,12 +1395,25 @@ alongside the MySQL commands where applicable.</SPAN></P>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=158 STYLE="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
-			</P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">3.0.2
+			to 3.0.3</P>
 		</TD>
 		<TD WIDTH=520 STYLE="; border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
-			</P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
+			TABLE `xml_visualisations` DROP KEY `corpus`;</FONT></FONT></FONT></P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
+			TABLE `xml_visualisations` ADD COLUMN `cond_attribute` varchar(50)
+			NOT NULL default '';</FONT></FONT></FONT></P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
+			TABLE `xml_visualisations` ADD COLUMN `cond_regex` varchar(100)
+			NOT NULL default '';</FONT></FONT></FONT></P>
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
+			TABLE `xml_visualisations` ADD PRIMARY KEY (`corpus`, `element`,
+			`cond_attribute`, `cond_regex`);</FONT></FONT></FONT></P>
 		</TD>
 		<TD WIDTH=178 STYLE="; border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.11cm; padding-left: 0.11cm; padding-right: 0.11cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>

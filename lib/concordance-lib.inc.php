@@ -704,7 +704,8 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	$final_string = "<td class=\"text_id\"><b>$line_number</b></td>";
 	
 	$final_string .= "<td class=\"text_id\"><a href=\"textmeta.php?text=$text_id&uT=y\" "
-		. metadata_tooltip($text_id) . '>' . $text_id . ($position_label ? " $position_label" : '') . '</a></td>';
+		. metadata_tooltip($text_id) . '>' . $text_id . ($position_label === '' ? '' : " $position_label") . '</a></td>';
+
 	
 	if ($viewMode == 'kwic') 
 	{
@@ -1050,14 +1051,25 @@ function extract_cqp_line_position_labels(&$cqp_line, &$text_id, &$position_labe
 	if ($visualise_position_labels)
 	{
 		/* if a position label is to be used, it is extracted from between <text_id ...> and the colon. */
-		preg_match("/\A\s*\d+: <text_id (\w+)><$visualise_position_label_attribute ([^>]+)>:/", $cqp_line, $m);
-		$text_id = $m[1];
-		$position_label = cqpweb_htmlspecialchars($m[2]);
-		$cqp_line = preg_replace("/\A\s*\d+: <text_id \w+><$visualise_position_label_attribute ([^>]+)>:/", '', $cqp_line);
+		if (0 < preg_match("/\A\s*\d+: <text_id (\w+)><$visualise_position_label_attribute ([^>]+)>:/", $cqp_line, $m) )
+		{
+			$text_id = $m[1];
+			$position_label = cqpweb_htmlspecialchars($m[2]);
+			$cqp_line = preg_replace("/\A\s*\d+: <text_id \w+><$visualise_position_label_attribute [^>]+>:/", '', $cqp_line);
+		}
+		else
+		{
+			/* Position label could not be extracted, sojust extract text_id */
+			preg_match("/\A\s*\d+: <text_id (\w+)><$visualise_position_label_attribute>:/", $cqp_line, $m);
+			$text_id = $m[1];
+			$position_label = '';
+			$cqp_line = preg_replace("/\A\s*\d+: <text_id \w+><$visualise_position_label_attribute>:/", '', $cqp_line);
+			/* note it IS NOT THE SAME as the "normal" case below: the s-att still prints, just wihtout a value */		
+		}
 	}
 	else
 	{
-		/* otherwise just extract text_id */
+		/* If we have no position label, just extract text_id */
 		preg_match("/\A\s*\d+: <text_id (\w+)>:/", $cqp_line, $m);
 		$text_id = $m[1];
 		$position_label = '';
