@@ -428,7 +428,9 @@ if ($_GET['downloadGo'] === 'yes')
 
 			/* get tagged and untagged lines for print */
 			
-			$untagged = $kwic_lc . ' ~~~***###' . $hit_delimiter_before . $kwic_match . $hit_delimiter_after . ' ~~~***###' . $kwic_rc;
+			$untagged = $kwic_lc . ' ~~~***###' 
+				. $hit_delimiter_before . $kwic_match . $hit_delimiter_after 
+				. ' ~~~***###' . $kwic_rc;
 			if ($tagged_as_well) 
 				$tagged = "\t" . preg_replace('/([^\s\/]+)\/(\S+)/', '$1_$2', $untagged);
 			else
@@ -461,7 +463,7 @@ if ($_GET['downloadGo'] === 'yes')
 			}
 			
 
-			$link = ($context_url ? "\t". url_absolutify("context.php?qname=$qname&batch=$i&uT=y") : '');
+			$link = ($context_url ? "\t". url_absolutify("context.php?qname=$qname&batch=" . ($batch_start + $i) . "&uT=y") : '');
 			
 			$out = "$line_indicator\t$text_id\t$untagged$tagged$categorisation_string$link";
 			
