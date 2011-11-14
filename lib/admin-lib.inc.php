@@ -39,11 +39,14 @@ function delete_corpus_from_cqpweb($corpus)
 	global $cwb_registry;
 	global $cwb_datadir;
 	$corpus = mysql_real_escape_string($corpus);
-
-	/* get the cwb name of the corpus, etc. */
-	include("../$corpus/settings.inc.php");
 	
-	//TODO DANGEROUS, or is it?????? names should be ascii....
+	if (empty($corpus))
+		exiterror_general('No corpus specified. Cannot delete. Aborting.', __FILE__, __LINE__);	
+
+	/* get the cwb name of the corpus, etc.: use require() so script dies if settings not found. */
+	require("../$corpus/settings.inc.php");
+	
+	/* we can trust strtolower() because CWB standards define identifiers as ASCII */
 	$corpus_cwb_lower = strtolower($corpus_cqp_name);
 	
 	/* check the corpus is actually there to delete */
