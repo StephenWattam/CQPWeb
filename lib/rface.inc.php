@@ -153,7 +153,7 @@ class RFace
 			2 => array("pipe", "w")  /* pipe allocated to child's stderr */
 			);
 		
-		$command = "$path_to_r/R --slave";
+		$command = "$path_to_r/R --slave --no-readline";
 		
 		$this->process = proc_open($command, $io_settings, $this->handle);
 		
@@ -213,7 +213,7 @@ class RFace
 	function execute($command, $line_handler_callback = false)
 	{
 		if ($line_handler_callback === false)
-			if ($this->$line_handler_callback !== false)
+			if ($this->line_handler_callback !== false)
 				$line_handler_callback = $this->line_handler_callback;
 		
 		/* execute can change the number of objects, so clear object-list cache */
@@ -231,6 +231,8 @@ class RFace
 
 		/* send the command to R's [IN] */
 		// TODO do we need a \n here after the command?
+		// If we DON'T, then sending one will result in an empty line of output....
+		// check this out!
 		if (false === fwrite($this->handle[0], $command))
 			$this->error("RFace: ERROR: problem writing to the R input stream\n");
 		/* that executes the command ... */
@@ -252,10 +254,10 @@ class RFace
 
 			$this->debug_alert("RFace: R >> $line\n");
 
-			if (!empty($this->line_handler_callback))
+			if (!empty($line_handler_callback))
 			{
 				/* call the specified function or class/object method */
-				$callback_return = call_user_func($this->line_handler_callback, $line);
+				$callback_return = call_user_func($line_handler_callback, $line);
 				if ($callback_return)
 				{
 					$result[] = $callback_return;
@@ -271,7 +273,6 @@ class RFace
 
 		/* return the array of results */
 		return $result;
-
 	}
 
 
@@ -541,20 +542,27 @@ class RFace
 	 * @param varname   Name of the object to read
 	 * @param mode      How to read the object.
 	 *                  Options:
-	 *                     'vector' -- the default, create a number or string array from an R vector.
+	 *                     'object' -- the default, create a PHP value matching the R object as closely 
+	 *                                 as possible. This works for the different types of vector. It may 
+	 *                                 not work for other object types; any object type not covered
+	 *                                 will fallback to 'verbatim' mode.
 	 *                     'verbatim' -- create a string containing the verbatim description
 	 *                                   of the object from R's output.
-	 *                     'solo' -- for a one-element vector: returns it as a single variable,
+	 *                     'solo' -- for use with one-element vectors: returns it as a single variable,
 	 *                               not as an array, with the appropriate type. If this option is
 	 *                               used for a multi-element vector, you only get the first element.
-	 *                     //TODO others?
+	 *                               IF it is used for something that doesn't come out as a vector,
+	 *                               then you'll get an error.
 	 * 
-	 * TODO Points to pointer. What if the object is a data frame, special object etc?
+	 * TODO Points to ponder. What if the object is a data frame, special object etc?
+	 * Data frame should be converted into 2D array. Special object should probably be
+	 * returned as string (only user knows exactly what to do with it) that just contains
+	 * whatever R printed.
+	 * 
+	 * TODO This above implies that this function should recurse...
 	 */
 	public function read($varname, $mode = 'vector')
 	{
-		
-		
 		if (!$this->object_exists($varname))
 		{
 			$this->error("RFace: ERROR: Cannot read contents of nonexistent R object $varname!\n");
@@ -563,17 +571,53 @@ class RFace
 		/* first, request the variable's contents */
 		$data = $this->execute($varname);
 		
-		// TODO -- finish the function
+		$verbatim_fallthrough = false;
+		
+		/* generate object, or solo value, or verbatim text output. */
 		switch($mode)
 		{
 		case 'solo':
-		case 'vector':
-			// TODO convert text to zero-indexed array.
+		case 'object':
+			/* 
+			 * This switch converts various types of R object to PHP values.
+			 * The output is always stored in $output.
+			 * If no conversion routine exists, verbatim is used as the fallback.
+			 */
+			switch ($this->typeof($varname))
+			{
+			case 'NULL':
+				/* PHP's NULL and R's NULL correspond closely. */
+				$output = NULL;
+				break;
+			case 'logical':
+				// todo. vector -> zero-indexed array of booleans.
+				$output = $this->arrayise_execute_return($data);
+				break;
+			case 'integer':
+				// todo. vector -> zero-indexed array of ints.
+				break;
+			case 'double':
+				// todo. vector -> zero-indexed array of floats.
+				break;
+			case 'character':
+				// todo. vector -> zero-indexed array of strings.
+				break;
 			
-			if ($mode == 'solo')
+			default:
+				$verbatim_fallthrough = true;
+				break;
+			}
+			
+			/* final operations in case object / solo:
+			 * (1) check for solo mode, and de-array if found
+			 * (2) fallthrough to verbatim if we didn't have an algorithm!
+			if ($mode == 'solo' && is_array($output))
 				$output = $output[0];
 				//  TODO: does type need adjusting?
-			break;
+			if (! $verbatim_fallthrough)
+				break;
+			/* end of case "object */
+				
 		case 'verbatim':
 			/* this one is easy */
 			$output = implode(PHP_EOL, $data);
@@ -619,6 +663,25 @@ class RFace
 	public function object_exists($obj)
 	{
 		return in_array($obj, $this->list_objects());
+	}
+	
+	/**
+	 *  Gets the type of an object in the active R workspace.
+	 */
+	public function typeof($obj)
+	{
+		if ( ! $this->object_exists($obj))
+		{
+			/* we'll get an error message from R if we send this in.
+			 * Ergo, we should pre-empt, and send an error message of our own. */
+			$this->error("RFace: ERROR: Cannot call typeof() on nonexistent R object $obj!\n");
+			return;
+		}
+		else
+		{
+			$rawtext = $this->execute("typeof($obj)");
+			return trim(substr($rawtext, 4),'"');
+		}
 	}
 	
 	/**
@@ -742,9 +805,8 @@ class RFace
 	
 	
 	
-	
 	/**
-	 * Deduces whether an array has a single "type" or not.
+	 * Deduces whether an (incoming PHP) array has a single "type" or not.
 	 * 
 	 * Returns a string describing the type: this is "string" if
 	 * every value in the array is a string, "number" if every value
