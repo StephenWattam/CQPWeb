@@ -605,7 +605,9 @@ function create_text_metadata_check_text_ids($corpus)
 	if (false === ($bad_ids = create_text_metadata_get_bad_ids($corpus, 'text_id')))
 		return;
 
+	/* database revert to zero text metadata prior to abort */
 	do_mysql_query("drop table if exists text_metadata_for_" . mysql_real_escape_string($corpus));
+	do_mysql_query("delete from text_metadata_fields where corpus = '" . mysql_real_escape_string($corpus) . '\'');
 	
 	$msg = "The data source you specified for the text metadata contains badly-formatted text"
 		. " ID codes, as follows: <strong>"
@@ -627,16 +629,20 @@ function create_text_metadata_check_text_ids($corpus)
  * (NB - doesn't do any other cleanup e.g. temporary files).
  * 
  * This function should be called before any other updates are made to the database.
+ * 
+ * 
  */
 function create_text_metadata_check_field_words($corpus, $field)
 {
 	if (false === ($bad_ids = create_text_metadata_get_bad_ids($corpus, $field)))
 		return;
 	
+	/* database revert to zero text metadata prior to abort */
 	do_mysql_query("drop table if exists text_metadata_for_" . mysql_real_escape_string($corpus));
+	do_mysql_query("delete from text_metadata_fields where corpus = '" . mysql_real_escape_string($corpus) . '\'');
 	
 	$msg = "The data source you specified for the text metadata contains badly-formatted "
-		. " category handles, as follows: <strong>"
+		. " category handles in field <strong>$field</strong>, as follows: <strong>"
 		. $bad_ids
 		. "</strong> (category handles can only contain unaccented letters, numbers, and underscore).";
 	
@@ -814,11 +820,14 @@ function create_text_metadata_for()
 	
 	do_mysql_infile_query("text_metadata_for_$corpus", $input_file);
 	
+	unlink($input_file);
+
 	/* check resulting table for invalid text ids and invalid category handles */
 	create_text_metadata_check_text_ids($corpus);
 	/* we can re-use $category_index_list which contains only fieldnames of categorisations */
-	foreach ($category_index_list as &$cur)
-		create_text_metadata_check_field_words($corpus, $cur);
+	if (!empty($category_index_list))
+		foreach ($category_index_list as &$cur)
+			create_text_metadata_check_field_words($corpus, $cur);
 	
 	
 	if ($update_statement !== '')
@@ -830,14 +839,13 @@ function create_text_metadata_for()
 
 		while (($r = mysql_fetch_row($result)) !== false)
 		{
-			$add_value_sql = "insert into text_metadata_values (corpus, field_handle, handle)
+			$add_value_sql = "insert into text_metadata_values 
+				(corpus, field_handle, handle)
 				values
 				('$corpus', '{$current['field']}', '{$r[0]}')";
 			do_mysql_query($add_value_sql);
 		}
 	}
-
-	unlink($input_file);
 
 	/* and, if requested, we can do all the other setup automatically */
 	if ($create_text_metadata_for_info['do_automatic_metadata_setup'])
