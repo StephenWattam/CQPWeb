@@ -84,7 +84,7 @@ class CQP
 	const CHARSET_LATIN8 	= 14;
 	const CHARSET_LATIN9 	= 15;
 	/* the literal values are ISO-8859 part numbers, but this is only for neatness; these numbers
-	 * are not actually used for their values. */
+	 * are not actually used for their values. Note these have no link to CWB internal consts. */
 
 
 	/* array mapping the constants above to strings for iconv() */
@@ -108,7 +108,7 @@ class CQP
 	/* the version of CWB that this class requires */
 	const VERSION_MAJOR_DEFAULT = 3;
 	const VERSION_MINOR_DEFAULT = 0;
-	const VERSION_BETA_DEFAULT = 0;
+	const VERSION_BETA_DEFAULT  = 0;
 	
 
 
@@ -312,28 +312,54 @@ class CQP
 	 * 
 	 * note: this is the same as running "execute" on the corpus name
 	 * except that it implements a "wrapper" around the charset
-	 * if necessary, allowing Utf8 input to be converted to some other
+	 * if necessary, allowing utf8 input to be converted to some other
 	 * character set for future calls to $this->execute(). 
 	 */
 	public function set_corpus($corpus_id)
 	{
+		/* array for interpreting CWB identifier strings into our own class constants */
+		static $charset_interpreter = array (
+			'latin1'      => self::CHARSET_LATIN1,
+			'iso-8859-1'  => self::CHARSET_LATIN1,
+			'latin2'      => self::CHARSET_LATIN2,
+			'iso-8859-2'  => self::CHARSET_LATIN2,
+			'latin3'      => self::CHARSET_LATIN3,
+			'iso-8859-3'  => self::CHARSET_LATIN3,
+			'latin4'      => self::CHARSET_LATIN4,
+			'iso-8859-4'  => self::CHARSET_LATIN4,
+			'cyrillic'    => self::CHARSET_CYRILLIC,
+			'iso-8859-5'  => self::CHARSET_CYRILLIC,
+			'arabic'      => self::CHARSET_ARABIC,
+			'iso-8859-6'  => self::CHARSET_ARABIC,
+			'greek'       => self::CHARSET_GREEK,
+			'iso-8859-7'  => self::CHARSET_GREEK,
+			'hebrew'      => self::CHARSET_HEBREW,
+			'iso-8859-8'  => self::CHARSET_HEBREW,
+			'latin5'      => self::CHARSET_LATIN5,
+			'iso-8859-9'  => self::CHARSET_LATIN5,
+			'latin6'      => self::CHARSET_LATIN6,
+			'iso-8859-10' => self::CHARSET_LATIN6,
+			'latin7'      => self::CHARSET_LATIN7,
+			'iso-8859-13' => self::CHARSET_LATIN7,
+			'latin8'      => self::CHARSET_LATIN8,
+			'iso-8859-14' => self::CHARSET_LATIN8,
+			'latin9'      => self::CHARSET_LATIN9,
+			'iso-8859-15' => self::CHARSET_LATIN9
+			);
+		
+		/* OK, now to the business end of the function! */
+		
 		$this->execute($corpus_id);
+		
 		$infoblock = "\n" . implode("\n", $this->execute('info')) . "\n";
 		
+		/* We always default-assume that a newly-set corpus is UTF8, and only override
+		 * if the infoblock (which comes ultimately from the registry) says otherwise. */
+		$this->corpus_charset = self::CHARSET_UTF8;
+		
 		if (preg_match("/\nCharset:\s+(\S+)\s/", $infoblock, $m) > 0)
-		{
-			switch($m[1])
-			{
-			case 'latin1':
-			case 'iso-8859-1':
-				$this->corpus_charset = self::CHARSET_LATIN1;
-				break;
-			default:
-				/* anything else gets treated as utf8: typically "ascii", "utf8" */
-				$this->corpus_charset = self::CHARSET_UTF8;
-				break;
-			}
-		}
+			if (array_key_exists($m[1], $charset_interpreter))
+				$this->corpus_charset = $charset_interpreter[$m[1]];
 	}
 	
 	/**
@@ -381,7 +407,7 @@ class CQP
 		/* that executes the command */
 
 		/* then, get lines one by one from child stdout */
-		while (strlen($line = fgets($this->handle[1])) > 0 )
+		while ( 0 < strlen($line = fgets($this->handle[1])) )
 		{
 			/* delete carriage returns from the line */
 			$line = trim($line, "\r\n");

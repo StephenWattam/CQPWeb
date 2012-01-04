@@ -22,37 +22,34 @@
  */
 
 
-
-// IMPORTANT NOTE : much of the contents of this file are untested as of now.
-
-
-
-
-
-
-
-
 /**
  * class RFace:
  * 
- * PHP interface to the R statistics program.
+ * PHP interface to the R statistical environment.
  * 
  * Usage:
  * 
- * $r = new RFace($path_to_r);
+ *     $r = new RFace($path_to_r);
  * 
- * where $path_to_r is a relative path to the directory containing the R executable
- * that DOES NOT end in a slash.
+ * ... where $path_to_r is a relative path to the directory containing the R executable ...
  * 
- * $result = $r->execute("text to be fed to R here");
+ *     $result = $r->execute("text to be fed to R here");
  * 
- * to explicitly shut down child process:
+ * To explicitly shut down child process:
  * 
- * unset($r);
+ *     unset($r);
  * 
- * Other methods (TODO) wrap-around ->execute() to provide a friendlier API for various uses of R 
+ * Other methods (many of which are TODO) wrap-around ::execute() to provide a friendlier API for various uses of R. 
  * 
- * some functions:
+ * IMPORTANT NOTE : much of the code in this class are untested as of now.
+ * 
+ * 
+ * 
+ * ===================
+ * ROUGH NOTES FOLLOW.
+ * ===================
+ * 
+ * some functions that are prob needed:
  * 
  * load array to vector
  * load multi-d array to data table
@@ -68,7 +65,7 @@ class RFace
 	
 	const DEFAULT_CHART_FILENAME = 'R-chart';
 	
-	/* member variables */
+	/* member variables : general */
 	
 	/** handle for the process */
 	private $process;
@@ -76,17 +73,18 @@ class RFace
 	/** array for the input/output handles themselves to go in */
 	private $handle;
 	
+	/** function (or array of object/classname + method at [0] and [1]) for handling lines as they are passed */
+	private $line_handler_callback = false;
+	
+	
 	/* caches for oft-used R calls */
 	
 	/** cache of the list of object names */
 	private $object_list_cache = false;
 	
-	/** function (or array of object/classname + method at [0] and [1]) for handling lines as they are passed */
-	private $line_handler_callback = false;
 	
 	
-	
-	/* variables for error handling */
+	/* variables for error handling and debug logging */
 	
 	/** has there been an error? */
 	private $ok = true;
@@ -100,8 +98,11 @@ class RFace
 	/** if true, debug info will be printed to debug_dest */
 	private $debug_mode;
 	
-	/** stream that debug messages will be sent to */
-	private $debug_dest;
+	/** stream that debug messages will be sent to; defaults to STDERR */
+	private $debug_dest = STDERR;
+	
+	/** flag determining whether or not the stream in $debug_dest will be close on destruct() */
+	private $debug_dest_autoclose = false;
 	
 	
 	
@@ -173,7 +174,7 @@ class RFace
 	{
 		if (isset($this->handle[0]))
 		{
-			fwrite($this->handle[0], 'q()\n');		//TODO check whether the \n is needed; I imagine it is
+			fwrite($this->handle[0], 'q()\n');		// TODO check whether the \n is needed; I imagine it is
 			fclose($this->handle[0]);
 		}
 		if (isset($this->handle[1]))
@@ -181,14 +182,21 @@ class RFace
 		if (isset($this->handle[2]))
 			fclose($this->handle[2]);
 		
-		$this->debug_alert( "RFace: Pipes to R backend successfully closed.\n");
+		$this->debug_alert("RFace: Pipes to R backend successfully closed.\n");
 		
 		/* and finally shut down the child process so script doesn't hang*/
 		if (isset($this->process))
 			$stat = proc_close($this->process);
 
 		$this->debug_alert("RFace: R slave process has been closed with termination status [ $stat ].\n"
-					. "\tRFace object will now destruct.\n");
+						   . "\tRFace object will now destruct.\n");
+		
+		if ($this->debug_dest_autoclose)
+		{
+			$this->debug_alert("RFace: Closing debug stream after this message.\n");
+			if ( ! fclose($this->debug_dest) )
+				$this->debug_alert("RFace: ERROR: Failed to close debug stream.\n");
+		}	
 	}
 
 
@@ -200,14 +208,17 @@ class RFace
 	 * This may be an empty array if R didn't print anything.
 	 * 
 	 * If $line_handler_callback is specified, it will be called on each line of
-	 * output. If it returns a value, that value will be added to the return-array
-	 * instead of the line. If it does not return a value, nothing will be added
+	 * output (AFTER whitespace is trummed). If the callback handler returns a value, 
+	 * that value will be added to the return-array instead of the line. 
+	 * If the callback handler does not return a value, nothing will be added
 	 * to the return-array (and thus, the caller will ultimately get back an empty
 	 * array).
 	 * 
 	 * If $line_handler_callback is NOT specified, the function checks whether
 	 * one has been set at the object level ($this->line_handler_callback). If it
 	 * has, that is used. 
+	 * 
+	 * Note that empty lines are ALWAYS skipped (never passed to callback handler).
 	 * 
 	 */
 	function execute($command, $line_handler_callback = false)
@@ -226,12 +237,11 @@ class RFace
 			return;
 		}
 
-
 		$this->debug_alert("RFace: R << $command;\n");
 
 		/* send the command to R's [IN] */
 		// TODO do we need a \n here after the command?
-		// If we DON'T, then sending one will result in an empty line of output....
+		// If we DON'T, then sending one will result in an empty line of output.... (?)
 		// check this out!
 		if (false === fwrite($this->handle[0], $command))
 			$this->error("RFace: ERROR: problem writing to the R input stream\n");
@@ -241,9 +251,9 @@ class RFace
 		
 		
 		/* then, get lines one by one from [OUT] */
-		while (false !== ($line = fgets($this->handle[1])) )
+		while ( 0 < strlen($line = fgets($this->handle[1])) ) 
 		{
-			/* delete whitespace from the line */
+			/* delete whitespace from the line; empty lines NEVER added to the array. */
 			$line = trim($line, " \t\r\n");
 			if (empty($line))
 				continue;
@@ -258,7 +268,8 @@ class RFace
 			{
 				/* call the specified function or class/object method */
 				$callback_return = call_user_func($line_handler_callback, $line);
-				if ($callback_return)
+				$this->debug_alert("RFace: $line >> callback-handler >> $callback_return\n");
+				if (! empty($callback_return))
 				{
 					$result[] = $callback_return;
 					unset($callback_return);
@@ -336,9 +347,29 @@ class RFace
 	}
 	
 	
+	/**
+	 * Sets the destination stream for debug messages.
+	 * 
+	 * Typically, you'd pass in an open file handler.
+	 * 
+	 * The second parameter determines whether the stream is self-closing; by
+	 * default it isn't, but if it is, then the object destructor will attempt to
+	 * close the stream with fclose().
+	 */
+	public function set_debug_destination($new_stream, $autoclose = false)
+	{
+		$x = @get_resource_type($new_stream);
+		if ($x != 'file' && $x != 'stream')
+			$this->error("RFace: ERROR: Non-stream passed as debug destination.\n");
+		$this->debug_dest = $new_stream;
+		$this->debug_dest_autoclose = (bool) $autoclose;	
+	}
+	
+	
 	/*
 	 * error control
 	 */
+	
 	
 	/**
 	 * Sets exit-on-error mode on/off (parameter is a bool).
@@ -382,16 +413,17 @@ class RFace
 	 */
 	private function error($msg = false, $line = false)
 	{
+		$this->ok = false;
+		
 		if ($msg == false)
 			$msg = "RFace: ERROR: General R interface error!\n";
 		if ($line != false)
-			$msg .= "\t... at line $line";
+			$msg .= "\t... at line $line\n";
+		
 		$this->last_error_message = $msg;
-		$this->ok = false;
+		$this->debug_alert($msg);
 		if ($this->exit_on_error)
-			exit($this->last_error_message);
-		else
-			$this->debug_alert($this->last_error_message);
+			exit($msg);
 	}
 	
 	/**
@@ -405,8 +437,9 @@ class RFace
 	
 	
 	/*
-	 * load functions
+	 * load methods (move data object from PHP to R)
 	 */
+	
 	
 	/**
 	 * Loads data from a PHP array to an R vector.
@@ -457,20 +490,20 @@ class RFace
 	
 	private function load_vector_of_numbers($varname, &$array)
 	{
-		//old version that modified the argument array, a no-no
-		//foreach($array as $k=>&$a)
-		//	$a = self::num($a);
-		//$instring = "$varname = c(" . implode(',',$array) . ')';
-		
 		/* build comma-delimited string of values */
 		$instring = '';
-		foreach($array as $k=>&$a)
+		foreach($array as &$a)
 			$instring .= ',' . self::num($a);
 		
 		/* now, add start and end of command, before sending to R */
-		$instring = preg_replace('/\A,/', "$varname = c(", $instring) . ')';
-		$this->execute($instring);
+		// old version with regex engine : // $instring = preg_replace('/\A,/', "$varname = c(", $instring) . ')';
+		$instring = "$varname = c(" . ltrim($instring, ",") . ')';
 		
+		$r = $this->execute($instring);
+		
+		/* successful load will have returned empty array */
+		return (empty($r) && is_array($r));
+			
 		//TODO: check this method works esp. with various kinds of zero
 	}
 	
@@ -530,7 +563,7 @@ class RFace
 	
 	
 	/*
-	 * read functions
+	 * read methods (move data object from R to PHP)
 	 */
 	
 	/**
@@ -547,28 +580,34 @@ class RFace
 	 *                                 not work for other object types; any object type not covered
 	 *                                 will fallback to 'verbatim' mode.
 	 *                     'verbatim' -- create a string containing the verbatim description
-	 *                                   of the object from R's output.
+	 *                                   of the object from R's output (including whitespace/linebreaks).
 	 *                     'solo' -- for use with one-element vectors: returns it as a single variable,
 	 *                               not as an array, with the appropriate type. If this option is
 	 *                               used for a multi-element vector, you only get the first element.
-	 *                               IF it is used for something that doesn't come out as a vector,
+	 *                               If it is used for something that doesn't come out as a vector,
 	 *                               then you'll get an error.
 	 * 
+	 * General TODO :
+	 * 
+	 * This function covers all the obvious object types (vectors of basic types - bool, int, doubel, string.
+	 * But it needs to have more "special" object types added.
+	 * For example:
+	 *  * Data frame to 2D array
+	 *  * 
 	 * TODO Points to ponder. What if the object is a data frame, special object etc?
 	 * Data frame should be converted into 2D array. Special object should probably be
 	 * returned as string (only user knows exactly what to do with it) that just contains
 	 * whatever R printed.
 	 * 
-	 * TODO This above implies that this function should recurse...
 	 */
-	public function read($varname, $mode = 'vector')
+	public function read($varname, $mode = 'object')
 	{
 		if (!$this->object_exists($varname))
 		{
 			$this->error("RFace: ERROR: Cannot read contents of nonexistent R object $varname!\n");
 			return;
 		}
-		/* first, request the variable's contents */
+		/* first, request the variable's contents as an array */
 		$data = $this->execute($varname);
 		
 		$verbatim_fallthrough = false;
@@ -589,39 +628,97 @@ class RFace
 				/* PHP's NULL and R's NULL correspond closely. */
 				$output = NULL;
 				break;
+				
 			case 'logical':
-				// todo. vector -> zero-indexed array of booleans.
-				$output = $this->arrayise_execute_return($data);
+				/* vector -> zero-indexed array of booleans. */
+				$output = $this->read_output_to_array($data);
+				foreach ($output as &$o)
+					$o = ($o === 'TRUE');
 				break;
+				
 			case 'integer':
-				// todo. vector -> zero-indexed array of ints.
+				/* vector -> zero-indexed array of ints. */
+				// TODO. Factors also have typeof = integer. (But class() = factor).
+				$output = $this->read_output_to_array($data);
+				foreach ($output as &$o)
+					$o = (int) $o;
 				break;
+				
 			case 'double':
-				// todo. vector -> zero-indexed array of floats.
+				/* vector -> zero-indexed array of floats. */
+				$output = $this->read_output_to_array($data);
+				foreach ($output as &$o)
+					list($o) = sscanf(strtolower($o), '%e');
 				break;
+				
 			case 'character':
-				// todo. vector -> zero-indexed array of strings.
+				/* vector -> zero-indexed array of strings. */
+				$data = $this->read_output_to_string($data);
+				$output = array();
+				for ($i = 0, $n = strlen($data) ; $i < $n ; $i++)
+				{
+					/* we are outside a value : test for start of value */
+					if ($data[$i] == '"')
+					{
+						/* we are inside a value : scroll to end of value */
+						for ($j = $i+1 ; 1 ; $j++)
+						{
+							if ($data[$j] == '\\')
+							{
+								/* neither this byte nor the next one is the closing delimiter */
+								$j++;
+								continue;
+							}
+							if ($data[$j] == '"')
+								break;
+						}
+						
+						/* i = index of opening quote; j = index of closing quote. */
+						$output[] = stripcslashes(substr($data, $i+1, $j-($i+1)));
+						/* we need stripcslashes() because R char values are printed out with \n, \t etc. */ 
+						
+						/* set $i to $j, it will then increment and the next loop of the for
+						 * will start at the first character after the closing " */
+						$i = $j;
+					}	
+				} 
 				break;
 			
+			/* TODO : More data types here? */
+			
+			// case 'list':
+				// NB. data frames are a type of list.
+			// case 'special':
+			// case 'builtin':
+			// case 'complex':
+			// case 'raw':
+			// case 'environment':
+			// case 'S4':
+			
+			/* data types covered by default:
+			 *     -- closure (we want a verbatim print of the function's code)
+			 */
 			default:
 				$verbatim_fallthrough = true;
 				break;
-			}
+				
+			}	/* end of switch typeof(varname) */
 			
 			/* final operations in case object / solo:
 			 * (1) check for solo mode, and de-array if found
 			 * (2) fallthrough to verbatim if we didn't have an algorithm!
+			 */
 			if ($mode == 'solo' && is_array($output))
 				$output = $output[0];
-				//  TODO: does type need adjusting?
 			if (! $verbatim_fallthrough)
 				break;
-			/* end of case "object */
+			/* end of case "object" */
 				
 		case 'verbatim':
 			/* this one is easy */
 			$output = implode(PHP_EOL, $data);
 			break;
+			
 		default:
 			$this->error("RFace: ERROR: Unacceptable object read-mode $mode!\n");
 			return;
@@ -630,8 +727,44 @@ class RFace
 		return $output;
 	}
 	
+	/**
+	 * Support function for ->read().
+	 * 
+	 * Converts an output array from ->execute() into a single string,
+	 * with the line-start index numbers removed.
+	 */
+	private function read_vector_output_to_string(&$array)
+	{
+		$r = '';
+		/* note that if we have something like "character(0)" it will be returned as 
+         * the single member of the array. */
+		foreach ($array as &$a)
+			$r .= ' ' . array_pop(explode(']',$a, 2));
+		return trim($r, " \t\r\n");
+	}
+	
+	/**
+	 * Support function for ->read().
+	 * 
+	 * Converts an output array from ->execute() (array of lines)
+	 * into a PHP array of strings split on whitespace.
+	 * 
+	 * Important note: will only work for vecytors of booleans or numbers -
+	 * not for vectors of strings, which need a different approach.
+	 */
+	private function read_vector_output_to_array(&$array)
+	{
+		$s = $this->read_vector_output_to_string($array);
+		/* this bit deals with empty vectors: character(0), numeric(0) etc. */
+		if ( 0 < preg_match('/^\w+\(0\)$/', $s) )
+			return array();
+		return preg_split('/\s+/', $s, NULL, PREG_SPLIT_NO_EMPTY);
+	}
 	
 	
+	/*
+	 * Object manipulation methods 
+	 */
 	
 	
 	/**
@@ -666,7 +799,10 @@ class RFace
 	}
 	
 	/**
-	 *  Gets the type of an object in the active R workspace.
+	 * Gets the type of an object in the active R workspace.
+	 * 
+	 * Returns a string indicating the type (same strings as in R)
+	 * or false if there was an error. 
 	 */
 	public function typeof($obj)
 	{
@@ -675,14 +811,68 @@ class RFace
 			/* we'll get an error message from R if we send this in.
 			 * Ergo, we should pre-empt, and send an error message of our own. */
 			$this->error("RFace: ERROR: Cannot call typeof() on nonexistent R object $obj!\n");
+			return false;
+		}
+		else
+		{
+			/* we know it will just be a "[1] ..." printout, so we can shortcut */
+			list($rawtext) = $this->execute("typeof($obj)");
+			return trim(substr($rawtext, 4),'"');
+		}
+	}
+	
+	/**
+	 * Gets the classname of an object in the active R workspace.
+	 * 
+	 * Returns a string with the classname, or false if there was an error.
+	 */
+	public function classof($obj)
+	{
+		/* see "typeof" for comments on the checks performed */
+		if ( ! $this->object_exists($obj))
+		{
+			$this->error("RFace: ERROR: Cannot call classof() on nonexistent R object $obj!\n");
 			return;
 		}
 		else
 		{
-			$rawtext = $this->execute("typeof($obj)");
+			list($rawtext) = $this->execute("class($obj)");
 			return trim(substr($rawtext, 4),'"');
 		}
 	}
+	
+	/** Convenience alias for "classof" for those who prefer the PHP function name */
+	public function get_class($obj) { return $this->classof($obj); }
+
+	/**
+	 * Gets the size of an object (number of objects it contains)
+	 * in the active R workspace; equivalent to the R function length().
+	 * 
+	 * Returns an integer indicating the count of objects
+	 * or false if there was an error.
+	 */
+	public function sizeof($obj)
+	{
+		/* see "typeof" for comments on the checks performed */
+		if ( ! $this->object_exists($obj))
+		{
+			$this->error("RFace: ERROR: Cannot call sizeof() on nonexistent R object $obj!\n");
+			return;
+		}
+		else
+		{
+			list($rawtext) = $this->execute("length($obj)");
+			return (int) trim(substr($rawtext, 4));
+		}
+	}
+	
+	/** Convenience alias for "sizeof" for those who prefer PHP's alternative terminology! */
+	public function count($obj) { return $this->sizeof($obj); }
+	
+	/** Convenience alias for "sizeof" for those who prefer R to PHP terminology! */
+	public function length($obj) { return $this->sizeof($obj); }
+	
+
 	
 	/**
 	 * Deletes an object, checking first if it exists.
@@ -697,7 +887,7 @@ class RFace
 	
 	/**
 	 * Returns a string, guaranteed to be a valid R object name which does not 
-	 * currently exist in the workspace being used.
+	 * currently exist in the active R workspace.
 	 */
 	public function new_object_name()
 	{
@@ -740,6 +930,12 @@ class RFace
 		// by \n)
 	}
 	
+	
+	/*
+	 * Workspace control meythods 
+	 */
+	
+	
 	/**
 	 * Save the R workspace to a specified location.
 	 * 
@@ -747,13 +943,20 @@ class RFace
 	 * 
 	 * Otherwise, $path is assumed to be a target filename and the workspace saved in
 	 * that location.
+	 * 
+	 * The default value for the path is the current working directory.
+	 * 
+	 * Returns true for success, false for failure.
 	 */
 	public function save_workspace($path)
 	{
 		if (is_dir($path))
-			$this->execute("save.image(file=\"$path/.RData\")");
+			$r = $this->execute("save.image(file=\"$path/.RData\")");
 		else 
-			$this->execute("save.image(file=\"$path\")");
+			$r = $this->execute("save.image(file=\"$path\")");
+
+		/* successful save will have returned empty array. */
+		return (empty($r) && is_array($r));
 	}
 
 	/**
@@ -763,23 +966,30 @@ class RFace
 	 * 
 	 * Otherwise, $path is treated as a filename (the method will add the .RData extension
 	 * by default if the filename it is passed does not exist).
+	 * 
+	 * The default value for the path is the current working directory.
+	 * 
+	 * Returns true for success, false for failure.
 	 */
-	public function load_workspace($path)
-	{
+	public function load_workspace($path = '.')
+	{		
 		$path = rtrim($path, '/\\');
 		if (is_dir($path))
 		{
 			if (is_file("$path/.RData"))
-				$this->execute("load(file\"=$path/.RData\")");
+				$r = $this->execute("load(file\"=$path/.RData\")");
 			else
 				$this->error("ERROR: can't load workspace, no file found at $path/.Rdata!");
 		}
 		else if (is_file($path))
-			$this->execute("load(file\"=$path\")");
+			$r = $this->execute("load(file\"=$path\")");
 		else if (is_file($path.'.RData'))
-			$this->execute("load(file\"=$path.RData\")");
+			$r = $this->execute("load(file\"=$path.RData\")");
 		else
 			$this->error("ERROR: can't load workspace, no file found at $path!");
+			
+		/* successful load will have returned empty array. */
+		return (empty($r) && is_array($r));
 	}
 	
 	
@@ -799,7 +1009,7 @@ class RFace
 	/*
 	 * Static methods
 	 * 
-	 * (mostly variable assessment functions at the moment...)
+	 * (mostly variable manipulation functions at the moment...)
 	 * 
 	 */
 	
@@ -846,6 +1056,7 @@ class RFace
 		}
 		return $type;
 	}
+	
 	
 	/**
 	 * Gets the numeric value of a string, regardless of whether it
