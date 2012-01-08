@@ -128,9 +128,6 @@ function blank_cache_assoc()
  */
 function qname_unique($qname)
 {
-	if (! is_string($qname))
-		exiterror_arguments($qname, 'qname_unique() requires a string as argument $qname!',
-			__FILE__, __LINE__);
 
 	while (true)
 	{

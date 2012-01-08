@@ -570,6 +570,8 @@ function print_javascript_for_password_insert($password_function = NULL, $n = 49
  */
 function password_insert_internal($n)
 {
+	$pwd = array();
+	
 	for ( $i = 0 ; $i < $n ; $i++ )
 	{
 		$pwd[$i] = sprintf("%c%c%c%c%d%d%c%c%c%c",
@@ -587,6 +589,31 @@ function password_insert_lancaster($n)
 	$page = file_get_contents('https://www.lancs.ac.uk/iss/security/passwords/makepw.php?num='. (int)$n);
 	
 	return explode("\n", str_replace("\r\n", "\n", $page));
+}
+
+function password_insert_from_atoms($n)
+{
+	$pwd = array();
+
+	/* get static variables from the file of atoms (separate file so this massive array
+	 * is not loaded into RAM unless we need it) */
+	if (! isset($password_atoms))
+		include('../lib/password-atoms.inc.php');
+
+	for ( $i = 0 ; $i < $n ; $i++ )
+	{
+		$pwd[$i] = 	$password_atoms[rand(0, $password_atoms_N - 1)] 
+					. rand(0,9) . rand(0,9)
+					. $password_atoms[rand(0, $password_atoms_N - 1)];
+	}
+	// TODO
+	// allow alternate pattern-schemes for password suggestions to be called on
+	// e.g. to allow choice between scramble-rand (like we have in password_insert_internal)
+	// and lexical-rand, like we have here.
+	// and, what's mroe, options for inserting extra $%^&£ punc-marks into the password suggestion. 
+	// so ultimately, we should ahve just one func for creating password-suggestions (mebbe?)
+
+	return $pwd;
 }
 
 

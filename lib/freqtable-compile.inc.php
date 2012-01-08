@@ -50,9 +50,6 @@ require ("../lib/exiterror.inc.php");
 require ("../lib/metadata.inc.php");
 require ("../lib/subcorpus.inc.php");
 require ("../lib/db.inc.php");
-
-/* and because I'm using the next two modules I need to... */
-//create_pipe_handle_constants();
 require ("../lib/cwb.inc.php");
 require ("../lib/cqp.inc.php");
 
@@ -65,13 +62,7 @@ if (!url_string_is_valid())
 
 
 
-/* connect to mySQL */
-connect_global_mysql();
-
-
-/* connect to CQP */
-connect_global_cqp();
-
+cqpweb_startup_environment();
 
 
 
@@ -80,8 +71,7 @@ connect_global_cqp();
 /* subcorpus for which to create frequency lists */
 if (isset($_GET['compileSubcorpus']))
 {
-	$sc_to_compile = mysql_real_escape_string($_GET['compileSubcorpus']);
-	subsection_make_freqtables($sc_to_compile);
+	subsection_make_freqtables($_GET['compileSubcorpus']);
 }
 else
 {
@@ -101,46 +91,24 @@ else
 
 
 
-
-/* disconnect CQP child process */
-disconnect_global_cqp();
-
-/* disconnect mysql */
-disconnect_global_mysql();
-
-
-
-
-
-
-
+cqpweb_shutdown_environment();
 
 
 /* redirect to the right page */
+
 if (!isset($_GET['compileAfter']))
 	$_GET['compileAfter'] = 'index_sc';
 
-
-if (headers_sent() == false)
+switch($_GET['compileAfter'])
 {
-	switch($_GET['compileAfter'])
-	{
-	/* other cases here, if seen as necessary */
-	case 'index_sc':
-		/* just the default */
-	default:
-		header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
-		break;
-	}
+/* other cases here, if seen as necessary */
+case 'index_sc':
+	/* just the default */
+default:
+	set_next_absolute_location('index.php?thisQ=subcorpus&uT=y');
+	break;
 }
+
 /* END OF SCRIPT */
 
-
-
-
-
-// hey, make absolute_location() a library function
-// that does url_absolutify for you
-// and if (headers_sent() == false)
-// mebbe
 ?>

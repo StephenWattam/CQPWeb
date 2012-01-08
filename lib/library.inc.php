@@ -32,8 +32,6 @@
 
 
 
-
-
 /*
  * If mysql extension does not exist, include fake-mysql.inc.php to restore the functions
  * that are actually used and emulate them via mysqli.
@@ -48,6 +46,93 @@ if  (!extension_loaded('mysql'))
 	else
 		include('../lib/fake-mysql.inc.php');
 }
+
+
+
+
+/*
+ * FLAGS for cqpweb_startup_environment()
+ */
+ 
+define('CQPWEB_NO_STARTUP_FLAGS',             0);
+define('CQPWEB_STARTUP_DONT_CONNECT_CQP',     1);
+define('CQPWEB_STARTUP_DONT_CONNECT_MYSQL',   2);
+define('CQPWEB_STARTUP_DONT_CHECK_URLTEST',   4);
+
+
+/**
+ * Function that starts up CQPweb and sets up the required environment.
+ * 
+ * All scripts that require the environment should call this function.
+ * 
+ * Ultimately, this function will be used instead of the various "setup
+ * stuff" done repeatedly, per-script.
+ * 
+ * Pass in bitwise-OR'd flags to control the behaviour. 
+ * 
+ * TODO When we have the new user system, this function will prob get bigger
+ * and bigger. Also when the system can be silent for the web-api, this
+ * function will deal with it. As a result it will prob
+ * be necessary to move this function, as well as the equiv shutdown
+ * function, into a file of its own.
+ */
+function cqpweb_startup_environment($flags = CQPWEB_NO_STARTUP_FLAGS)
+{
+	// TODO, move here the check for a bad URL.
+	// conditional on CQPWEB_STARTUP_DONT_CHECK_URLTEST
+	
+	
+	// TODO ,move into here the getting of the username
+	// TODO, a call to session_start() -- and other cookie/login stuff -
+	// prob belongs here.
+	
+	// TODO, move into here the setup of plugins
+	// (so this is done AFTER all functions are imported, not
+	// in the defaults.inc.php file)
+
+	// TODO, move into here setting the HTTP response headers, charset and the like???
+	// (make dependent on whether we are writing plaintext or an HTML response?
+	// (do we want a flag CQPWEB_STARTUP_NONINTERACTIVE for when HTML response is NTO wanted?
+		
+
+	/*
+	 * The flags are for "dont" because we assume the default behaviour
+	 * is to need both a DB connection and a slave CQP process.
+	 * 
+	 * If one or both is not required, a script can be passed in to 
+	 * save the connection (not much of a saving in the case of the DB,
+	 * potentially quite a performance boost for the slave process.)
+	 */
+	if ($flags & CQPWEB_STARTUP_DONT_CONNECT_CQP)
+		;
+	else
+		connect_global_cqp();
+	
+	if ($flags & CQPWEB_STARTUP_DONT_CONNECT_MYSQL)
+		;
+	else
+		connect_global_mysql();
+}
+
+/**
+ * Performs shutdown and cleanup for the CQPweb system.
+ * 
+ * The onl
+ * 
+ * TODO this function does not really contain much yet, but eventually all
+ * web-callable scruipts should use it.
+ */
+function cqpweb_shutdown_environment()
+{
+	// TODO, should it do a client disconnect? 
+	// if so, it needs to be done AFTER a location call / print end of page.
+	// should the location call / print end of page be done here?
+	
+	/* these funcs have their own "if" clauses so can be called here unconditionally... */
+	disconnect_global_cqp();
+	disconnect_global_mysql();
+}
+
 
 
 
@@ -162,14 +247,13 @@ function disconnect_global_mysql()
 {
 	global $mysql_link;
 	if(isset($mysql_link))
-	{
 		mysql_close($mysql_link);
-		unset($mysql_link);
-	}
 }
 
 /**
  * Disconnects from both cqp & mysql, assuming standard global variable names are used.
+ * 
+ * DEPRACATED: use cqpweb_shutdown_environment() instead.
  */
 function disconnect_all()
 {
@@ -549,6 +633,28 @@ function cqpweb_handle_check($string)
 	return ( $string !== ''  &&  0 >= preg_match('/\W/', $string) );
 }
 
+
+
+
+/**
+ * Sets the location field in the HTTP response
+ * to an absolute location based on the supplied relative URL,
+ * iff the headers have not yet been sent.
+ * 
+ * If, on the other hand, the headers have been sent, 
+ * the function does nothing.
+ * 
+ * The function DOES NOT exit. Instead, it returns the
+ * value it itself got from the headers_sent() function.
+ * This allows the caller to check whether it needs to
+ * do something alternative.
+ */
+function set_next_absolute_location($relative_url)
+{
+	if (false == ($test = headers_sent()) )
+		header('Location: ' . url_absolutify($relative_url));
+	return $test;
+}
 
 
 /**

@@ -157,7 +157,6 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	global $corpus_sql_name;
 	global $corpus_sql_collation;
 	global $corpus_cqp_name;
-	//global $mysql_LOAD_DATA_INFILE_command;
 	global $cqpweb_tempdir;
 	global $instance_name;
 	global $path_to_cwb;
@@ -181,7 +180,6 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 		/* this is NOT a named subcorpus, rather it is a subsection of the corpus whose freq list */
 		/* is being compiled : so the name is just random */
 		$text_list = translate_restrictions_to_text_list($restriction);
-		$freqtables_base_name = "freq_sc_{$corpus_sql_name}_{$instance_name}";
 	}
 	else
 	{
@@ -202,14 +200,9 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 			$text_list = $r['text_list'];
 		else
 			$text_list = translate_restrictions_to_text_list($r['restrictions']);
-
-		$freqtables_base_name = "freq_sc_{$corpus_sql_name}_{$subcorpus}";
-
-// is there a possibility of $subcorpus being  __last_restrictions?? depends whether that has been converted
-// to restrictions in all cases where this function is called or not !!
 	}
-	/* and finish off the freqtable base name */
-	$freqtables_base_name = freqtable_name_unique($freqtables_base_name);
+	/* From the unique instance name, create freqtable base name */
+	$freqtables_base_name = freqtable_name_unique("freq_sc_{$corpus_sql_name}_{$instance_name}");
 
 
 	/* register this script as working to create a freqtable, after checking there is room for it */
@@ -223,8 +216,8 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	delete_saved_freqtables();
 
 
-	/* whether restriction or sc, we now have a list of texts in the corpus, for which we need the */
-	/* start-and-end positions in the FREQ TABLE CORPUS (as opposed ot the actual corpus) */
+	/* whether restriction or sc, we now have a list of texts in the corpus, for which we need the 
+	 * start-and-end positions in the FREQ TABLE CORPUS (as opposed ot the actual corpus) */
 
 	/* first step: convert list of texts to an sql where clause */
 	$textid_whereclause = translate_textlist_to_where($text_list);
@@ -239,22 +232,18 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	$sql_query = "select start, end from freq_text_index_$corpus_sql_name where $textid_whereclause
 					order by start asc";
 	/* note this list must be sorted for cwb-scan-corpus to make sense of it - and it may or may
-	 * not be sorted depending on how the where-caluse was constructed... */
+	 * not be sorted depending on how the where-cause was constructed... */
 	$result = do_mysql_query($sql_query);
-	while ( ($r = mysql_fetch_row($result)) !== false )
-		$regions[] = $r;
-	unset($result);
-	
-	// TODO: is this still needed? can we write the regionfile direct from mysql now? chech with Stefan. 
-	$n_regions = count($regions);
 	
 	/* store regions to be scanned in a temporary file */
+	// TODO do not use CWBTempFile, use CQPInterchangeFile
 	$regionfile = new CWBTempFile("/$cqpweb_tempdir/cwbscan_temp_$instance_name");
-	foreach ($regions as $region)
-		$regionfile->write(implode("\t", $region) . "\n");
+	while ( ($r = mysql_fetch_row($result)) !== false )
+		$regionfile->write(implode("\t", $r) . "\n");
 	$regionfile->finish();
 	$regionfile_filename = $regionfile->get_filename();
 	
+	unset($result);	
 	
 	$temp_table = "__freqmake_temptable_$instance_name";
 	$temp_table_loadfile = "/$cqpweb_tempdir/__infile$temp_table";
@@ -375,10 +364,15 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 
 
 
-/* makes sure that the name you are about to give to a freqtable is unique */
+/** 
+ * Makes sure that the name you are about to give to a freqtable is unique. 
+ * 
+ * Keeps adding random letters to the end of it if it is not. The name returned
+ * is therefore deifnitely always unique across all corpora.
+ */
 function freqtable_name_unique($name)
 {
-	while (1)
+	while (true)
 	{
 		$sql_query = 'select freqtable_name from saved_freqtables where freqtable_name = \''
 			. mysql_real_escape_string($name) . '\' limit 1';
@@ -390,7 +384,7 @@ function freqtable_name_unique($name)
 		else
 		{
 			unset($result);
-			$name .= '0';
+			$name .= chr(rand(0x41,0x5a));
 		}
 	}
 	return $name;

@@ -907,6 +907,12 @@ class RFace
 		$this->error("RFace: ERROR: New object name could not be generated.\n");
 	}
 	
+	
+	/*
+	 * Graph / chart creation methods
+	 */
+	
+	
 	//TODO finish this method
 	// I need to understand R charts system better to get things sorted out
 	/**
@@ -932,7 +938,7 @@ class RFace
 	
 	
 	/*
-	 * Workspace control meythods 
+	 * Workspace control methods 
 	 */
 	
 	
