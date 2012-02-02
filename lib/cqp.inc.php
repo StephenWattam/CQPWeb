@@ -66,6 +66,7 @@ class CQP
 	
 	
 	/* character set handling */
+	
 	private $corpus_charset;
 	
 	/* Note, unlike the CWB internals, there is no separate value for ASCII. ASCII counts as UTF8. */ 
@@ -86,9 +87,8 @@ class CQP
 	/* the literal values are ISO-8859 part numbers, but this is only for neatness; these numbers
 	 * are not actually used for their values. Note these have no link to CWB internal consts. */
 
-
 	/* array mapping the constants above to strings for iconv() */
-	private static $charset_labels = array(
+	private static $charset_labels_iconv = array(
 		self::CHARSET_UTF8			=> 'UTF-8',
 	 	self::CHARSET_LATIN1		=> 'ISO-8859-1',
 	 	self::CHARSET_LATIN2		=> 'ISO-8859-2',
@@ -104,6 +104,56 @@ class CQP
 		self::CHARSET_LATIN8 		=> 'ISO-8859-14',
 		self::CHARSET_LATIN9 		=> 'ISO-8859-15'
 		);
+
+	/* array mapping the constants above to strings in the cwb-style */
+	private static $charset_labels_cwb = array(
+		self::CHARSET_UTF8			=> 'utf8',
+		self::CHARSET_LATIN1		=> 'latin1',
+		self::CHARSET_LATIN2		=> 'latin2',
+		self::CHARSET_LATIN3		=> 'latin3',
+		self::CHARSET_LATIN4 		=> 'latin4',
+		self::CHARSET_CYRILLIC		=> 'cyrillic',
+		self::CHARSET_ARABIC		=> 'arabic',
+		self::CHARSET_GREEK			=> 'greek',
+		self::CHARSET_HEBREW		=> 'hebrew',
+		self::CHARSET_LATIN5		=> 'latin5',
+		self::CHARSET_LATIN6		=> 'latin6',
+		self::CHARSET_LATIN7		=> 'latin7',
+		self::CHARSET_LATIN8		=> 'latin8',
+		self::CHARSET_LATIN9		=> 'latin9'
+		);
+	
+	/* array for interpreting CWB identifier strings into our own class constants */
+	private static $charset_interpreter = array (
+		'latin1'      => self::CHARSET_LATIN1,
+		'iso-8859-1'  => self::CHARSET_LATIN1,
+		'latin2'      => self::CHARSET_LATIN2,
+		'iso-8859-2'  => self::CHARSET_LATIN2,
+		'latin3'      => self::CHARSET_LATIN3,
+		'iso-8859-3'  => self::CHARSET_LATIN3,
+		'latin4'      => self::CHARSET_LATIN4,
+		'iso-8859-4'  => self::CHARSET_LATIN4,
+		'cyrillic'    => self::CHARSET_CYRILLIC,
+		'iso-8859-5'  => self::CHARSET_CYRILLIC,
+		'arabic'      => self::CHARSET_ARABIC,
+		'iso-8859-6'  => self::CHARSET_ARABIC,
+		'greek'       => self::CHARSET_GREEK,
+		'iso-8859-7'  => self::CHARSET_GREEK,
+		'hebrew'      => self::CHARSET_HEBREW,
+		'iso-8859-8'  => self::CHARSET_HEBREW,
+		'latin5'      => self::CHARSET_LATIN5,
+		'iso-8859-9'  => self::CHARSET_LATIN5,
+		'latin6'      => self::CHARSET_LATIN6,
+		'iso-8859-10' => self::CHARSET_LATIN6,
+		'latin7'      => self::CHARSET_LATIN7,
+		'iso-8859-13' => self::CHARSET_LATIN7,
+		'latin8'      => self::CHARSET_LATIN8,
+		'iso-8859-14' => self::CHARSET_LATIN8,
+		'latin9'      => self::CHARSET_LATIN9,
+		'iso-8859-15' => self::CHARSET_LATIN9
+		);
+
+
 	
 	/* the version of CWB that this class requires */
 	const VERSION_MAJOR_DEFAULT = 3;
@@ -317,36 +367,6 @@ class CQP
 	 */
 	public function set_corpus($corpus_id)
 	{
-		/* array for interpreting CWB identifier strings into our own class constants */
-		static $charset_interpreter = array (
-			'latin1'      => self::CHARSET_LATIN1,
-			'iso-8859-1'  => self::CHARSET_LATIN1,
-			'latin2'      => self::CHARSET_LATIN2,
-			'iso-8859-2'  => self::CHARSET_LATIN2,
-			'latin3'      => self::CHARSET_LATIN3,
-			'iso-8859-3'  => self::CHARSET_LATIN3,
-			'latin4'      => self::CHARSET_LATIN4,
-			'iso-8859-4'  => self::CHARSET_LATIN4,
-			'cyrillic'    => self::CHARSET_CYRILLIC,
-			'iso-8859-5'  => self::CHARSET_CYRILLIC,
-			'arabic'      => self::CHARSET_ARABIC,
-			'iso-8859-6'  => self::CHARSET_ARABIC,
-			'greek'       => self::CHARSET_GREEK,
-			'iso-8859-7'  => self::CHARSET_GREEK,
-			'hebrew'      => self::CHARSET_HEBREW,
-			'iso-8859-8'  => self::CHARSET_HEBREW,
-			'latin5'      => self::CHARSET_LATIN5,
-			'iso-8859-9'  => self::CHARSET_LATIN5,
-			'latin6'      => self::CHARSET_LATIN6,
-			'iso-8859-10' => self::CHARSET_LATIN6,
-			'latin7'      => self::CHARSET_LATIN7,
-			'iso-8859-13' => self::CHARSET_LATIN7,
-			'latin8'      => self::CHARSET_LATIN8,
-			'iso-8859-14' => self::CHARSET_LATIN8,
-			'latin9'      => self::CHARSET_LATIN9,
-			'iso-8859-15' => self::CHARSET_LATIN9
-			);
-		
 		/* OK, now to the business end of the function! */
 		
 		$this->execute($corpus_id);
@@ -358,8 +378,8 @@ class CQP
 		$this->corpus_charset = self::CHARSET_UTF8;
 		
 		if (preg_match("/\nCharset:\s+(\S+)\s/", $infoblock, $m) > 0)
-			if (array_key_exists($m[1], $charset_interpreter))
-				$this->corpus_charset = $charset_interpreter[$m[1]];
+			if (array_key_exists($m[1], self::$charset_interpreter))
+				$this->corpus_charset = self::$charset_interpreter[$m[1]];
 	}
 	
 	/**
@@ -1009,7 +1029,7 @@ class CQP
 		if ($this->corpus_charset == self::CHARSET_UTF8)
 			return $string;
 		else
-			return iconv('UTF-8', self::$charset_labels[$this->corpus_charset] . '//TRANSLIT', $string);
+			return iconv('UTF-8', self::$charset_labels_iconv[$this->corpus_charset] . '//TRANSLIT', $string);
 		/* 
 		switch($this->corpus_charset)
 		{
@@ -1031,7 +1051,8 @@ class CQP
 	 */
 	private function filter_output($string)
 	{
-		/* output may be an array of strings: in which case map across all strings within it
+		/* 
+		 * output may be an array of strings: in which case map across all strings within it
 		 * this is done WITHIN the else, rather than by calling this function recursively,
 		 * to save function call overhead in the (most common) case where the underlying
 		 * corpus is UTF8. 
@@ -1043,21 +1064,22 @@ class CQP
 			if (is_array($string))
 			{
 				foreach($string as $k => &$v)
-//					$string[$k] = utf8_encode($v);
-					$string[$k] = iconv(self::$charset_labels[$this->corpus_charset], 'UTF-8', $v);	 
+					$string[$k] = iconv(self::$charset_labels_iconv[$this->corpus_charset], 'UTF-8', $v);	 
 				return $string;
 			}
 			else
-//				return utf8_encode($string);
 				return iconv(self::$charset_labels[$this->corpus_charset], 'UTF-8', $string);			
 		}
 	}
 	/** 
 	 * Gets a string describing the charset of the currently loaded corpus,
 	 * or NULL if no corpus is loaded.
+	 * 
+	 * CWB-style charset string labels are used. 
 	 */
 	public function get_corpus_charset()
 	{
+		/*
 		switch ($this->corpus_charset)
 		{
 		case self::CHARSET_UTF8: 		return 'utf8';
@@ -1075,6 +1097,11 @@ class CQP
 		case self::CHARSET_LATIN9:		return 'latin9';
 		default:						return NULL;
 		}
+		*/
+		if (array_key_exists($this->corpus_charset, self::$charset_labels_cwb))
+			return self::$charset_labels_cwb[$this->corpus_charset];
+		else
+			return NULL;
 	}
 	
 	
@@ -1084,13 +1111,18 @@ class CQP
 	/* -------------- */
 
 	/** 
-	 * Get an ICONV-compatible string (assuming a fairly standrd GNU-ICONV!) for
+	 * Get an ICONV-compatible string (assuming a fairly standard GNU-ICONV!) for
 	 * a given charset string. Ideally, pass it a result from get_corpus_charset().
+	 * 
+	 * NULL is returned if the argument is invalid.
 	 */
 	public static function translate_corpus_charset_to_iconv($charset)
 	{
-		
-	} 
+		if (array_key_exists($charset, self::$charset_interpreter))
+			return self::$charset_labels_iconv[self::$charset_interpreter[$charset]];
+		else
+			return NULL;
+	}
 	
 	/** Backslash-escapes any CQP-syntax metacharacters in the argument string */
 	public static function escape_metacharacters($s)
