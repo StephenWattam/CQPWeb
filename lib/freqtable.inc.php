@@ -25,20 +25,52 @@
 
 
 
-/* frequency table naming convention:
+/**
+ * @file
+ * 
+ * Library of functions for dealing with frequency tables for corpora and
+ * subcorproa.
+ * 
+ * These are store d(laregely) in MySQL.
+ * 
+ * Frequency table naming convention:
+ * 
+ * for a corpus:	freq_corpus_{$corpus}_{$att}
+ * 
+ * for a subcorpus:	freq_sc_{$corpus}_{$instance_name}_$att
+ * 
+ */
 
-   for a corpus:	freq_corpus_{$corpus}_{$att}
 
-   for a subcorpus:	freq_sc_{$corpus}_{$subcorpus}_$att
+/**
+ * Change the character encoding of a specified text file. 
+ * 
+ * The re-coded file is saved to the path of $outfile.
+ * 
+ * Infile and outfile paths cannot be the same.
+ */
+function change_file_encoding($infile, $outfile, $source_charset_for_iconv, $dest_charset_for_iconv)
+{
+	if (! is_readable($infile) )
+		exiterror_arguments($infile, "This file is not readable.");
+	if (! is_writable($outfile) )
+		exiterror_arguments($infile, "This path is not writable.");
+	
+	$source = fopen($infile, 'r');
+	$dest = fopen($outfile,  'w');
+	
+	while (false !== ($line = fgets($source)) )
+		fputs($dest, iconv($source_charset_for_iconv, $dest_charset_for_iconv, $line));
+	
+	fclose($source);
+	fclose($dest);
+}
 
-   */
 
-
-
-
-
-/* this creates mySQL frequency tables for each attribute in a corpus */
-/* pre-existing tables are deleted */
+/**
+ * Creates mySQL frequency tables for each attribute in a corpus;
+ * any pre-existing tables are deleted.
+ */
 function corpus_make_freqtables()
 {
 	global $path_to_cwb;
@@ -48,7 +80,6 @@ function corpus_make_freqtables()
 	global $corpus_cqp_name;
 	global $cqpweb_tempdir;
 	global $username;
-	//global $mysql_LOAD_DATA_INFILE_command;
 	
 	/* only superusers are allowed to do this! */
 	if (! user_is_superuser($username))
@@ -86,15 +117,17 @@ function corpus_make_freqtables()
 	/* now, use cwb-scan-corpus to prepare the input */	
 	$cwb_command = "/$path_to_cwb/cwb-scan-corpus -r /$cwb_registry -o $filename -q $corpus_cqp_name";
 	foreach ($attribute as $att)
-	$cwb_command .= " $att";
+		$cwb_command .= " $att";
 	exec($cwb_command, $junk, $status);
 	if ($status != 0)
 		exiterror_general("cwb-scan-corpus error!", __FILE__, __LINE__);
 	unset($junk);
+	
+	// TODO need to check if the CorpusCharset is other than ASCII/UTF8. 
+	// if it is, we need to open & cycle iconv on the whole thing.
 
 
 	database_disable_keys($temp_tablename);
-	//do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$filename' INTO TABLE $temp_tablename FIELDS ESCAPED BY ''");
 	do_mysql_infile_query($temp_tablename, $filename, true);
 	database_enable_keys($temp_tablename);
 

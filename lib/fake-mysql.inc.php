@@ -198,10 +198,10 @@ function mysql_fake_force_link_set(&$link_identifier)
 
 /* functions for the mysql result object/resource */
 
-/* there are 3 constants asociated with mysql_fethc_array */
-define('MYSQL_BOTH', '1');
-define('MYSQL_NUM', '2');
-define('MYSQL_ASSOC', '3');
+/* there are 3 constants asociated with mysql_fetch_array */
+define('MYSQL_NUM',   '1');
+define('MYSQL_ASSOC', '2');
+define('MYSQL_BOTH',  '3');    /* NB this is intentionally = MYSQL_NUM | MYSQL_ASSOC */
 
 /**
  * Fake MySQL-result table-row-fetching function.

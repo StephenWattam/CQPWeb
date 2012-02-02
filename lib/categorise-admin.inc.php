@@ -471,9 +471,9 @@ function categorise_add_new_value()
 	/* adjust the category list */
 	if (in_array($new_cat, $category_list))
 		return;
-	foreach($category_list as &$c)
+	foreach($category_list as $i => $c)
 		if ($c == 'other' || $c == 'unclear')
-			unset($c);
+			unset($category_list[$i]);
 	$category_list[] = $new_cat;
 	$category_list[] = 'other';
 	$category_list[] = 'unclear';

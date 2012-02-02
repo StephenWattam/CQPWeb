@@ -1083,6 +1083,14 @@ class CQP
 	/* STATIC METHODS */
 	/* -------------- */
 
+	/** 
+	 * Get an ICONV-compatible string (assuming a fairly standrd GNU-ICONV!) for
+	 * a given charset string. Ideally, pass it a result from get_corpus_charset().
+	 */
+	public static function translate_corpus_charset_to_iconv($charset)
+	{
+		
+	} 
 	
 	/** Backslash-escapes any CQP-syntax metacharacters in the argument string */
 	public static function escape_metacharacters($s)

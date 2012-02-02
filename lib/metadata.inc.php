@@ -313,6 +313,10 @@ function get_corpus_wordcount()
  * the values are annotation descs.
  * 
  * If the corpus has no annotation, an empty array is returned. 
+ * 
+ * NOTE: this is NOT a list of p-attributes. In particular, there
+ * is no member with the key "word". If you want that, add 'word'=>'Word'
+ * manually to the returned array.
  */
 function get_corpus_annotations()
 {
@@ -331,6 +335,10 @@ function get_corpus_annotations()
 	return $compiled;
 }
 
+/**
+ * Boolean: is $handle the handle of an actually-existing
+ * word-level annotation?
+ */
 function check_is_real_corpus_annotation($handle)
 {
 	static $annotations;

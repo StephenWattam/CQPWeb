@@ -31,6 +31,7 @@
 
 // this shouldn't be a script on its own - should be subcorpus-admin as one of the functions TODO
 // call it subcorpusFunction=freqtable
+// that would save a bundle of overhead.
 
 /* ------------ */
 /* BEGIN SCRIPT */

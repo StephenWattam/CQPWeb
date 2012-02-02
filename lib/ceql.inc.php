@@ -111,7 +111,12 @@ A CEQL parser can be told to accept the following varieties of attribute:
 
 
 
-
+/**
+ * Builds a Perl script that can be used to run the CEQL parser
+ * for the given "Simple Query".
+ * 
+ * Case sensitivity mode must be specified separately.
+ */
 function get_ceql_script_for_perl($query, $case_sensitive)
 {
 	global $corpus_sql_name;
@@ -132,6 +137,8 @@ function get_ceql_script_for_perl($query, $case_sensitive)
 	
 	$string_with_table_of_3ary_mappings = lookup_tertiary_mappings($name_of_table_of_3ary_mappings);
 	
+	/* we accept the overhead of multiple str_replace() calls for the sake of not having
+	 * to escape quote marks and dollar signs all over the shop! */
 	$script = '
 		require "../lib/perl/cqpwebCEQL.pm";
 		
@@ -166,9 +173,6 @@ END_OF_CEQL_QUERY
 		}
 		';
 		
-// important thing to check : that NULL values in mysql will come out as NULLs and not strings containing NULL 
-// -- cos that is what is being checked here.
-// i haven't checked this but everything seems to be working as it should
 
 	/* if a primary annotation exists, specify it */
 	if (isset($name_of_primary_annotation))
@@ -184,8 +188,8 @@ END_OF_CEQL_QUERY
 	else
 		$script = str_replace('#~~secondary_annotation_command~~#', '', $script);
 
-	/* if there is a tertiary annotation AND a tertiary annotation hash table, specify them */
-	/* these are needed as a pair; note, the mapping table is always set, but may be false */
+	/* if there is a tertiary annotation AND a tertiary annotation hash table, specify them  */
+	/* (these are needed as a pair; note, the mapping table is always set, but may be false) */
 	if (isset($name_of_tertiary_annotation) && $string_with_table_of_3ary_mappings != false)
 	{
 		$script = str_replace('#~~tertiary_annotation_command~~#',
@@ -242,29 +246,6 @@ function process_simple_query($query, $case_sensitive)
 	/* note, this function ALSO accepts an XML table, but this isn't implemented yet */
 	$script = get_ceql_script_for_perl($query, $case_sensitive);
 
-
-	/*
-	// farmed out to separate function.
-	if (is_resource($process = proc_open($cmd, $io_settings, $handles))) 
-	{
-		fwrite($handles[0], $script);
-		fclose($handles[0]);
-
-		if (stream_select($r=array($handles[1]), $w=NULL, $e=NULL, 10) > 0 )
-			$cqp_query = fread($handles[1], 10240);
-		if ($cqp_query === '')
-		{
-			if (stream_select($r=array($handles[2]), $w=NULL, $e=NULL, 10) > 0 )
-				$ceql_errors = explode("\n", fread($handles[2], 10240));
-		}
-
-		fclose($handles[1]);
-		fclose($handles[2]);
-		proc_close($process);
-	}
-	else
-		exiterror_cqp_full(array("The CEQL parser could not be run (problem with perl)!"));
-	*/
 	
 	if ( ! run_perl_script($script, $cqp_query, $ceql_errors))
 		exiterror_cqp_full(array("The CEQL parser could not be run (problem with perl)!"));
@@ -350,7 +331,7 @@ function run_perl_script($script, &$output, &$errors)
 
 
 /**
- * Returns the Perl string of the specified mapping table (with appropriate escapes).
+ * Returns the Perl string of the specified mapping table.
  * 
  * Return value is false if the mapping table was not found.
  */
@@ -370,7 +351,7 @@ function lookup_tertiary_mappings($mapping_table_id)
 
 
 /**
- * Returns a list of mapping tables as an array of the form handle => desc;
+ * Returns a list of available mapping tables as an array of the form handle => name;
  * or an empty array if no mapping tables were found in the database.
  */
 function get_list_of_tertiary_mapping_tables()
@@ -401,6 +382,30 @@ function get_all_tertiary_mapping_tables()
 	return $list;
 }
 
+
+
+/**
+ * Adds a CEQL mapping table to the database.
+ */
+function add_tertiary_mapping_table($id, $name, $mappings)
+{
+	$id = mysql_real_escape_string($id);
+	$name = mysql_real_escape_string($name);
+	/* NB hopefully this will take care of multiple-escaping! */
+	$mappings = mysql_real_escape_string($mappings);
+	do_mysql_query("insert into annotation_mapping_tables (id, name, mappings) values ('$id', '$name', '$mappings')");
+}
+
+/**
+ * Drops a CEQL mapping table from the database.
+function drop_tertiary_mapping_table($id)
+{
+	$id = mysql_real_escape_string($id);
+	do_mysql_query("delete from annotation_mapping_tables where id = '$id'");
+}
+
+
+
 /**
  * Regenerates the built-in mapping tables.
  */ 
@@ -424,31 +429,15 @@ function regenerate_builtin_mapping_tables()
 
 
 
-function add_tertiary_mapping_table($id, $name, $mappings)
-{
-	$id = mysql_real_escape_string($id);
-	$name = mysql_real_escape_string($name);
-	/* NB hopefully this will take care of multiple-escaping! */
-	$mappings = mysql_real_escape_string($mappings);
-	do_mysql_query("insert into annotation_mapping_tables (id, name, mappings) values ('$id', '$name', '$mappings')");
-}
-
-function drop_tertiary_mapping_table($id)
-{
-	$id = mysql_real_escape_string($id);
-	do_mysql_query("delete from annotation_mapping_tables where id = '$id'");
-}
+/*
+ * The last two functions are really resource holders.
+ */
 
 
-
-
-
-
-
-
-
-
-
+/**
+ * Gets an assoc array of names of builtin mapping tables: the keys are
+ * the IDs fo the mapping tables.
+ */
 function get_builtin_mapping_table_names()
 {
 	return array(
@@ -459,7 +448,20 @@ function get_builtin_mapping_table_names()
 		);
 }
 
-/* Note that this function contains the actual code for the said builtins. */
+
+/**
+ * Gets an assoc array of the actual code for the builtin mapping tables:
+ * the keys are the IDs of the mapping tables.
+ * 
+ * NB. as per the rules for mapping tables, each code blob has to be a perl
+ * hash table, exactly as it would be written into the code in each case.
+ * The hash contains a set of aliases keyed to regexes (CQP-style regexes, 
+ * i.e. PCRE-syntax with auto-anchoring at the start and end of the string).
+ * 
+ * If you add a new builtin table, be careful about quote escapes: remember
+ * the string will be embedded into a perl script so escapes within perl
+ * strings need to be double-escaped.
+ */
 function get_builtin_mapping_table($mapping_table_id)
 {
 	/* this function is effectively a collection of the tertiary mappings

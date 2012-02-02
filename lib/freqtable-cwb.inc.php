@@ -31,7 +31,7 @@
 
 ////////////////////// this file may not implement the best way of divvying up the freqtable  functions.................... */
 
-
+// TODO does this even merit a separate file? Why not into freqtable.inc.php?
 
 
 
@@ -61,7 +61,6 @@ function make_cwb_freq_index()
 {
 	global $corpus_sql_name;
 	global $corpus_cqp_name;
-	//global $mysql_LOAD_DATA_INFILE_command;
 	global $cqpweb_tempdir;
 	global $cwb_datadir;
 	global $cwb_registry;
@@ -129,6 +128,7 @@ function make_cwb_freq_index()
 
 	$dest = popen($cmd_encode, 'w');
 
+// TODO proper error handling please.
 	if (!is_resource($source) || !is_resource($dest) )
 		echo '<pre>one of the pipes did not open properly </pre>';
 
@@ -261,8 +261,9 @@ function make_cwb_freq_index()
 		CHARACTER SET utf8 COLLATE utf8_bin";
 	do_mysql_query($creation_query);
 
-	//do_mysql_query("$mysql_LOAD_DATA_INFILE_command '$index_filename' INTO TABLE $freq_text_index");
 	do_mysql_infile_query($freq_text_index, $index_filename);
+	/* NB we don't have to worry about the character encoding of the infile as it contains
+	 * only integers and ID codes - so, all ASCII. */
 
 	unlink($index_filename);
 

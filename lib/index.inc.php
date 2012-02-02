@@ -165,9 +165,6 @@ echo print_menurow_index('restrict', 'Restricted query');
 echo print_menurow_index('lookup', 'Word lookup');
 echo print_menurow_index('freqList', 'Frequency lists');
 echo print_menurow_index('keywords', 'Keywords');
-/* At least for the moment, CQPweb is not bothering with this function from BNCweb
-echo print_menurow_index('browse', 'Browse a file');
-*/
 ?>
 
 <tr>
@@ -426,7 +423,7 @@ default:
 	?>
 	<p class="errormessage">&nbsp;<br/>
 		&nbsp; <br/>
-		We are sorry, but that is not a valid query type.
+		We are sorry, but that is not a valid menu option.
 	</p>
 	<?php
 	break;
@@ -444,11 +441,7 @@ default:
 
 print_footer();
 
-disconnect_global_mysql();
-
-/* ------------- */
-/* END OF SCRIPT */
-/* ------------- */
+cqpweb_shutdown_environment();
 
 
 ?>

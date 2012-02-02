@@ -27,25 +27,7 @@
 
 
 
-/* this file contains a library of useful functions */
-
-
-
-
-/*
- * If mysql extension does not exist, include fake-mysql.inc.php to restore the functions
- * that are actually used and emulate them via mysqli.
- * 
- * This is global code in a library file; normally a no-no.
- * it -only- addresses what files need to be included and which don't.
- */
-if  (!extension_loaded('mysql'))
-{
-	if (!class_exists('mysqli', false))
-		exit('CQPweb fatal error: neither mysql nor mysqli is available.');
-	else
-		include('../lib/fake-mysql.inc.php');
-}
+/* this file contains a library of broadly useful functions */
 
 
 
@@ -65,8 +47,11 @@ define('CQPWEB_STARTUP_DONT_CHECK_URLTEST',   4);
  * 
  * All scripts that require the environment should call this function.
  * 
+ * It should be called *after* the inclusion of most functions, but
+ * *before* the inclusion of admin functions (if any).
+ * 
  * Ultimately, this function will be used instead of the various "setup
- * stuff" done repeatedly, per-script.
+ * stuff" that uis currently done repeatedly, per-script.
  * 
  * Pass in bitwise-OR'd flags to control the behaviour. 
  * 
@@ -74,7 +59,8 @@ define('CQPWEB_STARTUP_DONT_CHECK_URLTEST',   4);
  * and bigger. Also when the system can be silent for the web-api, this
  * function will deal with it. As a result it will prob
  * be necessary to move this function, as well as the equiv shutdown
- * function, into a file of its own.
+ * function, into a file of its own. (startup.inc.php) together with
+ * depedencies like session setup functions, the control flag constants, etc.
  */
 function cqpweb_startup_environment($flags = CQPWEB_NO_STARTUP_FLAGS)
 {
@@ -93,7 +79,8 @@ function cqpweb_startup_environment($flags = CQPWEB_NO_STARTUP_FLAGS)
 	// TODO, move into here setting the HTTP response headers, charset and the like???
 	// (make dependent on whether we are writing plaintext or an HTML response?
 	// (do we want a flag CQPWEB_STARTUP_NONINTERACTIVE for when HTML response is NTO wanted?
-		
+	
+	// TODO likewise have an implicit policy on ob_*_flush() usage in different scirpts.
 
 	/*
 	 * The flags are for "dont" because we assume the default behaviour
@@ -117,7 +104,8 @@ function cqpweb_startup_environment($flags = CQPWEB_NO_STARTUP_FLAGS)
 /**
  * Performs shutdown and cleanup for the CQPweb system.
  * 
- * The onl
+ * The only thing that it will not do is finish off HTML. The
+ * script should do that separately -- BEFORE calling this script.
  * 
  * TODO this function does not really contain much yet, but eventually all
  * web-callable scruipts should use it.
@@ -132,6 +120,30 @@ function cqpweb_shutdown_environment()
 	disconnect_global_cqp();
 	disconnect_global_mysql();
 }
+
+
+
+
+
+
+
+
+
+/*
+ * If mysql extension does not exist, include fake-mysql.inc.php to restore the functions
+ * that are actually used and emulate them via mysqli.
+ * 
+ * This is global code in a library file; normally a no-no.
+ * it -only- addresses what files need to be included and which don't.
+ */
+if  (!extension_loaded('mysql'))
+{
+	if (!class_exists('mysqli', false))
+		exit('CQPweb fatal error: neither mysql nor mysqli is available. Contact the system administrator.');
+	else
+		include('../lib/fake-mysql.inc.php');
+}
+
 
 
 
@@ -192,11 +204,12 @@ function refresh_directory_global_cqp()
 	
 	if (isset($cqp))
 	{
-		// question: will next line work if we have no read access to root?
-		$cqp->execute("set DataDirectory '/'");
+		$switchdir = getcwd();
+		$cqp->execute("set DataDirectory '$switchdir'");
 		$cqp->execute("set DataDirectory '/$cqpweb_tempdir'");
 		$cqp->set_corpus($corpus_cqp_name);
 		// TODO Question: is this still necessary?
+		// TODO Windows compatability fail point! like all uses of $cqpweb_tempdir of course
 	}
 }
 
@@ -216,14 +229,16 @@ function connect_global_mysql()
 	/* Connect with flag 128 == mysql client lib constant CLIENT_LOCAL_FILES;
 	 * this overrules deactivation at PHP's end of LOAD DATA LOCAL. (If L-D-L
 	 * is deactivated at the mysqld end, e.g. by my.cnf, this won't help, but 
-	 * won't hurt either.) */ 
+	 * won't hurt either.) 
+	 */ 
 	$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass, false, 128);
 	/* Note, in theory there are performance gains to be had by using a 
 	 * persistent connection. However, current judgement is that the risk
 	 * of problems is too great to justify doing so, due to the use of SET
 	 * NAMES on some corpora but not all, and other uncertainties. MySQLi
 	 * does link cleanup so if ever we shift over to that, persistent 
-	 * connections are more likely to be useful.                           */
+	 * connections are more likely to be useful.
+	 */
 	
 	if (! $mysql_link)
 		exiterror_general('MySQL did not connect - please try again later!');
@@ -361,7 +376,6 @@ function do_mysql_outfile_query($query, $filename)
 }
 
 
-//TODO - this function is complete, but untested
 /**
  * Loads a specified text file into the given MySQL table.
  * 
@@ -477,7 +491,11 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 	} /* end of massive if/else that branches this function */
 }
 
-/* the next two functions are really just for convenience */
+
+
+/* 
+ * the next two functions are really just for convenience
+ */
 
 /** Turn off indexing for a given MySQL table. */
 function database_disable_keys($table)
@@ -536,10 +554,11 @@ function print_debug_message($message)
 
 
 /**
- * Echoes a string, but with HTML 'pre' tags (ideal for debug messages)
+ * Echoes a string, but with HTML 'pre' tags (ideal for debug messages).
  */
 function pre_echo($s)
 {
+	// TODO we should prob call htmlspecialchars here, sans double encoding....
 	echo "\n\n<pre>\n$s\n</pre>\n";
 }
 
@@ -596,6 +615,10 @@ function make_thousands($number)
 /**
  * Replacement for htmlspecialcharacters which DOESN'T change & to &amp; if it is already part of
  * an entity; otherwise equiv to htmlspecialchars($string, ENT_COMPAT, 'UTF-8', false) 
+ * 
+ * Note the double-encode flag exists in PHP >= 5.2.3. So we don't really need this
+ * function, since - officially! - CQPweb requires PHP 5.3. But let's keep it since it's no effort to
+ * do so and it might let people without upgrade pwoer keep running the system a little longer.
  */
 function cqpweb_htmlspecialchars($string)
 {
@@ -605,8 +628,7 @@ function cqpweb_htmlspecialchars($string)
 	$string = str_replace('"', '&quot;', $string);
 
 	return preg_replace('/&amp;(\#?\w+;)/', '&$1', $string);
-}
-// TODO - still needed now we have the double_encode flag???
+} 
 
 
 /**
@@ -614,11 +636,21 @@ function cqpweb_htmlspecialchars($string)
  *  
  * A "handle" can only contain ascii letters, numbers, and underscore.
  * 
- * TODO: add length requirement?
+ * If removing the nonhandle characters reduces it to an
+ * empty string, then it will be converted to "__HANDLE".
+ * 
+ * (Other code is of course responsible for making syure the handle is unique
+ * where necessary.)
+ * 
+ * A maximum length can also be enforced if the second parameter
+ * is set to greater than 0.
  */
-function cqpweb_handle_enforce($string)
+function cqpweb_handle_enforce($string, $length = -1)
 {
-	return preg_replace('/[^a-zA-Z0-9_]/', '', $string);
+	$handle = preg_replace('/[^a-zA-Z0-9_]/', '', $string);
+	if (empty($handle))
+		$handle = '__HANDLE';
+	return ($length < 1 ? $handle : substr($handle, 0, $length) );
 }
 
 /**
@@ -626,11 +658,17 @@ function cqpweb_handle_enforce($string)
  * that is, iff there are no non-word characters (i.e. no \W)
  * in the string and it is not empty.
  * 
- * TODO: add length restriction?
+ * A maximum length can also be checked if the second parameter
+ * is set to greater than 0.
  */
-function cqpweb_handle_check($string)
+function cqpweb_handle_check($string, $length = -1)
 {
-	return ( $string !== ''  &&  0 >= preg_match('/\W/', $string) );
+	return (
+			is_string($string)
+			&&   $string !== ''
+			&&   0 >= preg_match('/\W/', $string) 
+			&&   ( $length < 1 || strlen($string) <= $length )
+			);
 }
 
 

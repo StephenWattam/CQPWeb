@@ -86,15 +86,12 @@ foreach ($_GET as $k => $g)
 
 
 /* do we want a nice HTML table or a downloadable table? */
-if ($_GET['tableDownloadMode'] == 1)
-	$download_mode = true;
-else
-	$download_mode = false;
+$download_mode = (bool)$_GET['tableDownloadMode'];
 
 
 /*
-	the table to use would be extracted from GET here, but it requires mysql
-*/
+ * the table to use would be extracted from GET here, but it requires mysql
+ */
 
 
 
@@ -258,7 +255,7 @@ $att_desc['word'] = 'Word';
 if (! array_key_exists($att, $att_desc) )
 	$att = 'word';
 
-$freqtable = $table_base . '_' . $att;
+$freqtable = "{$table_base}_$att";
 
 
 

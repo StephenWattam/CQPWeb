@@ -73,6 +73,9 @@ class RFace
 	/** array for the input/output handles themselves to go in */
 	private $handle;
 	
+	/** variable that remembers location on system of the exectuable that was started up */
+	private $which;
+	
 	/** function (or array of object/classname + method at [0] and [1]) for handling lines as they are passed */
 	private $line_handler_callback = false;
 	
@@ -101,7 +104,7 @@ class RFace
 	/** stream that debug messages will be sent to; defaults to STDERR */
 	private $debug_dest = STDERR;
 	
-	/** flag determining whether or not the stream in $debug_dest will be close on destruct() */
+	/** flag determining whether or not the stream in $debug_dest will be closed on destruct() */
 	private $debug_dest_autoclose = false;
 	
 	
@@ -111,29 +114,32 @@ class RFace
 	
 	
 	
-	/* constructor */
-	function __construct($path_to_r = false, $debug = false, $debug_dest = STDOUT)
+	/**
+	 * Constructor for RFace class.
+	 * 
+	 * There are no compulsory arguments. The path to R should be a relative or absolute
+	 * path of the directory where the R executable lives (i.e. DON'T put "/R" or "/R.exe"
+	 * or whatever at the end of this string). If it is false, however, 
+	 *  
+	 * Note that the debug destination stream can be set up at construct-time, or later, using
+	 * the dedicated functions.
+	 */
+	function __construct($path_to_r = false, $debug = false, $debug_dest = STDOUT, $debug_dest_autoclose = false)
 	{
 		/* Constructor errors are critical, so let's turn on exit_on_error. */
 		$this->exit_on_error = true;
 
-		/* set debug mode for this object */
-		$this->debug_mode = (bool) $debug;
+		/* passthru settings for debug mode for this object */
+		$this->set_debug($debug);
+		$this->set_debug_destination($debug_dest, $debug_dest_autoclose);
 
-		if ($debug)
-		{
-			if (($restype = get_resource_type($debug_dest)) == 'stream' || $restype == 'file')
-				$this->debug_dest = $debug_dest;
-			else
-				$this->error("RFace: ERROR: Stream specified for printing debug messages is not valid.\n");
-		}
+		/* work out whether the call to R will need a '.exe' */
+		$ext = (strtoupper(substr(php_uname('s'), 0, 3)) == 'WIN' ? '.exe' : '' );
 
 		/* check that we know where the R program is... */
 		if (empty($path_to_r))
 		{
 			/* detect whether or not R is on the path.... */
-			/* work out whether the call to R will need a '.exe' */
-			$ext = (strtoupper(substr(php_uname('s'), 0, 3)) == 'WIN' ? '.exe' : '' );
 			$found = false;
 			foreach(explode(PATH_SEPARATOR, $_ENV['PATH']) as $path)
 				if (is_executable(rtrim($path, DIRECTORY_SEPARATOR) . '/R' . $ext))
@@ -154,16 +160,19 @@ class RFace
 			2 => array("pipe", "w")  /* pipe allocated to child's stderr */
 			);
 		
-		$command = "$path_to_r/R --slave --no-readline";
+		$command = "$path_to_r/R$ext --slave --no-readline";
 		
 		$this->process = proc_open($command, $io_settings, $this->handle);
 		
 		if (! is_resource($this->process))
 			$this->error("RFace: ERROR: R backend startup failed; command: $command\n");
-		else if ($this->debug_mode)
+		else
 			$this->debug_alert("RFace: R backend successfully started up.\n");
-
-		/* finally, turn down the severity level of errors... */
+			
+		/* remember the executable */
+		$this->which = "$path_to_r/R$ext";
+		
+		/* finally, turn down the severity level of errors... user can always turn it up again. */
 		$this->exit_on_error = false;
 	}
 	
@@ -249,7 +258,7 @@ class RFace
 
 		$result = array();
 		
-		
+//TODO, we need calls to stream_select here!!!
 		/* then, get lines one by one from [OUT] */
 		while ( 0 < strlen($line = fgets($this->handle[1])) ) 
 		{
@@ -360,14 +369,14 @@ class RFace
 	{
 		$x = @get_resource_type($new_stream);
 		if ($x != 'file' && $x != 'stream')
-			$this->error("RFace: ERROR: Non-stream passed as debug destination.\n");
+			$this->error("RFace: ERROR: Stream specified for printing debug messages is not valid.\n");
 		$this->debug_dest = $new_stream;
 		$this->debug_dest_autoclose = (bool) $autoclose;	
 	}
 	
 	
 	/*
-	 * error control
+	 * error control & debug messaging
 	 */
 	
 	
@@ -434,6 +443,21 @@ class RFace
 		if ($this->debug_mode)
 			fputs($this->debug_dest, $msg);
 	}
+	
+	/**
+	 * Tells you what R executable is being used.
+	 * 
+	 * This variable is filled in by the constructor. It can't be set, as it is 
+	 * permanent: you can only read it.
+	 * 
+	 * If you passed in a path, then obviously, this will be the R in the location
+	 * you specified. If you didn't pass in a path, this should tell you which
+	 * R executable was found.
+	 * 
+	 * Mostly for debugging purposes.
+	 */
+	public function get_which_R() { return $this->which; }
+	
 	
 	
 	/*

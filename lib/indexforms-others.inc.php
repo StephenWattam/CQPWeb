@@ -696,10 +696,10 @@ function printquery_latest()
 -->
 		
 		<li>
-		<b>Version 3.0.3</b>, 2011-11-xx<br/>&nbsp;<br/>
+		<b>Version 3.0.3</b>, 2012-xx-xx<br/>&nbsp;<br/>
 		
 		<br/>&nbsp;<br/>
-		Fixed bug in concordance download function that was scrambking links to context.
+		Fixed bug in concordance download function that was scrambling links to context.		
 		<br/>&nbsp;<br/>
 		New feature: optional position labels in concordance (just like "sentence numbers" in BNCweb). 
 		<br/>&nbsp;<br/>
