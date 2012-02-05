@@ -1357,7 +1357,7 @@ class CQPInterchangeFile
 		if (empty($nameroot))
 			$nameroot = 'CQPInterchangeFile';
 			
-		/* remove rightmost / or \ from folder, as below it assumed there will be no slash */
+		/* remove rightmost / or \ from folder, as below it is assumed there will be no slash */
 		$location = rtrim($location, '/\\');
 		if (empty($location))
 			$location = '.';

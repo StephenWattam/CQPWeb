@@ -1202,7 +1202,7 @@ function print_footer($link = 'help')
 	<table class="concordtable" width="100%">
 		<tr>
 			<td align="left" class="cqpweb_copynote" width="33%">
-				CQPweb v<?php echo CQPWEB_VERSION; ?> &#169; 2008-2011
+				CQPweb v<?php echo CQPWEB_VERSION; ?> &#169; 2008-2012
 			</td>
 			<?php echo $help_cell; ?>  
 			<td align="right" class="cqpweb_copynote" width="33%">

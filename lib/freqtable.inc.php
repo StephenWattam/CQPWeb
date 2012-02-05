@@ -180,6 +180,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	global $path_to_cwb;
 	global $cwb_registry;
 	global $username;
+	global $cqp;
 	
 	/* this clause implements the override (get_freq_index_postitionlist_for_subsection does this too
 	 * but we need the variables overridden here....) */
@@ -203,8 +204,8 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	register_db_process($freqtables_base_name, 'freqtable');
 
 
-	/* first step: save regions to be scanned to a temp dfile */
-	$regionfile = new CQPInterchangeFile("/$cqpweb_tempdir/cwbscan_temp_$instance_name");
+	/* first step: save regions to be scanned to a temp file */
+	$regionfile = new CQPInterchangeFile("/$cqpweb_tempdir");
 	$region_list_array = get_freq_index_postitionlist_for_subsection($subcorpus, $restriction);
 	
 	foreach ($region_list_array as $reg)
@@ -681,7 +682,29 @@ function list_freqtabled_subcorpora()
 }
 
 
-
+/**
+ * Find the freqtable name for a given subcorpus belonging to this user and this corpus. 
+ * 
+ * Returns false if it was not found.
+ */
+function get_subcorpus_freqtable($subcorpus)
+{
+	global $corpus_sql_name;
+	global $username;
+	
+	$subcorpus = mysql_real_escape_string($subcorpus);
+	
+	$sql_query = "select freqtable_name from saved_freqtables 
+		where corpus = '$corpus_sql_name' and user = '$username' and subcorpus = '$subcorpus'";
+	$result = do_mysql_query($sql_query);
+	
+	if (mysql_num_rows($result) < 1)
+		return false;
+	
+	list($name) = mysql_fetch_row($result);
+	
+	return $name;
+}
 
 
 

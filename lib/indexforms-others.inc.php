@@ -719,8 +719,9 @@ function printquery_latest()
 		<br/>&nbsp;<br/>
 		Fixed a bug in frequency list creation that introduced forms in the wrong character set
 		into the database.
+		<br/>&nbsp;<br/>
+		Fixed a bug in the keyword function's frequency table lookup process.
 		<br/>&nbsp;</li>
-
 
 		<li>
 		<b>Version 3.0.2</b>, 2011-08-28<br/>&nbsp;<br/>

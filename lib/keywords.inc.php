@@ -47,6 +47,7 @@ require_once("../lib/library.inc.php");
 require_once("../lib/exiterror.inc.php");
 require_once("../lib/metadata.inc.php");
 require_once("../lib/user-settings.inc.php");
+require_once("../lib/freqtable.inc.php");
 require_once("../lib/cwb.inc.php");         // needed?
 require_once("../lib/cqp.inc.php");
 
@@ -646,7 +647,9 @@ function parse_keyword_table_parameter($par)
 	{
 		if (preg_match('/sc~(\w+)/', $par, $m) > 0)
 		{
-			$base = "freq_sc_{$corpus_sql_name}_{$m[1]}";
+			if (($base = get_subcorpus_freqtable($m[1])) == false)
+				exiterror_general("The subcorpus you selected has no frequency list! "
+					. "Please compile the frequency list and try again.\n");
 			$desc = "subcorpus &ldquo;{$m[1]}&rdquo;";
 		}
 	}
