@@ -29,46 +29,22 @@
  * @file
  * 
  * Library of functions for dealing with frequency tables for corpora and
- * subcorproa.
+ * subcorpora.
  * 
- * These are store d(laregely) in MySQL.
+ * These are stored (largely) in MySQL.
  * 
  * Frequency table naming convention:
  * 
  * for a corpus:	freq_corpus_{$corpus}_{$att}
  * 
- * for a subcorpus:	freq_sc_{$corpus}_{$instance_name}_$att
+ * for a subcorpus:	freq_sc_{$corpus}_{$instance_name}_{$att}
  * 
  */
 
 
-/**
- * Change the character encoding of a specified text file. 
- * 
- * The re-coded file is saved to the path of $outfile.
- * 
- * Infile and outfile paths cannot be the same.
- */
-function change_file_encoding($infile, $outfile, $source_charset_for_iconv, $dest_charset_for_iconv)
-{
-	if (! is_readable($infile) )
-		exiterror_arguments($infile, "This file is not readable.");
-	if (! is_writable($outfile) )
-		exiterror_arguments($infile, "This path is not writable.");
-	
-	$source = fopen($infile, 'r');
-	$dest = fopen($outfile,  'w');
-	
-	while (false !== ($line = fgets($source)) )
-		fputs($dest, iconv($source_charset_for_iconv, $dest_charset_for_iconv, $line));
-	
-	fclose($source);
-	fclose($dest);
-}
-
 
 /**
- * Creates mySQL frequency tables for each attribute in a corpus;
+ * Creates MySQL frequency tables for each attribute in a corpus;
  * any pre-existing tables are deleted.
  */
 function corpus_make_freqtables()
@@ -80,6 +56,7 @@ function corpus_make_freqtables()
 	global $corpus_cqp_name;
 	global $cqpweb_tempdir;
 	global $username;
+	global $cqp;
 	
 	/* only superusers are allowed to do this! */
 	if (! user_is_superuser($username))
@@ -118,13 +95,26 @@ function corpus_make_freqtables()
 	$cwb_command = "/$path_to_cwb/cwb-scan-corpus -r /$cwb_registry -o $filename -q $corpus_cqp_name";
 	foreach ($attribute as $att)
 		$cwb_command .= " $att";
-	exec($cwb_command, $junk, $status);
+	exec($cwb_command, $junk, $status=0);
 	if ($status != 0)
 		exiterror_general("cwb-scan-corpus error!", __FILE__, __LINE__);
 	unset($junk);
 	
-	// TODO need to check if the CorpusCharset is other than ASCII/UTF8. 
-	// if it is, we need to open & cycle iconv on the whole thing.
+	/* We need to check if the CorpusCharset is other than ASCII/UTF8. 
+	 * If it is, we need to open & cycle iconv on the whole thing.     */
+	if (($corpus_charset = $cqp->get_corpus_charset()) != 'utf8')
+	{
+		$utf8_filename = $filename .'.utf8.tmp';
+		
+		change_file_encoding($filename, 
+		                     $utf8_filename, 
+		                     CQP::translate_corpus_charset_to_iconv($corpus_charset), 
+		                     CQP::translate_corpus_charset_to_iconv('utf8') . '//TRANSLIT');
+		
+		unlink($filename);
+		rename($utf8_filename, $filename);
+		/* so now, either way, we need ot work further on $filename. */
+	}
 
 
 	database_disable_keys($temp_tablename);
@@ -136,7 +126,8 @@ function corpus_make_freqtables()
 	/* ok - the temporary, ungrouped frequency table is in memory 
 	 * each line is a unique binary line across all the attributes
 	 * it needs grouping differently for each attribute 
-	 * (this will also take care of putting 'the', 'The' and 'THE' together */
+	 * (this will also take care of putting 'the', 'The' and 'THE' together
+	 * if the collation does that) */
 
 	foreach ($attribute as $att)
 	{
@@ -172,18 +163,12 @@ function corpus_make_freqtables()
 
 
 
-
-
-
-
-
 /**
- * create frequency lists for a --subsection only-- of the current corpus, 
- * ie a restriction or subcorpus 
- * note that the specification of a subcorpus trumps restrictions 
- * this is essentially like a query 
- * note also that no check for "already exists" is performed 
- * this must be done beforehand 
+ * Creates frequency lists for a --subsection only-- of the current corpus, 
+ * ie a restriction or subcorpus.
+ * 
+ * Note that the specification of a subcorpus trumps restrictions. 
+ * (As elsewhere, e.g. when a query happens.) 
  */
 function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 'no_restriction')
 {
@@ -196,7 +181,8 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	global $cwb_registry;
 	global $username;
 	
-	/* this clause implements the override */
+	/* this clause implements the override (get_freq_index_postitionlist_for_subsection does this too
+	 * but we need the variables overridden here....) */
 	if ($subcorpus != 'no_subcorpus')
 		$restriction = 'no_restriction';
 	
@@ -206,35 +192,8 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 		$attribute[] = $a;
 	unset($junk, $a);
 
-	/* now, we need a where-clause for all the text ids within the subsection */
-	/* we also need to work out the base-name of this set of freq tables */
-	if ($restriction != 'no_restriction')
-	{
-		/* this is NOT a named subcorpus, rather it is a subsection of the corpus whose freq list */
-		/* is being compiled : so the name is just random */
-		$text_list = translate_restrictions_to_text_list($restriction);
-	}
-	else
-	{
-		/* a subcorpus has been named: check that it exists */
-		$sql_query = "select * from saved_subcorpora where subcorpus_name = '"
-			. mysql_real_escape_string($subcorpus) . "' 
-			and corpus = '$corpus_sql_name'
-			and user   = '$username'";
-		$result = do_mysql_query($sql_query);
-		if (mysql_num_rows($result) < 1)
-			exiterror_arguments($subcorpus, 'This subcorpus doesn\'t appear to exist!',
-				__FILE__, __LINE__);
 
-		$r = mysql_fetch_assoc($result);
-		unset($result);
-		
-		if ( $r['text_list'] != '' )
-			$text_list = $r['text_list'];
-		else
-			$text_list = translate_restrictions_to_text_list($r['restrictions']);
-	}
-	/* From the unique instance name, create freqtable base name */
+	/* From the unique instance name, create a freqtable base name */
 	$freqtables_base_name = freqtable_name_unique("freq_sc_{$corpus_sql_name}_{$instance_name}");
 
 
@@ -244,60 +203,55 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	register_db_process($freqtables_base_name, 'freqtable');
 
 
-		
-	/* call a function to delete saved freqtables if there are too many of them */
-	delete_saved_freqtables();
+	/* first step: save regions to be scanned to a temp dfile */
+	$regionfile = new CQPInterchangeFile("/$cqpweb_tempdir/cwbscan_temp_$instance_name");
+	$region_list_array = get_freq_index_postitionlist_for_subsection($subcorpus, $restriction);
+	
+	foreach ($region_list_array as $reg)
+		$regionfile->write("{$reg[0]}\t{$reg[1]}\n");
 
-
-	/* whether restriction or sc, we now have a list of texts in the corpus, for which we need the 
-	 * start-and-end positions in the FREQ TABLE CORPUS (as opposed ot the actual corpus) */
-
-	/* first step: convert list of texts to an sql where clause */
-	$textid_whereclause = translate_textlist_to_where($text_list);
-	
-	/* second step: check whether the specially-indexed cwb per-file freqlist corpus exists */
-	if ( ! check_cwb_freq_index($corpus_sql_name) )
-		exiterror_general("No CWB frequency-by-text index exists for corpus $corpus_sql_name!", 
-			__FILE__, __LINE__);
-	
-	
-	/* get the list of being-and-end points in the specially-indexed cwb per-file freqlist corpus */
-	$sql_query = "select start, end from freq_text_index_$corpus_sql_name where $textid_whereclause
-					order by start asc";
-	/* note this list must be sorted for cwb-scan-corpus to make sense of it - and it may or may
-	 * not be sorted depending on how the where-cause was constructed... */
-	$result = do_mysql_query($sql_query);
-	
-	/* store regions to be scanned in a temporary file */
-	// TODO do not use CWBTempFile, use CQPInterchangeFile
-	$regionfile = new CWBTempFile("/$cqpweb_tempdir/cwbscan_temp_$instance_name");
-	while ( ($r = mysql_fetch_row($result)) !== false )
-		$regionfile->write(implode("\t", $r) . "\n");
+	unset($region_list_array);
 	$regionfile->finish();
-	$regionfile_filename = $regionfile->get_filename();
-	
-	unset($result);	
-	
+
+	/* second step we can get ready to build the intermediate table in MySQL */
 	$temp_table = "__freqmake_temptable_$instance_name";
 	$temp_table_loadfile = "/$cqpweb_tempdir/__infile$temp_table";
 	
-	/* prepare command to extract the frequency lines for those bits of the corpus */
+	/* Check cache contents. (We do this before building, in order that we don't overflow the cache
+	 * by TOO much in the intermediate step when the new freq table is being built.) */
+	delete_saved_freqtables();
+
+
+	/* run command to extract the frequency lines for those bits of the corpus */
 	$cmd_scancorpus = "/$path_to_cwb/cwb-scan-corpus -r /$cwb_registry -F __freq "
-		. "-R $regionfile_filename {$corpus_cqp_name}__FREQ";
+		. "-R " . $regionfile->get_filename()
+		. " {$corpus_cqp_name}__FREQ";
 	foreach ($attribute as $att)
 		$cmd_scancorpus .= " $att+0";
 	$cmd_scancorpus .= " > $temp_table_loadfile";
 	
-
-	/* and run it */
 	exec($cmd_scancorpus);
 	
 	/* close and delete the temp file containing the text regions */
 	$regionfile->close();
 	
+	/* We need to check if the CorpusCharset is other than ASCII/UTF8. 
+	 * If it is, we need to open & cycle iconv on the whole thing.     */
+	if (($corpus_charset = $cqp->get_corpus_charset()) != 'utf8')
+	{
+		$utf8_filename = $temp_table_loadfile .'.utf8.tmp';
+		
+		change_file_encoding($temp_table_loadfile, 
+		                     $utf8_filename, 
+		                     CQP::translate_corpus_charset_to_iconv($corpus_charset), 
+		                     CQP::translate_corpus_charset_to_iconv('utf8') . '//TRANSLIT');
+		
+		unlink($temp_table_loadfile);
+		rename($utf8_filename, $temp_table_loadfile);
+	}
+	
 	/* ok, now to transfer that into mysql */
 	
-	//TODO do we need to translate $temp_table_loadfile from latin1 to utf8 if this is a latin1 corpus???????
 	
 	/* set up temporary table for subcorpus frequencies */
 	$sql_query = "CREATE TABLE `$temp_table` (
@@ -346,8 +300,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	} /* end foreach $attribute */
 	
 	/* dump temporary table */
-	$sql_query = "drop table $temp_table";
-	do_mysql_query($sql_query);
+	do_mysql_query("drop table $temp_table");
 
 	$thistime = time();
 	$thissize = get_freqtable_size($freqtables_base_name);
@@ -376,6 +329,11 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 
 	/* NB: freqtables share the dbs' register/unregister functions, with process_type 'freqtable' */
 	unregister_db_process();
+
+
+	/* Check cache contents AGAIN (in case the newly built frequency table has overflowed the cache limit */
+	delete_saved_freqtables();
+
 	
 	/* return as an assoc array a copy of what has just gone into saved_freqtables */
 	/* most of this will never be used, but data management is key */
@@ -514,18 +472,19 @@ function check_freqtable_subcorpus($subcorpus_name)
 
 
 /**
- * Deletes a "cluster" of freq tables relating to a particular subsection, + their saved_fts entry.
+ * Deletes a "cluster" of freq tables relating to a particular subsection, + their entry
+ * in the saved_freqtables list.
  */
 function delete_freqtable($freqtable_name)
 {
 	$freqtable_name = mysql_real_escape_string($freqtable_name);
 	
-	do_mysql_query("delete from saved_freqtables where freqtable_name = '$freqtable_name'");
-	
 	$result = do_mysql_query("show tables like '$freqtable_name%'");
 
 	while ( ($r = mysql_fetch_row($result)) !== false )
 		do_mysql_query("drop table if exists ${r[0]}");
+	
+	do_mysql_query("delete from saved_freqtables where freqtable_name = '$freqtable_name'");
 }
 
 
@@ -533,7 +492,19 @@ function delete_freqtable($freqtable_name)
 
 
 
-/** note: this function works ACROSS CORPORA */
+/** 
+ * Checks the size of the cache of saved frequency tables, and if it is higher
+ * than the size limit (in global config variable $mysql_freqtables_size_limit),
+ * then old frequency tables are deleted until the size falls below the said limit.
+ * 
+ * By default public frequency tables will not be deleted from the cache, unless
+ * there is no other way to get the cache down to size. If you want public
+ * frequency tables to be equally "vulnerable", pass in false as the argument.
+ * 
+ * Note: this function works ACROSS CORPORA.
+ * 
+ * @see $mysql_freqtables_size_limit
+ */
 function delete_saved_freqtables($protect_public_freqtables = true)
 {
 	global $mysql_freqtables_size_limit;
@@ -544,11 +515,8 @@ function delete_saved_freqtables($protect_public_freqtables = true)
 			__FILE__, __LINE__);
 
 	/* step one: how many bytes in size is the freqtable cache RIGHT NOW? */
-	$sql_query = "select sum(ft_size) from saved_freqtables";
-	$result = do_mysql_query($sql_query);
-	$row_array = mysql_fetch_row($result);
-	$current_size = $row_array[0];
-	unset($result, $row_array);
+	$result = do_mysql_query("select sum(ft_size) from saved_freqtables");
+	list($current_size) = mysql_fetch_row($result);
 
 	if ($current_size <= $mysql_freqtables_size_limit)
 		return;
@@ -558,7 +526,6 @@ function delete_saved_freqtables($protect_public_freqtables = true)
 		" . ( $protect_public_freqtables ? " where public = 0" : "") . " 
 		order by create_time asc";
 	$del_result = do_mysql_query($sql_query);
-
 
 	while ($current_size > $mysql_freqtables_size_limit)
 	{
@@ -584,7 +551,7 @@ function delete_saved_freqtables($protect_public_freqtables = true)
 
 
 
-/** Dumps all cached freq tables from the database */
+/** Dumps all cached freq tables from the database (unconditional cache clear). */
 function clear_freqtables()
 {
 	$del_result = do_mysql_query("select freqtable_name from saved_freqtables");
@@ -655,10 +622,13 @@ function unpublicise_freqtable($name)
 
 
 
-/* works across the system: returns an array of records, ie an array of associative arrays */
-/* which could be empty */
-/* the reason it returns an array of records rather than a list of names is that with just a */
-/* list of names there would be no way to get at the freqtable_name that is the key ident    */
+/**
+ * Works across the system: returns an array of records, ie an array of associative arrays
+ * which could be empty.
+ * 
+ * the reason it returns an array of records rather than a list of names is that with just a 
+ * list of names there would be no way to get at the freqtable_name that is the key ident    
+ */
 function list_public_freqtables()
 {
 	$result = do_mysql_query("select * from saved_freqtables where public = 1");

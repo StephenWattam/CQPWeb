@@ -95,6 +95,7 @@ function get_all_user_settings($username, $autocreate = true)
 
 // TODO next two functions prob should do sanitisation as elsewhere in
 // cqpweb that is done at the lowest possible level, ie at poitn where the SQL queries are composed.
+// (at the moment, sanitisation is done in parse_get_user_settings)
 /** 
  * note: neither of the following functions sanitises input 
  * this MUST be done beforehand, e.g. using parse_get_user_settings() 
@@ -136,6 +137,7 @@ function create_user_record($username)
 		cqp_syntax,
 		context_with_tags,
 		use_tooltips,
+		thin_default_reproducible,
 		coll_statistic,
 		coll_freqtogether,
 		coll_freqalone,
@@ -152,6 +154,7 @@ function create_user_record($username)
 		1,
 		0,
 		0,
+		1,
 		1,
 		$default_calc_stat,
 		$default_colloc_minfreq,
@@ -229,6 +232,7 @@ function parse_get_user_settings()
 			case 'cqp_syntax':
 			case 'context_with_tags':
 			case 'use_tooltips':
+			case 'thin_default_reproducible':
 				$settings[$m[1]] = (bool)$v;
 				break;
 			

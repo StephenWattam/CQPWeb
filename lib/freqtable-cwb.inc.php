@@ -25,7 +25,7 @@
 
 
 
-/* functions for doing stuff with CWB */
+/* functions for doing stuff with CWB freq indexes */
 
 
 
@@ -272,6 +272,96 @@ function make_cwb_freq_index()
 	php_execute_time_relimit();
 }
 
+
+
+
+/**
+ * Turns a corpus subsection definition (subcorpus or restriction) into a series of
+ * corpus positon pairs corresponding to the CWB frequency index corpus (NOT the corpus
+ * itself).
+ *  
+ * Note that the specification of a subcorpus trumps restrictions. 
+ * (As elsewhere, e.g. when a query happens.) 
+ * 
+ * @return   An array of arrays where each array contains two ints
+ *           (start cpos, end cpos of the region).
+ */
+function get_freq_index_postitionlist_for_subsection($subcorpus = 'no_subcorpus', $restriction = 'no_restriction')
+{
+	global $corpus_sql_name;
+	global $username;
+	
+	/* Check whether the specially-indexed cwb per-file freqlist corpus exists */
+	if ( ! check_cwb_freq_index($corpus_sql_name) )
+		exiterror_general("No CWB frequency-by-text index exists for corpus $corpus_sql_name!", 
+			__FILE__, __LINE__);
+	/* because if it doesn't exist, we can't get the positions from it! */
+	
+	/* this clause implements the override - the caller may or may not have done this already */
+	if ($subcorpus != 'no_subcorpus')
+		$restriction = 'no_restriction';
+	
+
+	/* now, we need a list of all the text ids within the subsection */
+	if ($restriction != 'no_restriction')
+	{
+		/* this is NOT a named subcorpus, rather it is an anonymous subsection 
+		 * of the corpus whose freq list is being compiled ... */
+		$text_list = translate_restrictions_to_text_list($restriction);
+	}
+	else
+	{
+		/* a subcorpus has been named: check that it exists */
+		$sql_query = "select * from saved_subcorpora where subcorpus_name = '"
+			. mysql_real_escape_string($subcorpus) . "' 
+			and corpus = '$corpus_sql_name'
+			and user   = '$username'";
+		$result = do_mysql_query($sql_query);
+		if (mysql_num_rows($result) < 1)
+			exiterror_arguments($subcorpus, 'This subcorpus doesn\'t appear to exist!',
+				__FILE__, __LINE__);
+
+		$r = mysql_fetch_assoc($result);
+		
+		if ( $r['text_list'] != '' )
+			$text_list = $r['text_list'];
+		else
+			$text_list = translate_restrictions_to_text_list($r['restrictions']);
+	}
+
+	/* Whether restriction or sc, we now have a list of texts in the corpus, for which we need the 
+	 * start-and-end positions in the FREQ TABLE CORPUS (NOT the actual corpus).
+	 * 
+	 * We can't just do a query for "start,end WHERE text_id is ... or text_id is ..." because
+	 * this will overflow the max packet size for a server data transfer if the text list is
+	 * long. So, instead, let's do it a hundred at a time.
+	 * 
+	 * (This is a dirty hack; there may be a much better way involving a join with the 
+	 * main text metadata table or something. But, hey ho.)
+	 */
+
+	$position_list = array();
+
+	foreach(array_chunk(explode(' ', $text_list), 20) as $chunk_of_texts)
+	{		
+		/* first step: convert list of texts to an sql where clause */
+		$textid_whereclause = translate_textlist_to_where($chunk_of_texts, true);
+		
+		/* second step: get that chunk's begin-and-end points in the specially-indexed cwb per-file freqlist corpus */
+		$sql_query = "select start, end from freq_text_index_$corpus_sql_name where $textid_whereclause";
+		$result = do_mysql_query($sql_query);
+		
+		/* third step: store regions to be scanned in output array */
+		while ( ($r = mysql_fetch_row($result)) !== false )
+			$position_list[] = $r;
+	}
+	
+	/* All position lists must be ASC sorted for CWB to make sense of them. The list we have built from
+	 * MySQL may or may not be pre-sorted depending on the original history of the text-list... */
+	$position_list = sort_positionlist($position_list);
+	
+	return $position_list;
+}
 
 
 

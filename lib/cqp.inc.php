@@ -123,8 +123,14 @@ class CQP
 		self::CHARSET_LATIN9		=> 'latin9'
 		);
 	
-	/* array for interpreting CWB identifier strings into our own class constants */
+	/* array for interpreting CWB or (selected, lowercased) 
+	 * iconv identifier strings into our own class constants;
+	 * as usual, ASCII counts as UTF-8 */
 	private static $charset_interpreter = array (
+		'ascii'       => self::CHARSET_UTF8,
+		'us-ascii'    => self::CHARSET_UTF8,
+		'utf8'        => self::CHARSET_UTF8,
+		'utf-8'       => self::CHARSET_UTF8,
 		'latin1'      => self::CHARSET_LATIN1,
 		'iso-8859-1'  => self::CHARSET_LATIN1,
 		'latin2'      => self::CHARSET_LATIN2,
@@ -1112,12 +1118,13 @@ class CQP
 
 	/** 
 	 * Get an ICONV-compatible string (assuming a fairly standard GNU-ICONV!) for
-	 * a given charset string. Ideally, pass it a result from get_corpus_charset().
+	 * a given CWB-style charset string. Ideally, pass it a result from get_corpus_charset().
 	 * 
 	 * NULL is returned if the argument is invalid.
 	 */
 	public static function translate_corpus_charset_to_iconv($charset)
 	{
+		$charset = strtolower($charset);
 		if (array_key_exists($charset, self::$charset_interpreter))
 			return self::$charset_labels_iconv[self::$charset_interpreter[$charset]];
 		else

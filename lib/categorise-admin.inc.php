@@ -21,12 +21,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-
-/* categorise-admin.inc.php */
-
-/* this script does a number of different thihngs, depending on the value of GET->categoriseAction */
+/**
+ * @file
+ * 
+ * This script does a number of different thihngs, depending on the value of GET->categoriseAction 
+ */
 
 /* ------------ */
 /* BEGIN SCRIPT */
@@ -45,9 +44,7 @@ require('../lib/cache.inc.php');
 require('../lib/db.inc.php');
 require('../lib/user-settings.inc.php');
 
-/* and because I'm using the next two modules I need to... */
-//create_pipe_handle_constants();
-require("../lib/cwb.inc.php"); /* NOT TESTED YET - used by dump and undump, I think */
+require("../lib/cwb.inc.php");
 require("../lib/cqp.inc.php");
 
 
@@ -181,7 +178,7 @@ function categorise_create_query()
 		disconnect_all();
 		exit();
 	}
-	else if ( preg_match('/\W/', ($savename = $_GET['categoriseCreateName']) ) > 0   )
+	else if ( ! cqpweb_handle_check($savename = $_GET['categoriseCreateName']) )
 	{
 		categorise_enter_categories('bad_names');
 		disconnect_all();
@@ -204,11 +201,11 @@ function categorise_create_query()
 	{
 		$thiscat = (isset($_GET["cat_$i"]) ? $_GET["cat_$i"] : ''); 
 
-		/* make sure there are no zero-length cats */
+		/* skip any zero-length cats */
 		if ($thiscat === '')
 			continue;
 		/* make sure there are no non-word characters in the name of each category */
-		if (preg_match('/\W/',  $thiscat) > 0)
+		if ( ! cqpweb_handle_check($thiscat) )
 		{
 			categorise_enter_categories('bad_names');
 			disconnect_all();
@@ -242,7 +239,6 @@ function categorise_create_query()
 	$newqname = qname_unique($username. '_' . $savename);
 	copy_cached_query($qname, $newqname);
 	
-
 	/* get the query record for the newly-saved query */
 	$query_record = check_cache_qname($newqname);
 	
@@ -424,7 +420,7 @@ function categorise_separate()
 
 
 
-/** delete the databse, the cached query, and the record in saevd_catqueries */
+/** categorise-admin: delete the database, the cached query, and the record in saved_catqueries */
 function categorise_delete_query()
 {
 	if (isset($_GET['qname']))
@@ -464,6 +460,10 @@ function categorise_add_new_value()
 		$new_cat = mysql_real_escape_string($_GET['newCategory']);
 	else
 		exiterror_fullpage('Critical parameter "newCategory" was not defined!', __FILE__, __LINE__);
+	
+	if (! cqpweb_handle_check($new_cat))
+		exiterror_fullpage('The category name you tried to add contains spaces or punctuation. '
+							. 'Category labels can only contain unaccented letters, digits, and the underscore.');
 
 	/* get the current list of categories */
 	$category_list = catquery_list_categories($qname);
@@ -493,7 +493,7 @@ function categorise_add_new_value()
 
 
 
-/* this function prints a page with a simple form for a new value to be entered */
+/** categorise-admin: this function prints a page with a simple form for a new categorisation value to be entered */
 function categorise_enter_new_value()
 {
 	global $css_path;
@@ -586,9 +586,11 @@ function categorise_enter_new_value()
 
 
 
-/* this function prints a webpage enabling the user to enter their category names */
-/* passing it an error argument affects the display in various ways */
-/* but it will always produce a full webpage */
+/**
+ * This function prints a webpage enabling the user to enter their category names;
+ * passing it an error argument affects the display in various ways,
+ * but it will always produce a full webpage.
+ */
 function categorise_enter_categories($error = NULL)
 {
 	global $css_path;

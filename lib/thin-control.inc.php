@@ -36,6 +36,7 @@ require("../lib/defaults.inc.php");
 require("../lib/library.inc.php");
 require("../lib/exiterror.inc.php");
 require("../lib/cache.inc.php");
+require("../lib/user-settings.inc.php");
 
 if (!url_string_is_valid())
 	exiterror_bad_url();
@@ -87,7 +88,7 @@ $hits = ( empty($query_record['hits_left']) ? $query_record['hits']: $query_reco
 
 $num_of_hits_text = '(current no. of instances: ' . make_thousands($hits) . ')';
 
-
+$reproducible_is_selected = get_user_setting($username, 'thin_default_reproducible');
 
 /* now print the options form */
 ?>
@@ -106,8 +107,12 @@ $num_of_hits_text = '(current no. of instances: ' . make_thousands($hits) . ')';
 			</td>
 			<td class="concordgrey">
 				<select name="newPostP_thinReallyRandom">
-					<option value="0" selected="selected">random (selection is reproducible)</option>
-					<option value="1">random (selection is not reproducible)</option>
+					<option value="0"<?php if ($reproducible_is_selected)  echo ' selected="selected";'?>>
+						random (selection is reproducible)
+					</option>
+					<option value="1"<?php if (!$reproducible_is_selected) echo ' selected="selected";'?>>
+						random (selection is not reproducible)
+					</option>
 				</select>
 			</td>
 			<td class="concordgrey">

@@ -245,7 +245,7 @@ function subcorpus_add_texts($subcorpus, $text_array)
 	foreach($text_array as &$t)
 		if (preg_match("/\b$t\b/", $new_list) < 1)
 			$new_list .= ' ' . $t;
-	alphabetise_textlist($new_list);
+	$new_list = alphabetise_textlist($new_list);
 	
 	subcorpus_alter_text_list($subcorpus, $new_list);
 }
@@ -757,6 +757,30 @@ function reload_last_restrictions()
 }
 
 
+/**
+ * Sorts an array of arrays representing a sequence of CWB corpus positions.
+ * 
+ * The array is sorted by ascending value of the [0] element of each inner array.
+ * 
+ * Note, unlike the normal PHP array sort functions, this function uses pass-by-value
+ * and return. It does not operate on a variable passed by reference.
+ * 
+ * @return  The sorted array.
+ */
+function sort_positionlist($list)
+{
+	static $callback = NULL;
+	if (empty($callback))
+		$callback = create_function('$a, $b', 
+		                            'if ($a[0] == $b[0]) return 0; 
+		                             return ($a[0] < $b[0]) ? -1 : 1;');
+	usort($list, $callback);
+	return $list;
+}
+
+
+
+
 
 function translate_restrictions_to_prose($restrictions)
 {
@@ -799,7 +823,6 @@ function translate_restrictions_to_prose($restrictions)
 
 function alphabetise_textlist($text_list)
 {
-	$string = '(';		// erm what's this for??? doesn't seem to be needed...
 	$list = explode(' ', $text_list);
 	
 	sort($list, SORT_STRING);
@@ -808,10 +831,25 @@ function alphabetise_textlist($text_list)
 }
 
 
-function translate_textlist_to_where($text_list)
+/**
+ * Translates a list of texts to a where clause listing each text as
+ * an or-linked condition on the text_id field.
+ * 
+ * Note the actual "WHERE" keyword is not included in the return value.
+ * 
+ * The argument (textlist) is normally expected to be a string of
+ * space-delimited text ids. But, if the (optional) second parameter
+ * is set to true, the first argument will instead be expected to be
+ * an array of strings where each one is a single text id.
+ */
+function translate_textlist_to_where($text_list, $as_array = false)
 {
+	if ($as_array)
+		$list =& $text_list;
+	else
+		$list = explode(' ', $text_list);
+	
 	$string = '(';
-	$list = explode(' ', $text_list);
 	
 	foreach ($list as $l)
 		$string .= "text_id = '$l' OR ";

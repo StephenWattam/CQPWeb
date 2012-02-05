@@ -140,6 +140,7 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 
 	/* from the form with new user settings */
 	
+	// TODO this is probably not even needed, that form coulds go straight to user-admin....
 	case 'newUserSettings':
 		require("../lib/user-admin.inc.php");
 		break;

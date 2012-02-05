@@ -639,7 +639,7 @@ function cqpweb_htmlspecialchars($string)
  * If removing the nonhandle characters reduces it to an
  * empty string, then it will be converted to "__HANDLE".
  * 
- * (Other code is of course responsible for making syure the handle is unique
+ * (Other code is of course responsible for making sure the handle is unique
  * where necessary.)
  * 
  * A maximum length can also be enforced if the second parameter
@@ -931,6 +931,34 @@ function user_is_superuser($username)
 	
 	return in_array($username, $a);
 }
+
+
+
+
+/**
+ * Change the character encoding of a specified text file. 
+ * 
+ * The re-coded file is saved to the path of $outfile.
+ * 
+ * Infile and outfile paths cannot be the same.
+ */
+function change_file_encoding($infile, $outfile, $source_charset_for_iconv, $dest_charset_for_iconv)
+{
+	if (! is_readable($infile) )
+		exiterror_arguments($infile, "This file is not readable.");
+	$source = fopen($infile, 'r');
+
+	if (! is_writable($outfile) )
+		exiterror_arguments($infile, "This path is not writable.");
+	$dest = fopen($outfile,  'w');
+	
+	while (false !== ($line = fgets($source)) )
+		fputs($dest, iconv($source_charset_for_iconv, $dest_charset_for_iconv, $line));
+	
+	fclose($source);
+	fclose($dest);
+}
+
 
 
 

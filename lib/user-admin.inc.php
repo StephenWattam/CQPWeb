@@ -47,7 +47,7 @@ $new_settings = parse_get_user_settings();
 update_multiple_user_settings($username, $new_settings);
 
 disconnect_all();
-header('Location: ' . url_absolutify('index.php?thisQ=search&uT=y'));
+header('Location: ' . url_absolutify('index.php?thisQ=userSettings&uT=y'));
 exit(0);
 
 ?>

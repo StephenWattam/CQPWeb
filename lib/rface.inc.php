@@ -258,9 +258,14 @@ class RFace
 
 		$result = array();
 		
+		/* set up the empty 
+		
 //TODO, we need calls to stream_select here!!!
+// empty array reference variables needed by stream_select().
+// while 0 < ($ready = stream_select($r=array($this->handle[1]), $w=NULL, $e=NULL, 0))
+// { $line = fgets($this->handle[1])); if empty($line) break;
 		/* then, get lines one by one from [OUT] */
-		while ( 0 < strlen($line = fgets($this->handle[1])) ) 
+		while ( 0 < strlen($line = fgets($this->handle[1])) )
 		{
 			/* delete whitespace from the line; empty lines NEVER added to the array. */
 			$line = trim($line, " \t\r\n");

@@ -1422,6 +1422,7 @@ function cqpweb_mysql_recreate_tables()
 			`cqp_syntax` tinyint(1),
 			`context_with_tags` tinyint(1),
 			`use_tooltips` tinyint(1),
+			`thin_default_reproducible` tinyint(1),
 			`coll_statistic` tinyint,
 			`coll_freqtogether` int,
 			`coll_freqalone` int,

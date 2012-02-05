@@ -124,6 +124,16 @@ function printquery_usersettings()
 		</tr>
 
 		<tr>
+			<td class="concordgeneral">Default setting for thinning queries</td>
+			<td class="concordgeneral">
+				<select name="newSetting_thin_default_reproducible">
+					<option value="0"<?php echo ($settings->thin_default_reproducible == '0' ? ' selected="selected"' : '');?>>Random: selection is not reproducible</option>
+					<option value="1"<?php echo ($settings->thin_default_reproducible == '1' ? ' selected="selected"' : '');?>>Random: selection is reproducible</option>
+				</select>
+			</td>
+		</tr>
+
+		<tr>
 			<th colspan="2" class="concordtable">Collocation options</th>
 		</tr>		
 
@@ -694,17 +704,23 @@ function printquery_latest()
 	<ul>
 <!--		Did a lot of new work on the help pages.
 -->
-		
-		<li>
-		<b>Version 3.0.3</b>, 2012-xx-xx<br/>&nbsp;<br/>
-		
-		<br/>&nbsp;<br/>
-		Fixed bug in concordance download function that was scrambling links to context.		
-		<br/>&nbsp;<br/>
+<!--
 		New feature: optional position labels in concordance (just like "sentence numbers" in BNCweb). 
 		<br/>&nbsp;<br/>
-		Extended the XML visualisation system to allow conditional visualisations.
+		Extended the XML visualisation system to allow conditional visualisations.-->
+		<li>
+		<b>Version 3.0.3</b>, 2012-02-05<br/>&nbsp;<br/>
+		Mostly a boring bug-fix release, with only one new feature: users can now 
+		customise their default thin-mode setting. 
+		<br/>&nbsp;<br/>
+		Fixed a bug in concordance download function that was scrambling links to context.		
+		<br/>&nbsp;<br/>
+		Fixed a bug in categorisation system that allowed invalid category names to be created.
+		<br/>&nbsp;<br/>
+		Fixed a bug in frequency list creation that introduced forms in the wrong character set
+		into the database.
 		<br/>&nbsp;</li>
+
 
 		<li>
 		<b>Version 3.0.2</b>, 2011-08-28<br/>&nbsp;<br/>
