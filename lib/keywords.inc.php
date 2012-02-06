@@ -214,12 +214,12 @@ $limit_string = ($download_mode ? '' : ("LIMIT ". ($page_no-1) * $per_page . ', 
 /* see note above in variable extraction */
 
 if (isset($_GET['kwTable1']) )
-	list($table_base[1], $table_desc[1], $table_foreign[1]) = parse_keyword_table_parameter($_GET['kwTable1']);
+	list($subcorpus[1], $table_base[1], $table_desc[1], $table_foreign[1]) = parse_keyword_table_parameter($_GET['kwTable1']);
 else
 	exiterror_fullpage("No frequency table was specified (table 1)!", __FILE__, __LINE__);
 	
 if (isset($_GET['kwTable2']) )
-	list($table_base[2], $table_desc[2], $table_foreign[2]) = parse_keyword_table_parameter($_GET['kwTable2']);
+	list($subcorpus[2], $table_base[2], $table_desc[2], $table_foreign[2]) = parse_keyword_table_parameter($_GET['kwTable2']);
 else
 	exiterror_fullpage("No frequency table was specified (table 2)!", __FILE__, __LINE__);
 
@@ -247,19 +247,19 @@ foreach(array(1,2) as $i)
 {
 	$restrict_string[$i] = '';
 	$cmp = 'freq_corpus_';
-	if (substr($table_base[$i], 9, strlen($cmp)) == $cmp)
+	if ($subcorpus[$i] == '__entire_corpus')
 		/* this is the home corpus (or a foreign corpus), so no restrict needed */
 		/* if foreign, will be set to false later */
 		;
 	else
 	{
-		/* this is a sub corpus -- home or foreign, so no restrict needed */
+		/* this is a subcorpus -- home or foreign, so a restrict is needed */
+		$restrict_string[$i] = '&del=begin&t=subcorpus~'. $subcorpus[$i] . '&del=end';
 		/* if foreign, will be set to false later */
-		if (preg_match("/freq_sc_{$corpus_sql_name}_(\w+)/", $table_base[$i], $m) > 0)
-			$restrict_string[$i] = '&del=begin&t=subcorpus~'. $m[1] . '&del=end';
 	}
 }
-if ($table_foreign[2] === true)
+/* and cos we already know the first table is NOT foreign... */
+if ($table_foreign[2])
 	$restrict_string[2] = false;
 
 
@@ -628,6 +628,7 @@ function parse_keyword_table_parameter($par)
 	// $par = mysql_real_escape_string($par)
 
 	/* set the values that kick in if nothing else is found */
+	$subcorpus = '';
 	$base = false;
 	$desc = '';
 	$foreign = false;
@@ -638,6 +639,7 @@ function parse_keyword_table_parameter($par)
 	
 	if ($par == '__entire_corpus')
 	{
+		$subcorpus = "__entire_corpus";
 		$base = "freq_corpus_$corpus_sql_name";
 		$desc = "whole &ldquo;$corpus_title&rdquo;";
 	}
@@ -647,10 +649,11 @@ function parse_keyword_table_parameter($par)
 	{
 		if (preg_match('/sc~(\w+)/', $par, $m) > 0)
 		{
-			if (($base = get_subcorpus_freqtable($m[1])) == false)
+			$subcorpus = $m[1];
+			if (($base = get_subcorpus_freqtable($subcorpus)) == false)
 				exiterror_general("The subcorpus you selected has no frequency list! "
 					. "Please compile the frequency list and try again.\n");
-			$desc = "subcorpus &ldquo;{$m[1]}&rdquo;";
+			$desc = "subcorpus &ldquo;$subcorpus&rdquo;";
 		}
 	}
 	
@@ -660,6 +663,7 @@ function parse_keyword_table_parameter($par)
 		$foreign = true;
 		if (preg_match('/pc~(\w+)/', $par, $m) > 0)
 		{
+			$subcorpus = "__entire_corpus";
 			$base = "freq_corpus_{$m[1]}";
 			
 			$sql_query = "select public_freqlist_desc from corpus_metadata_fixed
@@ -684,14 +688,15 @@ function parse_keyword_table_parameter($par)
 			$result = do_mysql_query($sql_query);
 
 			$r = mysql_fetch_assoc($result);
-			$desc = "subcorpus &ldquo;{$r['subcorpus']}&rdquo; from corpus &ldquo;{$r['corpus']}&rdquo;";
+			$subcorpus = $r['subcorpus'];
+			$desc = "subcorpus &ldquo;$subcorpus&rdquo; from corpus &ldquo;{$r['corpus']}&rdquo;";
 		}	
 	}
 	
 	/* implied "else": nothing has matched  -- default values at top of function get returned. */
 
 
-	return array($base, $desc, $foreign);	
+	return array($subcorpus, $base, $desc, $foreign);	
 }
 
 
