@@ -2050,7 +2050,9 @@ function printquery_xmlvisualisation()
 									$_GET['xmlCondAttribute'],
 									$_GET['xmlCondRegex'] );
 	
-	/* OK, now the processing is done, let's render the form */
+	/* 
+	 * OK, now the processing is done, let's render the form 
+	 */
 	
 	?>
 	<table class="concordtable" width="100%">
@@ -2131,7 +2133,7 @@ function printquery_xmlvisualisation()
 			echo '
 				<td class="concordgeneral">&lt;' . $startend . $tag . '&gt;'
 				. (empty($v->cond_attribute) ? '' 
-					: "<br/>where <em>{$v->cond_attribute}</em> matches <em>" . $cond_regex_print . "</em>\n")  
+					: "<br/>where <em>{$v->cond_attribute}</em> matches <em>$cond_regex_print</em>\n")  
 				. '</td>
 				';
 			

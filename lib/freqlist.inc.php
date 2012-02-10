@@ -86,7 +86,7 @@ foreach ($_GET as $k => $g)
 
 
 /* do we want a nice HTML table or a downloadable table? */
-$download_mode = (bool)$_GET['tableDownloadMode'];
+$download_mode = (isset ($_GET['tableDownloadMode']) ? (bool)$_GET['tableDownloadMode'] : false);
 
 
 /*
@@ -152,6 +152,8 @@ if (isset($_GET['flFilterString']) && $_GET['flFilterString'] !== '')
 		break;
 	}
 }
+else
+	$filter_desc = $filter_clause = '';
 
 /* set up the frequency filter */
 
@@ -228,7 +230,7 @@ $limit_string = ($download_mode ? '' : ("LIMIT ". ($page_no-1) * $per_page . ', 
 
 /* the table to use (basename) */
 
-if ( !isset($_GET['flTable']) || $_GET['flTable'] == __entire_corpus )
+if ( !isset($_GET['flTable']) || $_GET['flTable'] == '__entire_corpus' )
 {
 	$table_base = "freq_corpus_$corpus_sql_name";
 	$table_desc = "entire &ldquo;$corpus_title&rdquo;";
@@ -409,7 +411,7 @@ function print_freqlist_control_row($page_no, $next_page_exists)
 	$nav_page_no['next']  = ( (! $next_page_exists) ? 0 : $page_no + 1);
 	/* all page numbers that should be dead links are now set to zero  */
 	
-	$string .= '<tr>';
+	$string = '<tr>';
 
 
 	foreach ($marker as $key => $m)

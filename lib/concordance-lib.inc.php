@@ -614,6 +614,7 @@ function print_categorise_control()
  * 								to get no highlight.
  * @param highlight_show_pos	Boolean: show the primary annotation of the highlit
  * 								item in-line.  
+ * @return                      The built-up line.
  */
 function print_concordance_line($cqp_line, $position_table, $line_number, 
 	$highlight_position, $highlight_show_pos = false)
@@ -632,7 +633,7 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	/* I'm not actually using these at the moment ? */
 
 	/* get URL of the extra-context page right at the beginning, 
-	 * becaise we don't know when we may need it */
+	 * because we don't know when we may need it */
 	$context_url = concordance_line_get_context_url($line_number);
 
 	if ($visualise_translate_in_concordance)
@@ -645,7 +646,7 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	}
 
 	/* extract the text_id and delete that first bit of the line */
-	extract_cqp_line_position_labels($cqp_line, $text_id, $position_label);
+	extract_cqp_line_position_labels($cqp_line, $text_id='', $position_label='');
 	
 	/* divide up the CQP line */
 	list($kwic_lc, $kwic_match, $kwic_rc) = explode('--%%%--', $cqp_line);	
@@ -756,8 +757,8 @@ function concordance_line_blobprocess($lineblob, $type, $highlight_position, $hi
 {
 	global $visualise_gloss_in_concordance;
 	
-	/* all string literals (other than empty strings or spacers) must be here 
-	 * so they can be conditionally set. */
+	/* all string literals (other than empty strings or spacers) 
+	 * must be here so they can be conditionally set. */
 	if ($type == 'node')
 	{
 		$main_begin_high = '';
@@ -783,8 +784,14 @@ function concordance_line_blobprocess($lineblob, $type, $highlight_position, $hi
 	/* end of string-literals-into-variables section */
 
 	
-	/* the "trim" is just in case of unwanted spaces (there will deffo be some on the left) ... */
-	$token_array = explode(' ', trim($lineblob));
+	/* the "trim" is just in case of unwanted spaces (there will deffo be some on the left) ... *///show_var(htmlspecialchars($lineblob));
+	/* this regular expression puts tokens in $m[4]; xml-tags-before in $m[1]; xml-tags-after in $m[5] . */
+	preg_match_all('|((<\S+?( \S+?)?>)*)([^ <]+)((</\S+?>)*) ?|', trim($lineblob), $m, PREG_PATTERN_ORDER);
+	/* note, this is p[rone to interference from literal < in the index. Will be fixable when we have XML
+	 * concordance output in CQP v 4.0 */
+	$token_array = $m[4];
+	$xml_before_array = $m[1];
+	$xml_after_array = $m[5];
 
 	$n = ($token_array[0] == '' ? 0 : count($token_array));
 	
@@ -799,6 +806,9 @@ function concordance_line_blobprocess($lineblob, $type, $highlight_position, $hi
 	
 	for ($i = 0; $i < $n; $i++) 
 	{
+/* TODO replace with actual function to render the XML viz, rather than just HTML speciallchars */
+$xml_before_string = htmlspecialchars($xml_before_array[$i]) . ' ';
+$xml_after_string =  ' ' . htmlspecialchars($xml_after_array[$i]);
 		list($word, $tag) = extract_cqp_word_and_tag($token_array[$i]);
 
 		if ($type == 'left' && $i == 0 && preg_match('/\A[.,;:?\-!"]\Z/', $word))
@@ -810,12 +820,14 @@ function concordance_line_blobprocess($lineblob, $type, $highlight_position, $hi
 			/* the default case: we are buiilding a concordance line and a tooltip */
 			if ($highlight_position == $i+1) /* if this word is the word being sorted on / collocated etc. */
 			{
-				$main_string .= $main_begin_high . $word . ($highlight_show_pos ? $tag : '') . $main_end_high;
+				$main_string .= $xml_before_string . $main_begin_high 
+					. $word 
+					. ($highlight_show_pos ? $tag : '') . $main_end_high . $xml_after_string ;
 				$other_string .= $other_begin_high . $word . $tag . $other_end_high;
 			}
 			else
 			{
-				$main_string .= $word . ' ';
+				$main_string .= $xml_before_string . $word . $xml_after_string . ' ';
 				$other_string .= $word . $tag . ' ';
 			}
 		}
@@ -825,16 +837,16 @@ function concordance_line_blobprocess($lineblob, $type, $highlight_position, $hi
 			 * other_string will be the second line of the gloss table instead of a tooltip */
 			if ($highlight_position == $i+1)
 			{
-				$main_string .= $glossbox_line1_cell_begin . $main_begin_high 
+				$main_string .= $glossbox_line1_cell_begin . $xml_before_string . $main_begin_high 
 					. $word 
-					. $main_end_high . $glossbox_end;
+					. $main_end_high . $xml_after_string . $glossbox_end;
 				$other_string .= $glossbox_line2_cell_begin . $main_begin_high 
 					. $tag 
 					. $main_end_high . $glossbox_end;
 			}
 			else
 			{
-				$main_string .= $glossbox_line1_cell_begin . $word . $glossbox_end;
+				$main_string .= $glossbox_line1_cell_begin . $xml_before_string . $word . $xml_after_string . $glossbox_end;
 				$other_string .= $glossbox_line2_cell_begin . $tag . $glossbox_end;
 			}	
 		}
@@ -1022,6 +1034,7 @@ function extract_cqp_word_and_tag(&$cqp_source_string)
 	if ($word_extraction_pattern)
 	{
 		preg_match($word_extraction_pattern, cqpweb_htmlspecialchars($cqp_source_string), $m);
+if (!isset($m[1], $m[2])) {show_var($cqp_source_string); }
 		$word = $m[1];
 		$tag = ($visualise_gloss_in_concordance ? '' : '_') . $m[2];
 	}
@@ -1034,7 +1047,7 @@ function extract_cqp_word_and_tag(&$cqp_source_string)
 }
 
 /**
- * Extract the position inidicators (text_id and, optionally, one other) and place them
+ * Extracts the position inidicators (text_id and, optionally, one other) and place them
  * in the given variables; scrub them from the CQP line and put the new CQP line
  * back in the variable the old one came from.
  * 

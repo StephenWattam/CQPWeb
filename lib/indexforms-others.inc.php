@@ -704,10 +704,16 @@ function printquery_latest()
 	<ul>
 <!--		Did a lot of new work on the help pages.
 -->
-<!--
-		New feature: optional position labels in concordance (just like "sentence numbers" in BNCweb). 
+		<li>
+		<b>Version 3.0.4</b>, 2012-02-10<br/>&nbsp;<br/>
+		New feature: optional position labels in concordance (just like "sentence numbers" in BNCweb) 
+		(this feature originally planned for 3.0.3 but not complete in that release). 
 		<br/>&nbsp;<br/>
-		Extended the XML visualisation system to allow conditional visualisations.-->
+		Extended the XML visualisation system to allow conditional visualisations (ditto).
+		<br/>&nbsp;<br/>
+		XML visualisations now actually appear in the concordance (but only paritally rendered: they look like raw XML).
+		<br/>&nbsp;</li>
+		
 		<li>
 		<b>Version 3.0.3</b>, 2012-02-05<br/>&nbsp;<br/>
 		Mostly a boring bug-fix release, with only one new feature: users can now 

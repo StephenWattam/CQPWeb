@@ -159,8 +159,7 @@ function xml_visualisation_primary_key_whereclause($corpus, $element, $cond_attr
 {
 	$corpus = cqpweb_handle_enforce($corpus);
 	$element = mysql_real_escape_string($element);
-	$cond_attribute = cqpweb_handle_enforce($cond_attribute);
-	$cond_regex = mysql_real_escape_string($cond_regex);
+	list($cond_attribute, $cond_regex) = xml_visualisation_condition_enforce($cond_attribute, $cond_regex);
 	
 	return " where corpus='$corpus' 
 			and element = '$element' 
@@ -188,8 +187,7 @@ function xml_visualisation_create($corpus, $element, $code, $cond_attribute = ''
 	/* make safe all db inputs: use handle enforce, where possible */
 	$corpus = cqpweb_handle_enforce($corpus);
 	$element = cqpweb_handle_enforce($element);
-	$cond_attribute = cqpweb_handle_enforce($cond_attribute);
-	$cond_regex = mysql_real_escape_string($cond_regex);
+	list($cond_attribute, $cond_regex) = xml_visualisation_condition_enforce($cond_attribute, $cond_regex);
 	
 	$element_db = $element . ($is_start_tag ? '~start' : '~end');
 	
@@ -217,7 +215,27 @@ function xml_visualisation_create($corpus, $element, $code, $cond_attribute = ''
 			$in_context,$in_concordance, '$code', '$html')");
 }
 
+/** 
+ * Returns an arrya contianing its two arguments, adjusted (empty strings
+ * idf there is no condition, a handle and a mysql-escaped regex otherwise) 
+ */
+function xml_visualisation_condition_enforce($cond_attribute, $cond_regex)
+{
+	$cond_attribute = trim ($cond_attribute);
+	
+	if (! empty($cond_attribute))
+	{
+		$cond_attribute = cqpweb_handle_enforce($cond_attribute);
+		$cond_regex = mysql_real_escape_string($cond_regex);
+	}
+	else
+	{
+		$cond_attribute = '';
+		$cond_regex = '';
+	}
 
+	return array($cond_attribute, $cond_regex);
+}
 
 /** 
  * Returns an array of all fields used in the argument string.
@@ -295,6 +313,7 @@ function xml_visualisation_bb2html($bb_code, $is_for_end_tag = false)
 		}
 		return "<t{$m[1]}$span>";
 	}
+	//TODO replace the above with a closure at some point
 	$html = preg_replace_callback('|\[t([hd])\s+([^\]]*)\]|i',  'for_table_cell_callback', $html );
 	
 	/* color opening tags: allow the "colour" alleged-misspelling (curse these US-centric HTML standards! */

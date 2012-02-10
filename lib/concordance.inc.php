@@ -53,9 +53,7 @@ require_once('../lib/db.inc.php');
 require_once('../lib/user-settings.inc.php');
 require_once('../lib/plugins.inc.php');
 require_once('../lib/xml.inc.php');
-
-/* and because I'm using the next two modules I need to... */
-require_once("../lib/cwb.inc.php"); /* TODO NOT TESTED YET - used by dump and undump, I think */
+require_once("../lib/cwb.inc.php");
 require_once("../lib/cqp.inc.php");
 
 
@@ -754,7 +752,7 @@ if ( ! empty($xml_tags_to_show) )
 /* what corpus location attributes to show? */
 $cqp->execute('set PrintStructures "' 
 				// TODO. Will this work along with XML visualisation? Should it be one or the other?
-				// TODO does it work along wiht position labels???
+				// TODO does it work along with position labels???
 				. ($visualise_translate_in_concordance ? "$visualise_translate_s_att " : '') 
 				. 'text_id'
 				. ($visualise_position_labels ? " $visualise_position_label_attribute" : '')
@@ -818,8 +816,8 @@ for ( $i = 0, $b = ($highlight_positions_array !== false) ; $i < $n ; $i++ )
 {
 	$highlight_position = ($b ? (int)$highlight_positions_array[$i] : 1000000);
 	
-	$line = print_concordance_line($kwic[$i], $table, ($conc_start + $i), 
-				$highlight_position, $highlight_show_tag);
+	$line = print_concordance_line( $kwic[$i], $table, ($conc_start + $i), 
+									$highlight_position, $highlight_show_tag);
 
 
 	$categorise_column = '';
