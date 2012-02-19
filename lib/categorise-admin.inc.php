@@ -333,6 +333,8 @@ function categorise_separate()
 	
 	$dbname = catquery_find_dbname($qname);
 	
+	/* we DO NOT use a unique ID from instance_name, because we want to be able to 
+	 * delete this query later if the mother-query is re-separated. See below. */
 	$newqname_root = $qname . '_';
 	$newsavename_root = $query_record['save_name'] . '_';
 
@@ -351,6 +353,10 @@ function categorise_separate()
 		$newqname = $newqname_root . $category;
 		/* if the query exists... (note, we wouldn't normally overwrite, but for separation we do */
 		delete_cached_query($newqname);
+		/* we also want to eliminate any existing DBs based on this  query, so any data
+		 * based on a previous separation is removed */
+		delete_dbs_of_query($newqname);
+		
 		refresh_directory_global_cqp();
 		
 		$newsavename = $newsavename_root . $category;

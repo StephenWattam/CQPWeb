@@ -705,6 +705,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.0.5</b>, 2012-02-19<br/>&nbsp;<br/>
+		Just bug fixes, but major ones!
+		<br/>&nbsp;</li>
+		
+		<li>
 		<b>Version 3.0.4</b>, 2012-02-10<br/>&nbsp;<br/>
 		New feature: optional position labels in concordance (just like "sentence numbers" in BNCweb) 
 		(this feature originally planned for 3.0.3 but not complete in that release). 

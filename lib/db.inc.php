@@ -524,6 +524,22 @@ function delete_db($dbname)
 }
 
 
+/**
+ * Deletes all databases that are associated with a given query-name.
+ * 
+ * This would typically be done if the query itself is being deleted
+ * and we DON'T want to save associated DBs for a future similar query
+ * e.g. if we're overwriting a separated-out catquery.
+ */
+function delete_dbs_of_query($qname)
+{
+	$qname = mysql_real_escape_string($qname);	
+	
+	$result = do_mysql_query("select dbname from saved_dbs where dbname like 'db_%_$qname'");
+	while (false !== ($r = mysql_fetch_row($result)))
+		delete_db($r[0]);
+}
+
 
 /** 
  * note: this function works ACROSS CORPORA && across types of db (except catquery) 
