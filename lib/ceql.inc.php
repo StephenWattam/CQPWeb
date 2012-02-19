@@ -398,6 +398,7 @@ function add_tertiary_mapping_table($id, $name, $mappings)
 
 /**
  * Drops a CEQL mapping table from the database.
+ */
 function drop_tertiary_mapping_table($id)
 {
 	$id = mysql_real_escape_string($id);

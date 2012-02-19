@@ -217,7 +217,7 @@ class corpus_install_info
 		}
 		else
 		{
-			for ( $q = 1 ; isset($_GET["customS$q"]) ; $q++ )
+			for ( $q = 1 ; !empty($_GET["customS$q"]) ; $q++ )
 			{
 				if (preg_match('/^\w+(:0)?(\+\w+)+$/', $_GET["customS$q"]) > 0)
 					$cand = $_GET["customS$q"];
