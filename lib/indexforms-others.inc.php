@@ -705,6 +705,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.0.6</b>, 2012-02-xx<br/>&nbsp;<br/>
+		More bug fixes.
+		<br/>&nbsp;</li>
+		
+		<li>
 		<b>Version 3.0.5</b>, 2012-02-19<br/>&nbsp;<br/>
 		Just bug fixes, but major ones!
 		<br/>&nbsp;</li>

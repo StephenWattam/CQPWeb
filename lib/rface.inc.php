@@ -183,7 +183,7 @@ class RFace
 	{
 		if (isset($this->handle[0]))
 		{
-			fwrite($this->handle[0], 'q()\n');		// TODO check whether the \n is needed; I imagine it is
+			fwrite($this->handle[0], 'q()\n');
 			fclose($this->handle[0]);
 		}
 		if (isset($this->handle[1]))
@@ -216,6 +216,8 @@ class RFace
 	 * 
 	 * This may be an empty array if R didn't print anything.
 	 * 
+	 * False is returned in case of error.
+	 * 
 	 * If $line_handler_callback is specified, it will be called on each line of
 	 * output (AFTER whitespace is trummed). If the callback handler returns a value, 
 	 * that value will be added to the return-array instead of the line. 
@@ -239,37 +241,37 @@ class RFace
 		/* execute can change the number of objects, so clear object-list cache */
 		$this->object_list_cache = false;
 		
+		$command = trim($command);
+		
 		if ( (!is_string($command)) || $command == "" )
 		{
-			$this->ok = false;
 			$this->error("RFace: ERROR: RFace::execute() was called with no command\n");
-			return;
+			return false;
 		}
 
 		$this->debug_alert("RFace: R << $command;\n");
 
 		/* send the command to R's [IN] */
-		// TODO do we need a \n here after the command?
-		// If we DON'T, then sending one will result in an empty line of output.... (?)
-		// check this out!
-		if (false === fwrite($this->handle[0], $command))
+		if (false === fwrite($this->handle[0], $command) || false === fwrite($this->handle[0], "\n"))
+		{
 			$this->error("RFace: ERROR: problem writing to the R input stream\n");
+			return false;
+		}
 		/* that executes the command ... */
 
 		$result = array();
 		
-		/* set up the empty 
-		
-//TODO, we need calls to stream_select here!!!
-// empty array reference variables needed by stream_select().
-// while 0 < ($ready = stream_select($r=array($this->handle[1]), $w=NULL, $e=NULL, 0))
-// { $line = fgets($this->handle[1])); if empty($line) break;
 		/* then, get lines one by one from [OUT] */
-		while ( 0 < strlen($line = fgets($this->handle[1])) )
+		while (0 < ($ready = stream_select($r=array($this->handle[1]), $w=NULL, $e=NULL, 0)))
 		{
-			/* delete whitespace from the line; empty lines NEVER added to the array. */
-			$line = trim($line, " \t\r\n");
+			$line = fgets($this->handle[1]);
 			if (empty($line))
+				break;
+			/* we break on an empty line because it means that the select() call gave us bad info! */
+				
+			/* delete whitespace from the line; blank lines NEVER added to the array. */
+			$line = trim($line, " \t\r\n");
+			if ($line == '')
 				continue;
 
 			/* an output line we ALWAYS ignore; an empty statement terminated by ; is not invalid! */
@@ -294,9 +296,9 @@ class RFace
 				/* add the line to an array of results */
 				$result[] = $line;
 		}
-		/* Note, no attempt is made to do anything with R's [ERR] stream. */
+		/* Note, no attempt is made to do anything with R's [ERR] stream, at least for now! */
 
-		/* return the array of results */
+		/* return the array of result lines */
 		return $result;
 	}
 
@@ -525,8 +527,9 @@ class RFace
 			$instring .= ',' . self::num($a);
 		
 		/* now, add start and end of command, before sending to R */
-		// old version with regex engine : // $instring = preg_replace('/\A,/', "$varname = c(", $instring) . ')';
 		$instring = "$varname = c(" . ltrim($instring, ",") . ')';
+		// old version with regex engine : 
+		// $instring = preg_replace('/\A,/', "$varname = c(", $instring) . ')';
 		
 		$r = $this->execute($instring);
 		
@@ -559,13 +562,34 @@ class RFace
 	 * 
 	 * (1) that lines are terminated by \n or \r\n
 	 * (2) that fields are separated by \t
-	 * (3) if $header_row, then the first line is treated as containing column names
+	 * (3) that objects = rows and fields = columns   // TODO check this -- see below
+	 * (4) if $header_row, then the first line is treated as containing column names
 	 *     that can be used as object names
 	 * 
 	 * If $data is an array, then the following assumptions are made:
 	 * 
-	 * (1) that TODO
+	 * (1) that each member of the array represents a row of the table (data object)
+	 * (2) that each member is a one-dimensional array representing properties of objects
+	 * (3) that all inner arrys are of the same length and same type (that is, they
+	 *     would work as R vectors)
+	 * (4) if $header_row, then the first inner array is treated as containing column names
+	 * 
+	 * 
+	 * @param $varname     The name the resulting variable is to have in R. If an object of
+	 *                     that name already exists, it will be overwritten.
+	 * @param $data        The data frame to be loaded (string representation of table, 
+	 *                     or 2d array). Passed by reference, but not modified.
+	 * @param $header_row  Boolean: does the data contain a header row? (Header row = 
+	 *                     everything up to or including the first \nb in a string; or,
+	 *                     the first member of the array contains a header element.)
+	 * @param $invert_array  Boolean: if true, the two dimensions of an array are swopped
+	 * 
+	 * @return               Boolean: true = success, 
 	 */
+// TODO: check: what is the standard R input format, columns as vectors or rows as vectors?
+// to put it another way, does each input vector = an object, ro does each input vector = a propery? 
+// Whatever is normal for R should be the OPPOSITE because the default is for invert_data to be TRUE.
+// Need to take a long hard look at the process for creating data frames before going further with this.
 	public function load_data_frame($varname, &$data, $header_row = true, $invert_array = true)
 	{
 		if (is_string($data))
@@ -574,20 +598,23 @@ class RFace
 			$this->load_data_frame_from_2darray($varname, $data, $header_row, $invert_array);
 	}
 	
-	private function load_data_frame_from_string($varname, &$data, $header_row = true)
+	/** function called only by @see load_data_frame */
+	private function load_data_frame_from_string($varname, &$data, $header_row)
 	{
 		//TODO
 	}
 	
-	private function load_data_frame_from_2darray($varname, &$data, $header_row = true, $invert_array = true)
+	/** function called only by @see load_data_frame */
+	private function load_data_frame_from_2darray($varname, &$data, $header_row, $invert_array)
 	{
 		if ($invert_array)
 		{
 			$temp_data = array();
-			// TODO: load data to temp_data
-			$this->load_data_frame_from_2darray($varname, $temp_data, $header_row, false);
-			return;	
-		}	
+			// TODO: move data (inverted)to $temp_data
+			return $this->load_data_frame_from_2darray($varname, $temp_data, $header_row, false);
+		}
+		
+		// TODO
 	}
 	
 	
