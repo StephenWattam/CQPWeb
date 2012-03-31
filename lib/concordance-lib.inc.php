@@ -646,12 +646,12 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	}
 
 	/* extract the text_id and delete that first bit of the line */
-	extract_cqp_line_position_labels($cqp_line, $text_id='', $position_label='');
+	extract_cqp_line_position_labels($cqp_line, $text_id, $position_label);
 	
 	/* divide up the CQP line */
-	list($kwic_lc, $kwic_match, $kwic_rc) = explode('--%%%--', $cqp_line);	
+	list($kwic_lc, $kwic_match, $kwic_rc) = explode('--%%%--', $cqp_line);
 
-	/* create arrays of words from the incoming variables: split at space * /	
+	/* create arrays of words from the incoming variables: split at space * /
 	$lc = explode(' ', $kwic_lc);
 	$rc = explode(' ', $kwic_rc);
 	$node = explode(' ', $kwic_match);
