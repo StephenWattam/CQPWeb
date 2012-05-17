@@ -949,7 +949,7 @@ function change_file_encoding($infile, $outfile, $source_charset_for_iconv, $des
 	$source = fopen($infile, 'r');
 
 	if (! is_writable($outfile) )
-		exiterror_arguments($infile, "This path is not writable.");
+		exiterror_arguments($outfile, "This path is not writable.");
 	$dest = fopen($outfile,  'w');
 	
 	while (false !== ($line = fgets($source)) )

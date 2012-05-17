@@ -101,7 +101,7 @@ function corpus_make_freqtables()
 	unset($junk);
 	
 	/* We need to check if the CorpusCharset is other than ASCII/UTF8. 
-	 * If it is, we need to open & cycle iconv on the whole thing.     */
+	 * If it is, we need to call the library function that runs over it with iconv. */
 	if (($corpus_charset = $cqp->get_corpus_charset()) != 'utf8')
 	{
 		$utf8_filename = $filename .'.utf8.tmp';
@@ -113,7 +113,7 @@ function corpus_make_freqtables()
 		
 		unlink($filename);
 		rename($utf8_filename, $filename);
-		/* so now, either way, we need ot work further on $filename. */
+		/* so now, either way, we need to work further on $filename. */
 	}
 
 
