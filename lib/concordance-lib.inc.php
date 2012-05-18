@@ -169,9 +169,9 @@ function create_solution_heading($record, $include_corpus_size = true)
 
 
 	if ($num_of_files > 1) 
-		$final_string .= " in $num_of_files different texts";
+		$final_string .= ' in ' . make_thousands($num_of_files) . ' different texts';
 	else 
-		$final_string .= " in 1 text";
+		$final_string .= ' in 1 text';
 
 
 

@@ -152,10 +152,23 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 	case 'backFromDistribution':
 		require("../lib/concordance.inc.php");
 		break;
+	
+	case 'refreshDistribution':
+		require("../lib/distribution.inc.php");
+		break;
+	
+	case 'distributionDownload':
+		$_GET['tableDownloadMode'] = 1;
+		require("../lib/distribution.inc.php");
+		break;
 		
 		
 		
 	/* from control box in collocation.php */
+
+	case 'backFromCollocation':
+		require("../lib/concordance.inc.php");
+		break;
 
 	case 'rerunCollocation':
 		require("../lib/collocation.inc.php");

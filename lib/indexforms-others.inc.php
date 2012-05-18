@@ -705,8 +705,12 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
-		<b>Version 3.0.6</b>, 2012-02-xx<br/>&nbsp;<br/>
+		<b>Version 3.0.6</b>, 2012-05-15<br/>&nbsp;<br/>
 		More bug fixes.
+		<br/>&nbsp;<br/>
+		Added a new feature: a full file-by-file distribution table can now be downloaded.
+		<br/>&nbsp;<br/>
+		Adjusted the Distribution interface to make it more like the Collocations interface.
 		<br/>&nbsp;</li>
 		
 		<li>

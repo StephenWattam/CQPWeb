@@ -235,7 +235,7 @@ else
 
 
 /* do we want a nice HTML table or a downloadable table? */
-if ($_GET['tableDownloadMode'] == 1)
+if (isset($_GET['tableDownloadMode']) && $_GET['tableDownloadMode'] == 1)
 	$download_mode = true;
 else
 	$download_mode = false;
@@ -451,7 +451,7 @@ $description = "There are " . make_thousands($db_types_total) . " different "
 	. strtolower($att_desc[$att_for_calc]) 
 	. "s in your collocation database for &ldquo;{$query_record['cqp_query']}&rdquo;. (" 
 	. create_solution_heading($query_record, false) . ') ' 
-	. format_time_string($timeTaken, $new_db);
+	. format_time_string($timeTaken, $is_new_db);
 
 
 
@@ -614,6 +614,12 @@ else
 						<option value="rerunCollocation">Submit changed parameters</option>
 						<option value="collocationDownload">Download collocation results</option>
 						<option value="newQuery">New query</option>
+						<option value="backFromCollocation">Back to query result</option
+						<!--
+							important note: because of intervening "create database" screen,
+							the return-target is always the first page of the query -
+							unlike the Distribution program, which remembers where we were.
+						-->
 					</select>
 					<input type="submit" value=" Go! " />
 				</td>
@@ -632,7 +638,9 @@ else
 		</form>
 	</table>
 
-	<!-- end of collocation control display, start of collocation results display -->
+	<!-- 
+		end of collocation control display, start of collocation results display 
+	-->
 
 	<table class="concordtable" width="100%">
 		<tr>
@@ -760,4 +768,3 @@ disconnect_global_mysql();
 
 
 ?>
-

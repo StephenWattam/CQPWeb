@@ -775,11 +775,11 @@ function create_text_metadata_for()
 	
 	for ($i = 1; $i <= $create_text_metadata_for_info['field_count']; $i++)
 	{
-		$create_text_metadata_for_info['fields'][$i]['handle'] 
-			= cqpweb_handle_enforce($create_text_metadata_for_info['fields'][$i]['handle']);
-			
 		if ($create_text_metadata_for_info['fields'][$i]['handle'] == '')
 			continue;
+			
+		$create_text_metadata_for_info['fields'][$i]['handle'] 
+			= cqpweb_handle_enforce($create_text_metadata_for_info['fields'][$i]['handle']);
 			
 		if ($create_text_metadata_for_info['fields'][$i]['classification'])
 		{

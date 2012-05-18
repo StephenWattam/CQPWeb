@@ -57,9 +57,6 @@ require_once ("../lib/metadata.inc.php");
 require_once ("../lib/subcorpus.inc.php");
 require_once ("../lib/cache.inc.php");
 require_once ("../lib/db.inc.php");
-
-/* and because I'm using the next two modules I need to... */
-//create_pipe_handle_constants();
 require_once ("../lib/cwb.inc.php");
 require_once ("../lib/cqp.inc.php");
 
@@ -72,27 +69,6 @@ ob_implicit_flush(true);
 
 if (!url_string_is_valid())
 	exiterror_bad_url();
-
-
-
-
-?>
-
-
-<html>
-<head>
-<?php
-echo '<title>' . $corpus_title . ' -- CQPweb showing distribution of query solutions</title>';
-echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>
-<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
-<script type="text/javascript" src="../lib/javascript/cqpweb-distTableSort.js"></script> 
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-</head>
-<body>
-
-<?php
 
 
 
@@ -136,18 +112,23 @@ else
 
 if ($class_scheme_to_show == '__all' || $class_scheme_to_show == '__filefreqs')
 	$class_scheme_for_crosstabs = '__none';
-// nb crosstabs also overriden if "file frequency" is selected
-
+/* nb crosstabs also overriden if "file frequency" is selected */
 
 if (isset($_GET['showDistAs']) && $_GET['showDistAs'] == 'graph' && $class_scheme_to_show != '__filefreqs')
 {
-	$print_function = print_distribution_graph;
+	$print_function = 'print_distribution_graph';
 	$class_scheme_for_crosstabs = '__none';
 }
 else
-	$print_function = print_distribution_table;
-	
+	$print_function = 'print_distribution_table';
+
 /* as you can see above, if graph is selected, then crosstabs is overridden */
+
+/* do we want a nice HTML table or a downloadable table? */
+if (isset($_GET['tableDownloadMode']) && $_GET['tableDownloadMode'] == 1)
+	$download_mode = true;
+else
+	$download_mode = false;
 
 
 
@@ -187,178 +168,243 @@ else
 /* this dbname & its db_record can be globalled by the various print-me functions */
 
 
-
-/* print upper table - control form */
-
-/* get a list of handles and descriptions for classificatory metadata fieds in this corpus */
-$class_scheme_list = metadata_list_classifications();
-
-
-?>
-<table class="concordtable" width="100%">
-	<tr>
-		<th colspan="4" class="concordtable">
-			<?php
-				echo distribution_header_line($query_record, $db_record);
-			?>
-		</th>
-	</tr>
-	<tr>
-		<td class="concordgrey">Categories:</td>
-		<form action="distribution.php" method="get">
-			<td class="concordgrey">
-				<select name="classification">
-					<?php
-					
-					$selected_done = false;
-					$class_desc_to_pass = "";
-					
-					foreach($class_scheme_list as $c)
-					{
-						echo '<option value="' . ($c['handle']) . '"';
-						if ($c['handle'] == $class_scheme_to_show)
-						{
-							$class_desc_to_pass = $c['description'];
-							echo ' selected="selected"';
-							$selected_done = true;
-						}
-						echo '>' . ($c['description']) . '</option>';
-					}
-					
-					if ($selected_done == false)
-					{
-						$ff_str  = ($class_scheme_to_show == '__filefreqs' ? ' selected="selected"' : '');
-						$all_str = ($class_scheme_to_show == '__all'       ? ' selected="selected"' : '');
-					}
-					echo "<option value=\"__all\"$all_str>General information</option>";
-					echo "<option value=\"__filefreqs\"$ff_str>File-frequency information</option>";
-
-					?>
-				</select>
-			</td>
-			<td class="concordgrey" rowspan="2">
-				Show as:
-				<br/>&nbsp;<br/>
-				<select name="showDistAs">
-					<?php if ($print_function == print_distribution_graph) { ?>
-					<option value="table">Distribution table</option>
-					<option value="graph" selected="selected">Bar chart</option>
-					<?php } else {?>
-					<option value="table" selected="selected">Distribution table</option>
-					<option value="graph">Bar chart</option>
-					<?php } ?>
-				</select>
-			</td>
-			<td class="concordgrey">
-				<input type="submit" value="Show distribution"/>
-			</td>
-	</tr>
-	<tr>
-			<td class="concordgrey">Category for crosstabs:</td>
-			<td class="concordgrey">
-				<select name="crosstabsClass">
-					<?php
-					
-					$selected_done = false;
-					$class_desc_to_pass_for_crosstabs = "";
-					
-					foreach($class_scheme_list as $c)
-					{
-						echo '<option value="' . ($c['handle']) . '"';
-						if ($c['handle'] == $class_scheme_for_crosstabs)
-						{
-							$class_desc_to_pass_for_crosstabs = $c['description'];
-							echo ' selected="selected"';
-							$selected_done = true;
-						}
-						echo '>' . ($c['description']) . '</option>';
-					}
-					if ($selected_done)
-						echo '<option value="__none">No crosstabs</option>';
-					else
-						echo '<option value="__none" selected="selected">No crosstabs</option>';
-					?>
-				</select>
-			</td>
-			<?php
-				echo url_printinputs(array(
-					array('redirect', '' ), array('classification', ''), array('crosstabsClass', ''), 
-					array('showDistAs', '')
-					) ) ;
-			?>
-		</form>
-		<form action="redirect.php" method="get">
-			<td class="concordgrey">
-				<select name="redirect">
-					<option value="newQuery" selected="selected">New Query</option>
-					<option value="backFromDistribution">Back to query result</option>
-				</select>
-				<input type="submit" value="Go!" />
-			</td>
-			<?php
-				echo url_printinputs(array(
-					array('redirect', '' ), array('classification', ''), array('crossTabsClass', '') , 
-					array('showDistAs', '')
-					) ) ;
-			?>
-		</form>
-	</tr>
-	<?php 
-	if (count($class_scheme_list) == 0  && $class_scheme_to_show != '__filefreqs')
-	{
-		?>
-		<tr>
-			<th class="concordtable" colspan="4">
-				This corpus has no text-classification metadata, so the distribution cannot be shown.
-				You can still select the &ldquo;<em>File-frequency information</em>&rdquo; command 
-				from the menu above.
-			</th>
-		</tr>
-		<?php
-	}
-	?>
-</table>
-
-<?php
-
-echo '<table class="concordtable" width="100%">';
-
-
-
-if ($class_scheme_for_crosstabs == '__none')
+if ($download_mode)
 {
-	switch ($class_scheme_to_show)
-	{
-	case '__all':
-		/* show all schemes, one after another */
-		foreach ($class_scheme_list as $c)
-			$print_function($c['handle'], $c['description'], $qname);
-		break;
+	/* ----------------------------------------------------------------- */
+	/* Here is how we do the plaintext download of all file frequencies. */
+	/* ----------------------------------------------------------------- */
 	
-	case '__filefreqs':
-		print_distribution_filefreqs($qname);
-		break;
-		
-	default:
-		/* print lower table - one classification has been specified */
-		$print_function($class_scheme_to_show, $class_desc_to_pass, $qname);
-	}
+	$sql_query = "SELECT db.text_id as text, md.words as words, count(*) as hits 
+		FROM $dbname as db 
+		LEFT JOIN text_metadata_for_$corpus_sql_name as md ON db.text_id = md.text_id
+		GROUP BY db.text_id
+		ORDER BY db.text_id";
+	$result = do_mysql_query($sql_query);	
 
+	$da = get_user_linefeed($username);
+	
+	$description = distribution_header_line($query_record, $db_record);
+	$description = preg_replace('/&([lr]dquo|quot);/', '"', $description);
+	$description = preg_replace('/<span .*>/', '', $description);
+	
+	header("Content-Type: text/plain; charset=utf-8");
+	header("Content-disposition: attachment; filename=text_frequency_data.txt");
+	echo $description, "$da";
+	echo "__________________$da$da";
+
+	echo "Text\t\tNo. words in text\tNo. hits in text\tFreq. per million words$da$da";
+
+	while (false !== ($r = mysql_fetch_object($result)))
+		echo $r->text, "\t", $r->words, "\t", $r->hits, "\t", round(($r->hits / $r->words) * 1000000, 2), $da;
+	
+	/* end of code for plaintext download. */
 }
 else
 {
-	/* do crosstabs */
-	print_distribution_crosstabs($class_scheme_to_show, $class_desc_to_pass, 
-		$class_scheme_for_crosstabs, $class_desc_to_pass_for_crosstabs, $qname);
-}
+	/* begin HTML output */
+	?>
+	<html>
+	<head>
+	<?php
+	echo '<title>' . $corpus_title . ' -- CQPweb showing distribution of query solutions</title>';
+	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
+	?>
+	<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
+	<script type="text/javascript" src="../lib/javascript/cqpweb-distTableSort.js"></script> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	
+	</head>
+	<body>
+	
+	<?php
+	
+	/* -------------------------------- *
+	 * print upper table - control form * 
+	 * -------------------------------- */
+	
+	/* get a list of handles and descriptions for classificatory metadata fieds in this corpus */
+	$class_scheme_list = metadata_list_classifications();
+	
+	
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th colspan="4" class="concordtable">
+				<?php
+					echo distribution_header_line($query_record, $db_record);
+				?>
+			</th>
+		</tr>
+			<form action="redirect.php" method="get">
+			<tr>
+				<td class="concordgrey">Categories:</td>
+				<td class="concordgrey">
+					<select name="classification">
+						<?php
+						
+						$selected_done = false;
+						$class_desc_to_pass = "";
+						
+						foreach($class_scheme_list as $c)
+						{
+							echo "\n\t\t\t\t\t<option value=\"" . ($c['handle']) . '"';
+							if ($c['handle'] == $class_scheme_to_show)
+							{
+								$class_desc_to_pass = $c['description'];
+								echo ' selected="selected"';
+								$selected_done = true;
+							}
+							echo '>' . ($c['description']) . '</option>';
+						}
+						
+						if ($selected_done == false)
+						{
+							$ff_str  = ($class_scheme_to_show == '__filefreqs' ? ' selected="selected"' : '');
+							$all_str = ($class_scheme_to_show == '__all'       ? ' selected="selected"' : '');
+						}
+						echo "\n\t\t\t\t\t<option value=\"__all\"$all_str>General information</option>";
+						echo "\n\t\t\t\t\t<option value=\"__filefreqs\"$ff_str>File-frequency information</option>\n";
+	
+						?>
+					</select>
+				</td>
+				<td class="concordgrey">
+					Show as:
+				</td>
+				<td class="concordgrey">
+					<select name="showDistAs">
+						<option value="table"<?php 
+							echo ($print_function != 'print_distribution_graph' ? ' selected="selected"' : '');
+							?>>Distribution table</option>
+						<option value="graph"<?php
+							echo ($print_function == 'print_distribution_graph' ? ' selected="selected"' : '');
+							?>>Bar chart</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey">Category for crosstabs:</td>
+				<td class="concordgrey">
+					<select name="crosstabsClass">
+						<?php
+						
+						$selected_done = false;
+						$class_desc_to_pass_for_crosstabs = "";
+						
+						foreach($class_scheme_list as $c)
+						{
+							echo '
+								<option value="' . ($c['handle']) . '"';
+							if ($c['handle'] == $class_scheme_for_crosstabs)
+							{
+								$class_desc_to_pass_for_crosstabs = $c['description'];
+								echo ' selected="selected"';
+								$selected_done = true;
+							}
+							echo '>' . ($c['description']) . '</option>';
+						}
+						if ($selected_done)
+							echo '
+								<option value="__none">No crosstabs</option>';
+						else
+							echo '
+								<option value="__none" selected="selected">No crosstabs</option>';
+						?>
+						
+					</select>
+				</td>
+				<td class="concordgrey">
+					<!-- This cell kept empty to add more controls later -->
+					&nbsp;
+				</td>
+				<td class="concordgrey">
+					<select name="redirect">
+						<option value="refreshDistribution" selected="selected">Show distribution</option>
+						<option value="distributionDownload">Download text frequencies</option>
+						<option value="newQuery">New query</option>
+						<option value="backFromDistribution">Back to query result</option>
+					</select>
+					<input type="submit" value="Go!" />
+				</td>
+				<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+				<?php
+				
+				/* iff we have a per-page / page no passed in, pass it back, so we can return to
+				 * the right place using the back-from-distribution option */
+				
+				if (isset($_GET['pageNo']))
+				{
+					$_GET['pageNo'] = (int)$_GET['pageNo'];
+					echo "<input type=\"hidden\" name=\"pageNo\" value=\"{$_GET['pageNo']}\" />";
+				}
+				if (isset($_GET['pp']))
+				{
+					$_GET['pp'] = (int)$_GET['pp'];
+					echo "<input type=\"hidden\" name=\"pp\" value=\"{$_GET['pp']}\" />";
+				}
+				
+				?>	
+				<input type="hidden" name="uT" value="y" />
+			</tr>
+		</form>
+		<?php 
+		if (count($class_scheme_list) == 0  && $class_scheme_to_show != '__filefreqs')
+		{
+			?>
+			<tr>
+				<th class="concordtable" colspan="4">
+					This corpus has no text-classification metadata, so the distribution cannot be shown.
+					You can still select the &ldquo;<em>File-frequency information</em>&rdquo; command 
+					from the menu above.
+				</th>
+			</tr>
+			<?php
+		}
+		?> 
+	</table>
+	
+	<?php
+	
+	echo '<table class="concordtable" width="100%">';
+	
+	
+	
+	if ($class_scheme_for_crosstabs == '__none')
+	{
+		switch ($class_scheme_to_show)
+		{
+		case '__all':
+			/* show all schemes, one after another */
+			foreach ($class_scheme_list as $c)
+				$print_function($c['handle'], $c['description'], $qname);
+			break;
+		
+		case '__filefreqs':
+			print_distribution_filefreqs($qname);
+			break;
+			
+		default:
+			/* print lower table - one classification has been specified */
+			$print_function($class_scheme_to_show, $class_desc_to_pass, $qname);
+		}
+	
+	}
+	else
+	{
+		/* do crosstabs */
+		print_distribution_crosstabs($class_scheme_to_show, $class_desc_to_pass, 
+			$class_scheme_for_crosstabs, $class_desc_to_pass_for_crosstabs, $qname);
+	}
+	
+	
+	
+	echo '</table>';
+	
+	/* create page end HTML */
+	print_footer();
 
+} /* end of "else" for "if download_mode" */
 
-
-echo '</table>';
-
-
-/* create page end HTML */
-print_footer();
 
 /* disconnect mysql */
 disconnect_global_mysql();

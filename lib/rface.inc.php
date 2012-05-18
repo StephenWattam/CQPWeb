@@ -31,17 +31,19 @@
  * 
  *     $r = new RFace($path_to_r);
  * 
- * ... where $path_to_r is a relative path to the directory containing the R executable ...
+ * ... where $path_to_r is an absolute or relative path to the directory containing 
+ * the R executable (if you leave it unspecified, the environment path will be checked) ...
  * 
- *     $result = $r->execute("text to be fed to R here");
+ *     $result = $r->execute("command(s) to be fed to R here");
  * 
  * To explicitly shut down child process:
  * 
  *     unset($r);
  * 
- * Other methods (many of which are TODO) wrap-around ::execute() to provide a friendlier API for various uses of R. 
+ * Other methods (many of which are to-do!) wrap-around execute() 
+ * to provide a friendlier API for various uses of R. 
  * 
- * IMPORTANT NOTE : much of the code in this class are untested as of now.
+ * IMPORTANT NOTE : much of the code in this class is still untested.
  * 
  * 
  * 
@@ -65,47 +67,48 @@ class RFace
 	
 	const DEFAULT_CHART_FILENAME = 'R-chart';
 	
+	const DEFAULT_WORKSPACE_FILENAME = '.RData';
+	
 	/* member variables : general */
 	
 	/** handle for the process */
 	private $process;
 
-	/** array for the input/output handles themselves to go in */
+	/** array for the input/output stream handles themselves to go in */
 	private $handle;
 	
-	/** variable that remembers location on system of the exectuable that was started up */
+	/** variable that remembers path on system of the exectuable that was started up */
 	private $which;
 	
-	/** function (or array of object/classname + method at [0] and [1]) for handling lines as they are passed */
-	private $line_handler_callback = false;
+	/** function (or array of object/classname + method at [0] and [1]) for handling textual output from R */
+	private $output_handler_callback = false;
 	
 	
 	/* caches for oft-used R calls */
 	
-	/** cache of the list of object names */
+	/** cache of the list of object names; begins as false, set it back to false to clear it! */
 	private $object_list_cache = false;
-	
 	
 	
 	/* variables for error handling and debug logging */
 	
-	/** has there been an error? */
+	/** has there been an error? If there has, this variable will not be true. */
 	private $ok = true;
 	
 	/** most recent error message */
 	private $last_error_message;
 	
-	/** should the object exit the program on detection of an error? */
+	/** setting: should the object exit the program on detection of an error? */
 	private $exit_on_error;
 	
-	/** if true, debug info will be printed to debug_dest */
+	/** setting: if true, debug info will be printed to debug_dest */
 	private $debug_mode;
+	
+	/** setting: flag determining whether or not the stream in $debug_dest will be closed on destruct() */
+	private $debug_dest_autoclose = false;
 	
 	/** stream that debug messages will be sent to; defaults to STDERR */
 	private $debug_dest = STDERR;
-	
-	/** flag determining whether or not the stream in $debug_dest will be closed on destruct() */
-	private $debug_dest_autoclose = false;
 	
 	
 	
@@ -119,7 +122,8 @@ class RFace
 	 * 
 	 * There are no compulsory arguments. The path to R should be a relative or absolute
 	 * path of the directory where the R executable lives (i.e. DON'T put "/R" or "/R.exe"
-	 * or whatever at the end of this string). If it is false, however, 
+	 * or whatever at the end of this string). If it is false, however, the normal PATH 
+	 * variable from the environment is used.
 	 *  
 	 * Note that the debug destination stream can be set up at construct-time, or later, using
 	 * the dedicated functions.
@@ -178,7 +182,7 @@ class RFace
 	
 	
 	
-	/* destructor */
+	/** destructor */
 	function __destruct()
 	{
 		if (isset($this->handle[0]))
@@ -202,9 +206,9 @@ class RFace
 		
 		if ($this->debug_dest_autoclose)
 		{
-			$this->debug_alert("RFace: Closing debug stream after this message.\n");
+			$this->debug_alert("RFace: Closing debug alert stream after this message.\n");
 			if ( ! fclose($this->debug_dest) )
-				$this->debug_alert("RFace: ERROR: Failed to close debug stream.\n");
+				$this->debug_alert("RFace: ERROR: Failed to close debug alert stream.\n");
 		}	
 	}
 
@@ -218,41 +222,42 @@ class RFace
 	 * 
 	 * False is returned in case of error.
 	 * 
-	 * If $line_handler_callback is specified, it will be called on each line of
-	 * output (AFTER whitespace is trummed). If the callback handler returns a value, 
-	 * that value will be added to the return-array instead of the line. 
-	 * If the callback handler does not return a value, nothing will be added
-	 * to the return-array (and thus, the caller will ultimately get back an empty
-	 * array).
+	 * If $output_handler_callback is specified, it will be called on the
+	 * output (single string with lines separated by \n but other
+	 * whitespace trimmed out), and execute() will pass back the return value of 
+	 * the callback function. 
 	 * 
 	 * If $line_handler_callback is NOT specified, the function checks whether
-	 * one has been set at the object level ($this->line_handler_callback). If it
-	 * has, that is used. 
+	 * one has been set at the object level ($this->output_handler_callback). If it
+	 * has, that is used, and its return value is sent back. 
 	 * 
-	 * Note that empty lines are ALWAYS skipped (never passed to callback handler).
+	 * Note that empty lines are ALWAYS skipped (never collected for the output handler
+	 * OR never added to the return array).
 	 * 
 	 */
-	function execute($command, $line_handler_callback = false)
+	function execute($command, $output_handler_callback = false)
 	{
-		if ($line_handler_callback === false)
-			if ($this->line_handler_callback !== false)
-				$line_handler_callback = $this->line_handler_callback;
+		if ($output_handler_callback === false)
+			if ($this->output_handler_callback !== false)
+				$output_handler_callback = $this->output_handler_callback;
 		
 		/* execute can change the number of objects, so clear object-list cache */
 		$this->object_list_cache = false;
 		
 		$command = trim($command);
 		
-		if ( (!is_string($command)) || $command == "" )
+		if ( empty($command) )
 		{
 			$this->error("RFace: ERROR: RFace::execute() was called with no command\n");
 			return false;
 		}
+		
+		$command .= PHP_EOL;
 
-		$this->debug_alert("RFace: R << $command;\n");
+		$this->debug_alert("RFace: R << $command");
 
 		/* send the command to R's [IN] */
-		if (false === fwrite($this->handle[0], $command) || false === fwrite($this->handle[0], "\n"))
+		if (false === fwrite($this->handle[0], $command))
 		{
 			$this->error("RFace: ERROR: problem writing to the R input stream\n");
 			return false;
@@ -271,52 +276,50 @@ class RFace
 				
 			/* delete whitespace from the line; blank lines NEVER added to the array. */
 			$line = trim($line, " \t\r\n");
-			if ($line == '')
+			if (empty($line))
 				continue;
 
 			/* an output line we ALWAYS ignore; an empty statement terminated by ; is not invalid! */
 			if ($line == 'Error: unexpected \';\' in ";"')
 				continue;
 
-			$this->debug_alert("RFace: R >> $line\n");
+			/* add the line to an array of results */
+			$result[] = $line;
 
-			if (!empty($line_handler_callback))
-			{
-				/* call the specified function or class/object method */
-				$callback_return = call_user_func($line_handler_callback, $line);
-				$this->debug_alert("RFace: $line >> callback-handler >> $callback_return\n");
-				if (! empty($callback_return))
-				{
-					$result[] = $callback_return;
-					unset($callback_return);
-				}
-				/* else don't add anything to $result */
-			}
-			else
-				/* add the line to an array of results */
-				$result[] = $line;
+			$this->debug_alert("RFace: R >> $line\n");
 		}
 		/* Note, no attempt is made to do anything with R's [ERR] stream, at least for now! */
 
-		/* return the array of result lines */
-		return $result;
+		if (!empty($output_handler_callback))
+		{
+			/* call the specified function or class/object method */
+			$callback_return = call_user_func($output_handler_callback, implode(PHP_EOL, $result));
+			$return_print = (string) $callback_return;
+			if (strlen($return_print) > 16)
+				$return_print = '[extra-long string]';
+			$this->debug_alert("RFace: output-collector >> output-handler-callback >> $return_print\n");
+			return $callback_return;
+		}
+		else
+			/* return the array of result lines */
+			return $result;
 	}
 
 
 	/**
-	 * Specify a callback function to be used on lines as they are retrieved by ->execute().
+	 * Specify a callback function to be used on output from execute().
 	 *
-	 * The callback can be  (a) a closure (b) a string naming a function (c) an array of an object plus a method name
+	 * The callback can be (a) a closure (b) a string naming a function (c) an array of an object plus a method name
 	 * (d) an array of a class name plus a method name (that is, any of the usual options for callbacks in PHP).
 	 *
-	 * To use no line handler, pass false.
+	 * To use no output handler, pass false.
 	 */
-	public function set_line_handler($callback)
+	public function set_output_handler($callback)
 	{
 		if (false === $callback)
 		{
-			$this->line_handler_callback = false;
-			$this->debug_alert("RFace: Line handler wiped, line handling disabled.\n");
+			$this->output_handler_callback = false;
+			$this->debug_alert("RFace: Output handler wiped, output handling disabled.\n");
 		}
 		else if (is_array($callback))
 		{
@@ -326,28 +329,28 @@ class RFace
 				$callback_name = '[not known]';
 				if ( is_object($callback[0]) && is_callable($callback, false, $callback_name) )
 				{
-					$this->line_handler_callback = $callback;
-					$this->debug_alert("RFace: Line handler accepted ( $callback_name, object call ).\n");
+					$this->output_handler_callback = $callback;
+					$this->debug_alert("RFace: Output handler accepted ( $callback_name, object call ).\n");
 				}
 				else if (class_exists($callback[0] && method_exists($callback[0], $callback[1])))
 				{
-					$this->line_handler_callback = $callback;
-					$this->debug_alert("RFace: Line handler accepted ( $callback[0]::$callback[1], static call ).\n");
+					$this->output_handler_callback = $callback;
+					$this->debug_alert("RFace: Output handler accepted ( $callback[0]::$callback[1], static call ).\n");
 			 	}
 				else
-					$this->error("RFace: ERROR: Uncallable object/class method passed as line handler.\n");
+					$this->error("RFace: ERROR: Uncallable object/class method passed as output handler.\n");
 			}
 			else
-				$this->error("RFace: ERROR: Invalid array layout for line handler callback.\n");
+				$this->error("RFace: ERROR: Invalid array layout for output handler callback.\n");
 		}
 		else if  (is_callable($callback))
 		{
-			$this->line_handler_callback = $callback;
+			$this->output_handler_callback = $callback;
 			$callback_name = ( is_string($callback) ? $callback : '[anonymous function]');
-			$this->debug_alert("RFace: Line handler accepted ( $callback_name ).\n");
+			$this->debug_alert("RFace: Output handler accepted ( $callback_name ).\n");
 		}
 		else
-			$this->error("RFace: ERROR: Unrecognisable line handler function was passed ( $callback ).\n");
+			$this->error("RFace: ERROR: Unrecognisable output handler function was passed ( $callback ).\n");
 	}
 	
 	
@@ -366,7 +369,7 @@ class RFace
 	/**
 	 * Sets the destination stream for debug messages.
 	 * 
-	 * Typically, you'd pass in an open file handler.
+	 * Typically, you'd pass in an open file handle.
 	 * 
 	 * The second parameter determines whether the stream is self-closing; by
 	 * default it isn't, but if it is, then the object destructor will attempt to
@@ -527,10 +530,7 @@ class RFace
 			$instring .= ',' . self::num($a);
 		
 		/* now, add start and end of command, before sending to R */
-		$instring = "$varname = c(" . ltrim($instring, ",") . ')';
-		// old version with regex engine : 
-		// $instring = preg_replace('/\A,/', "$varname = c(", $instring) . ')';
-		
+		$instring = "$varname = c(" . ltrim($instring, ",") . ')';		
 		$r = $this->execute($instring);
 		
 		/* successful load will have returned empty array */
@@ -575,19 +575,19 @@ class RFace
 	 * (4) if $header_row, then the first inner array is treated as containing column names
 	 * 
 	 * 
-	 * @param $varname     The name the resulting variable is to have in R. If an object of
-	 *                     that name already exists, it will be overwritten.
-	 * @param $data        The data frame to be loaded (string representation of table, 
-	 *                     or 2d array). Passed by reference, but not modified.
-	 * @param $header_row  Boolean: does the data contain a header row? (Header row = 
-	 *                     everything up to or including the first \nb in a string; or,
-	 *                     the first member of the array contains a header element.)
+	 * @param $varname       The name the resulting variable is to have in R. If an object of
+	 *                       that name already exists, it will be overwritten.
+	 * @param $data          The data frame to be loaded (string representation of table, 
+	 *                       or 2d array). Passed by reference, but not modified.
+	 * @param $header_row    Boolean: does the data contain a header row? (Header row = 
+	 *                       everything up to or including the first \n in a string; or,
+	 *                       the first member of the array contains a header element.)
 	 * @param $invert_array  Boolean: if true, the two dimensions of an array are swopped
 	 * 
 	 * @return               Boolean: true = success, 
 	 */
 // TODO: check: what is the standard R input format, columns as vectors or rows as vectors?
-// to put it another way, does each input vector = an object, ro does each input vector = a propery? 
+// to put it another way, does each input vector = an object, or does each input vector = a propery? 
 // Whatever is normal for R should be the OPPOSITE because the default is for invert_data to be TRUE.
 // Need to take a long hard look at the process for creating data frames before going further with this.
 	public function load_data_frame($varname, &$data, $header_row = true, $invert_array = true)
@@ -598,13 +598,13 @@ class RFace
 			$this->load_data_frame_from_2darray($varname, $data, $header_row, $invert_array);
 	}
 	
-	/** function called only by @see load_data_frame */
+	/** helper function called only by @see load_data_frame */
 	private function load_data_frame_from_string($varname, &$data, $header_row)
 	{
 		//TODO
 	}
 	
-	/** function called only by @see load_data_frame */
+	/** helper function called only by @see load_data_frame */
 	private function load_data_frame_from_2darray($varname, &$data, $header_row, $invert_array)
 	{
 		if ($invert_array)
@@ -645,7 +645,7 @@ class RFace
 	 * 
 	 * General TODO :
 	 * 
-	 * This function covers all the obvious object types (vectors of basic types - bool, int, doubel, string.
+	 * This function covers all the obvious object types (vectors of basic types - bool, int, double, string.
 	 * But it needs to have more "special" object types added.
 	 * For example:
 	 *  * Data frame to 2D array
@@ -761,7 +761,7 @@ class RFace
 			}	/* end of switch typeof(varname) */
 			
 			/* final operations in case object / solo:
-			 * (1) check for solo mode, and de-array if found
+			 * (1) check for solo mode, and de-array if found.
 			 * (2) fallthrough to verbatim if we didn't have an algorithm!
 			 */
 			if ($mode == 'solo' && is_array($output))
@@ -977,8 +977,7 @@ class RFace
 	public function make_chart($filename, $chart_command)
 	{
 		if (is_dir($filename))
-			$filename .= '.' . self::DEFAULT_CHART_FILENAME;
-			// TODO: need to check for slash at end of varname
+			$filename = rtrim($filename, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . self::DEFAULT_CHART_FILENAME;
 		
 		// TODO set the graphics output to save to this file
 		
@@ -1006,16 +1005,21 @@ class RFace
 	 * Otherwise, $path is assumed to be a target filename and the workspace saved in
 	 * that location.
 	 * 
-	 * The default value for the path is the current working directory.
+	 * The default value for the path is PHP's current working directory.
 	 * 
 	 * Returns true for success, false for failure.
 	 */
-	public function save_workspace($path)
+	public function save_workspace($path = false)
 	{
+		if ($path == false)
+			$path = getcwd();
+		$path = rtrim($path, DIRECTORY_SEPARATOR);
 		if (is_dir($path))
-			$r = $this->execute("save.image(file=\"$path/.RData\")");
-		else 
+			$r = $this->execute('save.image(file="' . $path . DIRECTORY_SEPARATOR . self::DEFAULT_WORKSPACE_FILENAME . '")');
+		else if (is_writable($path))
 			$r = $this->execute("save.image(file=\"$path\")");
+		else
+			return false;
 
 		/* successful save will have returned empty array. */
 		return (empty($r) && is_array($r));
@@ -1035,7 +1039,7 @@ class RFace
 	 */
 	public function load_workspace($path = '.')
 	{		
-		$path = rtrim($path, '/\\');
+		$path = rtrim($path, DIRECTORY_SEPARATOR);
 		if (is_dir($path))
 		{
 			if (is_file("$path/.RData"))
@@ -1093,7 +1097,7 @@ class RFace
 	 * returned, it says nothing about the presence of errors of the
 	 * *other* type further down the array.
 	 */
-	public static function deduce_array_type(&$array)
+	private static function deduce_array_type(&$array)
 	{
 		$type = 'UNKNOWN';
 		
@@ -1126,7 +1130,7 @@ class RFace
 	 * 
 	 * More reliable when building arrays of numbers than a typecast!
 	 * (Because a typecast would have to be to either int or float, but
-	 * using PHP's context-based type juggling covers either).
+	 * using PHP's context-based type juggling covers either.)
 	 */
 	public static function num($string)
 	{

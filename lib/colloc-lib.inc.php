@@ -95,10 +95,10 @@ function print_freqtogether_form_options($index_to_select)
 
 function print_freqalone_form_options($index_to_select)
 {
+	$string = '';
 	foreach(array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 50, 100, 500, 1000, 5000, 10000, 20000, 50000) as $n)
 		$string .= '
-			<option' . ($n == $index_to_select ? ' selected="selected"' : '')
-			. ">$n</option>";
+			<option' . ($n == $index_to_select ? ' selected="selected"' : '') . ">$n</option>";
 	return $string;
 }
 
@@ -688,7 +688,7 @@ function collocation_write_download(
 	global $username;
 	$da = get_user_linefeed($username);
 	
-	$description = preg_replace('/&[lr]dquo;/', '"', $description);
+	$description = preg_replace('/&([lr]dquo|quot);/', '"', $description);
 	$description = preg_replace('/<span .*>/', '', $description);
 
 	header("Content-Type: text/plain; charset=utf-8");
