@@ -731,7 +731,6 @@ function create_text_metadata_for()
 	global $create_text_metadata_for_info;
 	global $cqpweb_uploaddir;
 	global $cqpweb_tempdir;
-	//global $mysql_LOAD_DATA_INFILE_command;
 	
 	
 	$corpus = cqpweb_handle_enforce($create_text_metadata_for_info['corpus']);
@@ -763,8 +762,8 @@ function create_text_metadata_for()
 // what the hell does this do?
 // it doesn't seem to do anything.
 // cut it out, see if it still works???
-	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus'";
-	$result = do_mysql_query($sql_query);
+//	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus'";
+//	$result = do_mysql_query($sql_query);
 // end of bit that doesn't seem to do anything.
 	
 	/* note, size of text_id is 50 to allow possibility of non-decoded UTF8 - they should be shorter */
@@ -918,7 +917,6 @@ function create_text_metadata_for_minimalist()
 	global $corpus_cqp_name;
 	global $corpus_sql_name;
 	global $cwb_registry;
-	//global $mysql_LOAD_DATA_INFILE_command;
 	
 	
 	if (!is_dir("../$corpus_sql_name"))

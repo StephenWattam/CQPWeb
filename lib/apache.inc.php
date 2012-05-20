@@ -126,8 +126,7 @@ class apache_htaccess
 	function set_path_to_web_directory($path_to_web_directory)
 	{
 		if (substr($path_to_web_directory, -1) == '/')
-			$path_to_web_directory = substr($path_to_web_directory, 0,
-										strlen($path_to_web_directory)-1);
+			$path_to_web_directory = substr($path_to_web_directory, 0, strlen($path_to_web_directory)-1);
 		$this->path_to_web_directory = $path_to_web_directory;
 	}
 	function set_AuthName($newAuthName)

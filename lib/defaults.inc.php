@@ -26,7 +26,7 @@
 /* ------------------------------- */
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '3.0.5');
+define('CQPWEB_VERSION', '3.0.7');
 
 /* php stubs in each corpus directory; we can't make this constant, but it should be treated as if it was! */ 
 $cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
@@ -87,12 +87,7 @@ function declare_plugin($class, $type, $path_to_config_file = NULL)
 }
 
 
-// TODO remember the idea I had for using 'cd bin' if we're operating from the homepage?
-/* because this might be called from the root directory rather than a corpus */
-if (file_exists('lib/config.inc.php'))
-	require_once('lib/config.inc.php');
-else
-	require_once('../lib/config.inc.php');
+require_once('../lib/config.inc.php');
 
 
 /* ------------------------ */

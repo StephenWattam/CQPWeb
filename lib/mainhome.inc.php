@@ -22,14 +22,14 @@
  */
 
 
+/* Very first thing: Let's work in a subdirectory so that we can use the same subdirectory references! */
+chdir('bin');
 
 
-
-
-include ("lib/defaults.inc.php");
-include ("lib/library.inc.php");
-include ("lib/metadata.inc.php");
-include ("lib/exiterror.inc.php");
+include ("../lib/defaults.inc.php");
+include ("../lib/library.inc.php");
+include ("../lib/metadata.inc.php");
+include ("../lib/exiterror.inc.php");
 
 /* connect to mySQL */
 connect_global_mysql();
@@ -38,13 +38,7 @@ connect_global_mysql();
 
 if ($use_corpus_categories_on_homepage)
 {
-	/* get a list of categories 
-	$sql_query = "select distinct (corpus_cat) from corpus_metadata_fixed where visible = 1 order by corpus_cat asc";
-	$result = do_mysql_query($sql_query);
-	
-	while ( ($r = mysql_fetch_row($result)) != false)
-		$categories[] = $r[0];
-		*/
+	/* get a list of categories */
 	$categories = list_corpus_categories();
 	
 	/* how many categories? if only one, it is either uncategorised or a single assigned cat: ergo don't use cats */
@@ -102,7 +96,7 @@ foreach ($categories as $idno => $cat)
 		$corpus_list[] = $x;
 	
 	/* don't print a table for empty categories */
-	if(empty($corpus_list))
+	if (empty($corpus_list))
 		continue;
 	
 
@@ -119,16 +113,20 @@ foreach ($categories as $idno => $cat)
 	{
 		if ($i == 0)
 			echo '<tr>';
-			
-		include ("{$c->corpus}/settings.inc.php");
+		
+		/* get $corpus_title */
+		include ("../{$c->corpus}/settings.inc.php");
+		if (empty($corpus_title))
+			$corpus_title = $c->corpus;
 		
 		echo "
 			<td class=\"$celltype\" width=\"33%\" align=\"center\">
 				&nbsp;<br/>
-				<a href=\"{$c->corpus}/index.php\">$corpus_title</a>
+				<a href=\"{$c->corpus}/\">$corpus_title</a>
 				<br/>&nbsp;
 			</td>";
-			$celltype = ($celltype=='concordgrey'?'concordgeneral':'concordgrey');
+		
+		$celltype = ($celltype=='concordgrey'?'concordgeneral':'concordgrey');
 		
 		if ($i == 2)
 		{

@@ -95,7 +95,7 @@ function corpus_make_freqtables()
 	$cwb_command = "/$path_to_cwb/cwb-scan-corpus -r /$cwb_registry -o $filename -q $corpus_cqp_name";
 	foreach ($attribute as $att)
 		$cwb_command .= " $att";
-	exec($cwb_command, $junk, $status=0);
+	exec($cwb_command, $junk, $status);
 	if ($status != 0)
 		exiterror_general("cwb-scan-corpus error!", __FILE__, __LINE__);
 	unset($junk);
