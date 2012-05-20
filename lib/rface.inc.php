@@ -1016,7 +1016,7 @@ class RFace
 		$path = rtrim($path, DIRECTORY_SEPARATOR);
 		if (is_dir($path))
 			$r = $this->execute('save.image(file="' . $path . DIRECTORY_SEPARATOR . self::DEFAULT_WORKSPACE_FILENAME . '")');
-		else if (is_writable($path))
+		else if (is_writable(dirname($path)))
 			$r = $this->execute("save.image(file=\"$path\")");
 		else
 			return false;

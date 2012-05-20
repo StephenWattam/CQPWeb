@@ -95,9 +95,9 @@ function corpus_make_freqtables()
 	$cwb_command = "/$path_to_cwb/cwb-scan-corpus -r /$cwb_registry -o $filename -q $corpus_cqp_name";
 	foreach ($attribute as $att)
 		$cwb_command .= " $att";
-	exec($cwb_command, $junk, $status);
+	exec($cwb_command . ' 2>&1', $junk, $status);
 	if ($status != 0)
-		exiterror_general("cwb-scan-corpus error!", __FILE__, __LINE__);
+		exiterror_general("cwb-scan-corpus error!\n" . implode("\n", $junk), __FILE__, __LINE__);
 	unset($junk);
 	
 	/* We need to check if the CorpusCharset is other than ASCII/UTF8. 
