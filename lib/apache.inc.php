@@ -405,6 +405,9 @@ class apache_htaccess
 	/** true for all OK, otherwise false */
 	function delete_user_from_group($user, $group)
 	{
+		if (empty($user) || empty($group))
+			return false;
+			
 		if (!$this->check_ok_for_group_op())
 			return false;
 

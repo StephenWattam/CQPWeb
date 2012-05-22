@@ -1572,7 +1572,7 @@ function printquery_groupadmin()
 			}
 			
 			$members_not_in_group = array_diff($apache->list_users(), $member_list);
-			$options = "<option></option>\n";
+			$options = "<option>[Select user from list]</option>\n";
 			foreach ($members_not_in_group as &$m)
 				$options .= "<option>$m</option>\n";		
 			echo "<form action=\"index.php\" method=\"GET\">
@@ -1584,7 +1584,7 @@ function printquery_groupadmin()
 				<input type=\"hidden\" name=\"groupToAddTo\" value=\"$group\" />
 				<input type=\"hidden\" name=\"uT\" value=\"y\" /></form>\n";
 			
-			$options = "<option></option>\n";
+			$options = "<option>[Select user from list]</option>\n";
 			foreach ($member_list as &$m)
 				$options .= "<option>$m</option>\n";
 			echo "<form action=\"index.php\" method=\"GET\">\n

@@ -705,6 +705,14 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.0.7</b>, 2012-xx-yy<br/>&nbsp;<br/>
+		Fixed an inconsistency in how batches of usernames are created.
+		<br/>&nbsp;<br/>
+		Fixed a bug in the management of user groups, plus a bug affecting the installation of
+		corpora that are not in UTF-8.
+		<br/>&nbsp;</li>
+		
+		<li>
 		<b>Version 3.0.6</b>, 2012-05-15<br/>&nbsp;<br/>
 		More bug fixes.
 		<br/>&nbsp;<br/>

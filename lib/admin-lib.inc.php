@@ -205,9 +205,10 @@ function add_new_user($username, $password, $email = NULL)
 function add_batch_of_users($username_root, $number_in_batch, $password, $autogroup, $different_passwords = false)
 {
 	global $create_password_function;
-	
+	global $password_more_security;
+
 	$apache = get_apache_object('nopath');
-	
+
 	$autogroup = preg_replace('/\W/', '', $autogroup);
 	$password = preg_replace('/\W/', '', $password);
 	if ($autogroup !== '')
@@ -230,12 +231,23 @@ function add_batch_of_users($username_root, $number_in_batch, $password, $autogr
 	
 	for ($i = 1 ; $i <= $number_in_batch; $i++)
 	{
-		$this_password = ($different_passwords ? $password_list[$i] : $password);
+		if ($different_passwords)
+		{
+			$this_password = ($different_passwords ? $password_list[$i] : $password);
+			echo "$username_root$i\t$this_password\n";
+		}
+		else
+			$this_password = $password;
+		
 		$apache->new_user("$username_root$i", $this_password);
 		if ($autogroup !== '')
 			$apache->add_user_to_group("$username_root$i", $autogroup);
-		if ($different_passwords)
-			echo "$username_root$i\t$this_password\n";
+
+		$profile = get_all_user_settings("$username_root$i");
+	
+		/* then, overwrite the password as stored in the database */
+		$db_password = ($password_more_security ? $apache->get_user_hashword("$username_root$i") : $this_password);
+		update_user_setting("$username_root$i", 'password', $db_password);
 	}
 }
 
@@ -248,10 +260,10 @@ function add_batch_of_users($username_root, $number_in_batch, $password, $autogr
  */
 function delete_user($user)
 {
-	$apache = get_apache_object('nopath');
 	$user = preg_replace('/\W/', '', $user);
 	if (empty($user))
 		return;
+	$apache = get_apache_object('nopath');
 	$apache->delete_user($user);
 	delete_user_record($user);
 }
@@ -259,6 +271,9 @@ function delete_user($user)
 
 /**
  * Deletes accounts of all usernames consisting of $prefix plus a string of one or more digits. 
+ * 
+ * @param $prefix  The prefix of the accounts to be deleted. Normally, these will be a bundle
+ *                 of accounts created with batch.
  */
 function delete_user_batch($prefix)
 {
@@ -297,6 +312,11 @@ function remove_user_from_group($user, $group, $superuseroverride = false)
 	/* block the removal of users from "superusers" unless specific override given */
 	if ($group == 'superusers' && $superuseroverride !== true)
 		return;
+	
+	if (empty($user))
+		exiterror_fullpage("Unspecified username - cannot continue.");
+	if (empty($group))
+		exiterror_fullpage("Unspecified user group - cannot continue.");
 	
 	$apache = get_apache_object('nopath');
 	$apache->delete_user_from_group($user, $group);
