@@ -97,8 +97,8 @@ class corpus_install_info
 		if ($this->already_cwb_indexed)
 		{
 			global $cwb_registry;
-			/* check that the corpus registry file exists, that the corpus datadir exists */
-			/* in the process, getting the "override" directories, if they exist */
+			/* check that the corpus registry file exists, that the corpus datadir exists,
+			 * in the process, getting the "override" directories, if they exist */
 			
 			$use_normal_regdir = (bool)$_GET['corpus_useDefaultRegistry'];
 			$registry_file = "/$cwb_registry/{$this->corpus_cwb_name}";
@@ -111,45 +111,38 @@ class corpus_install_info
 					. '/' 
 					. $this->corpus_cwb_name;
 				if (is_file($registry_file))
-					exiterror_fullpage("A corpus by that name already exists in the CQPweb registry!",
-						__FILE__, __LINE__);					
+					exiterror_fullpage("A corpus by that name already exists in the CQPweb registry!");					
 				if (!is_file($orig_registry_file))
-					exiterror_fullpage("The specified CWB registry file does not seem to exist in that location.",
-						__FILE__, __LINE__);
+					exiterror_fullpage("The specified CWB registry file does not seem to exist in that location.");
 				
 				/* we have established that the registry file does not exist and the original does
-				 * so we can now import the registry file into CQPweb's registry 
-				 */	
+				 * so we can now import the registry file into CQPweb's registry */	
 				copy($orig_registry_file, $registry_file);
 			}
 			else
 			{
 				if (!is_file($registry_file))
-					exiterror_fullpage("The specified CWB corpus does not seem to exist in CQPweb's registry.",
-						__FILE__, __LINE__);
+					exiterror_fullpage("The specified CWB corpus does not seem to exist in CQPweb's registry.");
 			}
 			
 			$regdata = file_get_contents($registry_file);
 			
-			if (preg_match("/HOME\s+\/([^\n]+)\s/", $regdata, $m) < 1)
+			if (preg_match("/\bHOME\s+(\/[^\n]+)\s/", $regdata, $m) < 1)
 			{
 				unlink($registry_file);
 				exiterror_fullpage("A data-directory path could not be found in the registry file for "
 					. "the CWB corpus you specified.\n\nEither the data-directory is unspecified, or it is "
-					. "specified with a relative path (an absolute path is needed).",
-						__FILE__, __LINE__);
+					. "specified with a relative path (an absolute path is needed).");
 			}
-			$test_datadir = '/' .  $m[1];
+			$test_datadir = $m[1];
 			
 			if (!is_dir($test_datadir))
-				exiterror_fullpage("The data directory specified in the registry file could not be found.",
-					__FILE__, __LINE__);
+				exiterror_fullpage("The data directory specified in the registry file [$test_datadir] could not be found.");
 			
 			/* check that <text> and <text_id> are s-attributes */
 			if (preg_match('/\bSTRUCTURE\s+text\b/', $regdata) < 1 
 				|| preg_match('/\bSTRUCTURE\s+text_id\b/', $regdata) < 1)
-				exiterror_fullpage("Pre-indexed corpora require s-attributes text and text_id!!",
-					__FILE__, __LINE__);
+				exiterror_fullpage("Pre-indexed corpora require s-attributes text and text_id!!");
 		}
 		else /* ie if this is NOT an already indexed corpus */
 		{
@@ -165,13 +158,11 @@ class corpus_install_info
 				if (is_file($path))
 					$this->file_list[] = $path;
 				else
-					exiterror_fullpage("One of the files you selected seems to have been deleted.",
-						__FILE__, __LINE__);
+					exiterror_fullpage("One of the files you selected seems to have been deleted.");
 			}
 			
 			if (empty($this->file_list))
-				exiterror_fullpage("You must specify at least one file to include in the corpus!",
-					__FILE__, __LINE__);		
+				exiterror_fullpage("You must specify at least one file to include in the corpus!");		
 		}
 
 		
