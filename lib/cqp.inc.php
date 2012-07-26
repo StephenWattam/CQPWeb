@@ -42,8 +42,8 @@ class CQP
 	/* version numbers for the version of CQP we actually connected to */
 	public $major_version;
 	public $minor_version;
-	public $beta_version;
-	private $beta_version_flagged; /* indicates whether the beta version number was flagged by a "b" */
+	public $revision_version;
+	private $revision_version_flagged_beta; /* indicates whether the revision version number was flagged by a "b" */
 	public $compile_date;
 
 	/* error handling */
@@ -161,10 +161,10 @@ class CQP
 
 
 	
-	/* the version of CWB that this class requires */
+	/* the minimum version of CWB that this class requires */
 	const VERSION_MAJOR_DEFAULT = 3;
 	const VERSION_MINOR_DEFAULT = 0;
-	const VERSION_BETA_DEFAULT  = 0;
+	const VERSION_REVISION_DEFAULT  = 0;
 	
 
 
@@ -174,7 +174,7 @@ class CQP
 	/**
 	 * Create a new CQP object.
 	 * 
-	 * Note that both parameters MUST be absolute paths WITHOUT the initial '/'.
+	 * Note that both parameters can be either absolute or relative paths.
 	 * 
 	 * This function calls exit() if the backend startup is unsuccessful.
 	 * 
@@ -184,10 +184,10 @@ class CQP
 	public function __construct($path_to_cqp, $cwb_registry)
 	{
 		/* check arguments */
-		if (! is_executable("/$path_to_cqp/cqp") )
-			exit("ERROR: CQP binary ``/$path_to_cqp/cqp'' is not executable! ");
-		if (! is_dir("/$cwb_registry") )
-			exit("ERROR: CWB registry dir ``/$cwb_registry'' seems not to exist! "); 
+		if (! is_executable("$path_to_cqp/cqp") )
+			exit("ERROR: CQP binary ``$path_to_cqp/cqp'' does not exist or is not executable! ");
+		if (! is_readable($cwb_registry) || ! is_dir($cwb_registry) )
+			exit("ERROR: CWB registry dir ``$cwb_registry'' seems not to exist, or is not readable! "); 
 		
 		/* create handles for CQP and leave CQP running in background */
 		
@@ -200,12 +200,12 @@ class CQP
 
 		/* start the child process */
 		/* NB: currently no allowance for extra arguments */
-		$command = "/$path_to_cqp/cqp -c -r /$cwb_registry";
+		$command = "$path_to_cqp/cqp -c -r $cwb_registry";
 
 		$this->process = proc_open($command, $io_settings, $this->handle);
 
 		if (! is_resource($this->process))
-			exit("ERROR: CQP backend startup failed; command ==\n$command\n");
+			exit("ERROR: CQP backend startup failed; command == ``$command''");
 
 		/* $handle now looks like this:
 		   0 => writeable handle connected to child stdin
@@ -224,8 +224,7 @@ class CQP
 		$version_string = fgets($this->handle[1]);
 		$version_string = rtrim($version_string, "\r\n");
 
-		$version_pattern = 
-			'/^CQP\s+(?:\w+\s+)*([0-9]+)\.([0-9]+)(?:\.(b?[0-9]+))?(?:\s+(.*))?$/';
+		$version_pattern = '/^CQP\s+(?:\w+\s+)*([0-9]+)\.([0-9]+)(?:\.(b?[0-9]+))?(?:\s+(.*))?$/';
 
 
 		if (preg_match($version_pattern, $version_string, $matches) == 0)
@@ -234,18 +233,18 @@ class CQP
 		{
 			$this->major_version = (int)$matches[1];
 			$this->minor_version = (int)$matches[2];
-			$this->beta_version_flagged = false;
-			$this->beta_version = 0;
+			$this->revision_version_flagged_beta = false;
+			$this->revision_version = 0;
 			if (isset($matches[3]))
 			{
 				if ($matches[3][0] == 'b')
 				{
-					$this->beta_version_flagged = true;
-					$this->beta_version = (int)substr($matches[3], 1);
+					$this->revision_version_flagged_beta = true;
+					$this->revision_version = (int)substr($matches[3], 1);
 				}
 				else
 				{
-					$this->beta_version = (int)$matches[3];
+					$this->revision_version = (int)$matches[3];
 				}
 			}
 			$this->compile_date  = (isset($matches[4]) ? $matches[4] : NULL);
@@ -253,7 +252,7 @@ class CQP
 			if ( ! $this->check_version() )
 				exit("ERROR: CQP version too old ($version_string). v"
 					. self::default_required_version() . 
-					" or higher required.\n");			
+					" or higher required.");			
 		}
 
 
@@ -298,7 +297,7 @@ class CQP
 		
 		if (isset($this->handle[0]))
 		{
-			fwrite($this->handle[0], "exit\n");
+			fwrite($this->handle[0], "exit" . PHP_EOL);
 			fclose($this->handle[0]);
 		}
 		if (isset($this->handle[1]))
@@ -324,23 +323,26 @@ class CQP
 	 * Is the version of CQP (and, ergo, CWB) that was connected equal to,
 	 * or greater than, a specified minimum?
 	 * 
-	 * Parameters: a minimum major, minor & beta version number. The latter two 
+	 * Parameters: a minimum major, minor & revision version number. The latter two 
 	 * default to zero; if no value for major is set, the default numbers are used.
 	 * These defaults are public class constants.
 	 * 
 	 * Returns true if the current version (loaded in __construct) is greater than the minimum.
 	 */
-	public function check_version($major = 0, $minor = 0, $beta = 0)
+	public function check_version($major = 0, $minor = 0, $revision = 0)
 	{
 		if ($major == 0)
 			return $this->check_version_default();
 		if  (
-			($this->major_version > $major)
+			$this->major_version > $major
 			||
-			($this->major_version == $major && $this->minor_version > $minor)
+			$this->major_version == $major && $this->minor_version > $minor
 			||
-			($this->major_version == $major && $this->minor_version == $minor
-				&& $this->beta_version >= $beta)
+				(
+				$this->major_version        == $major 
+				&& $this->minor_version     == $minor
+				&& $this->revision_version  >= $revision
+				)
 			)
 			return true;
 		else
@@ -352,7 +354,7 @@ class CQP
 		return $this->check_version(
 			self::VERSION_MAJOR_DEFAULT,
 			self::VERSION_MINOR_DEFAULT,
-			self::VERSION_BETA_DEFAULT
+			self::VERSION_REVISION_DEFAULT
 			);
 	}
 	
@@ -366,15 +368,16 @@ class CQP
 	/**
 	 * Sets the corpus.
 	 * 
-	 * note: this is the same as running "execute" on the corpus name
+	 * note: this is the same as running "execute" on the corpus name,
 	 * except that it implements a "wrapper" around the charset
 	 * if necessary, allowing utf8 input to be converted to some other
 	 * character set for future calls to $this->execute(). 
+	 * 
+	 * It is recommended to always use this function and never to set 
+	 * the corpus directly via execute().
 	 */
 	public function set_corpus($corpus_id)
-	{
-		/* OK, now to the business end of the function! */
-		
+	{		
 		$this->execute($corpus_id);
 		
 		$infoblock = "\n" . implode("\n", $this->execute('info')) . "\n";
@@ -400,8 +403,7 @@ class CQP
 		$corpora = ' ' . implode("\t", $this->execute("show corpora"));
 		$corpora = preg_replace('/\s+/', ' ', $corpora);
 		$corpora = preg_replace('/ \w: /', ' ', $corpora);
-		$corpora = trim($corpora);
-		return explode(' ', $corpora);
+		return explode(' ', trim($corpora));
 	}
 		
 	
@@ -411,6 +413,8 @@ class CQP
 	 */
 	public function execute($command, $my_line_handler = false)
 	{
+		$EOL = PHP_EOL;
+		
 		$result = array();
 		if ( (!is_string($command)) || $command == "" )
 		{
@@ -421,15 +425,15 @@ class CQP
 		$command = $this->filter_input($command);
 		
 		/* change any newlines in command to spaces */
-		$command = preg_replace("/\n/", ' ', $command);
+		$command = preg_replace("/$EOL/", ' ', $command);
 		/* check for ; at end and remove if there */
 		$command = preg_replace('/;\s*$/', '', $command);
 		
 		if ($this->debug_mode == true)
-			echo "CQP << $command;\n";
+			echo "CQP << $command;$EOL";
 
 		/* send the command to CQP's stdin */			
-		fwrite($this->handle[0], "$command;\n .EOL.;\n");
+		fwrite($this->handle[0], "$command;$EOL.EOL.;$EOL");
 		/* that executes the command */
 
 		/* then, get lines one by one from child stdout */
@@ -457,14 +461,14 @@ class CQP
 			
 			/* OK, so it's an ACTUAL RESULT LINE */
 			if ($this->debug_mode == true)
-				echo "CQP >> $line\n";
+				echo "CQP >> $line$EOL";
 				
-			if ($my_line_handler != false)
+			if (! empty($my_line_handler))
 				/* call the specified function */
 				$my_line_handler($line);
 			else
 				/* add the line to an array of results */
-				array_push($result, $line);
+				$result[] = $line;
 		}
 
 		/* check for error messages */
@@ -473,7 +477,6 @@ class CQP
 
 		/* return the array of results */
 		return $this->filter_output($result);
-	
 	}
 	/* end of method execute() */
 
@@ -490,7 +493,7 @@ class CQP
 		$errmsg = array();
 		$error = false;
 		
-		if ( (!is_string($command)) || $command == "" )
+		if ( (!is_string($command)) || empty($command) )
 		{
 			$this->add_error("ERROR: CQP->query was called with no command");
 			$this->error();
@@ -541,7 +544,7 @@ class CQP
 	 */
 	public function querysize($name)
 	{
-		if ((!is_string($name)) || $name == "")
+		if ((!is_string($name)) || empty($name))
 		{
 			$this->add_error("ERROR: CQP->querysize was passed an invalid argument");
 			$this->error();
@@ -600,7 +603,7 @@ class CQP
 	 * ascending order, CQP will automatically create an appropriate sort 
 	 * index for the undumped query result. 
 	 * 
-	 * An optional extra argument specifies an absolute path to a directory 
+	 * An optional extra argument specifies a path to a directory 
 	 * where the necessary temporary file can be stored; if none is given,
 	 * the method will attempt to use the temporary directory (i.e. /tmp, which
 	 * is the default location for CWB temp files).
@@ -625,12 +628,12 @@ class CQP
 		 * 
 		 * Allow a place on disk to be specified.
 		 */
-		if ($datadir != '')
+		if (!empty($datadir))
 			$datadir = rtrim($datadir, '/') . '/';
 
 		$tempfile = new CQPInterchangeFile($datadir, true, 'this_undump');
 		/* is this next line still necessary? Possibly not, but may be more efficient */
-		$tempfile->write("$n_matches\n");
+		$tempfile->write("$n_matches" . PHP_EOL);
 		
 		/* find out whether we're doing targets, keywords etc */
 		$n_anchors = count(reset($matches));
@@ -660,7 +663,7 @@ class CQP
 				$tempfile->close();
 				return false;
 			}
-			$tempfile->write(implode("\t", $row) . "\n");
+			$tempfile->write(implode("\t", $row) . PHP_EOL);
 		}
 
 		$tempfile->finish();
@@ -668,7 +671,7 @@ class CQP
 		/* now send undump command with filename of temporary file */
 		$tempfile_name = $tempfile->get_filename();
 		$this->execute("undump $subcorpus $with < 'gzip -cd $tempfile_name |'");
-		// TODO. Does this *really* need gzipping?
+		// TODO. Does this *really* need gzipping? Win32 incompatibiltiy.
 
 		/* delete temporary file */
 		$tempfile->close();
@@ -693,13 +696,13 @@ class CQP
 	 * 
 	 * USAGE:  $cqp->group($named_query, "$anchor.$att", "$anchor.$att", $cutoff]);
 	 * note: in this PHP version, unlike the Perl, all args are compulsory.
+	 * TODO change this: make spec2 and cutoff optional
 	 * 
 	 * NB. Not tested yet.
 	 */
 	public function group($subcorpus, $spec1, $spec2, $cutoff)
 	{
-	//TODO tests should be for "empty" really....
-		if ( $subcorpus == "" || $spec1 == "")
+		if ( empty($subcorpus) || empty($spec1) )
 		{
 			$this->add_error("ERROR: CQP->group was passed an invalid argument");
 			$this->error();
@@ -710,7 +713,7 @@ class CQP
 					'/^(match|matchend|target[0-9]?|keyword)\.([A-Za-z0-9_-]+)$/',
 					$spec1, $matches) )
 		{
-			$this->add_error("CQP:  invalid key \"$spec1\" in group() method\n");
+			$this->add_error("CQP:  invalid key \"$spec1\" in group() method");
 			$this->error;
 			return false;
 		}
@@ -718,20 +721,20 @@ class CQP
 		$spec1 = $matches[1] . " " . $matches[2];
 		unset($matches);
 		
-		if ($spec2 != "")
+		if (empty($spec2))
 		{
 			if (0 == preg_match(
 						'/^(match|matchend|target[0-9]?|keyword)\.([A-Za-z0-9_-]+)$/',
 						$spec2, $matches) )
 			{
-				$this->add_error("CQP:  invalid key \"$spec2\" in group() method\n");
+				$this->add_error("CQP:  invalid key \"$spec2\" in group() method");
 				$this->error;
 				return false;
 			}
 			$spec2 = "{$matches[1]} {$matches[2]}";
  		}
 
-		if ($spec2 != "")
+		if (empty($spec2))
 			$command = "group $subcorpus $spec2 by $spec1 cut $cutoff";
 		else
 			$command = "group $subcorpus $spec1 cut $cutoff";
@@ -758,8 +761,7 @@ class CQP
 	{
 		if ($subcorpus == "" || $sort_clause == "")
 		{
-			$this->add_error('ERROR: in CQP->count. USAGE: $cqp->count($named_query, $sort_clause [, $cutoff]);',
-				$this->error_message);
+			$this->add_error('ERROR: in CQP->count. USAGE: $cqp->count($named_query, $sort_clause [, $cutoff]);');
 			$this->error();
 			return false;
 		}
@@ -770,8 +772,7 @@ class CQP
 	
 		foreach($temp_returned as $t)
 		{
-			// erm, I think this will work!
-			list ($size, $first, $string) = split("\t", $t, 3);
+			list ($size, $first, $string) = explode("\t", $t);
 			$rows[] = array($size, $string, $first, $first+$size-1);
 		}
 		return $rows;
@@ -805,7 +806,7 @@ class CQP
 		$ready = stream_select($r=array($this->handle[2]), $w, $e, 0);
 
 		/* read all available lines from CQP's stderr stream */
-		while ($ready > 0 && count($error_strings < 1024))
+		while ($ready > 0 && count($error_strings) < 1024)
 		{	
 			$error_strings[] = trim(fgets($this->handle[2]), "\r\n");
 			
@@ -868,7 +869,7 @@ class CQP
 	/** Does same as get_error_message, but with all strings in the array rolled together. */
 	public function get_error_message_as_string()
 	{
-		return implode("\n", $this->error_message);
+		return implode(PHP_EOL, $this->error_message);
 	}
 
 	/** 
@@ -879,8 +880,9 @@ class CQP
 	 */
 	public function get_error_message_as_html($p_class = '')
 	{
+		$EOL = PHP_EOL;
 		$class = (empty($p_class) ? '' : " class=\"$p_class\"");
-		return "<p$class>" . implode("\n<br/>", $this->error_message) . "\n</p>\n";
+		return "<p$class>" . implode("$EOL<br/>", $this->error_message) . "$EOL</p>$EOL";
 	}
 	
 	/** 
@@ -913,13 +915,13 @@ class CQP
 	private function error($messages = NULL)
 	{
 		if (!is_array($messages))
-			$messages =& $this->error_message;
+			$messages = $this->error_message;
 		/* we need call_user_func() because trying to call $this->error_handler directly
 		 * may cause PHP to think we are trying to call a method called "error_handler". */
-		if ($this->error_handler != false)
+		if (! empty($this->error_handler))
 			call_user_func($this->error_handler, $messages);
 		else
-			echo implode("\n", $messages);
+			echo implode(PHP_EOL, $messages);
 	}
 
 	/**
@@ -976,7 +978,7 @@ class CQP
 	function handle_progressbar($line = "")
 	{
 		if ($this->debug_mode)
-			echo "CQP $line\n";
+			echo "CQP $line" . PHP_EOL;
 		if ($this->progress_handler == false)
 			return;
 			
@@ -1036,15 +1038,6 @@ class CQP
 			return $string;
 		else
 			return iconv('UTF-8', self::$charset_labels_iconv[$this->corpus_charset] . '//TRANSLIT', $string);
-		/* 
-		switch($this->corpus_charset)
-		{
-		case self::CHARSET_UTF8:
-			return $string;
-		case self::CHARSET_LATIN1:
-			return utf8_decode($string);
-		}
-		*/
 	}
 	/** 
 	 * Switch the character set encoding of an output string to be sent to the caller.
@@ -1057,16 +1050,16 @@ class CQP
 	 */
 	private function filter_output($string)
 	{
-		/* 
-		 * output may be an array of strings: in which case map across all strings within it
-		 * this is done WITHIN the else, rather than by calling this function recursively,
-		 * to save function call overhead in the (most common) case where the underlying
-		 * corpus is UTF8. 
-		 */
 		if ($this->corpus_charset == self::CHARSET_UTF8)
 			return $string;
 		else
 		{
+			/* 
+			 * $string may be an array of strings: in which case map across all strings within it
+			 * this is done WITHIN the else, rather than by calling this function recursively,
+			 * to save function call overhead in the (most common) case where the underlying
+			 * corpus is UTF8. 
+			 */
 			if (is_array($string))
 			{
 				foreach($string as $k => &$v)
@@ -1085,25 +1078,6 @@ class CQP
 	 */
 	public function get_corpus_charset()
 	{
-		/*
-		switch ($this->corpus_charset)
-		{
-		case self::CHARSET_UTF8: 		return 'utf8';
-		case self::CHARSET_LATIN1:		return 'latin1';
-		case self::CHARSET_LATIN2:		return 'latin2';
-		case self::CHARSET_LATIN3:		return 'latin3';
-		case self::CHARSET_CYRILLIC:	return 'cyrillic';
-		case self::CHARSET_ARABIC:		return 'arabic';
-		case self::CHARSET_GREEK:		return 'greek';
-		case self::CHARSET_HEBREW:		return 'hebrew';
-		case self::CHARSET_LATIN5:		return 'latin5';
-		case self::CHARSET_LATIN6:		return 'latin6';
-		case self::CHARSET_LATIN7:		return 'latin7';
-		case self::CHARSET_LATIN8:		return 'latin8';
-		case self::CHARSET_LATIN9:		return 'latin9';
-		default:						return NULL;
-		}
-		*/
 		if (array_key_exists($this->corpus_charset, self::$charset_labels_cwb))
 			return self::$charset_labels_cwb[$this->corpus_charset];
 		else
@@ -1146,7 +1120,7 @@ class CQP
 			'+' => '\+',
 			'*' => '\*'		
 			);
-		/* call str_replace for backslash to make sure this happens first */
+		/* do the replacement on backslash to make sure this happens first */
 		return strtr(str_replace('\\', '\\\\', $s), $replacements);
 	}
 	
@@ -1155,7 +1129,7 @@ class CQP
 	{
 		return self::VERSION_MAJOR_DEFAULT
 			. '.' . self::VERSION_MINOR_DEFAULT
-			. '.' . self::VERSION_BETA_DEFAULT;
+			. '.' . self::VERSION_REVISION_DEFAULT;
 	}
 
 	/**
@@ -1171,73 +1145,74 @@ class CQP
 	 */
 	public static function diagnose_connection($path_to_cqp, $cwb_registry)
 	{
+		$EOL = PHP_EOL;
+		
 		$infoblob = '';
 		
-		$infoblob .= "Beginning diagnostics on CQP child process connection.\n\n";
-		$infoblob .= "Using following configuration variables:\n";
-		$infoblob .= "    \$path_to_cqp = ``$path_to_cqp''\n";
-		$infoblob .= "    \$cwb_registry = ``$cwb_registry''\n";
-		$infoblob .= "\n";
+		$infoblob .= "Beginning diagnostics on CQP child process connection.$EOL$EOL";
+		$infoblob .= "Using following configuration variables:$EOL";
+		$infoblob .= "    \$path_to_cqp = ``$path_to_cqp''$EOL";
+		$infoblob .= "    \$cwb_registry = ``$cwb_registry''$EOL";
+		$infoblob .= "$EOL";
 		
-		/* all checks are wrapped in a do ... while(false) to allow a break to go straight to shutdown;
-		 * goto shutdown would be nice as well but we don't want to count on PHP 5.3+ */
+		/* all checks are wrapped in a do ... while(false) to allow a break to go straight to shutdown */
 		do {
 			/* check path to cqp is a real directory */
-			$infoblob .= "Checking that /$path_to_cqp exists... ";
-			if (!is_dir("/$path_to_cqp"))
+			$infoblob .= "Checking that $path_to_cqp exists... ";
+			if (!is_dir($path_to_cqp))
 			{
-				$infoblob .= "\n    CHECK FAILED. Check that /$path_to_cqp exists"
-					. " and contains the CQP executable.\n";
+				$infoblob .= "$EOL    CHECK FAILED. Check that $path_to_cqp exists"
+					. " and contains the CQP executable.$EOL";
 				break;
 			}
 			else
-				$infoblob .= " yes it does!\n\n";
+				$infoblob .= " yes it does!$EOL$EOL";
 			
 			// check that this user has read/execute permissions to it TODO
 			
 			/* check that cqp exists within it */
 			$infoblob .= "Checking that CQP program exists... ";
-			if (!is_file("/$path_to_cqp/cqp"))
+			if (!is_file("$path_to_cqp/cqp"))
 			{
-				$infoblob .= "\n    CHECK FAILED. Check that /$path_to_cqp"
-					. " contains the CQP executable.\n";
+				$infoblob .= "$EOL    CHECK FAILED. Check that $path_to_cqp"
+					. " contains the CQP executable.$EOL";
 				break;
 			}
 			else
-				$infoblob .= " yes it does!\n\n";
+				$infoblob .= " yes it does!$EOL$EOL";
 			
 			/* check that cqp is executable TODO */
 			$infoblob .= "Checking that CQP program is executable by this user... ";
-			if (!is_executable("/$path_to_cqp/cqp"))
+			if (!is_executable("$path_to_cqp/cqp"))
 			{
-				$infoblob .= "\n    CHECK FAILED. Check that /$path_to_cqp/cqp"
-					. " is executable by the username this script is running under.\n";
+				$infoblob .= "$EOL    CHECK FAILED. Check that $path_to_cqp/cqp"
+					. " is executable by the username this script is running under.$EOL";
 				break;
 			}
 			else
-				$infoblob .= " yes it is!\n\n";
+				$infoblob .= " yes it is!$EOL$EOL";
 
 			/* check that cwb_registry is a real directory */
-			$infoblob .= "Checking that /$cwb_registry exists... ";
-			if (!is_dir("/$cwb_registry"))
+			$infoblob .= "Checking that $cwb_registry exists... ";
+			if (!is_dir($cwb_registry))
 			{
-				$infoblob .= "\n    CHECK FAILED. Check that /$cwb_registry exists"
-					. " and contains the CQP executable.\n";
+				$infoblob .= "$EOL    CHECK FAILED. Check that $cwb_registry exists"
+					. " and contains the CQP executable.$EOL";
 				break;
 			}
 			else
-				$infoblob .= " yes it does!\n\n";
+				$infoblob .= " yes it does!$EOL$EOL";
 			
 			// check that this user has read/execute permissions to it TODO
 			$infoblob .= "Checking that CWB registry is readable by this user... ";
-			if (!is_readable("/$cwb_registry"))
+			if (!is_readable($cwb_registry))
 			{
-				$infoblob .= "\n    CHECK FAILED. Check that /$cwb_registry"
-					. " is readable by the username this script is running under.\n";
+				$infoblob .= "$EOL    CHECK FAILED. Check that $cwb_registry"
+					. " is readable by the username this script is running under.$EOL";
 				break;
 			}
 			else
-				$infoblob .= " yes it is!\n\n";
+				$infoblob .= " yes it is!$EOL$EOL";
 			
 			// do an experimental startup TODO
 			
@@ -1251,21 +1226,21 @@ class CQP
 			// and check the process out (use EOL command) TODO
 			
 			/* if all that is working then the diagnostic is complete */ 
-			$infoblob .= "The connection to the CQP child process was successful.\n";
+			$infoblob .= "The connection to the CQP child process was successful.$EOL";
 
 		} while (false);
 		
 		/* if the process was not created successfully, we do not need ot close it */
 		if (is_resource($process))
 		{
-			$infoblob .= "\nAttempting to shut down test process...\n";
+			$infoblob .= "{$EOL}Attempting to shut down test process...$EOL";
 		
 			// shutdown procedure here.
 			// TODO
 			if (false)
 				;
 			else
-				$infoblob .= "Process shutdown was successful.\n";
+				$infoblob .= "{$EOL}Process shutdown was successful.$EOL";
 		}
 		
 		return $infoblob;
@@ -1299,7 +1274,7 @@ class CQP
  * 
  * send_to_some_other_module($intfile->get_filename());
  * 
- * // or...
+ * // or, instead of sending the filename to another module...
  * 
  * $lines_to_do_something_with = $infile->read();
  * 
@@ -1341,7 +1316,9 @@ class CQPInterchangeFile
 	 * Note, the constructor interface is a bit different to the CWB::TempFile interface in the Perl
 	 * module.
 	 * 
-	 * You MUST specify a directory for the file to be put in, the default is the working directory.
+	 * You can specify a directory for the file to be put in; the default is PHP's current working directory.
+	 * If the directory you specify does not exist or is not writable, the location defaults back to the
+	 * current working directory.
 	 * 
 	 * If $gzip is true, the file will be compressed.
 	 * 
@@ -1359,7 +1336,7 @@ class CQPInterchangeFile
 			
 		/* remove rightmost / or \ from folder, as below it is assumed there will be no slash */
 		$location = rtrim($location, '/\\');
-		if (empty($location))
+		if (empty($location) || !is_dir($location) || !is_writable($location))
 			$location = '.';
 		
 		$unique = base_convert(uniqid(), 16, 36);
@@ -1371,6 +1348,7 @@ class CQPInterchangeFile
 		
 		$this->protocol = ( $this->compression ? 'compress.zlib://' : '' );
 		$this->handle = fopen($this->protocol . $this->name, 'w');
+		//TODO check fopen success.
 		$this->status = "W";
 	}
 	
@@ -1438,15 +1416,17 @@ class CQPInterchangeFile
 		else
 		{
 			if (!fclose($this->handle))
-	 			$this->error("CQPInterchangeFile: Error closing file " . $this->name . "\n");
+	 			$this->error("CQPInterchangeFile: Error closing file " . $this->name);
 			$this->handle = fopen($this->protocol . $this->name, "r");
+			// TODO error-check return
 		}
 	}
 	
 	/**
 	 * Finishes reading or writing, and closes and deletes the file.
 	 * 
-	 * No return value (for either success or error conditions
+	 * No return value (for either success or error conditions). In case of an error, 
+	 * the object's error function is called.
 	 */
 	public function close()
 	{
@@ -1481,7 +1461,7 @@ class CQPInterchangeFile
 	/**
 	 * Get the file's current status as an (uppercase) string.
 	 * 
-	 * Example usage: echo $interchange_file->status() . "\n"; 
+	 * Example usage: echo $interchange_file->status() . PHP_EOL; 
 	 */
 	public function get_status()
 	{
@@ -1505,7 +1485,7 @@ class CQPInterchangeFile
 	 * (rather than exiting the program, which is the default error handling).
 	 * 
 	 * The callback can be anything that will work as the first argument of the PHP function
-	 * call_user_func().
+	 * call_user_func(). If it is an empty value, no callback will be used.
 	 */
 	public function set_error_callback($callback)
 	{
@@ -1514,7 +1494,7 @@ class CQPInterchangeFile
 	
 	/**
 	 * Sends an error meessage to the user-specified callback, or aborts the program
-	 * if no callback is set.
+	 * with that error message as the exit message if no callback is set.
 	 */ 
 	private function error($message)
 	{

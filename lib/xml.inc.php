@@ -414,7 +414,7 @@ function initialise_visualisation_simple_bbcodes(&$from, &$to)
 	$from[32] = '[/centre]';	$to[32] =  '</center>';
 	$from[33] = '[/center]';	$to[33] =  '</center>';
 
-// next number: 35
+/* next number: 35 */
 }
 
 

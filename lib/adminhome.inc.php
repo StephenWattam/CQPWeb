@@ -2468,7 +2468,7 @@ function printquery_systemdiagnostics()
 			<tr>
 				<td class="concordgrey">
 					<pre>
-					<?php echo "\n" . CQP::diagnose_connection($path_to_cwb, $cwb_registry) . "\n"; ?>
+					<?php echo "\n" . CQP::diagnose_connection("/$path_to_cwb", "/$cwb_registry") . "\n"; ?>
 					</pre>
 				</td>
 			</tr>

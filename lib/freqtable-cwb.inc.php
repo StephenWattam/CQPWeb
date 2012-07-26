@@ -105,7 +105,7 @@ function make_cwb_freq_index()
 
 	
 	/* character set to use when encoding the new corpus */
-	$cqp = new CQP($path_to_cwb, $cwb_registry);
+	$cqp = new CQP("/$path_to_cwb", "/$cwb_registry");
 	$cqp->set_error_handler('exiterror_cqp');
 	$cqp->set_corpus($corpus_cqp_name);
 	$charset = $cqp->get_corpus_charset();

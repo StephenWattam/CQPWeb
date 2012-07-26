@@ -163,7 +163,7 @@ function connect_global_cqp()
 	global $print_debug_messages;
 
 	/* connect to CQP */
-	$cqp = new CQP($path_to_cwb, $cwb_registry);
+	$cqp = new CQP("/$path_to_cwb", "/$cwb_registry");
 	/* select an error handling function */
 	$cqp->set_error_handler("exiterror_cqp");
 	/* set CQP's temporary directory */
@@ -618,7 +618,7 @@ function make_thousands($number)
  * 
  * Note the double-encode flag exists in PHP >= 5.2.3. So we don't really need this
  * function, since - officially! - CQPweb requires PHP 5.3. But let's keep it since it's no effort to
- * do so and it might let people without upgrade pwoer keep running the system a little longer.
+ * do so and it might let people without upgrade power keep running the system a little longer.
  */
 function cqpweb_htmlspecialchars($string)
 {
@@ -639,7 +639,7 @@ function cqpweb_htmlspecialchars($string)
  * If removing the nonhandle characters reduces it to an
  * empty string, then it will be converted to "__HANDLE".
  * 
- * (Other code is of course responsible for making sure the handle is unique
+ * (Other code must be responsible for making sure the handle is unique
  * where necessary.)
  * 
  * A maximum length can also be enforced if the second parameter

@@ -54,7 +54,9 @@ A CEQL parser can be told to accept the following varieties of attribute:
    Rather, there is a hash table (== associative array) mapping a set of ALIASES to REGULAR EXPRESSIONS.
    It is these regexes that are actually searched for in the tertiary annotation.
    So, you can have more aliases than actual tags.
-   Here is the hash table for the Oxford Simplified Tagset (thanks Stefan!)
+   
+   Here is the hash table for the Oxford Simplified Tagset (thanks Stefan!):
+   
    my $table = { 
            "A" => "ADJ",
            "ADJ" => "ADJ",
@@ -275,7 +277,7 @@ function process_simple_query($query, $case_sensitive)
  * Runs the specified perl script (by piping to STDIN); collects Perl's
  * STDOUT (and, if STDOUT is empty, STDERR) and places it at the referenced arguments.
  *
- * Note that $ouptput will always be overwritten by a single string, possibly
+ * Note that $output will always be overwritten by a single string, possibly
  * empty. Iff $output is empty, $errors wil be overwritten by an array of lines
  * from STDERR.
  *
@@ -500,7 +502,7 @@ function get_builtin_mapping_table($mapping_table_id)
 			"PR" => "PR",
 			"SENT" => "SENT",
 			"CONJ" => "CONJ",
-			"S-PRO" => "S-PRO",
+			"S-PRO" => "S-PRO",p
 			"PART" => "PART",
 			"A-PRO" => "A-PRO",
 			"ADV-PRO" => "ADV-PRO",

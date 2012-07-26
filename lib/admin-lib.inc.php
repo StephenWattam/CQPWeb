@@ -756,14 +756,14 @@ function create_text_metadata_for()
 	$corpus = cqpweb_handle_enforce($create_text_metadata_for_info['corpus']);
 	
 	if (!is_dir("../$corpus"))
-		exiterror_fullpage("Corpus $corpus does not seem to be installed!", __FILE__, __LINE__);	
+		exiterror_fullpage("Corpus $corpus does not seem to be installed!\nMetadata setup aborts.");	
 	
 	if (empty($create_text_metadata_for_info['filename']))
-		exiterror_fullpage("No input file was specified!\nMetadata setup aborts.", __FILE__, __LINE__);
+		exiterror_fullpage("No input file was specified!\nMetadata setup aborts.");
 				
 	$file = "/$cqpweb_uploaddir/{$create_text_metadata_for_info['filename']}";
 	if (!is_file($file))
-		exiterror_fullpage("The file [$file] is not a file!", __FILE__, __LINE__);
+		exiterror_fullpage("The metadata file you specified does not appear to exist!\nMetadata setup aborts.");
 
 	$input_file = "/$cqpweb_tempdir/___install_temp_{$create_text_metadata_for_info['filename']}";
 	
@@ -778,14 +778,7 @@ function create_text_metadata_for()
 	if ($create_text_metadata_for_info['file_should_be_deleted'])
 		unlink($file);
 
-	
-// what the hell does this do?
-// it doesn't seem to do anything.
-// cut it out, see if it still works???
-//	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus'";
-//	$result = do_mysql_query($sql_query);
-// end of bit that doesn't seem to do anything.
-	
+
 	/* note, size of text_id is 50 to allow possibility of non-decoded UTF8 - they should be shorter */
 	$create_statement = "create table `text_metadata_for_$corpus`(
 		`text_id` varchar(50) NOT NULL";
@@ -794,7 +787,7 @@ function create_text_metadata_for()
 	
 	for ($i = 1; $i <= $create_text_metadata_for_info['field_count']; $i++)
 	{
-		if ($create_text_metadata_for_info['fields'][$i]['handle'] == '')
+		if (empty($create_text_metadata_for_info['fields'][$i]['handle']))
 			continue;
 			
 		$create_text_metadata_for_info['fields'][$i]['handle'] 

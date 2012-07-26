@@ -69,27 +69,28 @@ class corpus_install_info
 		/* get each thing from GET */
 		/* *********************** */
 		
-		$this->corpus_mysql_name = cqpweb_handle_enforce($_GET['corpus_mysql_name']);
-		$this->corpus_cwb_name = strtolower(cqpweb_handle_enforce($_GET['corpus_cwb_name']));
-
+		/* mysql name */
+		$this->corpus_mysql_name = $_GET['corpus_mysql_name'];
+		if (! cqpweb_handle_check($this->corpus_mysql_name))
+			exiterror_fullpage("That corpus name is invalid." 
+				. "You must specify a corpus name using only letters, numbers and underscore");
 		/* check for reserved words */
 		global $cqpweb_reserved_subdirs;
 		if (in_array($this->corpus_mysql_name, $cqpweb_reserved_subdirs))
-			exiterror_fullpage("The following corpus names are not allowed: " . implode(' ', $cqpweb_reserved_subdirs),
-				__FILE__, __LINE__);
+			exiterror_fullpage("The following corpus names are not allowed: " . implode(' ', $cqpweb_reserved_subdirs));
 		
+		/* cwb name */
+		$this->corpus_cwb_name = strtolower($_GET['corpus_cwb_name']);
+		if (! cqpweb_handle_check($this->corpus_cwb_name))
+			exiterror_fullpage("That corpus name is invalid." 
+				. "You must specify a corpus name using only letters, numbers and underscore");		
 		if (substr($this->corpus_cwb_name, -6) == '__freq')
 			exiterror_fullpage('Error: Corpus CWB names cannot end in __freq!!');
 		
+		/* other basic parameters */
 		$this->script_is_r2l = ( $_GET['corpus_scriptIsR2L'] === '1' );
 		$this->encode_charset = ( $_GET['corpus_encodeIsLatin1'] === '1' ? 'latin1' : 'utf8' );
-				
-		if ( $this->corpus_cwb_name === '' || $this->corpus_mysql_name === '' )
-			exiterror_fullpage("You must specify a corpus name using only letter, numbers and underscore",
-				__FILE__, __LINE__);
-		
-		$_GET['corpus_description'] = addcslashes($_GET['corpus_description'], "'");
-		$this->description = $_GET['corpus_description'];
+		$this->description = addcslashes($_GET['corpus_description'], "'");
 		
 		
 		/* ***************** */
@@ -127,7 +128,7 @@ class corpus_install_info
 			
 			$regdata = file_get_contents($registry_file);
 			
-			if (preg_match("/\bHOME\s+(\/[^\n]+)\s/", $regdata, $m) < 1)
+			if (preg_match("/\bHOME\s+(\/[^\n\r]+)\s/", $regdata, $m) < 1)
 			{
 				unlink($registry_file);
 				exiterror_fullpage("A data-directory path could not be found in the registry file for "
@@ -241,11 +242,14 @@ class corpus_install_info
 			/* escape single quotes in the address because it will be embedded in a single-quoted string */ 
 			$this->css_url = addcslashes($_GET['cssCustomUrl'], "'");
 			/* only a silly URL would have ' in it anyway, so this is for safety */
+			// TODO poss XSS vulnerability - as this URL is sent back to the client eventually. 
+			// Is there *any* way to make this safe? (Assuming an attacker has gained access to this form)
+			// Probably not. Might be better to make external-url-for-css something that can only be done
+			// by manual editing of the settings file. 
 		}
 		else
 		{
-			/* we assume no single quotes in builtin CSS files because we can make sure no
-			 * silly filenames get added in the future.... */ 
+			/* we assume no single quotes in names of builtin CSS files */ 
 			$this->css_url = "../css/{$_GET['cssBuiltIn']}";
 			if (! is_file($this->css_url))
 				$this->css_url = '';
