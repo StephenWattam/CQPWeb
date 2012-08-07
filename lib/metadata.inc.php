@@ -215,20 +215,6 @@ function update_corpus_context_scope($newcount, $newunit)
 	$settings->set_context_s_attribute($newunit);
 	$settings->save();
 }
-//TODO delete following function
-/*
-function update_corpus_directory_override($type, $newdir)
-{
-	global $corpus_sql_name;
-	$settings = new CQPwebSettings('..');
-	$settings->load($corpus_sql_name);
-	if ($type == 'reg' || $type == 'reg_dir' || $type == 'regdir')
-		$settings->set_directory_override_reg($newdir);
-	if ($type == 'data' || $type == 'data_dir' || $type == 'datadir')
-		$settings->set_directory_override_data($newdir);
-	$settings->save();	
-}
-*/
 
 function update_corpus_visualisation_position_labels($show, $attribute)
 {
@@ -464,9 +450,8 @@ function metadata_of_text($text_id)
 
 	$sql_query = "select * from text_metadata_for_$corpus_sql_name 
 					where text_id = '$text_id' limit 1";
-	$result = do_mysql_query($sql_query);
 	
-	return mysql_fetch_assoc($result);
+	return mysql_fetch_assoc(do_mysql_query($sql_query));
 }
 
 /**
@@ -672,22 +657,13 @@ function metadata_size_of_cat($classification, $category)
 
 	$sql_query = "SELECT sum(words) FROM text_metadata_for_$corpus_sql_name 
 		where $classification = '$category'";
-
-	$result = do_mysql_query($sql_query);
-
-	$size_in_words = mysql_fetch_row($result);
-	unset($result);
-
+	list($size_in_words) = mysql_fetch_row(do_mysql_query($sql_query));
 
 	$sql_query = "SELECT count(*) FROM text_metadata_for_$corpus_sql_name
 		where $classification = '$category'";
+	list($size_in_files) = mysql_fetch_row(do_mysql_query($sql_query));
 
-	$result = do_mysql_query($sql_query);
-	
-	$size_in_files = mysql_fetch_row($result);
-	unset($result);
-
-	return array($size_in_words[0], $size_in_files[0]);
+	return array($size_in_words, $size_in_files);
 }
 
 
@@ -721,7 +697,7 @@ function metadata_size_of_cat_thinned($classification, $category, $class2, $cat2
 
 /** 
  * counts the number of words in each text class for this corpus,
- * and updates the table contianing that info 
+ * and updates the table containing that info 
  */
 function metadata_calculate_category_sizes()
 {

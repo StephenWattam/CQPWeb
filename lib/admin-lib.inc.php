@@ -429,7 +429,7 @@ function clone_group_access_rights($from_group, $to_group)
 }
 
 /**
- * Creates an Apache interface-object (that deals with htacces,s htpasswd, and htgroup
+ * Creates an Apache interface-object (that deals with htaccess, htpasswd, and htgroup
  * files) with the right settings for use in CQPweb.
  */
 function get_apache_object($path_to_web_directory)

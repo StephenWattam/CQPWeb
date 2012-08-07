@@ -97,6 +97,16 @@ require_once('../lib/config.inc.php');
 /* can be overridden by setting these variables in config.inc.php */
 
 
+
+/* Global setting: are we running on Windows?
+ * 
+ * This is not expected to be set in the config file, but it can be if
+ * the call to php_uname does not have the desired effect.
+ */
+if (!isset($cqpweb_running_on_windows))
+	$cqpweb_running_on_windows = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');
+
+
 /* Does mysqld have file-write/read ability? If set to true, CQPweb uses LOAD DATA
  * INFILE and SELECT INTO OUTFILE. If set to false, file write/read into/out of
  * mysql tables is done via the client-server link.
@@ -137,20 +147,13 @@ else
 
 
 
-/* TEMPORARY DIRECTORIES
- * 
- * We previously had two different temporary directories
- * 
- * Now we have just one; but the code has not all been revised yet.
- */
+/* TEMPORARY DIRECTORY */
 if (!isset($cqpweb_tempdir))
 {
 	echo('CRITICAL ERROR: $cqpweb_tempdir has not been set');
 	exit();
 }
-/* This temporary code preserves the old directory names as references to the new directory name */
-$mysql_tempdir =& $cqpweb_tempdir;
-$cqp_tempdir =& $cqpweb_tempdir;
+
 
 /* These are defaults for the max amount of memory allowed for CWB programs that let you set this,
  * counted in megabytes. The first is used for web-scripts, the second for CLI-scripts. */
@@ -444,8 +447,10 @@ if (!isset($username))
  * one user seeing another's username linked to a cached query. So now it's the PHP uniqid(),
  * which is a hexadecimal version of the Unix time in microseconds. This shouldn't be 
  * possible to duplicate unless (a) we're on a computer fast enough to call uniqid() twice
- * in two different processes in the same microsecond (b) two users do happen to hit us in 
- * the same microsecond. 
+ * in two different processes in the same microsecond AND (b) two users do happen to hit 
+ * the server in the same microsecond. Unlikely, but id codes based on the $instance_name
+ * should still be checked for uniqueness before being used in any situation where the 
+ * uniqueness matters (e.g. as a database primary key).
  * 
  * For compactness, we convert to base-36.  Total length = 10 chars (for the foreseeable future!).
  */ 

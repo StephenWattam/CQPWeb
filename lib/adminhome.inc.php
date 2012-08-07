@@ -39,10 +39,6 @@ require_once ("../lib/defaults.inc.php");
 require_once ("../lib/library.inc.php");
 require_once ("../lib/apache.inc.php");
 require_once ("../lib/admin-lib.inc.php");
-// TODO needed?
-//require_once ("../lib/admin-install.inc.php");
-// TODO needed?
-//require_once ("../lib/uploads.inc.php");
 require_once ("../lib/exiterror.inc.php");
 require_once ("../lib/metadata.inc.php");
 require_once ("../lib/ceql.inc.php");
@@ -50,7 +46,7 @@ require_once ("../lib/cqp.inc.php");
 
 
 if (!user_is_superuser($username))
-	exiterror_fullpage("You do not have permission to use this program.", __FILE__, __LINE__);
+	exiterror_general("You do not have permission to use this program.");
 
 
 
@@ -2421,7 +2417,6 @@ function printquery_systemdiagnostics()
 					file_put_contents($curr_file, "<?php require('../lib/$file.inc.php'); ?>");
 					chmod($curr_file, 0664);
 					$probfiles[] = $curr_file;
-					
 				}
 		?>
 		<table class="concordtable" width="100%">
@@ -2790,11 +2785,11 @@ function printquery_mysqlprocesses()
 		while (($process = mysql_fetch_object($result)) !== false)
 		{
 			echo '<tr>'
-				. '<td class="concordgeneral">' . $process->dbname . '</td>'
-				. '<td class="concordgeneral">' . date(DATE_RSS, $process->begin_time) . '</td>'
-				. '<td class="concordgeneral">' . $process->process_type . '</td>'
-				. '<td class="concordgeneral">' . $process->process_id . '</td>'
-				. '</tr>';	
+				, '<td class="concordgeneral">' , $process->dbname , '</td>'
+				, '<td class="concordgeneral">' , date(DATE_RSS, $process->begin_time) , '</td>'
+				, '<td class="concordgeneral">' , $process->process_type , '</td>'
+				, '<td class="concordgeneral">' , $process->process_id , '</td>'
+				, "</tr>\n";
 		}
 		?>
 	</table>

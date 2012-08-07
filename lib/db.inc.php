@@ -161,8 +161,6 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 	do_mysql_query("Alter table $dbname disable keys");
 
-	//$sql_query = "$mysql_LOAD_DATA_INFILE_command '/$cqpweb_tempdir/$tabfile' into table $dbname fields escaped by ''";
-	//do_mysql_query($sql_query);
 	do_mysql_infile_query($dbname, "/$cqpweb_tempdir/$tabfile", true);
 	
 	do_mysql_query("Alter table $dbname enable keys");
@@ -430,9 +428,7 @@ function touch_db($dbname)
 
 function get_db_size($dbname)
 {
-	$result = do_mysql_query("SHOW TABLE STATUS LIKE '$dbname'");
-	
-	$info = mysql_fetch_assoc($result);
+	$info = mysql_fetch_assoc(do_mysql_query("SHOW TABLE STATUS LIKE '$dbname'"));
 
 	return $info['Data_length'] + $info['Index_length'];
 }
@@ -483,7 +479,7 @@ function check_dblist_parameters($db_type, $cqp_query, $restrictions, $subcorpus
 			break;
 		case 'sort':
 			// for now ......... till i work out what s_p is for
-			// do I even need osrt_position
+			// do I even need sort_position
 			$sort_position = 0;
 			break;
 		default:
@@ -519,6 +515,7 @@ function check_dblist_parameters($db_type, $cqp_query, $restrictions, $subcorpus
  */
 function delete_db($dbname)
 {
+	$dbname = mysql_real_escape_string($dbname);
 	do_mysql_query("DROP TABLE IF EXISTS $dbname");
 	do_mysql_query("DELETE FROM saved_dbs where dbname = '$dbname'");
 }
@@ -550,11 +547,7 @@ function delete_saved_dbs()
 	
 	/* step one: how many bytes in size is the db cache RIGHT NOW? */
 	$sql_query = "select sum(db_size) from saved_dbs";
-	$result = do_mysql_query($sql_query);
-	$row_array = mysql_fetch_row($result);
-	$current_size = $row_array[0];
-	unset($result);
-	unset($row_array);
+	list($current_size) = mysql_fetch_row(do_mysql_query($sql_query));
 
 	if ($current_size <= $mysql_db_size_limit)
 		return;
@@ -616,8 +609,10 @@ function clear_dbs($type = '__NOTYPE')
 
 
 
-/* check for maximum number of concurrent processes of the sepcified type */
-/* returns true if there is space for another process, false if there is not */
+/** 
+ * Checks for maximum number of concurrent processes of the sepcified type;
+ * returns true if there is space for another process, false if there is not.
+ */
 function check_db_max_processes($process_type)
 {
 	global $mysql_process_limit;
@@ -683,6 +678,8 @@ function unregister_db_process($process_id = '___THIS_SCRIPT')
 {
 	if ($process_id == '___THIS_SCRIPT')
 		$process_id = getmypid();
+	else
+		$process_id = (int)$process_id;
 	do_mysql_query("delete from mysql_processes where process_id = '$process_id'");
 }
 

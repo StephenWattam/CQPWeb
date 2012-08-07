@@ -32,6 +32,32 @@
 
 
 
+
+
+/*
+ * If mysql extension does not exist, include fake-mysql.inc.php to restore the functions
+ * that are actually used and emulate them via mysqli.
+ * 
+ * This is global code in a library file; normally a no-no.
+ * it -only- addresses what files need to be included and which don't.
+ */
+if  (!extension_loaded('mysql'))
+{
+	if (!class_exists('mysqli', false))
+		exit('CQPweb fatal error: neither mysql nor mysqli is available. Contact the system administrator.');
+	else
+		include('../lib/fake-mysql.inc.php');
+}
+
+
+
+
+
+
+
+
+
+
 /*
  * FLAGS for cqpweb_startup_environment()
  */
@@ -125,24 +151,6 @@ function cqpweb_shutdown_environment()
 
 
 
-
-
-
-
-/*
- * If mysql extension does not exist, include fake-mysql.inc.php to restore the functions
- * that are actually used and emulate them via mysqli.
- * 
- * This is global code in a library file; normally a no-no.
- * it -only- addresses what files need to be included and which don't.
- */
-if  (!extension_loaded('mysql'))
-{
-	if (!class_exists('mysqli', false))
-		exit('CQPweb fatal error: neither mysql nor mysqli is available. Contact the system administrator.');
-	else
-		include('../lib/fake-mysql.inc.php');
-}
 
 
 
@@ -387,7 +395,7 @@ function do_mysql_outfile_query($query, $filename)
  * disabled.
  * 
  * "FIELDS ESCAPED BY" behaviour is normally not specified,
- * but if  $no_escapes is true, it will be set to an empty
+ * but if $no_escapes is true, it will be set to an empty
  * string.
  * 
  * Function returns the (last) update/import query result if
@@ -419,7 +427,7 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 	{
 		/* the nasty hacky workaround way */
 		
-		exiterror_general("Mysql workaround not built yet!", __SCRIPT__, __LINE__);
+//		exiterror_general("MySQL workaround not built yet!", __SCRIPT__, __LINE__);
 		
 		/* first we need to find out about the table ... */
 		$fields = array();
@@ -722,7 +730,7 @@ function url_absolutify($u, $special_subdir = NULL)
 		return $u;
 	else
 	{
-		/* make address absolute by adding server of this script plus folder path of this URI  
+		/* make address absolute by adding server of this script plus folder path of this URI;
 		 * this may not be foolproof, because it assumes that the path will always lead to the 
 		 * folder in which the current php script is located -- but should work for most cases 
 		 */
@@ -748,7 +756,7 @@ function url_absolutify($u, $special_subdir = NULL)
 	}
 }
 
-//
+
 
 /** 
  * Checks whether the current script has $_GET['uT'] == "y" 
@@ -858,9 +866,10 @@ function url_printinputs($changes = "Nope!")
 				. htmlspecialchars($val, ENT_QUOTES, 'UTF-8') . '" />';
 
 		/* note: should really be htmlspecialchars($val, ENT_QUOTES, UTF-8, false)
-		   etc. BUT the last parameter (whcih turns off the effect on existing entities)
-		   is PHP >=5.2.3 only 
-		*/
+		 * etc. BUT the last parameter (whcih turns off the effect on existing entities)
+		 * is PHP >=5.2.3 only 
+		 * TODO use cqpweb_htmlspecialchars instead.
+		 */
 	}
 
 	if ($change_me)

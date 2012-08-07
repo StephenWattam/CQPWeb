@@ -265,6 +265,9 @@ function exiterror_parameter($errormessage, $script=NULL, $line=NULL)
 
 function exiterror_arguments($argument, $errormessage, $script=NULL, $line=NULL)
 {
+	/* in case of XSS attack via invalid argument: */
+	$argument = cqpweb_htmlspecialchars($argument);
+	
 	$msg[] = "A function was passed an invalid argument type!";
 	$msg[] = "Argument value was $argument. Problem:";
 	$msg[] = $errormessage;
