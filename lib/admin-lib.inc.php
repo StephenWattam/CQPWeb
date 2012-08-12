@@ -789,7 +789,7 @@ function create_text_metadata_for()
 	{
 		if (empty($create_text_metadata_for_info['fields'][$i]['handle']))
 			continue;
-			
+		
 		$create_text_metadata_for_info['fields'][$i]['handle'] 
 			= cqpweb_handle_enforce($create_text_metadata_for_info['fields'][$i]['handle']);
 			
@@ -821,7 +821,7 @@ function create_text_metadata_for()
 				'{$create_text_metadata_for_info['fields'][$i]['description']}', 0)";
 		}
 	}
-	/* note, varchar(20) seems ungenerous - fix this? */
+	/* TODO, varchar(20) seems ungenerous - fix this? */
 
 	/* add the standard fields; begin list of indexes. */
 	$create_statement .= ",
@@ -1406,7 +1406,7 @@ function cqpweb_mysql_recreate_tables()
 			FULLTEXT KEY `postprocess` (`postprocess`(100)),
 			KEY `time_of_query` (`time_of_query`),
 			FULLTEXT KEY `cqp_query` (`cqp_query`)
-	) CHARACTER SET utf8 COLLATE utf8_bin";
+	) ENGINE=MyISAM CHARACTER SET utf8 COLLATE utf8_bin";
 
 	$create_statements['saved_catqueries'] =
 		"CREATE TABLE `saved_catqueries` (
