@@ -33,6 +33,14 @@
 // TODO -- check this against cwb_uncreate_corpus and prevent duplication of functionality
 /**
  * Main corpus-deletion function.
+ * 
+ * The order of installation is SETTINGS FILE -- MYSQL -- CWB.
+ * 
+ * So, the order of deletion is:
+ * 
+ * (1) delete CWB - depends on both settings file and DB entry.
+ * (2) delete MySQL - does not depend on CWB still being present
+ * (3) delete the settings file and web directory.
  */
 function delete_corpus_from_cqpweb($corpus)
 {
@@ -49,15 +57,41 @@ function delete_corpus_from_cqpweb($corpus)
 	/* we can trust strtolower() because CWB standards define identifiers as ASCII */
 	$corpus_cwb_lower = strtolower($corpus_cqp_name);
 	
-	/* check the corpus is actually there to delete */
+	/* check the corpus entry in MySQL is still there, and look for whether CWB data is external */
 	$result = do_mysql_query("select corpus, cwb_external from corpus_metadata_fixed where corpus = '$corpus'");
 	if (mysql_num_rows($result) < 1)
-		return;
+		exiterror_general('Master database entry for this corpus is not present - '
+			. 'accessibility of the CWB data files could not be determined.' . "\n"
+			. 'This can happen if the corpus information in the database has been incorrectly inserted or '
+			. 'incompletely deleted. You must delete the CWB data files and any other database references manually.');
 	
 	/* do we also want to delete the CWB data? */
 	list($junk, $cwb_external) = mysql_fetch_row($result);
 	$also_delete_cwb = !( (bool)$cwb_external);
 	
+
+	/* if they exist, delete the CWB registry and data for his corpus's __freq */
+	if (file_exists("/$cwb_registry/{$corpus_cwb_lower}__freq"))
+		unlink("/$cwb_registry/{$corpus_cwb_lower}__freq");
+	recursive_delete_directory("/$cwb_datadir/{$corpus_cwb_lower}__freq");
+	/* note, __freq deletion is not conditional on cwb_external -> also_delete_cwb
+	 * because __freq corpora are ALWAYS created by CQPweb itself.
+	 * 
+	 * But the next deletion, of the main corpus CWB data, IS so conditioned.
+	 *
+	 * What this implies is that a registry file / data WON'T be deleted 
+	 * unless CQPweb created them in the first place -- even if they are in
+	 * the CQPweb standard registry / data locations. */
+	if ($also_delete_cwb)
+	{
+		/* delete the CWB registry and data */
+		if (file_exists("/$cwb_registry/$corpus_cwb_lower"))
+		unlink("/$cwb_registry/$corpus_cwb_lower");
+		recursive_delete_directory("/$cwb_datadir/$corpus_cwb_lower");
+	}
+	
+	/* CWB data now clean: on to the MySQL database. All these queries are "safe":
+	 * they will run OK even if some of the expected data has already been deleted. */
 
 	/* delete all saved queries, frequency tables, and dbs associated with this corpus */
 	$result = do_mysql_query("select query_name from saved_queries where corpus = '$corpus'");
@@ -84,36 +118,29 @@ function delete_corpus_from_cqpweb($corpus)
 	/* delete CWB freq-index table */
 	do_mysql_query("drop table if exists freq_text_index_$corpus");
 
-	/* delete the entries from corpus_metadata_fixed / variable / annotation */
-	do_mysql_query("delete from corpus_metadata_fixed where corpus = '$corpus'");
-	do_mysql_query("delete from corpus_metadata_variable where corpus = '$corpus'");
-	do_mysql_query("delete from annotation_metadata where corpus = '$corpus'");
-
-	
 	/* clear the text metadata (see below) */
 	delete_text_metadata_for($corpus);
 
-	/* delete the web directory */
+	/* clear the annotation metadata */
+	do_mysql_query("delete from annotation_metadata where corpus = '$corpus'");
+
+	/* delete the variuable metadata */
+	do_mysql_query("delete from corpus_metadata_variable where corpus = '$corpus'");
+
+	/* corpus_metadata_fixed is the master entry, so we have left it till last. */
+	do_mysql_query("delete from corpus_metadata_fixed where corpus = '$corpus'");
+	
+	/* mysql cleanup is now complete */
+
+	/* NOTE, this order of operations means it is possible - if a failure happens at 
+	 * the right point - for the web directory to exist, but for the interface not to know
+	 * about it (because there is no "master entry" in MySQL.
+	 * 
+	 * This is low risk - a residue of web-gunk should not be so very problematic. */
+
+	/* FINALLY: delete the web directory */
 	recursive_delete_directory("../$corpus");
 	
-	/* what this implies is that a registry file / data WON'T be deleted 
-	 * unless CQPweb created them in the first place -- even if they are in
-	 * the CQPweb standard registry / data locations. */
-	if ($also_delete_cwb)
-	{
-		/* delete the CWB registry and data */
-		unlink("/$cwb_registry/$corpus_cwb_lower");
-		recursive_delete_directory("/$cwb_datadir/$corpus_cwb_lower");
-	}
-	/* if they exist, delete the CWB registry and data for its __freq */
-	if (file_exists("/$cwb_registry/{$corpus_cwb_lower}__freq"))
-	{
-		unlink("/$cwb_registry/{$corpus_cwb_lower}__freq");
-		recursive_delete_directory("/$cwb_datadir/{$corpus_cwb_lower}__freq");
-	}
-	/* note, __freq deletion is not conditional on cwb_external -> also_delete_cwb
-	 * because __freq corpora are ALWAYS created by CQPweb itself.
-	 */
 }
 
 

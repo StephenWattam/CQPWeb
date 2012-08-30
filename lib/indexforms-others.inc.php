@@ -710,6 +710,9 @@ function printquery_latest()
 		<br/>&nbsp;<br/>
 		Fixed a bug in the management of user groups, plus a bug affecting the installation of
 		corpora that are not in UTF-8.
+		<br/>&nbsp;<br/>
+		Fixed a bug in the install/delete corpus procedures which made deletion of a corpus
+		difficult if its installation had previously failed halfway through.
 		<br/>&nbsp;</li>
 		
 		<li>

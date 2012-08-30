@@ -361,15 +361,53 @@ function install_new_corpus()
 	global $cwb_registry;
 	
 	$info = new corpus_install_info;
-
-
 	/* we need both case versions here */
 	$corpus = $info->corpus_cwb_name;
 	$CORPUS = strtoupper($corpus);
 
 
-	/* mysql table inserts */	
-	/* these come first because if corpus already exists, they will cause an abort */
+	/* check whether corpus already exists */
+	$existing_corpora = list_corpora();
+	if ( in_array($info->corpus_mysql_name, $existing_corpora) )
+		exiterror_fullpage("Corpus `$corpus' already exists on the system." 
+			. "Please specify a different SQL name for your new corpus.");
+
+	/* ======================================================
+	 * create web folder and its settings.inc.php file FIRST, 
+	 * so that if indexing fails, deletion should still work 
+	 * ====================================================== */
+
+	/* make a web dir and set up with superuser access */
+	$newdir = realpath("..") . '/' . $info->corpus_mysql_name;
+	
+	if (file_exists($newdir))
+	{
+		if (is_dir($newdir))
+			recursive_delete_directory($newdir);
+		else
+			unlink($newdir);
+	}
+
+	mkdir($newdir, 0775);
+	
+	$settings = new apache_htaccess($newdir);
+	$settings->set_AuthName('CQPweb');
+	$settings->set_path_to_password_file("/$cqpweb_accessdir/.htpasswd");
+	$settings->set_path_to_groups_file("/$cqpweb_accessdir/.htgroup");
+	$settings->allow_group('superusers');
+	$settings->save();
+	chmod("$newdir/.htaccess", 0664);
+	 
+	/* create the script files in that folder */
+	install_create_corpus_script_files($newdir);
+
+
+	/* write a settings.inc.php file */
+	install_create_settings_file("$newdir/settings.inc.php", $info);
+
+	
+
+	/* mysql table inserts */
 	if (! empty($info->p_attributes_mysql_insert))
 	{
 		foreach ($info->p_attributes_mysql_insert as &$s)
@@ -378,6 +416,7 @@ function install_new_corpus()
 	do_mysql_query($info->corpus_metadata_fixed_mysql_insert);
 
 
+	/* cwb setup comes last; if it fails, deletion should still work */
 	if ($info->already_cwb_indexed)
 		;
 	else
@@ -453,38 +492,7 @@ function install_new_corpus()
 		 */ 
 	}
 	
-	
 		
-	/* make a web dir and set up with superuser access */
-	$newdir = realpath("..") . '/' . $info->corpus_mysql_name;
-	
-	if (file_exists($newdir))
-	{
-		if (is_dir($newdir))
-			recursive_delete_directory($newdir);
-		else
-			unlink($newdir);
-	}
-
-	mkdir($newdir, 0775);
-	
-	$settings = new apache_htaccess($newdir);
-	$settings->set_AuthName('CQPweb');
-	$settings->set_path_to_password_file("/$cqpweb_accessdir/.htpasswd");
-	$settings->set_path_to_groups_file("/$cqpweb_accessdir/.htgroup");
-	$settings->allow_group('superusers');
-	$settings->save();
-	chmod("$newdir/.htaccess", 0664);
-	
-	 
-	/* create the script files in that folder */
-	install_create_corpus_script_files($newdir);
-
-
-	/* write a settings.inc.php file */
-	install_create_settings_file("$newdir/settings.inc.php", $info);
-
-	
 	/* make sure execute.php takes us to a nice results screen */
 	$_GET['locationAfter'] 
 		= "index.php?thisF=installCorpusDone&newlyInstalledCorpus={$info->corpus_mysql_name}&uT=y";
