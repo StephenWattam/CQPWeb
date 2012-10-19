@@ -463,14 +463,14 @@ function install_new_corpus()
 		exec($huffcode_command, $compression_output, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_fullpage("cwb-huffcode reported an error! Corpus indexing aborted. <pre>"
-				. implode("\n", $output_lines_from_cwb) . '</pre>'
+				. implode("\n", array_merge($output_lines_from_cwb,$compression_output)) . '</pre>'
 				, __FILE__, __LINE__);
 
 		$compression_output[] = $compress_rdx_command = "/$path_to_cwb/cwb-compress-rdx -r /$cwb_registry -A $CORPUS 2>&1";
 		exec($compress_rdx_command, $compression_output, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_fullpage("cwb-compress-rdx reported an error! Corpus indexing aborted. <pre>"
-				. implode("\n", $output_lines_from_cwb) . '</pre>'
+				. implode("\n", array_merge($output_lines_from_cwb,$compression_output)) . '</pre>'
 				, __FILE__, __LINE__);
 
 		foreach($compression_output as $line)

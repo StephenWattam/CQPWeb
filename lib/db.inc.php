@@ -41,10 +41,7 @@ function dbname_unique($dbname)
 		if (mysql_num_rows($result) == 0)
 			break;
 		else
-		{
-			unset($result);
 			$dbname .= chr(rand(0x41,0x5a));
-		}
 	}
 	return $dbname;	
 }
@@ -62,8 +59,6 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 	global $corpus_cqp_name;
 	
 	global $username;
-
-	//global $mysql_LOAD_DATA_INFILE_command;
 	
 	global $colloc_db_premium;
 	
@@ -115,6 +110,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 	if ($num_of_rows > $table_max)
 	{
+		// TODO change to exiterror call.
 		echo '<p class="errormessage">The action you have requested uses up a lot of diskspace.</p>';
 		echo "<p class=\"errormessage\">Your limit is currently set to $table_max instances.</p>";
 		echo "<p class=\"errormessage\">Please contact your system administrator if you need access 
@@ -126,29 +122,27 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 
 	/* name for a file containing table with result of tabulation command*/
-	$tabfile = 'tab_' . $db_type . '_' . $qname;
+	$tabfile = "/$cqpweb_tempdir/tab_{$db_type}_$qname";
 	/* name for a file containing the awk script */
-	$awkfile = 'awk_' . $db_type . '_' . $qname;
+	$awkfile = "/$cqpweb_tempdir/awk_{$db_type}_$qname";
 
-	if (is_file("/$cqpweb_tempdir/$tabfile"))
-		unlink("/$cqpweb_tempdir/$tabfile");
-	if (is_file("/$cqpweb_tempdir/$awkfile"))
-		unlink("/$cqpweb_tempdir/$awkfile");
+	if (is_file($tabfile))
+		unlink($tabfile);
+	if (is_file($awkfile))
+		unlink($awkfile);
 
 	/* get the tabulate, awk, and create table commands for this type of database */
 	$commands = db_commands($dbname, $db_type, $qname);
 	
 	if ($commands['awk'])
 	{
-		/* if an awk script to intervene between cqp and mysql has been returned... */
-		// put it into a file for later -- file_put_contents would be great now
-		$awk_fh = fopen("/$cqpweb_tempdir/$awkfile", 'w');
-		fwrite($awk_fh, $commands['awk']);
-		fclose($awk_fh);
-		$tabulate_dest = "\"| awk -f '/$cqpweb_tempdir/$awkfile' > '/$cqpweb_tempdir/$tabfile'\"";
+		/* if an awk script to intervene between cqp and mysql has been returned,
+		 * create an awk script file ... */
+		file_put_contents($awkfile, $commands['awk']);
+		$tabulate_dest = "\"| awk -f '$awkfile' > '$tabfile'\"";
 	}
 	else
-		$tabulate_dest = "'/$cqpweb_tempdir/$tabfile'";
+		$tabulate_dest = "'$tabfile'";
 
 
 
@@ -161,16 +155,16 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 	do_mysql_query("Alter table $dbname disable keys");
 
-	do_mysql_infile_query($dbname, "/$cqpweb_tempdir/$tabfile", true);
+	do_mysql_infile_query($dbname, $tabfile, true);
 	
 	do_mysql_query("Alter table $dbname enable keys");
 
 
 	/* and delete the file from which the table was created, plus the awk-script if there was one */
-	if (is_file("/$cqpweb_tempdir/$tabfile"))
-		unlink("/$cqpweb_tempdir/$tabfile");
-	if (is_file("/$cqpweb_tempdir/$awkfile"))
-		unlink("/$cqpweb_tempdir/$awkfile");
+	if (is_file($tabfile))
+		unlink($tabfile);
+	if (is_file($awkfile))
+		unlink($awkfile);
 
 
 	/* now create a record of the db */
@@ -204,7 +198,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 			'$db_type',
 			" . get_db_size($dbname) . "
 		)";	
-		/* note: sort position doens't currently get used, so I have commented it out: sort dataabses are in corpus order */
+		/* note: sort position doesn't currently get used, so I have commented it out: sort databases are in corpus order */
 
 		/* nb - don't need to real-escape db_type because exiterror will have been called by now
 		   if it was a dodgy value */
@@ -555,7 +549,7 @@ function delete_saved_dbs()
 	/* step 2 : get a list of deletable tables 
 	 * note that catquery dbnames are excluded 
 	 * they must be deleted via their special table 
-	 * because otherwise entres are left in that table */
+	 * because otherwise entries are left in that table */
 	$sql_query = "select dbname, db_size from saved_dbs 
 		where saved = 0 
 		and dbname not like 'db_catquery%'

@@ -61,9 +61,6 @@ require("../lib/freqtable-cwb.inc.php");
 require("../lib/cache.inc.php");
 require("../lib/subcorpus.inc.php");
 require("../lib/db.inc.php");
-
-/* and because I'm using the next two modules I need to... */
-//create_pipe_handle_constants();
 require("../lib/cwb.inc.php");
 require("../lib/cqp.inc.php");
 
@@ -133,14 +130,14 @@ else
 	$colloc_atts = '';
 
 
-/* colloc_range --- the max range number --- if not set / badly specified, this defaults */
+/* colloc_range --- the max range number --- if not set / badly specified, this defaults. */
 /* note that this has been set up so that incoming is the same from colloc-options and from self */
 
 if ( isset($_GET['maxCollocSpan']) )
 	$colloc_range = (int)$_GET['maxCollocSpan'];
 else
 	$colloc_range = $default_colloc_range;
-// need control on this as colloc-options could be hacked!! a default max_max, as it were* /
+// TODO need control on this as colloc-options could be hacked!! a default max_max, as it were* /
 
 
 
@@ -150,8 +147,8 @@ else
 
 /* variables that come from the collocation control form and only affect "this" calculation */
 
-/* note that "calc" in a variable name indicates it is to be used for display */
-/* as opposed to variables that are to be used for the database creation & db cache-retrieval */
+/* note that "calc" in a variable name indicates it is to be used for display,
+ * as opposed to variables that are to be used for the database creation & db cache-retrieval */
 
 
 /* the p-attribute to be used for this script's calculation (it is validated below) */
@@ -165,7 +162,7 @@ if (isset($_GET['collocCalcAtt']))
 if (isset($_GET['collocCalcBegin']) && abs($_GET['collocCalcBegin']) <= $colloc_range )
 	$calc_range_begin = (int)$_GET['collocCalcBegin'];
 else if (isset($user_settings->coll_from))
-	$calc_range_begin = (int) $user_settings->coll_from;
+	$calc_range_begin = (int)$user_settings->coll_from;
 else
 	/* defaults to 2-left of node, or 2-right of max, whicheve is wider */
 	$calc_range_begin = ($colloc_range > 2 ? -($colloc_range - 2) : $colloc_range);
@@ -183,7 +180,7 @@ else
 if ( ( ! ($calc_range_end >= $calc_range_begin)) || $calc_range_end == 0 || $calc_range_begin == 0 )
 	exiterror_parameter("Your position range does not make sense; go 'back' and change it!", 
 		__FILE__, __LINE__);
-	/* !! this is a stop-gap -- there should be a properly printed report page here, like in BW. */
+	/* !! this is a stop-gap -- there should be a properly printed report page here, like in BW.  (TODO) */
 	// perhaps called as a function?? which could be hived off to a separate file colloc-lib.
 
 
@@ -378,7 +375,7 @@ if ($query_record['subcorpus'] != 'no_subcorpus')
 	else
 	{
 		/* if not, create it */
-		if ( $freq_table_override == false )
+		if ( ! $freq_table_override )
 			$freqtable_record = subsection_make_freqtables($query_record['subcorpus']);
 	}
 }
@@ -390,13 +387,14 @@ else if ($query_record['restrictions'] != 'no_restriction')
 	else
 	{
 		/* if there isn't one, create it */
-		if ( $freq_table_override == false )
+		if ( ! $freq_table_override )
 			$freqtable_record = subsection_make_freqtables('no_subcorpus', $query_record['restrictions']);
 	}
 }
-/* nb: freqtable_override is tested at the *bottom* of this if. This means that if the override is
- * set to TRUE, but by some chance the freqtable necessary does exist, the override does not kick in
- * note also, if the override is activated, $freqtable_record WON'T be set
+/* nb: freq_table_override is tested at the *bottom* of this if. This means that if the override is
+ * set to TRUE, but by some chance the freqtable necessary does exist, the override does not kick in.
+ * 
+ * Note also, if the override is activated, $freqtable_record WON'T be set
  */
 
 
@@ -527,6 +525,7 @@ else
 
 
 	/* ok, all select-option dropdowns have been dynamically generated : now, write it! */
+	
 	/* before anything else */
 	header('Content-Type: text/html; charset=utf-8');
 	?>
@@ -603,7 +602,7 @@ else
 							type="text" size="5"
 						/>
 						<?php 
-						echo "$select_for_tag";
+						echo $select_for_tag;
 					}
 					else
 						echo 'tag restriction: n/a';
@@ -644,7 +643,7 @@ else
 
 	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable" colspan="<?php echo ($calc_stat !=0 ? 7 : 6); ?>">
+			<th class="concordtable" colspan="<?php echo ($calc_stat != 0 ? 7 : 6); ?>">
 				<?php echo $description; ?>
 			</th>
 		</tr>
@@ -757,14 +756,4 @@ disconnect_global_mysql();
 /* ------------- */
 /* end of script */
 /* ------------- */
-
-
-
-
-
-// TODO BIG TEST : does it produce the same results on FLOB etc. as Xaira?
-
-
-
-
 ?>

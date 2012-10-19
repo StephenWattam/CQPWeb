@@ -421,7 +421,11 @@ function calculate_total_basis($basis_table)
 
 
 
-
+/**
+ * Calculates the total number of word tokens in the collocation window
+ * described by the global variables $calc_range_begin, $calc_range_end
+ * for the globally specified $dbname.
+ */
 function calculate_words_in_window()
 {
 	global $dbname;
@@ -438,9 +442,7 @@ function calculate_words_in_window()
 		
 	/* note that mySQL 'BETWEEN' is inclusive of the limit-values */
 	
-	$result = do_mysql_query($sql_query);
-
-	$r = mysql_fetch_row($result);
+	$r = mysql_fetch_row(do_mysql_query($sql_query));
 
 	return $r[0];
 }
@@ -681,9 +683,14 @@ function run_script_for_solo_collocation()
 
 
 function collocation_write_download(
-	$att_for_calc, $calc_stat, 
-	$att_desc, $basis_desc, $stat_desc, 
-	$description, &$result)
+	$att_for_calc, 
+	$calc_stat, 
+	$att_desc, 
+	$basis_desc, 
+	$stat_desc, 
+	$description, 
+	&$result
+	)
 {
 	global $username;
 	$da = get_user_linefeed($username);
