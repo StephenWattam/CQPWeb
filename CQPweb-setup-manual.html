@@ -209,6 +209,11 @@ not work. </SPAN></SPAN>
 that the “safe-mode” feature of PHP is, in any case, deprecated
 as of recent versions (5.3.0 or later) of PHP – so web servers
 should not be relying on it anyway.</FONT></FONT></P>
+<P LANG="en-GB">Please note the following possible problem if you are on Apple OS X: 
+the <FONT FACE="Courier New, monospace">php.ini</FONT> file may not exist,
+if not, then there should be a php.ini.default file which you can copy into the correct folder 
+(under the name <FONT FACE="Courier New, monospace">php.ini</FONT>) and
+then amend if need be.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -973,21 +978,17 @@ navigate to
 <P LANG="en-GB">You should see an admin menu. 
 </P>
 <UL TYPE=DISC>
+	<LI><P LANG="en-GB">Click on “Reset MySQL Database” – and do
+	it 
+	</P>
 	<LI><P LANG="en-GB">Click on “manage users”. Set secure
 	passwords for AT LEAST the superusers (<I><B>if you used the
 	autoconfig script, superuser passwords have been set to the same as
 	the usernames</B></I>). You can add other user accounts later. 
 	</P>
-	<LI><P LANG="en-GB">Click on “Reset MySQL Database” – and do
-	it 
-	</P>
-</UL>
-<UL TYPE=DISC>
 	<LI><P LANG="en-GB">Click on “System security” – and restore
 	default security. (Only do this if you are using Apache) 
 	</P>
-</UL>
-<UL TYPE=DISC>
 	<LI><P LANG="en-GB">Click on “Skins and colours” – and
 	“Regenerate colour schemes” 
 	</P>
