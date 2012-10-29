@@ -429,11 +429,7 @@ function install_new_corpus()
 	
 		/* run the commands one by one */
 		
-		$exit_status_from_cwb = 0;
-		/* NB this array collects both the command used and the output sent back (via stderr, stdout) */ 
-		$output_lines_from_cwb = array();
-	
-		$encode_command =  "/$path_to_cwb/cwb-encode -xsB -c {$info->encode_charset} -d $datadir -f " 
+		$encode_command =  "/$path_to_cwb/cwb-encode -xsB -c {$info->encode_charset} -d $datadir -f "
 			. implode(' -f ', $info->file_list)
 			. " -R /$cwb_registry/$corpus "
 			. ( empty($info->p_attributes) ? '' : (' -P ' . implode(' -P ', $info->p_attributes)) )
@@ -441,7 +437,11 @@ function install_new_corpus()
 			. ' 2>&1';
 			/* NB don't need possibility of no S-atts because there is always text:0+id */
 			/* NB the 2>&1 works on BOTH Win32 AND Unix */
-	
+
+		$exit_status_from_cwb = 0;
+		/* NB this array collects both the commands used and the output sent back (via stderr, stdout) */
+		$output_lines_from_cwb = array($encode_command);
+
 		exec($encode_command, $output_lines_from_cwb, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_fullpage("cwb-encode reported an error! Corpus indexing aborted. <pre>"
@@ -449,7 +449,7 @@ function install_new_corpus()
 				, __FILE__, __LINE__);
 
 		chmod("/$cwb_registry/$corpus", 0664);
-		
+
 		$output_lines_from_cwb[] = $makeall_command = "/$path_to_cwb/cwb-makeall -r /$cwb_registry -V $CORPUS 2>&1";
 		exec($makeall_command, $output_lines_from_cwb, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
