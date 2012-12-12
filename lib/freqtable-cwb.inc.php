@@ -224,6 +224,7 @@ function make_cwb_freq_index()
 //	chmod($index_filename, 0777);
 	
 	/* make sure the $index_filename is utf8 */
+	// TODO : adapt for latin2 and other variants.
 	if ($charset == 'latin1')
 	{
 		$index_filename_new = $index_filename . '.utf8';
