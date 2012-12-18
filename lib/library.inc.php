@@ -1187,6 +1187,9 @@ function print_footer($link = 'help')
 {
 	global $username;
 	
+	/* javascript location diverter */
+	$diverter = '../';
+	
 	if ($link == 'help')
 	{
 		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
@@ -1199,6 +1202,8 @@ function print_footer($link = 'help')
 		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
 			<a href="adm"  class="cqpweb_copynote_link" >[Admin logon]</a>
 		</td>';	
+		/* when link is admin, javascript is in lib, which is a subdir. */
+		$diverter = '';
 	}
 	else
 	{
@@ -1206,6 +1211,7 @@ function print_footer($link = 'help')
 			&nbsp;
 		</td>';
 	}
+	
 	?>
 	<hr/>
 	<table class="concordtable" width="100%">
@@ -1224,7 +1230,7 @@ function print_footer($link = 'help')
 			</td>
 		</tr>
 	</table>
-	<script language="JavaScript" type="text/javascript" src="../lib/javascript/wz_tooltip.js">
+	<script language="JavaScript" type="text/javascript" src="<? echo $diverter; ?>lib/javascript/wz_tooltip.js">
 	</script>
 	</body>
 </html>
