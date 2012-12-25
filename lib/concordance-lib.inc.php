@@ -793,7 +793,7 @@ function concordance_line_blobprocess($lineblob, $type, $highlight_position, $hi
 	$xml_before_array = $m[1];
 	$xml_after_array = $m[5];
 
-	$n = ($token_array[0] == '' ? 0 : count($token_array));
+	$n = (empty($token_array[0]) ? 0 : count($token_array));
 	
 	/* if we are in the left string, we need to translate the highlight position from
 	 * a negative number to a number relative to 0 to $n... */

@@ -1268,48 +1268,51 @@ function printquery_manageannotation()
 {
 	global $corpus_sql_name;
 	
-	if ($_GET['updateMe'] === 'CEQL')
+	if (isset($_GET['updateMe']))
 	{
-		/* we have incoming values from the CEQL table to update */
-		$new_primary = mysql_real_escape_string($_GET['setPrimaryAnnotation']);
-		$new_primary = ($new_primary == '__UNSET__' ? 'NULL' : "'$new_primary'");
-		$new_secondary = mysql_real_escape_string($_GET['setSecondaryAnnotation']);
-		$new_secondary = ($new_secondary == '__UNSET__' ? 'NULL' : "'$new_secondary'");
-		$new_tertiary = mysql_real_escape_string($_GET['setTertiaryAnnotation']);
-		$new_tertiary = ($new_tertiary == '__UNSET__' ? 'NULL' : "'$new_tertiary'");
-		$new_combo = mysql_real_escape_string($_GET['setComboAnnotation']);
-		$new_combo = ($new_combo == '__UNSET__' ? 'NULL' : "'$new_combo'");
-		$new_maptable = mysql_real_escape_string($_GET['setMaptable']);
-		$new_maptable = ($new_maptable == '__UNSET__' ? 'NULL' : "'$new_maptable'");
-		
-		$sql_query = "update corpus_metadata_fixed set
-			primary_annotation = $new_primary,
-			secondary_annotation = $new_secondary,
-			tertiary_annotation = $new_tertiary,
-			combo_annotation = $new_combo,
-			tertiary_annotation_tablehandle = $new_maptable
-			where corpus = '$corpus_sql_name'";
-		$result = do_mysql_query($sql_query);
-	}
-	else if ($_GET['updateMe'] === 'annotation_metadata')
-	{
-		/* we have incoming annotation metadata to update */
-		if (! check_is_real_corpus_annotation($handle_to_change=mysql_real_escape_string($_GET['annotationHandle'])))
-			exiterror_general("Couldn't update $handle_to_change - not a real annotation!",
-				__FILE__, __LINE__);
-		$new_desc = ( empty($_GET['annotationDescription']) ? 'NULL'
-						: '\''.mysql_real_escape_string($_GET['annotationDescription']).'\'');
-		$new_tagset = ( empty($_GET['annotationTagset']) ? 'NULL' 
-						: '\''.mysql_real_escape_string($_GET['annotationTagset']).'\'');
-		$new_url = ( empty($_GET['annotationURL']) ? 'NULL'
-						: '\''.mysql_real_escape_string($_GET['annotationURL']).'\'');
-
-		$sql_query = "update annotation_metadata set
-			description = $new_desc,
-			tagset = $new_tagset,
-			external_url = $new_url
-			where corpus = '$corpus_sql_name' and handle = '$handle_to_change'";
-		$result = do_mysql_query($sql_query);
+		if ( $_GET['updateMe'] == 'CEQL')
+		{
+			/* we have incoming values from the CEQL table to update */
+			$new_primary = mysql_real_escape_string($_GET['setPrimaryAnnotation']);
+			$new_primary = ($new_primary == '__UNSET__' ? 'NULL' : "'$new_primary'");
+			$new_secondary = mysql_real_escape_string($_GET['setSecondaryAnnotation']);
+			$new_secondary = ($new_secondary == '__UNSET__' ? 'NULL' : "'$new_secondary'");
+			$new_tertiary = mysql_real_escape_string($_GET['setTertiaryAnnotation']);
+			$new_tertiary = ($new_tertiary == '__UNSET__' ? 'NULL' : "'$new_tertiary'");
+			$new_combo = mysql_real_escape_string($_GET['setComboAnnotation']);
+			$new_combo = ($new_combo == '__UNSET__' ? 'NULL' : "'$new_combo'");
+			$new_maptable = mysql_real_escape_string($_GET['setMaptable']);
+			$new_maptable = ($new_maptable == '__UNSET__' ? 'NULL' : "'$new_maptable'");
+			
+			$sql_query = "update corpus_metadata_fixed set
+				primary_annotation = $new_primary,
+				secondary_annotation = $new_secondary,
+				tertiary_annotation = $new_tertiary,
+				combo_annotation = $new_combo,
+				tertiary_annotation_tablehandle = $new_maptable
+				where corpus = '$corpus_sql_name'";
+			$result = do_mysql_query($sql_query);
+		}
+		else if ($_GET['updateMe'] == 'annotation_metadata')
+		{
+			/* we have incoming annotation metadata to update */
+			if (! check_is_real_corpus_annotation($handle_to_change=mysql_real_escape_string($_GET['annotationHandle'])))
+				exiterror_general("Couldn't update $handle_to_change - not a real annotation!",
+					__FILE__, __LINE__);
+			$new_desc = ( empty($_GET['annotationDescription']) ? 'NULL'
+							: '\''.mysql_real_escape_string($_GET['annotationDescription']).'\'');
+			$new_tagset = ( empty($_GET['annotationTagset']) ? 'NULL' 
+							: '\''.mysql_real_escape_string($_GET['annotationTagset']).'\'');
+			$new_url = ( empty($_GET['annotationURL']) ? 'NULL'
+							: '\''.mysql_real_escape_string($_GET['annotationURL']).'\'');
+	
+			$sql_query = "update annotation_metadata set
+				description = $new_desc,
+				tagset = $new_tagset,
+				external_url = $new_url
+				where corpus = '$corpus_sql_name' and handle = '$handle_to_change'";
+			$result = do_mysql_query($sql_query);
+		}
 	}
 
 
