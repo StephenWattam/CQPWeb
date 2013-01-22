@@ -447,7 +447,7 @@ function print_sc_define_filenames()
 					(use commas or spaces to separate the individual files): 
 					<br/>&nbsp;
 					<br/>
-					<textarea name="subcorpusListOfFiles" rows="5" cols="58" wrap="physical"><?php
+					<textarea name="subcorpusListOfFiles" rows="5" cols="58"><?php
 						if (isset($_GET['subcorpusListOfFiles']))
 							echo $_GET['subcorpusListOfFiles'];
 					?></textarea>
@@ -828,7 +828,7 @@ function print_sc_addtexts()
 						(use commas or spaces to separate the individual files): 
 						<br/>&nbsp;
 						<br/>
-						<textarea name="subcorpusListOfFiles" rows="5" cols="58" wrap="physical"><?php
+						<textarea name="subcorpusListOfFiles" rows="5" cols="58"><?php
 							if (isset($_GET['subcorpusListOfFiles']))
 								echo $_GET['subcorpusListOfFiles'];
 						?></textarea>

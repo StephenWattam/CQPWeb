@@ -705,7 +705,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
-		<b>Version 3.0.7</b>, 2012-xx-yy<br/>&nbsp;<br/>
+		<b>Version 3.0.7</b>, 2013-xx-yy<br/>&nbsp;<br/>
+		Fixed a bug causing the number of hits in a categorised query to be displayed incorrectly.
+		<br/>&nbsp;<br/>
+		Fixed a bug causing  insertion of line-breaks into queries with long lines.
+		<br/>&nbsp;<br/>
 		Fixed an inconsistency in how batches of usernames are created.
 		<br/>&nbsp;<br/>
 		Fixed a bug in the management of user groups, plus a bug affecting the installation of

@@ -66,7 +66,7 @@ function printquery_search()
 	
 			&nbsp;<br/>
 			
-			<textarea name="theData" rows="5" cols="65" wrap="physical" style="font-size: 16px;"
+			<textarea name="theData" rows="5" cols="65" style="font-size: 16px;"
 				><?php if (isset($insertString)) echo prepare_query_string($insertString); ?></textarea>
 			&nbsp;<br/>
 			&nbsp;<br/>
@@ -235,7 +235,7 @@ function printquery_restricted()
 	
 			&nbsp;<br/>
 			
-			<textarea name="theData" rows="5" cols="65" wrap="physical" style="font-size: 16px;"
+			<textarea name="theData" rows="5" cols="65" style="font-size: 16px;"
 				><?php if (isset($insertString)) echo prepare_query_string($insertString); ?></textarea>
 			&nbsp;<br/>
 			&nbsp;<br/>

@@ -2642,7 +2642,7 @@ function printquery_systemannouncements()
 				<td class="concordgeneral">
 					<center>
 						<textarea name="systemMessageContent" rows="5" cols="65" 
-							wrap="physical" style="font-size: 16px;"></textarea>
+							style="font-size: 16px;"></textarea>
 						<br/>&nbsp;<br/>
 						<input type="submit" value="Add system message" />
 						&nbsp;&nbsp;

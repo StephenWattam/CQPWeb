@@ -492,6 +492,8 @@ function printquery_catqueries()
 			'query_record' => check_cache_qname($row[0]),
 			'number_categorised' => $n
 			);
+		$catqueries_to_show[$i]['number_of_hits'] 
+			= (empty($catqueries_to_show[$i]['query_record']['hits_left']) ? $catqueries_to_show[$i]['query_record']['hits'] : array_pop(explode('~', $catqueries_to_show[$i]['query_record']['hits_left'])));
 	}
 
 
@@ -568,13 +570,13 @@ function printquery_catqueries()
 			. '</td>';
 		
 		/* number of hits */
-		echo '<td class="concordgeneral" align="center">' . $catqueries_to_show[$i]['query_record']['hits'] 
+		echo '<td class="concordgeneral" align="center">' . $catqueries_to_show[$i]['number_of_hits'] 
 			. '</td>';
 		
-		/* number and %of hits categorised */
+		/* number and % of hits categorised */
 		echo '<td class="concordgeneral" align="center"><center>' . $catqueries_to_show[$i]['number_categorised'] 
 			. ' ('
-			. round(100*$catqueries_to_show[$i]['number_categorised']/$catqueries_to_show[$i]['query_record']['hits'] , 0)
+			. round(100*$catqueries_to_show[$i]['number_categorised']/$catqueries_to_show[$i]['number_of_hits'], 0)
 			. '%)</td>';
 		
 		/* date of saving */
