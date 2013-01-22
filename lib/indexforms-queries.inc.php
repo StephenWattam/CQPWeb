@@ -296,7 +296,7 @@ function printquery_restricted()
 				
 	<?php
 
-	echo printquery_build_restriction_block($checkarray, 'query');
+	echo printquery_build_restriction_block((isset($checkarray) ? $checkarray : NULL), 'query');
 	echo '</table>';
 }
 
@@ -347,7 +347,7 @@ function printquery_build_restriction_block($checkarray, $thing_to_produce)
 		
 		foreach ($catlist as $handle => $desc)
 			$body_row[$i] .= '<input type="checkbox" name="t" value="'
-				. $c['handle'] . "~$handle\" " . $checkarray[$c['handle']][$handle]
+				. $c['handle'] . "~$handle\" " . (isset($checkarray[$c['handle']][$handle]) ? $checkarray[$c['handle']][$handle] : '') 
 				. '/> ' . ($desc == '' ? $handle : $desc) . '<br/>';
 		
 

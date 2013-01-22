@@ -1979,7 +1979,7 @@ function printquery_skins()
 
 function printquery_mappingtables()
 {
-	$show_existing = (bool)$_GET['showExisting']
+	$show_existing = ( isset($_GET['showExisting']) ? (bool)$_GET['showExisting'] : false );
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -2193,39 +2193,40 @@ function printquery_systemsnapshots()
 	if (!is_dir("/$cqpweb_uploaddir/dump"))
 		mkdir("/$cqpweb_uploaddir/dump");
 	
-	switch($_GET['snapshotFunction'])
-	{
-	case 'createSystemSnapshot':
-		cqpweb_dump_snapshot("/$cqpweb_uploaddir/dump/CQPwebFullDump-" . time());
-		break;
-	case 'createUserdataBackup':
-		cqpweb_dump_userdata("/$cqpweb_uploaddir/dump/CQPwebUserDataDump-" . time());
-		break;
-	case 'undumpSystemSnapshot':
-		/* check that the argument is an approrpiate-format undump file that exists */
-		if 	(	preg_match('/^CQPwebFullDump-\d+$/', $_GET['undumpFile']) > 0
-				&&
-				is_file($_GET['undumpFile'])
-			)
-			/* call the function */
-			cqpweb_undump_snapshot("/$cqpweb_uploaddir/dump/".$_GET['undumpFile']);
-		else
-			exiterror_parameter("Invalid filename, or file does not exist!");
-		break;
-	case 'undumpUserdataBackup':
-		/* check that the argument is an approrpiate-format undump file that exists */
-		if 	(	preg_match('/^CQPwebUserDataDump-\d+$/', $_GET['undumpFile']) > 0
-				&&
-				is_file($_GET['undumpFile'])
-			)
-			/* call the function */
-			cqpweb_undump_userdata("/$cqpweb_uploaddir/dump/".$_GET['undumpFile']);
-		else
-			exiterror_parameter("Invalid filename, or file does not exist!");
-		break;
-	default:
-		break;
-	}
+	if (isset($_GET['snapshotFunction']))
+		switch($_GET['snapshotFunction'])
+		{
+		case 'createSystemSnapshot':
+			cqpweb_dump_snapshot("/$cqpweb_uploaddir/dump/CQPwebFullDump-" . time());
+			break;
+		case 'createUserdataBackup':
+			cqpweb_dump_userdata("/$cqpweb_uploaddir/dump/CQPwebUserDataDump-" . time());
+			break;
+		case 'undumpSystemSnapshot':
+			/* check that the argument is an approrpiate-format undump file that exists */
+			if 	(	preg_match('/^CQPwebFullDump-\d+$/', $_GET['undumpFile']) > 0
+					&&
+					is_file($_GET['undumpFile'])
+				)
+				/* call the function */
+				cqpweb_undump_snapshot("/$cqpweb_uploaddir/dump/".$_GET['undumpFile']);
+			else
+				exiterror_parameter("Invalid filename, or file does not exist!");
+			break;
+		case 'undumpUserdataBackup':
+			/* check that the argument is an approrpiate-format undump file that exists */
+			if 	(	preg_match('/^CQPwebUserDataDump-\d+$/', $_GET['undumpFile']) > 0
+					&&
+					is_file($_GET['undumpFile'])
+				)
+				/* call the function */
+				cqpweb_undump_userdata("/$cqpweb_uploaddir/dump/".$_GET['undumpFile']);
+			else
+				exiterror_parameter("Invalid filename, or file does not exist!");
+			break;
+		default:
+			break;
+		}
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -2550,7 +2551,8 @@ function printquery_systemdiagnostics()
 
 function printquery_mysqlsystemrestore()
 {
-	if ($_GET['mysql_restore_areyousure'] == 'yesimsure'
+	if (isset($_GET['mysql_restore_areyousure'], $_GET['mysql_restore_reallyreallysure']) 
+		&& $_GET['mysql_restore_areyousure'] == 'yesimsure'
 		&& $_GET['mysql_restore_reallyreallysure'] == 'yesimcertain')
 	{
 		cqpweb_mysql_total_reset();
@@ -2908,10 +2910,9 @@ function printquery_statistic($type = 'user')
 
 function printquery_phpconfig()
 {
-	if ($_GET['showPhpInfo'])
+	if (isset ($_GET['showPhpInfo']) && $_GET['showPhpInfo'])
 	{
-		/* this messes up the HTML styling unfortunately, but I can't see a way to
-		 * stop it from doing so */
+		/* this messes up the HTML styling unfortunately, but I can't see a way to stop it from doing so */
 		phpinfo();
 		return;
 	}

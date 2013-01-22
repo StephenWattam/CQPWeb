@@ -787,8 +787,9 @@ function concordance_line_blobprocess($lineblob, $type, $highlight_position, $hi
 	/* the "trim" is just in case of unwanted spaces (there will deffo be some on the left) ... *///show_var(htmlspecialchars($lineblob));
 	/* this regular expression puts tokens in $m[4]; xml-tags-before in $m[1]; xml-tags-after in $m[5] . */
 	preg_match_all('|((<\S+?( \S+?)?>)*)([^ <]+)((</\S+?>)*) ?|', trim($lineblob), $m, PREG_PATTERN_ORDER);
-	/* note, this is p[rone to interference from literal < in the index. Will be fixable when we have XML
-	 * concordance output in CQP v 4.0 */
+	/* note, this is p[rone to interference from literal < in the index.
+	 * TODO: 
+	 * Will be fixable when we have XML concordance output in CQP v 4.0 */
 	$token_array = $m[4];
 	$xml_before_array = $m[1];
 	$xml_after_array = $m[5];
@@ -820,15 +821,15 @@ $xml_after_string =  ' ' . htmlspecialchars($xml_after_array[$i]);
 			/* the default case: we are buiilding a concordance line and a tooltip */
 			if ($highlight_position == $i+1) /* if this word is the word being sorted on / collocated etc. */
 			{
-				$main_string .= $xml_before_string . $main_begin_high 
-					. $word 
-					. ($highlight_show_pos ? $tag : '') . $main_end_high . $xml_after_string ;
-				$other_string .= $other_begin_high . $word . $tag . $other_end_high;
+				$main_string .= "$xml_before_string$main_begin_high$word"
+					. ($highlight_show_pos ? $tag : '') 
+					. "$main_end_high$xml_after_string" ;
+				$other_string .= "$other_begin_high$word$tag$other_end_high";
 			}
 			else
 			{
-				$main_string .= $xml_before_string . $word . $xml_after_string . ' ';
-				$other_string .= $word . $tag . ' ';
+				$main_string .= "$xml_before_string$word$xml_after_string ";
+				$other_string .= "$word$tag ";
 			}
 		}
 		else
@@ -837,17 +838,13 @@ $xml_after_string =  ' ' . htmlspecialchars($xml_after_array[$i]);
 			 * other_string will be the second line of the gloss table instead of a tooltip */
 			if ($highlight_position == $i+1)
 			{
-				$main_string .= $glossbox_line1_cell_begin . $xml_before_string . $main_begin_high 
-					. $word 
-					. $main_end_high . $xml_after_string . $glossbox_end;
-				$other_string .= $glossbox_line2_cell_begin . $main_begin_high 
-					. $tag 
-					. $main_end_high . $glossbox_end;
+				$main_string .= "$glossbox_line1_cell_begin$xml_before_string$main_begin_high$word$main_end_high$xml_after_string$glossbox_end";
+				$other_string .= "$glossbox_line2_cell_begin$main_begin_high$tag$main_end_high$glossbox_end";
 			}
 			else
 			{
-				$main_string .= $glossbox_line1_cell_begin . $xml_before_string . $word . $xml_after_string . $glossbox_end;
-				$other_string .= $glossbox_line2_cell_begin . $tag . $glossbox_end;
+				$main_string .= "$glossbox_line1_cell_begin$xml_before_string$word$xml_after_string$glossbox_end";
+				$other_string .= "$glossbox_line2_cell_begin$tag$glossbox_end";
 			}	
 		}
 	}
@@ -1006,7 +1003,7 @@ function concordance_invert_tds($string)
  * It takes a single word/tag string from the CQP concordance line, and
  * returns an array of 0 => word, 1 => tag 
  */
-function extract_cqp_word_and_tag(&$cqp_source_string)
+function extract_cqp_word_and_tag($cqp_source_string)
 {
 	global $visualise_gloss_in_concordance;
 	
@@ -1028,15 +1025,25 @@ function extract_cqp_word_and_tag(&$cqp_source_string)
 		 * [TODO: note this in the manual] 
 		 */
 		$word_extraction_pattern = 
-			(  (empty($primary_tag_handle)&&!$visualise_gloss_in_concordance) ? false : '/\A(.*)\/(.*?)\z/' );
+			(  (empty($primary_tag_handle)&&!$visualise_gloss_in_concordance) ? false : '/\A(.*)\/([^\/]*)\z/' );
 	}
 	
 	if ($word_extraction_pattern)
 	{
 		preg_match($word_extraction_pattern, cqpweb_htmlspecialchars($cqp_source_string), $m);
-if (!isset($m[1], $m[2])) {show_var($cqp_source_string); }
-		$word = $m[1];
-		$tag = ($visualise_gloss_in_concordance ? '' : '_') . $m[2];
+		if (!isset($m[1], $m[2]))
+		{
+			/* a fallback case, for if the regular expression is derailed;
+			 * should only happen wtih badly-encoded XML tags. */
+			$word = '[UNREADABLE]';
+			$tag = $visualise_gloss_in_concordance ? '[UNREADABLE]' : '_';
+		}
+		else
+		{
+			/* this will nearly always be the case. */
+			$word = $m[1];
+			$tag = ($visualise_gloss_in_concordance ? '' : '_') . $m[2];
+		}
 	}
 	else
 	{

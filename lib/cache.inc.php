@@ -474,10 +474,8 @@ function delete_cache_overflow($protect_user_saved = true)
 	
 	/* step one: how many bytes in size is the CQP cache RIGHT NOW? */
 	$result = do_mysql_query("select sum(file_size) from saved_queries");
-	$row_array = mysql_fetch_row($result);
-	$current_size = $row_array[0];
+	list($current_size) = mysql_fetch_row($result);
 	unset($result);
-	unset($row_array);
 	
 
 	if ($current_size > $cache_size_limit)
@@ -502,7 +500,7 @@ function delete_cache_overflow($protect_user_saved = true)
 				break;
 
 			delete_cached_query($current_del_row[0]);
-			$toDelete_size = $toDelete_size - $current_del_row[1];
+			$toDelete_size -= $current_del_row[1];
 		}
 		
 		/* have the above deletions done the trick? */
@@ -523,7 +521,7 @@ function delete_cache_overflow($protect_user_saved = true)
 	} /* endif the cache has exceeded its size limit */
 	
 	/* no "else" - if the cache hasn't exceeded its size limit,
-	 * so this function just returns without doing anything */
+	 * this function just returns without doing anything */
 }
 
 
