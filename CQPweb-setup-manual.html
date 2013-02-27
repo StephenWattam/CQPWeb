@@ -3,15 +3,16 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="LibreOffice 3.3  (Unix)">
+	<META NAME="GENERATOR" CONTENT="LibreOffice 3.5  (Linux)">
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20120205;13442800">
+	<META NAME="CHANGED" CONTENT="20130227;8482800">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1 LANG="en-GB">Some notes on how to set up CQPweb (v 3.0.0 or
@@ -116,23 +117,25 @@ up PHP</B></FONT></FONT></P>
 <P LANG="en-GB"><SPAN LANG="en-GB">CQPweb crucially requires the
 </SPAN><SPAN LANG="en-GB"><B>mysql</B></SPAN><SPAN LANG="en-GB">
 extension to PHP, which enables interaction between PHP and the MySQL
-database software. A</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">s
-of version 2.15 CQPweb can also make use of</SPAN></SPAN><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">extension</SPAN></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">,
+database software. A</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">s
+of version 2.15 CQPweb can also make use of</SPAN></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">the
+</SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">extension</SPAN></SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">,
 which is something different (the “i” stands for “improved”).
 Any given build of PHP is almost certain to include one or the other
-of </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">or </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">,
-and may well include both. In PHP v5.x, </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">is not
-enabled by default. See <A HREF="http://php.net/manual/en/mysql.installation.php">here</A>
+of </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">or
+</SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">,
+and may well include both. In PHP v5.x, </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">is
+not enabled by default. See <A HREF="http://php.net/manual/en/mysql.installation.php">here</A>
 for information on making sure it is enabled. If you don't want to
-use the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">alternative,
-you may have recompile PHP to make the </SPAN></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">extension
-available.</SPAN></SPAN></P>
+use the </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysqli</B></SPAN></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">alternative,
+you may have recompile PHP to make the </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">extension
+availabntle.</SPAN></SPAN></SPAN></P>
 <P LANG="en-GB"><SPAN LANG="en-GB">Certain aspects of the behaviour
 of PHP are controlled by its </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
 file (see <A HREF="http://www.php.net/manual/en/ini.php">here</A>).
@@ -173,47 +176,68 @@ these settings can be checked by looking at “PHP configuration”
 in the Admin control panel. You can also find out the location of the
 active <FONT FACE="Courier New, monospace">php.ini</FONT> file from
 this screen.</P>
+<P LANG="en-GB">If you are running a version of PHP with the Suhosin
+patch (which comes by default in some Linux distros, including Debian
+and Ubuntu) then there is an additional “gotcha” to look out for.
+This is that a limit is placed on the length of individual values in
+an HTTP request – 512 bytes by default. This can result in very
+long CQPweb queries failing to work if they overrun this limit. If
+you have Suhosin and you want to be sure of not running into this
+problem, you need to add the following line to <FONT FACE="Courier New, monospace">php.ini</FONT>:</P>
+<UL TYPE=DISC>
+	<LI><P LANG="en-GB" STYLE="font-weight: normal"><FONT FACE="Courier New, monospace">suhosin.get.max_value_length
+	= 8000</FONT></P>
+</UL>
+<P LANG="en-GB">Please note, however, that even with this limit
+increase, users may have trouble with very long queries, since
+different browsers may impose alternative, lower limits on HTTP
+request values. For example, some versions of Internet Explorer are
+known to restrict HTTP request values to 2000 bytes.</P>
 <P LANG="en-GB"><SPAN LANG="en-GB">Finally, <A HREF="http://php.net/manual/en/features.safe-mode.php">PHP
 has a “safe-mode” configuration</A>. This should, ideally, </SPAN><SPAN LANG="en-GB"><I>not</I></SPAN><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">be
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">be
 activated; if it is, you may well find that some CQPweb operations do
-not work. </SPAN></SPAN>
+not work. </SPAN></SPAN></SPAN>
 </P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">PHP safe-mode
-	may not allow CQPweb to run CQP and Perl as separate child processes
-	if the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">cqp</SPAN></FONT>
-	<SPAN STYLE="font-style: normal">and </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">perl</SPAN></FONT>
-	<SPAN STYLE="font-style: normal">executables are not in its “safe”
-	directories – in which case, </SPAN><I>nothing</I> <SPAN STYLE="font-style: normal">will
-	work.</SPAN></P>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">PHP safe-mode
-	will </SPAN><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">stop
-	CQPweb from lifting</SPAN></SPAN></FONT></FONT><FONT COLOR="#000000">
-	</FONT><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">restrictions
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">PHP
+	safe-mode may not allow CQPweb to run CQP and Perl as separate child
+	processes if the </SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">cqp</SPAN></FONT></SPAN>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">and
+	</SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">perl</SPAN></FONT></SPAN>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">executables
+	are not in its “safe” directories – in which case, </SPAN></SPAN><I>nothing</I>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">will
+	work.</SPAN></SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">PHP
+	safe-mode will </SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">stop
+	CQPweb from lifting</SPAN></SPAN></FONT></FONT></SPAN><FONT COLOR="#000000">
+	</FONT><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">restrictions
 	on execution time for long-running operations; these functions
-	(mostly set-up</SPAN></SPAN></FONT></FONT><FONT COLOR="#000000">
-	</FONT><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">functions
+	(mostly set-up</SPAN></SPAN></FONT></FONT></SPAN><FONT COLOR="#000000">
+	</FONT><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">functions
 	for big corpora, but also processes like collocations on queries
-	with lots of results) will stop working. </SPAN></SPAN></FONT></FONT>
+	with lots of results) will stop working. </SPAN></SPAN></FONT></FONT></SPAN>
 	</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">PHP
-	safe-mode will restrict CQPweb to only</SPAN></SPAN></FONT></FONT><FONT COLOR="#000000">
-	</FONT><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">opening
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">PHP
+	safe-mode will restrict CQPweb to only</SPAN></SPAN></FONT></FONT></SPAN><FONT COLOR="#000000">
+	</FONT><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Times New Roman"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">opening
 	or modifying files that CQPweb has created itself. However, some
 	operations need CQPweb to work with files which it didn’t create
 	itself but were, rather, created by the MySQL server or manually by
-	you. All these operations will stop working.</SPAN></SPAN></FONT></FONT></P>
+	you. All these operations will stop working.</SPAN></SPAN></FONT></FONT></SPAN></P>
 </UL>
-<P LANG="en-GB" STYLE="font-style: normal; font-weight: normal"><FONT COLOR="#000000"><FONT FACE="Times New Roman">Note
-that the “safe-mode” feature of PHP is, in any case, deprecated
-as of recent versions (5.3.0 or later) of PHP – so web servers
-should not be relying on it anyway.</FONT></FONT></P>
-<P LANG="en-GB">Please note the following possible problem if you are on Apple OS X: 
-the <FONT FACE="Courier New, monospace">php.ini</FONT> file may not exist,
-if not, then there should be a php.ini.default file which you can copy into the correct folder 
-(under the name <FONT FACE="Courier New, monospace">php.ini</FONT>) and
-then amend if need be.</P>
+<P LANG="en-GB" STYLE="font-variant: normal; font-style: normal; font-weight: normal">
+<FONT COLOR="#000000"><FONT FACE="Times New Roman">Note that the
+“safe-mode” feature of PHP is, in any case, deprecated as of
+recent versions (5.3.0 or later) of PHP – so web servers should not
+be relying on it anyway.</FONT></FONT></P>
+<P LANG="en-GB">Please note the following possible problem if you are
+on Apple OS X: the <FONT FACE="Courier New, monospace">php.ini</FONT>
+file may not exist, if not, then there should be a php.ini.default
+file which you can copy into the correct folder (under the name
+<FONT FACE="Courier New, monospace">php.ini</FONT>) and then amend if
+need be.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -221,25 +245,26 @@ up your webserver</B></FONT></FONT></P>
 <P LANG="en-GB">There are two things that you need to make sure are
 configured in your webserver.</P>
 <UL TYPE=DISC>
-	<LI><P LANG="en-GB">It <I>must</I> <SPAN STYLE="font-style: normal">be
-	</SPAN><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">configured</SPAN></SPAN>
-	<SPAN STYLE="font-style: normal">so that files with the </SPAN><SPAN STYLE="font-style: normal"><B>.php</B></SPAN>
-	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">extension
+	<LI><P LANG="en-GB">It <I>must</I> <SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">be
+	</SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">configured</SPAN></SPAN></SPAN>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">so
+	that files with the </SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><B>.php</B></SPAN></SPAN>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">extension
 	are run as PHP (whether via CGI or via a module like Apache's
-	mod_php). This is the default on most webservers.</SPAN></SPAN></P>
-	<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">It
-	</SPAN></SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I>
-	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">be
-	configured so that a file named </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">index.html</SPAN></SPAN></FONT>
-	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">or
-	</SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">index.php</SPAN></SPAN></FONT>
-	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">is
+	mod_php). This is the default on most webservers.</SPAN></SPAN></SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">It
+	</SPAN></SPAN></SPAN><I><SPAN STYLE="font-weight: normal">must</SPAN></I>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">be
+	configured so that a file named </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">index.html</SPAN></SPAN></FONT></SPAN>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">or
+	</SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">index.php</SPAN></SPAN></FONT></SPAN>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">is
 	served as the default when the address of a directory is accessed
-	(so </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">http://my.server.net/directory</SPAN></SPAN></FONT>
-	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">produces
-	the same as </SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">http://my.server.net/directory/index.php</SPAN></SPAN></FONT>
-	<SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">).
-	This is also usually the default situation.</SPAN></SPAN></P>
+	(so </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">http://my.server.net/directory</SPAN></SPAN></FONT></SPAN>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">produces
+	the same as </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">http://my.server.net/directory/index.php</SPAN></SPAN></FONT></SPAN>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">).
+	This is also usually the default situation.</SPAN></SPAN></SPAN></P>
 </UL>
 <P LANG="en-GB">The rest of this section assumes that you are using
 Apache and that you want to use the internal username/password
@@ -288,10 +313,10 @@ happen in your installation!</P>
 		mode is set to <FONT FACE="Courier New, monospace">0664</FONT> to
 		set it to <FONT FACE="Courier New, monospace">0644</FONT> instead.</P>
 	</UL>
-	<LI><P LANG="en-GB" STYLE="font-style: normal; font-weight: normal">CQPweb
-	uses the Apache <B>htpasswd</B> utility. You should make a note of
-	the directory where this utility is located as you will need to
-	specify it during configuration. On some systems, the <B>htpasswd</B>
+	<LI><P LANG="en-GB" STYLE="font-variant: normal; font-style: normal; font-weight: normal">
+	CQPweb uses the Apache <B>htpasswd</B> utility. You should make a
+	note of the directory where this utility is located as you will need
+	to specify it during configuration. On some systems, the <B>htpasswd</B>
 	binary may have a different name (e.g. <B>htpasswd2</B>). If this is
 	the case, the best thing to do is to create a symlink called
 	<B>htpasswd</B> to the alternatively-named binary. (The symlink can
@@ -327,19 +352,21 @@ version 2.2.102.</FONT></P>
 		</P>
 		<LI><P LANG="en-GB"><FONT COLOR="#000000"><I>If for any reason you
 		wish to set up CQPweb to use a different Perl binary to your
-		system's default (i.e. </I><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">which
-		perl</SPAN></FONT><I>), you need to make sure the CWB modules are
-		accessible to </I><I><U>that</U></I> <I>Perl binary</I>. <SPAN STYLE="font-style: normal">If
+		system's default (i.e. </I><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">which
+		perl</SPAN></FONT></SPAN><I>), you need to make sure the CWB
+		modules are accessible to </I><I><U>that</U></I> <I>Perl binary</I>.
+		<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">If
 		you don't understand the previous sentences, ignore the preceding
-		paragraph and this one!</SPAN></FONT></P>
-		<LI><P LANG="en-GB"><SPAN STYLE="font-style: normal">If you install
-		the Perl modules into a folder that is not in the normal Perl </SPAN><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">@INC</SPAN></FONT></FONT>
-		<SPAN STYLE="font-style: normal">path (which you can do by
-		specifying an alternative </SPAN><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">PREFIX</SPAN></FONT></FONT><SPAN STYLE="font-style: normal">),
+		paragraph and this one!</SPAN></SPAN></FONT></P>
+		<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">If
+		you install the Perl modules into a folder that is not in the
+		normal Perl </SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">@INC</SPAN></FONT></FONT></SPAN>
+		<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">path
+		(which you can do by specifying an alternative </SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">PREFIX</SPAN></FONT></FONT></SPAN><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">),
 		then you will need to tell CQPweb where they are. You can do this
-		by setting the option </SPAN><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$cwb_extra_perl_directories</SPAN></FONT></FONT>
-		<SPAN STYLE="font-style: normal">in the configuration file (see
-		below).</SPAN></P>
+		by setting the option </SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$cwb_extra_perl_directories</SPAN></FONT></FONT></SPAN>
+		<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">in
+		the configuration file (see below).</SPAN></SPAN></P>
 	</UL>
 </UL>
 <P LANG="en-GB"><BR><BR>
@@ -412,18 +439,18 @@ binary logging</A>. Even relatively light use of a CQPweb
 installation will make MySQL create very large binary log files,
 ultimately using up all your disk space over time, if binary logging
 is enabled. For this reason, it's recommended that you </SPAN><SPAN LANG="en-GB"><I>disable</I></SPAN><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">binary
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">binary
 logging on the MySQL server that will be driving CQPweb. You can
 <A HREF="http://dev.mysql.com/doc/refman/5.5/en/replication-options-binary-log.html">disable
 binary logging</A> by commenting out or deleting the line containing
-</SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">log_bin</SPAN></SPAN></FONT><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">command in
-the MySQL configuration file, or removing the equivalent
-</SPAN></SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">--log-bin[=base_name]</SPAN></SPAN></FONT><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">directive
-from the command line that starts up </SPAN></SPAN><SPAN LANG="en-GB"><I>mysqld.</I></SPAN><SPAN LANG="en-GB">
-</SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">(In either
-case you'll need to restart </SPAN></SPAN><SPAN LANG="en-GB"><I>mysqld</I></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">.)</SPAN></SPAN></P>
+</SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">log_bin</SPAN></SPAN></FONT></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">command
+in the MySQL configuration file, or removing the equivalent
+</SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">--log-bin[=base_name]</SPAN></SPAN></FONT></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">directive
+from the command line that starts up </SPAN></SPAN></SPAN><SPAN LANG="en-GB"><I>mysqld.</I></SPAN><SPAN LANG="en-GB">
+</SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">(In
+either case you'll need to restart </SPAN></SPAN></SPAN><SPAN LANG="en-GB"><I>mysqld</I></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">.)</SPAN></SPAN></SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Setting
@@ -435,103 +462,103 @@ on the server.</P>
 	<COL WIDTH=309>
 	<TR VALIGN=TOP>
 		<TD WIDTH=556 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Create
 			a directory for…</B></FONT></FONT></FONT></P>
 		</TD>
 		<TD WIDTH=309 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Where
 			it should be</B></FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=556 STYLE="border: none; padding: 0cm">
 			<OL>
-				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>The
 				actual web scripts<BR>(NB the URL of this directory will become
 				the base URL for your CQPweb system) </FONT></FONT></FONT>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=309 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			in the web-docs directory of the server</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=556 STYLE="border: none; padding: 0cm">
 			<OL START=2>
-				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>CQPweb’s
 				web usernames and passwords </FONT></FONT></FONT>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=309 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=556 STYLE="border: none; padding: 0cm">
 			<OL START=3>
-				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Temporary
 				files (including the cache) </FONT></FONT></FONT>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=309 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=556 STYLE="border: none; padding: 0cm">
 			<OL START=4>
-				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Indexed
 				corpora </FONT></FONT></FONT>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=309 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=556 STYLE="border: none; padding: 0cm">
 			<OL START=5>
-				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Registry
 				files for indexed corpora </FONT></FONT></FONT>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=309 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=556 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=556 STYLE="border: none; padding: 0cm">
 			<OL START=6>
-				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+				<LI><P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 				<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Upload
 				area for files put onto the server via HTTP </FONT></FONT></FONT>
 				</P>
 			</OL>
 		</TD>
-		<TD WIDTH=309 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=309 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Somewhere
 			outside the web directory</FONT></FONT></FONT></P>
 		</TD>
@@ -649,9 +676,9 @@ need to edit the file </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="fo
 <SPAN STYLE="font-weight: normal">subdirectory of the web directory.
 See the following section for some information on what you can change
 manually in the config file. The core configuration variables </SPAN><I><SPAN STYLE="font-weight: normal">cannot
-be changed through the web interface</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">,
+be changed through the web interface</SPAN></I><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">,
 even if you are logged on as a superuser. This is for security
-reasons.</SPAN></SPAN></P>
+reasons.</SPAN></SPAN></SPAN></P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <P LANG="en-GB" STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4><B>Creating
@@ -834,39 +861,44 @@ follows:</P>
 	first applies if CQPweb is called over the web, the second if it is
 	called from the command-line). They default to 50Mb and 1000Mb
 	respectively.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$cwb_extra_perl_directories</SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$cwb_extra_perl_directories</SPAN></FONT></FONT></SPAN>
 	– if this is set, it should take the form of a quoted string that
 	lists directories that you wish Perl to use as library directories
 	when called by CQPweb, with individual directory paths separated by
-	the pipe symbol (e.g. <FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">&quot;/extra/directory/1|/extra/directory/2&quot;</SPAN></FONT></FONT>.
-	All paths must be <I>absolute</I><SPAN STYLE="font-style: normal">.
+	the pipe symbol (e.g. <SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">&quot;/extra/directory/1|/extra/directory/2&quot;</SPAN></FONT></FONT></SPAN>.
+	All paths must be <I>absolute</I><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">.
 	Normally, the only reason to use this variable is to specify a
 	non-standard location for the installed CWB-Perl modules (see above)
 	– thus the name of the setting. The directories in question will
-	be passed to Perl using the </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">-I</SPAN></FONT>
-	<SPAN STYLE="font-style: normal">command-line option.</SPAN></P>
-	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_welcome_message</SPAN></FONT>
-	– <SPAN STYLE="font-style: normal">a little bit of text (can
-	include HTML formatting) which will appear in the header box of the
-	main menu page. The default is “Welcome to CQPweb!”</SPAN></P>
-	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT>
-	– <SPAN STYLE="font-style: normal">the URL (relative to the main
-	menu page or absolute) of an image to display as a logo on the left
-	of the header box of the main page menu. If the string consists of
-	two URLs with a tab between them, then the first will be used as the
-	address of the image, and the second as a link to embed it into. A
-	transparent CorpusWorkbench logo that you can use if you wish is
-	located at the relative URL of </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">css/img/ocwb-logo.transparent.gif</SPAN></FONT>
-	<SPAN STYLE="font-style: normal">. The default is no logo.</SPAN></P>
-	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_right</SPAN></FONT>
-	– <SPAN STYLE="font-style: normal">as per </SPAN><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT><SPAN STYLE="font-style: normal">,
-	but it appears on the right side</SPAN> <SPAN STYLE="font-style: normal">of
-	the header box.</SPAN></P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$css_path_for_homepage</SPAN></FONT></FONT>
+	be passed to Perl using the </SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">-I</SPAN></FONT></SPAN>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">command-line
+	option.</SPAN></SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_welcome_message</SPAN></FONT></SPAN>
+	– <SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">a
+	little bit of text (can include HTML formatting) which will appear
+	in the header box of the main menu page. The default is “Welcome
+	to CQPweb!”</SPAN></SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT></SPAN>
+	– <SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">the
+	URL (relative to the main menu page or absolute) of an image to
+	display as a logo on the left of the header box of the main page
+	menu. If the string consists of two URLs with a tab between them,
+	then the first will be used as the address of the image, and the
+	second as a link to embed it into. A transparent CorpusWorkbench
+	logo that you can use if you wish is located at the relative URL of
+	</SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">css/img/ocwb-logo.transparent.gif</SPAN></FONT></SPAN>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">.
+	The default is no logo.</SPAN></SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_right</SPAN></FONT></SPAN>
+	– <SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">as
+	per </SPAN></SPAN><SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$homepage_logo_left</SPAN></FONT></SPAN><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">,
+	but it appears on the right side</SPAN></SPAN> <SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">of
+	the header box.</SPAN></SPAN></P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$css_path_for_homepage</SPAN></FONT></FONT></SPAN>
 	– this should be a relative or absolute URL of a CSS stylesheet to
 	use for the main menu page. By default, a lovely blue-and-grey table
 	effect is used.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$css_path_for_adminpage</SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$css_path_for_adminpage</SPAN></FONT></FONT></SPAN>
 	– this should be a relative or absolute URL of a CSS stylesheet to
 	use for the admin control panel page. By default, a red-and-pink
 	colour scheme is used.</P>
@@ -877,55 +909,58 @@ follows:</P>
 	configure it on an individual corpus basis, you can do so in the
 	settings.inc.php file of each corpus (but then beware automatic
 	overwrites of that file!).</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$print_debug_messages</SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$print_debug_messages</SPAN></FONT></FONT></SPAN>
 	– this default to false, if you set it to true messages about what
 	is going on behind the scenes will appear all over various CQPweb
 	pages (totally messing up the layout).</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$debug_messages_textonly</SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$debug_messages_textonly</SPAN></FONT></FONT></SPAN>
 	– defaults to false, if you set it to true all debug and error
 	messages will be printed as text with no HTML formatting. Plain text
 	messages are <I>always</I> produced (a) when outputting a textual
 	download (b) in scripts that run from the command-line.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$cache_size_limit</SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$cache_size_limit</SPAN></FONT></FONT></SPAN>
 	– this defaults to 3 gigabytes, and sets a limit on the amount of
 	data that will be cached (CQP temporary files only, the MySQL
 	database does not count towards this size limit). Note that until
 	the cache limit is reached, the cache will just keep growing! Cached
 	files are never deleted simply due to age, only when the disk space
 	needs to be reused.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_feed_available</SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_feed_available</SPAN></FONT></FONT></SPAN>
 	– this defaults to false, if you set it to true, then an RSS 2.0
 	feed of all the system-administration messages currently on the
 	system will be available in the <B>rss</B> subdirectory. (And an
 	icon linking to the feed will appear in the header bar of the the
 	system-messages block). The next thre configuration variables allow
 	you to define how you want the RSS feed to behave; they will be
-	ignored if <FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_feed_available</SPAN></FONT></FONT>
+	ignored if <SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_feed_available</SPAN></FONT></FONT></SPAN>
 	is not true.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_link</SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_link</SPAN></FONT></FONT></SPAN>
 	– all RSS feeds must have a URL associated with them, by default
 	the CQPweb RSS feed's link is simply the root directory of the
 	installation, but you can configure it to be something else by
 	setting this variable. Note that if you set it to anything other
 	than valid URL the resulting RSS file probably won't parse.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_feed_title</SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_feed_title</SPAN></FONT></FONT></SPAN>
 	– the title of the feed, by default “CQPweb System Messages”
 	but you can set it to whatever you like, e.g. to mention your
 	institution or organisation.</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_description</SPAN></FONT></FONT>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$rss_description</SPAN></FONT></FONT></SPAN>
 	– the basic description that will pop up in subscribers' feed
 	readers. You can set this to anything you like, but it should not be
 	longer than a short paragraph in order to be effective. It defaults
 	to “Messages from the CQPweb server's administrator”.</P>
-	<LI><P LANG="en-GB" STYLE="font-style: normal">$default_max_fullsize_dbs_in_cache</P>
-	<LI><P LANG="en-GB" STYLE="font-style: normal">$default_max_dbsize</P>
-	<LI><P LANG="en-GB"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$default_mysql_process_limit</SPAN></FONT></FONT>
-	– <SPAN STYLE="font-style: normal">this defaults to five,
-	represents the number of </SPAN><I>big</I> <SPAN STYLE="font-style: normal">MySQL
-	processes that will be run at once.</SPAN></P>
-	<LI><P LANG="en-GB" STYLE="font-style: normal"><FONT COLOR="#0047ff">&lt;NB,
-	these settings should be filed under various headings for
-	clarity...&gt;</FONT></P>
+	<LI><P LANG="en-GB" STYLE="font-variant: normal; font-style: normal">
+	$default_max_fullsize_dbs_in_cache</P>
+	<LI><P LANG="en-GB" STYLE="font-variant: normal; font-style: normal">
+	$default_max_dbsize</P>
+	<LI><P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-style: normal">$default_mysql_process_limit</SPAN></FONT></FONT></SPAN>
+	– <SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">this
+	defaults to five, represents the number of </SPAN></SPAN><I>big</I>
+	<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">MySQL
+	processes that will be run at once.</SPAN></SPAN></P>
+	<LI><P LANG="en-GB" STYLE="font-variant: normal; font-style: normal">
+	<FONT COLOR="#0047ff">&lt;NB, these settings should be filed under
+	various headings for clarity...&gt;</FONT></P>
 </UL>
 <P LANG="en-GB">Save the edited file as “config.inc.php” and put
 it into the “lib” subdirectory of the web directory.</P>
@@ -1131,12 +1166,12 @@ classification or not.</P>
 	corpora.</SPAN></P>
 </UL>
 <P LANG="en-GB">Once the metadata table is loaded, you will be on a
-page called “<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="font-style: normal"><B>Admin
-tools for managing corpus metadata</B></SPAN></FONT></FONT></FONT> ”.
-If you didn't automatically setup frequency lists, you can now do so
-using the first four buttons under “<B>Other metadata controls</B>”.
-Or, for very big corpora, you may prefer to run the setup offline:
-the command for this is <FONT FACE="Courier New, monospace">../lib/offline-freqlists.php</FONT>
+page called “<SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="font-style: normal"><B>Admin
+tools for managing corpus metadata</B></SPAN></FONT></FONT></FONT></SPAN>
+”. If you didn't automatically setup frequency lists, you can now
+do so using the first four buttons under “<B>Other metadata
+controls</B>”. Or, for very big corpora, you may prefer to run the
+setup offline: the command for this is <FONT FACE="Courier New, monospace">../lib/offline-freqlists.php</FONT>
 and you must run it from within the web-directory that has been
 created for your corpus. Ideally, you should run this script as the
 web-user (see above), but if you run it under a different username,
@@ -1262,16 +1297,18 @@ the commands you should run in the MySQL client to alter the database
 in order to keep it compatible with your new version of the CQPweb
 code. All these commands can be run using the user account you
 created for CQPweb (and, of course, they must be run <I>within</I>
-<SPAN STYLE="font-style: normal">the CQPweb database).</SPAN> 
+<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">the
+CQPweb database).</SPAN></SPAN> 
 </P>
-<P LANG="en-GB">You need to run <I>all</I> <SPAN STYLE="font-style: normal">the
-commands between the version you are upgrading </SPAN><I>from</I> <SPAN STYLE="font-style: normal">and
-the version you are upgrading </SPAN><I>to</I><SPAN STYLE="font-style: normal">,
-inclusive</SPAN> <SPAN STYLE="font-style: normal">(i.e. the list that
-follows is cumulative).</SPAN></P>
-<P LANG="en-GB" STYLE="font-style: normal">Sometimes, other steps are
-needed to bring CQPweb up to date. These are listed alongside the
-MySQL commands where applicable.</P>
+<P LANG="en-GB">You need to run <I>all</I> <SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">the
+commands between the version you are upgrading </SPAN></SPAN><I>from</I>
+<SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">and
+the version you are upgrading </SPAN></SPAN><I>to</I><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">,
+inclusive</SPAN></SPAN> <SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal">(i.e.
+the list that follows is cumulative).</SPAN></SPAN></P>
+<P LANG="en-GB" STYLE="font-variant: normal; font-style: normal">Sometimes,
+other steps are needed to bring CQPweb up to date. These are listed
+alongside the MySQL commands where applicable.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <TABLE WIDTH=882 CELLPADDING=4 CELLSPACING=0>
@@ -1280,103 +1317,103 @@ MySQL commands where applicable.</P>
 	<COL WIDTH=178>
 	<TR VALIGN=TOP>
 		<TD WIDTH=158 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Version
 			change</B></FONT></FONT></FONT></P>
 		</TD>
 		<TD WIDTH=520 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>MySQL
 			commands you need to run to change the database <BR>(in order
 			top-to-bottom)</B></FONT></FONT></FONT></P>
 		</TD>
 		<TD WIDTH=178 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Other
 			steps to take</B></FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>2.15
 			to 2.16</FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=520 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>alter
 			table user_settings drop key `username`;</FONT></FONT></FONT></P>
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>alter
 			table user_settings <BR>add primary key (`username`);</FONT></FONT></FONT></P>
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>alter
 			table user_settings add column `password` varchar(20) default
 			NULL;</FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=178 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">2.16
 			to 2.17</P>
 		</TD>
-		<TD WIDTH=520 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
-		<TD WIDTH=178 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">2.17
 			to 3.0.0</P>
 		</TD>
-		<TD WIDTH=520 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
-		<TD WIDTH=178 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">3.0.0
 			to 3.0.1</P>
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
 			</P>
 		</TD>
-		<TD WIDTH=520 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>CREATE
 			TABLE `corpus_categories` ( <BR>`idno` int NOT NULL
 			AUTO_INCREMENT, <BR>`label` varchar(255) DEFAULT '', <BR>`sort_n`
 			int NOT NULL DEFAULT 0, <BR>PRIMARY KEY (`idno`) <BR>) CHARACTER
 			SET utf8 COLLATE utf8_general_ci;</FONT></FONT></FONT></P>
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
 			TABLE `corpus_metadata_fixed`<BR>MODIFY COLUMN `corpus_cat` int
 			DEFAULT 1;</FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=178 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal">
+		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal">
 			<FONT SIZE=3>Since this upgrade will wipe out your existing corpus
 			categories, you must re-add them.</FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">3.0.1
 			to 3.0.2</P>
 		</TD>
-		<TD WIDTH=520 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>DROP
 			TABLE IF EXISTS `xml_visualisations`;</FONT></FONT></FONT></P>
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>CREATE
 			TABLE `xml_visualisations` ( <BR>`corpus` varchar(20) NOT NULL,
 			<BR>`element` varchar(50) NOT NULL, <BR>`xml_attributes`
@@ -1386,7 +1423,7 @@ MySQL commands where applicable.</P>
 			<BR>`bb_code` text, <BR>`html_code` text, <BR>key(`corpus`,
 			`element`) <BR>) CHARACTER SET utf8 COLLATE utf8_bin;</FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=178 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">Go
 			to <B>System diagnostics</B> <SPAN STYLE="font-weight: normal">and
 			run the check for &quot;</SPAN><I><SPAN STYLE="font-weight: normal">PHP
@@ -1398,31 +1435,31 @@ MySQL commands where applicable.</P>
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">3.0.2
 			to 3.0.3</P>
 		</TD>
-		<TD WIDTH=520 STYLE="; border: none; padding: 0cm">
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
 			TABLE `xml_visualisations` DROP KEY `corpus`;</FONT></FONT></FONT></P>
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
 			TABLE `xml_visualisations` ADD COLUMN `cond_attribute` varchar(50)
 			NOT NULL default '';</FONT></FONT></FONT></P>
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
 			TABLE `xml_visualisations` ADD COLUMN `cond_regex` varchar(100)
 			NOT NULL default '';</FONT></FONT></FONT></P>
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
 			TABLE `xml_visualisations` ADD PRIMARY KEY (`corpus`, `element`,
 			`cond_attribute`, `cond_regex`);</FONT></FONT></FONT></P>
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
 			TABLE user_settings add column thin_default_reproducible
 			tinyint(1) default NULL;</FONT></FONT></FONT></P>
-			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-style: normal; font-weight: normal; text-decoration: none">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>UPDATE
 			user_settings set thin_default_reproducible = 1;</FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=178 STYLE="; border: none; padding: 0cm">
+		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
 			</P>
 		</TD>
@@ -1435,13 +1472,13 @@ MySQL commands where applicable.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <HR>
-<P LANG="en-GB"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
-v3.0.0</SPAN></SPAN></SPAN></FONT></FONT></FONT><FONT COLOR="#808080"><SPAN LANG="en-GB">
-</SPAN></FONT><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">©
-2008-today</SPAN></SPAN></SPAN></FONT></FONT></FONT><FONT COLOR="#808080"><SPAN LANG="en-GB">
-– </SPAN></FONT><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">documentation
+<P LANG="en-GB"><SPAN STYLE="font-variant: normal"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">CQPweb
+v3.0.0</SPAN></SPAN></SPAN></FONT></FONT></FONT></SPAN><FONT COLOR="#808080"><SPAN LANG="en-GB">
+</SPAN></FONT><SPAN STYLE="font-variant: normal"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">©
+2008-today</SPAN></SPAN></SPAN></FONT></FONT></FONT></SPAN><FONT COLOR="#808080"><SPAN LANG="en-GB">
+– </SPAN></FONT><SPAN STYLE="font-variant: normal"><FONT COLOR="#808080"><FONT FACE="verdana"><FONT SIZE=1 STYLE="font-size: 8pt"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">documentation
 by Andrew Hardie, <A HREF="mailto:andrewhardie@user.ssourceforge.net">andrewhardie@users.sourceforge.net</A>
-</SPAN></SPAN></SPAN></FONT></FONT></FONT>
+</SPAN></SPAN></SPAN></FONT></FONT></FONT></SPAN>
 </P>
 </BODY>
 </HTML>
