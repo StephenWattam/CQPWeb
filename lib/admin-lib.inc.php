@@ -230,7 +230,7 @@ function add_new_user($username, $password, $email = NULL)
 }
 
 function add_batch_of_users($username_root, $number_in_batch, $password, $autogroup, $different_passwords = false)
-{
+{	
 	global $create_password_function;
 	global $password_more_security;
 
@@ -246,7 +246,8 @@ function add_batch_of_users($username_root, $number_in_batch, $password, $autogr
 	}
 	
 	$number_in_batch = (int)$number_in_batch;
-	
+	$different_passwords = (bool)$different_passwords;
+
 	/* get passwords and begin the text-file write */
 	if ($different_passwords)
 	{
@@ -260,7 +261,7 @@ function add_batch_of_users($username_root, $number_in_batch, $password, $autogr
 	{
 		if ($different_passwords)
 		{
-			$this_password = ($different_passwords ? $password_list[$i] : $password);
+			$this_password = $password_list[$i];
 			echo "$username_root$i\t$this_password\n";
 		}
 		else
@@ -276,6 +277,8 @@ function add_batch_of_users($username_root, $number_in_batch, $password, $autogr
 		$db_password = ($password_more_security ? $apache->get_user_hashword("$username_root$i") : $this_password);
 		update_user_setting("$username_root$i", 'password', $db_password);
 	}
+	if ($different_passwords)
+		flush();
 }
 
 /**
@@ -635,7 +638,7 @@ function password_insert_lancaster($n)
 {
 	$page = file_get_contents('https://www.lancs.ac.uk/iss/security/passwords/makepw.php?num='. (int)$n);
 	
-	return explode("\n", str_replace("\r\n", "\n", $page));
+	return explode("\n", str_replace("\r\n", "\n", trim($page)));
 }
 
 function password_insert_from_atoms($n)
