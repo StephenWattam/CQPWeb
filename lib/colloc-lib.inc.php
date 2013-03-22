@@ -207,7 +207,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 	$R2  = $N - $R1;		
 	$C1  = "($freq_table.freq)";
 	$C2  = "($N - $C1)";
-	$O11 = "COUNT($item)";
+	$O11 = "1e0 * COUNT($item)";
 	$O12 = "($R1 - $O11)";
 	$O21 = "($C1 - $O11)";
 	$O22 = "($R2 - $O21)";
@@ -270,7 +270,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 			$sql_endclause";
 		break;
 		
-	case 2:		/* MI3 */
+	case 2:		/* MI3 (Cubic mutual information) */
 		$sql = "select $item, count($item) as observed, $E11 as expected,
 			3 * log2($O11) - log2($E11) as significance, $freq_table.freq, 
 			count(distinct(text_id)) as text_id_count
@@ -278,9 +278,9 @@ function create_statistic_sql_query($stat, $soloform = '')
 			$sql_endclause";
 		break;
 		
-	case 3:		/* Z-score */
+	case 3:		/* Z-score  (with Yates' continuity correction as of v3.0.8) */
 		$sql = "select $item, count($item) as observed, $E11 as expected,
-			($O11 - $E11) / sqrt($E11) as significance, $freq_table.freq,
+			sign($O11 - $E11) * if(abs($O11 - $E11) > 0.5, abs($O11 - $E11) - 0.5, $abs($O11 - $E11) / 2) / sqrt($E11) as significance, $freq_table.freq,
 			count(distinct(text_id)) as text_id_count
 			from $dbname, $freq_table
 			$sql_endclause";

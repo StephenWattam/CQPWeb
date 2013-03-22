@@ -104,6 +104,8 @@ function exiterror_printlines($lines)
 /**
  * Function internal to exiterror module.
  * 
+ * Prints a de
+ * 
  * Prints a footer iff we're in HTML context; then kills CQPweb.
  * 
  * If $backlink is true, a link to the home page for the corpus is included.
@@ -111,6 +113,25 @@ function exiterror_printlines($lines)
 function exiterror_endpage($backlink = false)
 {
 	global $debug_messages_textonly;
+	
+	/* print the PHP back trace */
+	global $username;
+	if (user_is_superuser($username))
+	{
+		if ($debug_messages_textonly)
+		{
+			echo "\n\nPHP debugging backtrace\n=======================\n";
+			var_dump(debug_backtrace());
+		}
+		else
+		{
+			?>
+			<hr/>
+			<h3>PHP debugging backtrace</h3>
+			<pre><?php var_dump(debug_backtrace()); ?></pre>			
+			<?php
+		}
+	}
 	
 	if ( ! $debug_messages_textonly)
 	{
@@ -122,7 +143,6 @@ function exiterror_endpage($backlink = false)
 			<?php
 		}
 		print_footer();
-
 	}
 	
 	disconnect_all();

@@ -705,12 +705,12 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
-		<b>Version 3.0.8</b>, 2013-xx-yy<br/>&nbsp;<br/>
-		INSERTY HERE
+		<b>Version 3.0.8</b>, 2013-03-22<br/>&nbsp;<br/>
+		Added a debugging backtrace to the error messages seen by superusers.
 		<br/>&nbsp;<br/>
-		INSERT HERE
+		Added Yates' continuity correction to the calculation of Z-score in the Collocation function.
 		<br/>&nbsp;<br/>
-		The usual miscellaneous bug fixes, including some affecting character encoding.
+		The usual miscellaneous bug fixes, including one affecting character encoding.
 		<br/>&nbsp;</li>
 		
 		<li>
