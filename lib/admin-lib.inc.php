@@ -277,8 +277,10 @@ function add_batch_of_users($username_root, $number_in_batch, $password, $autogr
 		$db_password = ($password_more_security ? $apache->get_user_hashword("$username_root$i") : $this_password);
 		update_user_setting("$username_root$i", 'password', $db_password);
 	}
+	// added because for small N, the resulting file could be overridden by execute()'s "Location" header.
 	if ($different_passwords)
 		flush();
+	// TODO: maybe better for execute to flush before checking headers_sent?
 }
 
 /**

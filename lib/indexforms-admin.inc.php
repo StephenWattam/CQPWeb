@@ -2232,11 +2232,7 @@ function printquery_showcache()
 		. $return_to_url
 		. '&uT=y">Delete cache overflow</a></th>';
 
-	echo '<th width="50%" class="concordtable">'
-		. '<a onmouseover="return escape(\'This function affects <b>all</b> corpora in the CQPweb database\')"'
-		. 'href="execute.php?function=history_purge_old_queries&locationAfter='
-		. $return_to_url
-		. '&uT=y">Discard old query history</a></th>';
+	echo '<th width="50%" class="concordtable">Discard old query history<br/>(function removed)</th>';
 
 	echo '</tr> <tr>';
 			

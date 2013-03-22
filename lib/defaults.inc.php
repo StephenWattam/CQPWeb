@@ -26,7 +26,7 @@
 /* ------------------------------- */
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '3.0.7');
+define('CQPWEB_VERSION', '3.0.8');
 
 /* php stubs in each corpus directory; we can't make this constant, but it should be treated as if it was! */ 
 $cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
@@ -360,18 +360,9 @@ if (!isset($default_words_in_download_context))
 /* some can be overrridden in the config file -- some can't! */
 
 
-/* control the size of the history table */
-if (!isset($history_maxentries))
-	$history_maxentries = 5000;
-if (!isset($history_weekstokeep))
-	$history_weekstokeep = 12;
-// TODO note: this doesn't seem to be working ... dunno why...
-// TODO but the latest version of BNCweb doesn't delete from query_history anyway
-// TODO all history-deleting code should be deleted.
-
 
 /* other maximums for mysql, NOT settable in config.inc.php */
-$max_textid_length = 40;
+$max_textid_length = 40; // TODO should this not be used in the creation of the MySQL table?????
 
 /* Total size (in bytes) of temp files (for CQP only!) */
 /* before cached queries are deleted: default is 3 GB  */

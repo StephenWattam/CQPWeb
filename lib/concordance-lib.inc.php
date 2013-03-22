@@ -374,7 +374,7 @@ function print_control_row()
 		<select name="redirect">	
 			<option value="newQuery" selected="selected">New query</option>
 			<option value="thin">Thin...</option>
-			<option value="freqList">Frequency breakdown</option>
+			<option value="breakdown">Frequency breakdown</option>
 			<option value="distribution">Distribution</option>
 			<option value="sort">Sort</option>
 			<option value="collocations">Collocations...</option>

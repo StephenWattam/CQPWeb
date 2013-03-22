@@ -109,16 +109,9 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 
 	if ($num_of_rows > $table_max)
-	{
-		// TODO change to exiterror call.
-		echo '<p class="errormessage">The action you have requested uses up a lot of diskspace.</p>';
-		echo "<p class=\"errormessage\">Your limit is currently set to $table_max instances.</p>";
-		echo "<p class=\"errormessage\">Please contact your system administrator if you need access 
-			to the information you required.</p>";
-		print_footer();
-		disconnect_all();
-		exit();
-	}
+		exiterror_general("The action you have requested uses up a lot of diskspace.\n"
+			. "Your limit is currently set to $table_max instances.\n"
+			. "Please contact your system administrator if you need access to the information you requested.");
 
 
 	/* name for a file containing table with result of tabulation command*/
@@ -152,6 +145,22 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 	/* create the tabulation */
 	$cqp->execute("{$commands['tabulate']} > $tabulate_dest");
+	
+	/* We need to check if the CorpusCharset is other than ASCII/UTF8. 
+	 * If it is, we need to call the library function that runs over it with iconv. */
+	if (($corpus_charset = $cqp->get_corpus_charset()) != 'utf8')
+	{
+		$utf8_filename = $tabfile .'.utf8.tmp';
+		
+		change_file_encoding($tabfile, 
+		                     $utf8_filename, 
+		                     CQP::translate_corpus_charset_to_iconv($corpus_charset), 
+		                     CQP::translate_corpus_charset_to_iconv('utf8') . '//TRANSLIT');
+		
+		unlink($tabfile);
+		rename($utf8_filename, $tabfile);
+		/* so now, either way, we need to work further on $tabfile. */
+	}
 
 	do_mysql_query("Alter table $dbname disable keys");
 

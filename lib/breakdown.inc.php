@@ -228,12 +228,17 @@ $sql_query = "select {$breakdown_of_info[$breakdown_of]['sql_label']} as n,
 
 $result = do_mysql_query($sql_query);
 
-
-
-
-
-
-if ($download_mode)
+if (mysql_num_rows($result) < 1)
+{
+	/* normal cause of this: we have overflowed the page number. */
+	if ($page_no > 1)
+		exiterror_general("You requested a page of the frequency breakdown that appears to be empty!"); 
+	else
+		exiterror_general("Your frequency breakdown request produced no results. This may indicate a database error. \n"
+			. "You should contact the system administrator.\n");
+	/* if the query is empty, it suggests the database was nto created properly.... */
+}
+else if ($download_mode)
 {
 	freqbreakdown_write_download($result, $description, $db_tokens_total);
 }
@@ -374,7 +379,7 @@ else
 	/* create page end HTML */
 	print_footer();
 	
-} /* end of else for "if $download_mode" */
+} /* end of if / else tree for doing something with the result of the main SQL query" */
 
 disconnect_all();
 

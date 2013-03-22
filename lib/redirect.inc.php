@@ -69,7 +69,6 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		require("../lib/thin-control.inc.php");
 		break;
 
-	case 'freqList':
 	case 'breakdown':
 		require("../lib/breakdown.inc.php");
 		break;
