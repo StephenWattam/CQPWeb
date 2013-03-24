@@ -705,6 +705,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.0.9</b>, 2013-<br/>&nbsp;<br/>
+		WHAT
+		<br/>&nbsp;</li>
+		
+		<li>
 		<b>Version 3.0.8</b>, 2013-03-22<br/>&nbsp;<br/>
 		Added a debugging backtrace to the error messages seen by superusers.
 		<br/>&nbsp;<br/>

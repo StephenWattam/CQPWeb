@@ -267,9 +267,17 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		break;
 
 
+	/* from conc-download */
+
+	case 'download-tab':
+		require("../lib/download-tab.inc.php");
+		break;
+	
+
 
 
 	/* from wordlookup */
+	
 	case 'lookup':
 		require('../lib/wordlookup.inc.php');
 		break;

@@ -69,7 +69,7 @@ else
 
 
 
-if ($_GET['downloadGo'] === 'yes')
+if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 {
 	/* ----------------------------- */
 	/* create and send the text file */
@@ -713,6 +713,21 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	 */
 	
 	?>
+	<tr>
+		<th class="concordtable" colspan="2">Other download formats</th>
+	</tr>
+	<form action="redirect.php" method="get">
+		<tr>
+			<td class="concordgeneral" colspan="2" align="center">
+				&nbsp;<br/>
+				<input type="submit" value="Download query as plain-text table" />
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<input type="hidden" name="redirect" value="download-tab" />
+		<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+		<input type="hidden" name="uT" value="y" />
+	</form>
 </table>
 </body>
 </html>
