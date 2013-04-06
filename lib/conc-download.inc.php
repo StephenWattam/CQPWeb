@@ -243,7 +243,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 		
 		/* the filename for the output */
 
-		$filename = preg_replace('/\W/', '', $_GET['downloadFilename']);
+		$filename = (isset($_GET['downloadFilename']) ? preg_replace('/\W/', '', $_GET['downloadFilename']) : '' );
 		if ($filename == '')
 			$filename = 'concordance_download';
 		$filename .= '.txt';
@@ -402,7 +402,8 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 	/* loop for concordance line download, 100 lines at a time */
 	
 	/* before running the loop, unlimit in case of big query */
-	php_execute_time_unlimit();
+	if ($num_of_solutions > 100)
+		php_execute_time_unlimit();
 	
 	for ($batch_start = 0; $batch_start < $num_of_solutions; $batch_start += 100) 
 	{
@@ -478,7 +479,8 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 	} /* end loop for concordance line batch download */
 
 	/* just in case ... */
-	php_execute_time_relimit();
+	if ($num_of_solutions > 100)
+		php_execute_time_relimit();
 
 } /* end of if ($_GET['downloadGo'] === 'yes') */
 
@@ -559,9 +561,9 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 			</td>
 			<td class="concordgeneral">
 				<select name="downloadLinebreak">
-					<option value="d"  <?php echo $da_selected['d']?> >Macintosh (OS 9 and below)</option>
-					<option value="da" <?php echo $da_selected['da']?>>DOS/Windows</option>
-					<option value="a"  <?php echo $da_selected['a']?> >UNIX (incl. OS X)</option>
+					<option value="d"  <?php echo $da_selected['d']; ?>>Macintosh (OS 9 and below)</option>
+					<option value="da" <?php echo $da_selected['da'];?>>Windows</option>
+					<option value="a"  <?php echo $da_selected['a']; ?>>UNIX (incl. OS X)</option>
 				</select>
 			</td>
 		</tr>
@@ -659,7 +661,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 		<tr>
 			<td class="concordgeneral">Enter name for the downloaded file:</td>
 			<td class="concordgeneral">
-				<input type="text" name="downloadFilename" value="<?php echo $username; ?>" />
+				<input type="text" name="downloadFilename" value="concordance" />
 			</td>
 		</tr>
 		
@@ -714,7 +716,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	
 	?>
 	<tr>
-		<th class="concordtable" colspan="2">Other download formats</th>
+		<th class="concordtable" colspan="2">Switch download format</th>
 	</tr>
 	<form action="redirect.php" method="get">
 		<tr>
@@ -729,6 +731,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 		<input type="hidden" name="uT" value="y" />
 	</form>
 </table>
+<?php print_footer(); ?>
 </body>
 </html>
 	<?php
