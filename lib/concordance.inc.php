@@ -108,7 +108,9 @@ $user_settings = get_all_user_settings($username);
 if (isset($_GET['qname']) && $_GET['qname'] != 'INIT')
 {
 	// TODO. INIT is a silly flag. Use __INIT.
-	$qname = $_GET['qname'];
+	$qname = safe_qname_from_get();
+	/* we did some pre-checks before calling the safe-qname function to allow 
+	 * the case where qname is absent to pass through, which normally would be Wrong */
 	$incoming_qname_specified = true;
 }
 else
@@ -117,6 +119,7 @@ else
 	$_GET['qname'] = $qname = 'INIT';
 	$incoming_qname_specified = false;
 }
+
 
 
 /* Handling of theData && qmode.

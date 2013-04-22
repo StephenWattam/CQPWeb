@@ -59,8 +59,6 @@ if (!url_string_is_valid())
 
 
 
-
-
 /* ------------------------------- */
 /* initialise variables from $_GET */
 /* and perform initial fiddling    */
@@ -68,10 +66,7 @@ if (!url_string_is_valid())
 
 
 
-if (isset($_GET['qname']))
-	$qname = $_GET['qname'];
-else
-	exiterror_parameter('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
+$qname = safe_qname_from_get();
 
 
 
@@ -79,7 +74,8 @@ else
 /* the root of the SQL fieldname for the thing we are breaking down */
 switch ($_GET['conBreakdownAt'])
 {
-// TODO stick hre some kind of detection of the comand to breakdown contents of sort position.
+// TODO stick here some kind of detection of the comand to breakdown contents of sort position.
+// needed for bncweb compatibility
 default:
 	$sql_position = 'node';
 	break;

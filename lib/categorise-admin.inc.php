@@ -155,14 +155,10 @@ function categorise_create_query()
 	/* get values from $_GET */
 	
 	/* qname to begin with = qname */
-	if (!isset($_GET['qname']))
-		exiterror_fullpage('No query ID was specified!', __FILE__, __LINE__);
-	else
-	{
-		$qname = $_GET['qname'];
-		if (check_cache_qname($qname) === false)
-			exiterror_fullpage("The specified query $qname was not found in cache!", __FILE__, __LINE__);
-	}
+	$qname = safe_qname_from_get();
+
+	if (check_cache_qname($qname) === false)
+		exiterror_fullpage("The specified query $qname was not found in cache!", __FILE__, __LINE__);
 	
 
 	if(isset($_GET['defaultCat']))
@@ -280,10 +276,7 @@ function categorise_create_query()
 
 function categorise_update()
 {
-	if (isset($_GET['qname']))
-		$qname = mysql_real_escape_string($_GET['qname']);
-	else
-		exiterror_fullpage('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
+	$qname = safe_qname_from_get();
 	
 	$dbname = catquery_find_dbname($qname);
 	
@@ -320,15 +313,12 @@ function categorise_separate()
 	global $cqpweb_tempdir;
 	global $corpus_sql_name;
 	
-	if (isset($_GET['qname']))
-		$qname = mysql_real_escape_string($_GET['qname']);
-	else
-		exiterror_fullpage('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
+	$qname = safe_qname_from_get();
 
 	/* check that the query in question exists and is a catquery */
 	$query_record = check_cache_qname($qname);
 	if ($query_record === false || $query_record['saved'] != 2)
-		exiterror_fullpage("The specified query \"$qname\" was not found!", __FILE__, __LINE__);
+		exiterror_fullpage("The specified categorised query \"$qname\" was not found!", __FILE__, __LINE__);
 	
 	
 	$dbname = catquery_find_dbname($qname);
@@ -429,10 +419,7 @@ function categorise_separate()
 /** categorise-admin: delete the database, the cached query, and the record in saved_catqueries */
 function categorise_delete_query()
 {
-	if (isset($_GET['qname']))
-		$qname = mysql_real_escape_string($_GET['qname']);
-	else
-		exiterror_fullpage('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
+	$qname = safe_qname_from_get();
 
 	$result = do_mysql_query("select dbname from saved_catqueries where catquery_name='$qname'");
 	list($dbname) = mysql_fetch_row($result);
@@ -452,15 +439,7 @@ function categorise_delete_query()
 
 function categorise_add_new_value()
 {
-	if (isset($_GET['qname']))
-		$qname = mysql_real_escape_string($_GET['qname']);
-	else
-		exiterror_fullpage('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
-
-	if (isset($_GET['qname']))
-		$qname = mysql_real_escape_string($_GET['qname']);
-	else
-		exiterror_fullpage('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
+	$qname = safe_qname_from_get();
 
 	if (isset($_GET['newCategory']))
 		$new_cat = mysql_real_escape_string($_GET['newCategory']);
@@ -504,10 +483,7 @@ function categorise_enter_new_value()
 {
 	global $css_path;
 
-	if (isset($_GET['qname']))
-		$qname = mysql_real_escape_string($_GET['qname']);
-	else
-		exiterror_fullpage('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
+	$qname = safe_qname_from_get();
 
 
 	/* before anything else */
@@ -575,19 +551,8 @@ function categorise_enter_new_value()
 	
 	/* create page end HTML */
 	print_footer();	
-	
-	
+		
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -601,10 +566,7 @@ function categorise_enter_categories($error = NULL)
 {
 	global $css_path;
 
-	if (isset($_GET['qname']))
-		$qname = mysql_real_escape_string($_GET['qname']);
-	else
-		exiterror_fullpage('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
+	$qname = safe_qname_from_get();
 
 
 	/* before anything else */

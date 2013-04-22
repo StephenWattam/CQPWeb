@@ -57,12 +57,7 @@ connect_global_cqp();
 /* variables from GET needed by both versions of this script */
 
 
-if (isset($_GET['qname']))
-	$qname = $_GET['qname'];
-else
-	exiterror_parameter('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
-
-
+$qname = safe_qname_from_get();
 
 
 

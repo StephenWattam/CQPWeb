@@ -187,7 +187,7 @@ unlink($uploaded_file);
 /* -------------------------------------------------- */
 
 $qname = qname_unique($instance_name);
-show_var($qname);
+//show_var($qname);
 
 
 /* undump to CQP as a new query, and save */

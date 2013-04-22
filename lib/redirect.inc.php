@@ -253,6 +253,7 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		$qname = $_GET['qname'];
 		unset($_GET);
 		$_GET['qname'] = $qname;
+			/* nb no sanitisation needed, will be done by the Concordance program */
 		$_GET['program'] = 'sort';
 		$_GET['newPostP'] = 'sort';
 		$_GET['newPostP_sortPosition'] = 0;

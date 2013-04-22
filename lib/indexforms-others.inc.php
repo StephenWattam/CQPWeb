@@ -705,6 +705,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.0.10</b>, 2013-04-22<br/>&nbsp;<br/>
+		Added some extra protection against possible XSS (cross-site-scripting) attacks. 
+		<br/>&nbsp;</li>
+		
+		<li>
 		<b>Version 3.0.9</b>, 2013-04-06<br/>&nbsp;<br/>
 		Added a new feature: queries can now be downloaded as &quot;tabulations&quot;. 
 		<br/>&nbsp;</li>

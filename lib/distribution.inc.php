@@ -82,10 +82,8 @@ if (!url_string_is_valid())
 
 /* this script takes all of the GET parameters from concrdance.php */
 /* but only qname is absolutely critical, the rest just get passed */
-if (isset($_GET['qname']))
-	$qname = $_GET['qname'];
-else
-	exiterror_parameter('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
+
+$qname = safe_qname_from_get();
 	
 /* all scripts that pass on $_GET['theData'] have to do this, to stop arg passing adding slashes */
 if (isset($_GET['theData']))

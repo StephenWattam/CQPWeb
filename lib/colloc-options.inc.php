@@ -66,10 +66,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 
 /* check parameters - only one we really need is qname */
 
-if (isset($_GET['qname']))
-	$qname = $_GET['qname'];
-else
-	exiterror_parameter('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
+$qname = safe_qname_from_get();
 
 
 

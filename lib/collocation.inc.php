@@ -107,10 +107,7 @@ $user_settings = get_all_user_settings($username);
 
 
 /* this script is passed qname from the collocation-options */
-if (isset($_GET['qname']))
-	$qname = $_GET['qname'];
-else
-	exiterror_parameter('Critical parameter "qname" was not defined!', __FILE__, __LINE__);
+$qname = safe_qname_from_get();
 
 
 

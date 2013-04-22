@@ -52,10 +52,7 @@ if (!url_string_is_valid())
 	exiterror_bad_url();
 
 
-if (!isset($_GET['qname']))
-	exiterror_fullpage('No query ID was specified!', __FILE__, __LINE__);
-else
-	$qname = $_GET['qname'];
+$qname = safe_qname_from_get();
 
 
 if (!isset($_GET['saveScriptMode']))

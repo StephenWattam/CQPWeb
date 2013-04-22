@@ -43,6 +43,7 @@ require("../lib/defaults.inc.php");
 
 /* include function library files */
 include ("../lib/library.inc.php");
+include ("../lib/exiterror.inc.php");
 include ("../lib/concordance-lib.inc.php");
 include ("../lib/metadata.inc.php");
 include ("../lib/exiterror.inc.php");
@@ -65,10 +66,7 @@ if (!url_string_is_valid())
 
 /* this script takes all of the GET parameters from concrdance.php */
 /* but only qname is absolutely critical, the rest just get passed */
-if (isset($_GET['qname']))
-	$qname = $_GET['qname'];
-else
-	exit('<p class="errormessage">Critical parameter "qname" was not defined!</p></body></html>');
+$qname = safe_qname_from_get();
 	
 /* all scripts that pass on $_GET['theData'] have to do this, to stop arg passing adding slashes */
 if (isset($_GET['theData']))

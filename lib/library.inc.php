@@ -680,6 +680,27 @@ function cqpweb_handle_check($string, $length = -1)
 }
 
 
+/**
+ * Function which performs standard safety checks on a qname parameter in
+ * the global $_GET array, and exits the program if it is either (a) not present
+ * or (b) not a word-character-only string.
+ * 
+ * The return value is then safe from XSS if embodied into HTML output;
+ * and is also safe for embedding into MySQL queries.
+ * 
+ * A named index into $_GET can be supplied; if none is, "qname" is assumed.
+ */
+function safe_qname_from_get($index = 'qname')
+{
+	if (!isset($_GET[$index]))
+		exiterror_fullpage('No query ID was specified!', __FILE__, __LINE__);
+	else
+		$qname = $_GET[$index];
+	if (! cqpweb_handle_check($qname))
+		exiterror_fullpage('The specified query ID is badly formed!', __FILE__, __LINE__);
+	return $qname;
+}
+
 
 
 /**
