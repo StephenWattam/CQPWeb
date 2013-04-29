@@ -46,7 +46,6 @@ include ("../lib/library.inc.php");
 include ("../lib/exiterror.inc.php");
 include ("../lib/concordance-lib.inc.php");
 include ("../lib/metadata.inc.php");
-include ("../lib/exiterror.inc.php");
 include ("../lib/cwb.inc.php");
 include ("../lib/cqp.inc.php");
 
