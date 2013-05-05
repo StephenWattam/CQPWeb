@@ -72,6 +72,12 @@ function ask_boolean_question($question)
 	}
 }
 
+function get_enter_to_continue()
+{
+	echo "Press [enter] to continue.\n\n";
+	fgets(STDIN);	
+}
+
 /* END FUNCTION DEFINITIONS */
 
 
@@ -259,48 +265,63 @@ if ($using_apache)
 	chmod("/$cqpweb_accessdir/.htgroup", 0664);
 	chmod("/$cqpweb_accessdir/.htpasswd", 0664);
 	
-	$groupinfo = posix_getgrgid(filegroup("/$cqpweb_accessdir/.htpasswd"));
-	
-	echo "The files have been created within user group {$groupinfo['name']}.\n\n";
-	
-	echo "The members of this group are:\n\t";
-	echo implode("\n\t", $groupinfo['members']) . "\n";
-	
-	echo "If the username that the Apache httpd server runs under is not a member\n";
-	echo "of this group, it will not be able to modify the htpasswd/htgroup files\n";
-	echo "(which it needs to be able to do).\n";
-	
-	if (! ask_boolean_question("Do you want to keep this group for the htpasswd/group files?"))
+	/*
+	 * Note, most UNIX builds of PHP should have POSIX extension by default: this is a
+	 * "just-in-case" for those that don't e.g. (at least some versions of) SUSE.
+	 */
+	if (extension_loaded('posix'))
 	{
-		while (1)
+		$groupinfo = posix_getgrgid(filegroup("/$cqpweb_accessdir/.htpasswd"));
+		
+		echo "The files have been created within user group {$groupinfo['name']}.\n\n";
+		
+		echo "The members of this group are:\n\t";
+		echo implode("\n\t", $groupinfo['members']) . "\n";
+		
+		echo "If the username that the Apache httpd server runs under is not a member\n";
+		echo "of this group, CQPweb will not be able to modify the htpasswd/htgroup files\n";
+		echo "(which it needs to be able to do).\n";
+		
+		if (! ask_boolean_question("Do you want to keep this group for the htpasswd/group files?"))
 		{
-			$newgroup = get_variable_word("the group to change these files to");
-			
-			if (chgrp("/$cqpweb_accessdir/.htgroup",  $newgroup)
-				&&
-				chgrp("/$cqpweb_accessdir/.htpasswd", $newgroup)
-				)
+			while (1)
 			{
-				echo "Group successfully changed on both files. Onwards!\n\n";
-				break;
-			}
-			else
-			{
-				echo "Couldn't change one or other file to that group!\n\n";
-				if (! ask_boolean_question("Specify another group and try again?"))
+				$newgroup = get_variable_word("the group to change these files to");
+				
+				if (chgrp("/$cqpweb_accessdir/.htgroup",  $newgroup)
+					&&
+					chgrp("/$cqpweb_accessdir/.htpasswd", $newgroup)
+					)
 				{
-					echo "OK, no further efforts to change the group will be made.\n";
-					echo "You may need to change this manually (e.g. using sudo chown)\n";
-					echo "for the username/group management interface to work\n";
-					echo "properly.\n\n";
-					break;	
+					echo "Group successfully changed on both files. Onwards!\n\n";
+					break;
+				}
+				else
+				{
+					echo "Couldn't change one or other file to that group!\n\n";
+					if (! ask_boolean_question("Specify another group and try again?"))
+					{
+						echo "OK, no further efforts to change the group will be made.\n";
+						echo "You may need to change this manually (e.g. using sudo chown)\n";
+						echo "for the username/group management interface to work\n";
+						echo "properly.\n\n";
+						break;	
+					}
 				}
 			}
 		}
+		else
+			echo "OK - onwards!\n\n";  
 	}
 	else
-		echo "OK - onwards!\n\n";  
-	
+	{
+		echo "Your PHP system does not have the POSIX extension, so this script could not check the\n";
+		echo "group assigned on creation to the Apache htpasswd/htgroup files.\n\n";
+		echo "You should manually check this - remember that if the Apache httpd server's username\n";
+		echo "is not a member of this group, then CQPweb will not be able to modify the htpasswd/htgroup files\n";
+		echo "(which it needs to be able to do).\n";
+		get_enter_to_continue();
+	}
 	
 	
 	

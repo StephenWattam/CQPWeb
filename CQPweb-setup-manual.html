@@ -7,12 +7,11 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20130227;8482800">
+	<META NAME="CHANGED" CONTENT="20130321;1275500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
-	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1 LANG="en-GB">Some notes on how to set up CQPweb (v 3.0.0 or
@@ -23,9 +22,11 @@ higher)</H1>
 you will need</B></FONT></FONT></P>
 <P LANG="en-GB">You'll need a machine with a Unix-style operating
 system (<I>CQPweb has been installed successfully, to our knowledge,
-on Mac OS X; Sun OS 5.10; Debian; Ubuntu; and Fedora – Windows
-compatibility is planned but not yet achieved</I>). Other software
-you need to have installed: 
+on Mac OS X; Sun OS 5.10; Debian; Ubuntu; SUSE; and Fedora –
+Windows compatibility is planned but not yet achieved, so for the
+moment if you are on Windows you will need to install CQPweb, and all
+its dependencies, on top of Cygwin</I>). Other software you need to
+have installed: 
 </P>
 <UL TYPE=DISC>
 	<LI><P LANG="en-GB">Apache or some other webserver (note: <I>internal
@@ -51,6 +52,9 @@ you need to have installed:
 		<LI><P LANG="en-GB"><SPAN STYLE="font-weight: normal">Either the
 		</SPAN><B>mysql</B> <SPAN STYLE="font-weight: normal">or the </SPAN><B>mysqli</B>
 		<SPAN STYLE="font-weight: normal">extension is required</SPAN></P>
+		<LI><P LANG="en-GB"><SPAN STYLE="font-weight: normal">The </SPAN><B>posix</B><SPAN STYLE="font-weight: normal">
+		extension is useful for the installation process (see below) but
+		not absolutely necessary.</SPAN></P>
 	</UL>
 </UL>
 <UL TYPE=DISC>
@@ -62,6 +66,9 @@ you need to have installed:
 	you want UTF8-compliant regular expression matching, otherwise at
 	least 3.0.0)</P>
 	<UL>
+		<LI><P LANG="en-GB"><SPAN LANG="en-GB">You need the base CWB
+		distribution </SPAN><SPAN LANG="en-GB"><I>and</I></SPAN><SPAN LANG="en-GB">
+		the CWB-Perl modules – see below for more details.</SPAN></P>
 		<LI><P LANG="en-GB"><SPAN LANG="en-GB">See
 		<A HREF="http://cwb.sourceforge.net/">http://cwb.sourceforge.net</A></SPAN></P>
 	</UL>
@@ -135,7 +142,9 @@ use the </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-G
 </SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">alternative,
 you may have recompile PHP to make the </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN></SPAN><SPAN LANG="en-GB">
 </SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">extension
-availabntle.</SPAN></SPAN></SPAN></P>
+availabtle.</SPAN></SPAN></SPAN></P>
+<P LANG="en-GB"><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">It
+is useful, but not</SPAN></SPAN></SPAN></P>
 <P LANG="en-GB"><SPAN LANG="en-GB">Certain aspects of the behaviour
 of PHP are controlled by its </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
 file (see <A HREF="http://www.php.net/manual/en/ini.php">here</A>).
@@ -234,7 +243,7 @@ recent versions (5.3.0 or later) of PHP – so web servers should not
 be relying on it anyway.</FONT></FONT></P>
 <P LANG="en-GB">Please note the following possible problem if you are
 on Apple OS X: the <FONT FACE="Courier New, monospace">php.ini</FONT>
-file may not exist, if not, then there should be a php.ini.default
+file may not exist, if not, then there should be a <FONT FACE="Courier New, monospace">php.ini.default</FONT>
 file which you can copy into the correct folder (under the name
 <FONT FACE="Courier New, monospace">php.ini</FONT>) and then amend if
 need be.</P>
@@ -1311,35 +1320,35 @@ other steps are needed to bring CQPweb up to date. These are listed
 alongside the MySQL commands where applicable.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
-<TABLE WIDTH=882 CELLPADDING=4 CELLSPACING=0>
-	<COL WIDTH=158>
-	<COL WIDTH=520>
-	<COL WIDTH=178>
+<TABLE WIDTH=882 CELLPADDING=0 CELLSPACING=0>
+	<COL WIDTH=167>
+	<COL WIDTH=528>
+	<COL WIDTH=187>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
+		<TD WIDTH=167 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Version
 			change</B></FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=520 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
+		<TD WIDTH=528 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>MySQL
 			commands you need to run to change the database <BR>(in order
 			top-to-bottom)</B></FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=178 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
+		<TD WIDTH=187 BGCOLOR="#c0c0c0" STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><B>Other
 			steps to take</B></FONT></FONT></FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=167 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>2.15
 			to 2.16</FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=528 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>alter
 			table user_settings drop key `username`;</FONT></FONT></FONT></P>
@@ -1351,42 +1360,42 @@ alongside the MySQL commands where applicable.</P>
 			table user_settings add column `password` varchar(20) default
 			NULL;</FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=187 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=167 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">2.16
 			to 2.17</P>
 		</TD>
-		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=528 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
-		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=187 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=167 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">2.17
 			to 3.0.0</P>
 		</TD>
-		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=528 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
-		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=187 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=167 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">3.0.0
 			to 3.0.1</P>
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
 			</P>
 		</TD>
-		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=528 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>CREATE
 			TABLE `corpus_categories` ( <BR>`idno` int NOT NULL
@@ -1398,18 +1407,18 @@ alongside the MySQL commands where applicable.</P>
 			TABLE `corpus_metadata_fixed`<BR>MODIFY COLUMN `corpus_cat` int
 			DEFAULT 1;</FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=187 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal">
 			<FONT SIZE=3>Since this upgrade will wipe out your existing corpus
 			categories, you must re-add them.</FONT></P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=167 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">3.0.1
 			to 3.0.2</P>
 		</TD>
-		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=528 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>DROP
 			TABLE IF EXISTS `xml_visualisations`;</FONT></FONT></FONT></P>
@@ -1423,7 +1432,7 @@ alongside the MySQL commands where applicable.</P>
 			<BR>`bb_code` text, <BR>`html_code` text, <BR>key(`corpus`,
 			`element`) <BR>) CHARACTER SET utf8 COLLATE utf8_bin;</FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=187 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">Go
 			to <B>System diagnostics</B> <SPAN STYLE="font-weight: normal">and
 			run the check for &quot;</SPAN><I><SPAN STYLE="font-weight: normal">PHP
@@ -1431,11 +1440,11 @@ alongside the MySQL commands where applicable.</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=158 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=167 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">3.0.2
 			to 3.0.3</P>
 		</TD>
-		<TD WIDTH=520 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=528 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm; font-variant: normal; font-style: normal; font-weight: normal; text-decoration: none">
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>ALTER
 			TABLE `xml_visualisations` DROP KEY `corpus`;</FONT></FONT></FONT></P>
@@ -1459,9 +1468,21 @@ alongside the MySQL commands where applicable.</P>
 			<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=3>UPDATE
 			user_settings set thin_default_reproducible = 1;</FONT></FONT></FONT></P>
 		</TD>
-		<TD WIDTH=178 STYLE="border: none; padding: 0cm">
+		<TD WIDTH=187 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm"><BR>
 			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=167 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">3.0.3
+			through to 3.0.7</P>
+		</TD>
+		<TD WIDTH=528 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
+		</TD>
+		<TD WIDTH=187 STYLE="border: none; padding: 0cm">
+			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>
 		</TD>
 	</TR>
 </TABLE>
