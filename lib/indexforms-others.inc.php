@@ -444,10 +444,14 @@ function printquery_corpusmetadata()
 	/* VARIABLE METADATA */
 	while (($metadata = mysql_fetch_assoc($result_variable)) != false)
 	{
+		/* if it looks like a URL, linkify it */
+		if (0 < preg_match('|^https?://\S+$|', $metadata['value']))
+			$metadata['value'] = "<a href=\"{$metadata['value']}\" target=\"_blank\">{$metadata['value']}</a>";
+		/* TODO: make the above work the same as in the text metadata display? */
 		?>
 		<tr>
-			<td class="concordgrey"><?php echo $metadata['attribute']; ?></td>
-			<td class="concordgeneral"><?php echo $metadata['value']; ?></td>
+			<td class="concordgrey"><?php echo htmlspecialchars($metadata['attribute']); ?></td>
+			<td class="concordgeneral"><?php echo htmlspecialchars($metadata['value']); ?></td>
 		</tr>
 		<?php
 	}
