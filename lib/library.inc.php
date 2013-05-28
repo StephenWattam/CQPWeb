@@ -301,10 +301,15 @@ function disconnect_all()
 function do_mysql_query($sql_query)
 {
 	global $mysql_link;
+	static $last_query_time = 0;
 	
-	/* auto connect if not yet connected ...  || check for timed-out connection */
-	if (NULL === $mysql_link || false === mysql_query("select 1", $mysql_link))
+	/* auto connect if not yet connected ...  */
+	if (NULL === $mysql_link)
 		connect_global_mysql();
+	/* check for timed-out connection : only if more than 60 seconds */
+	if (60 < (time() - $last_query_time))
+		if (false === mysql_query("select 1", $mysql_link))
+			connect_global_mysql();
 
 	print_debug_message("About to run the following MySQL query:\n\n$sql_query\n");
 	$start_time = time();
@@ -313,6 +318,8 @@ function do_mysql_query($sql_query)
 	
 	if (false === $result) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
+	
+	$last_query_time = time();
 			
 	print_debug_message("The query ran successfully in " . (time() - $start_time) . " seconds.\n");
 		

@@ -349,7 +349,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 		
 	case 666:	/* rank by mean distance between node and collocate */
 		$sql = "select $item, count($item) as observed, $E11 as expected, 
-			avg(abs(dist)) as significance
+			avg(abs(dist)) as significance,
 			$freq_table.freq, count(distinct(text_id)) as text_id_count
 			from $dbname, $freq_table 
 			$sql_endclause";
