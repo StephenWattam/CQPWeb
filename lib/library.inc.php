@@ -234,6 +234,10 @@ function connect_global_mysql()
 	global $mysql_schema;
 	global $utf8_set_required;
 	
+	/* check for previous connection */
+	if ( ! is_null($mysql_link) )
+		mysql_close($mysql_link);
+	
 	/* Connect with flag 128 == mysql client lib constant CLIENT_LOCAL_FILES;
 	 * this overrules deactivation at PHP's end of LOAD DATA LOCAL. (If L-D-L
 	 * is deactivated at the mysqld end, e.g. by my.cnf, this won't help, but 
@@ -297,13 +301,17 @@ function disconnect_all()
 function do_mysql_query($sql_query)
 {
 	global $mysql_link;
+	
+	/* auto connect if not yet connected ...  || check for timed-out connection */
+	if (NULL === $mysql_link || false === mysql_query("select 1", $mysql_link))
+		connect_global_mysql();
 
 	print_debug_message("About to run the following MySQL query:\n\n$sql_query\n");
 	$start_time = time();
 	
 	$result = mysql_query($sql_query, $mysql_link);
 	
-	if ($result == false) 
+	if (false === $result) 
 		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
 			
 	print_debug_message("The query ran successfully in " . (time() - $start_time) . " seconds.\n");
