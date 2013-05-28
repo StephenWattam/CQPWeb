@@ -127,7 +127,7 @@ function load_statistic_info()
 
 global $username;
 //EXPERIMENTAL
-if ($username = 'andrew')
+if ($username == 'andrew')
 	$info[666]['desc'] = 'EXPERIMENTAL: rank by mean node separation';
 
 	return $info;
