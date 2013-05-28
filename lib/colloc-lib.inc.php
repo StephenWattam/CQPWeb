@@ -125,6 +125,10 @@ function load_statistic_info()
 	$info[6]['desc'] = 'Log-likelihood';
 	$info[7]['desc'] = 'Dice coefficient';
 
+global $username;
+//EXPERIMENTAL
+if ($username = 'andrew')
+	$info[666]['desc'] = 'EXPERIMENTAL: rank by mean node separation';
 
 	return $info;
 
@@ -338,6 +342,14 @@ function create_statistic_sql_query($stat, $soloform = '')
 		
 		$sql = "select $item, count($item) as observed, $E11 as expected,
 			2 / ((1 / $P_COLL_NODE) + (1 / $P_NODE_COLL)) as significance, 
+			$freq_table.freq, count(distinct(text_id)) as text_id_count
+			from $dbname, $freq_table 
+			$sql_endclause";
+		break;
+		
+	case 666:	/* rank by mean distance between node and collocate */
+		$sql = "select $item, count($item) as observed, $E11 as expected, 
+			avg(abs(dist)) as significance
 			$freq_table.freq, count(distinct(text_id)) as text_id_count
 			from $dbname, $freq_table 
 			$sql_endclause";

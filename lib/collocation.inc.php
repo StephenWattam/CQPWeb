@@ -242,8 +242,8 @@ else
 /* this is an array full of goodies as laid out in the function that creates it */
 $statistic = load_statistic_info();
 
-/* calc_stat is the index of the statistic to be used for the collocation table below */
-/* to be used with array created above */
+/* calc_stat is the index of the statistic to be used for the collocation table below,
+   to be used as an index into the array created above */
 if ( isset($_GET['collocCalcStat']) )
 	$calc_stat = (int) $_GET['collocCalcStat'];
 else if ( isset($user_settings->coll_statistic) )
