@@ -318,7 +318,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 		break;
 	*/
 	
-	case 6:		/* Log likelihood */	
+	case 6:		/* Log likelihood */
 		$sql = "select $item, count($item) as observed, $E11 as expected,
 			sign($O11 - $E11) * 2 * (
 				IF($O11 > 0, $O11 * log($O11 / $E11), 0) +
@@ -348,6 +348,9 @@ function create_statistic_sql_query($stat, $soloform = '')
 		break;
 		
 	case 666:	/* rank by mean distance between node and collocate */
+		/* we need a little fancy footwork here. An alternative would be to use negative or one-over values. */
+		$sql_endclause = str_replace('order by significance desc', 'order by significance asc', $sql_endclause);
+		
 		$sql = "select $item, count($item) as observed, $E11 as expected, 
 			avg(abs(dist)) as significance,
 			$freq_table.freq, count(distinct(text_id)) as text_id_count
