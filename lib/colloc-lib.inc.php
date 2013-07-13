@@ -50,7 +50,7 @@ function print_statistic_form_options($index_to_select)
 function print_fromto_form_options($colloc_range, $index_to_select_from, $index_to_select_to)
 {
 	global $corpus_main_script_is_r2l;
-	
+
 	if ($corpus_main_script_is_r2l)
 	{
 		$rightlabel = ' after the node';
@@ -61,7 +61,7 @@ function print_fromto_form_options($colloc_range, $index_to_select_from, $index_
 		$rightlabel = ' to the Right';
 		$leftlabel = ' to the Left'; 
 	}
-	
+
 	$output1 = $output2 = '';
 	for ($i = -$colloc_range ; $i <= $colloc_range ; $i++)
 	{

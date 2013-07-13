@@ -161,7 +161,7 @@ if (isset($_GET['collocCalcBegin']) && abs($_GET['collocCalcBegin']) <= $colloc_
 else if (isset($user_settings->coll_from))
 	$calc_range_begin = (int)$user_settings->coll_from;
 else
-	/* defaults to 2-left of node, or 2-right of max, whicheve is wider */
+	/* defaults to 2-left of node, or 2-right of max, whichever is wider */
 	$calc_range_begin = ($colloc_range > 2 ? -($colloc_range - 2) : $colloc_range);
 
 if (isset($_GET['collocCalcEnd']) && abs($_GET['collocCalcEnd']) <= $colloc_range )
@@ -171,6 +171,12 @@ else if (isset($user_settings->coll_to))
 else
 	/* defaults to mirror of the begin value */
 	$calc_range_end = -($calc_range_begin);
+
+/* add a restriction on range begin and end: neither can be more than colloc_range (abs-wise) */
+if ( abs($calc_range_begin) > $colloc_range )
+	$calc_range_begin = $colloc_range * ($calc_range_begin / abs($calc_range_begin));
+if ( abs($calc_range_end) > $colloc_range )
+	$calc_range_end = $colloc_range * ($calc_range_end / abs($calc_range_end));
 
 
 
@@ -191,7 +197,7 @@ else if (isset($user_settings->coll_freqtogether))
 	$calc_minfreq_together = (int)$user_settings->coll_freqtogether;
 else
 	$calc_minfreq_together = $default_colloc_minfreq;
-	
+
 if (isset($_GET['collocMinfreqColloc']) )
 	$calc_minfreq_collocalone = abs((int) $_GET['collocMinfreqColloc']);
 else if (isset($user_settings->coll_freqalone))
@@ -287,7 +293,7 @@ else
 
 
 
-$att_desc = get_corpus_annotations();	
+$att_desc = get_corpus_annotations();
 $att_desc['word'] = 'Word';
 
 
@@ -340,8 +346,8 @@ $db_record = check_dblist_parameters('colloc', $query_record['cqp_query'],
 if ($db_record === false)
 {
 	$is_new_db = true;
-	
-	$dbname = create_db('colloc', $qname, $query_record['cqp_query'], $query_record['restrictions'], 
+
+	$dbname = create_db('colloc', $qname, $query_record['cqp_query'], $query_record['restrictions'],
 				$query_record['subcorpus'], $query_record['postprocess']);
 	$db_record = check_dblist_dbname($dbname);
 }
@@ -410,7 +416,7 @@ else
 	/* this variable is not used here, but IS used in create_statistic_sql_query() */
 	$desc_of_basis = 'whole corpus';
 }
-	
+
 
 
 
@@ -465,7 +471,7 @@ else
 	
 	/* first step: generate the SELECT dropdowns for each collocation calculation option */
 	
-	/* create the P-ATTRIBUTE TO CALCULATE SELECTION BOX */		
+	/* create the P-ATTRIBUTE TO CALCULATE SELECTION BOX */	
 	$select_for_colloc = '<select name="collocCalcAtt">
 		<option value="word" ' . ('word' == $att_for_calc ? 'selected="selected"' : '') 
 		. '>Word form</option>';
@@ -507,7 +513,7 @@ else
 		$select_for_tag = '<select onChange="setCollocTagFilter(this);">
 				<option value="-??..__any__..??-"' . ($tag_filter === false ? ' selected="selected"' : '')
 				. '>(none)</option>';
-		
+
 		foreach(colloc_table_taglist($primary_annotation, $dbname) as $tag)
 			$select_for_tag .= '
 				<option' . ($tag == $tag_filter ? ' selected="selected"' : '')
