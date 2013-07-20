@@ -771,7 +771,7 @@ function url_absolutify($u, $special_subdir = NULL)
 		 * folder in which the current php script is located -- but should work for most cases 
 		 */
 		if (empty($cqpweb_root_url))
-			return ($_SERVER['HTTPS'] ? 'https://' : 'http://')
+			return (isset ($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 'https://' : 'http://')
 				  /* host name */
 				. $_SERVER['HTTP_HOST']
 				  /* path from request URI excluding filename */ 

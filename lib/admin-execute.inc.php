@@ -183,7 +183,10 @@ switch($_GET['admFunction'])
 		
 	case 'newUser':
 		$_GET['function'] = 'add_new_user';
-		$_GET['args'] = trim($_GET['newUsername']) .'#'. trim($_GET['newPassword']) .'#'. trim($_GET['newEmail']) ;
+		if (!isset($_GET['newEmail']))
+			$_GET['args'] = trim($_GET['newUsername']) .'#'. trim($_GET['newPassword']);
+		else
+			$_GET['args'] = trim($_GET['newUsername']) .'#'. trim($_GET['newPassword']) .'#'. trim($_GET['newEmail']) ;
 		$_GET['locationAfter'] = 'index.php?thisF=userAdmin&uT=y';
 		require('../lib/execute.inc.php');
 		exit();

@@ -142,9 +142,9 @@ use the </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-G
 </SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">alternative,
 you may have recompile PHP to make the </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN></SPAN><SPAN LANG="en-GB">
 </SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">extension
-availabtle.</SPAN></SPAN></SPAN></P>
+available.</SPAN></SPAN></SPAN></P>
 <P LANG="en-GB"><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">It
-is useful, but not</SPAN></SPAN></SPAN></P>
+is useful, but notessential [TODO: complete]</SPAN></SPAN></SPAN></P>
 <P LANG="en-GB"><SPAN LANG="en-GB">Certain aspects of the behaviour
 of PHP are controlled by its </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
 file (see <A HREF="http://www.php.net/manual/en/ini.php">here</A>).
@@ -169,7 +169,8 @@ question are as follows:</SPAN></P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">memory_limit</SPAN></FONT>
 	should be moderately generous as some CQPweb operations are
 	RAM-intensive (e.g. loading entire files into memory); we suggest
-	<FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">25M</SPAN></FONT>
+	<FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">25M</SPAN></FONT> (but if the default in your system 
+	is higher than that, keep the higher value!)
 		</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">max_execution_time</SPAN></FONT>
 	should be generous as well; we suggest <FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">60</SPAN></FONT>
@@ -418,7 +419,7 @@ CQPweb configuration variable </SPAN><FONT FACE="Courier New, monospace"><SPAN L
 to </SPAN><SPAN LANG="en-GB"><B>true</B></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-weight: normal">,
 because when you do this, the LOAD DATA LOCAL INFILE command is never
 used.</SPAN></SPAN><SPAN LANG="en-GB"> But there are requirements
-that must be must satisfy to use this option – see below. If you
+that must be satisfied to use this option – see below. If you
 can't meet these requirements, then you can set the configuration
 variable </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$mysql_local_infile_disabled</SPAN></FONT><SPAN LANG="en-GB">
 to </SPAN><SPAN LANG="en-GB"><B>true</B></SPAN><SPAN LANG="en-GB">.
