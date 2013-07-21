@@ -125,17 +125,25 @@ function load_statistic_info()
 	$info[6]['desc'] = 'Log-likelihood';
 	$info[7]['desc'] = 'Dice coefficient';
 
-global $username;
-//EXPERIMENTAL
-if ($username == 'andrew')
-	$info[666]['desc'] = 'EXPERIMENTAL: rank by mean node separation';
-
 	return $info;
 
 }
 
 
 
+/**
+ * Gets the SQL statement required to generate the collocation table. 
+ * 
+ * Field names (keys) for the table you get back when you actually
+ * run the resulting query:
+ *
+ * $att 		 -- the collocate itself, with the name of the attribute it comes from as the field name 
+ * observed 	 -- the number of times the collocate occurs in the window
+ * expected 	 -- the number of times the collocate would occur in the window given smooth distribution
+ * significance  -- the statistic [NOT PRESENT IF IT'S FREQ ONLY]
+ * freq 		 -- the freq of that word or tag in the entire corpus (or subcorpus, etc)
+ * text_id_count -- the number of texts in which the collocation occurs  
+ */
 
 function create_statistic_sql_query($stat, $soloform = '')
 {
@@ -284,7 +292,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 		
 	case 3:		/* Z-score  (with Yates' continuity correction as of v3.0.8) */
 		$sql = "select $item, count($item) as observed, $E11 as expected,
-			sign($O11 - $E11) * if(abs($O11 - $E11) > 0.5, abs($O11 - $E11) - 0.5, $abs($O11 - $E11) / 2) / sqrt($E11) as significance, $freq_table.freq,
+			sign($O11 - $E11) * if(abs($O11 - $E11) > 0.5, abs($O11 - $E11) - 0.5, abs($O11 - $E11) / 2) / sqrt($E11) as significance, $freq_table.freq,
 			count(distinct(text_id)) as text_id_count
 			from $dbname, $freq_table
 			$sql_endclause";
@@ -346,34 +354,12 @@ function create_statistic_sql_query($stat, $soloform = '')
 			from $dbname, $freq_table 
 			$sql_endclause";
 		break;
-		
-	case 666:	/* rank by mean distance between node and collocate */
-		/* we need a little fancy footwork here. An alternative would be to use negative or one-over values. */
-		$sql_endclause = str_replace('order by significance desc', 'order by significance asc', $sql_endclause);
-		
-		$sql = "select $item, count($item) as observed, $E11 as expected, 
-			avg(abs(dist)) as significance,
-			$freq_table.freq, count(distinct(text_id)) as text_id_count
-			from $dbname, $freq_table 
-			$sql_endclause";
-		break;
 	
 	
 	default:
 		exiterror_arguments($stat, "Collocation script specified an unrecognised statistic", 
 			__FILE__, __LINE__);
 	}
-	
-	/* field names (keys) for the table you get back
-	
-	   $att 		 -- the collocate itself, with the name of the attribute it comes from as the field name 
-	   observed 	 -- the number of times the collocate occurs in the window
-	   expected 	 -- the number of times the collocate would occur in the window given smooth distribution
-	   significance  -- the statistic [NOT PRESENT IF IT'S FREQ ONLY]
-	   freq 		 -- the freq of that word or tag in the entire corpus (or subcorpus, etc)
-	   text_id_count -- the number of texts in which the collocation occurs
-	   
-	*/
 
 	return $sql;
 }
