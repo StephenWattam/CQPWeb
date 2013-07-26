@@ -425,7 +425,7 @@ class CQP
 		$command = $this->filter_input($command);
 		
 		/* change any newlines in command to spaces */
-		$command = preg_replace("/$EOL/", ' ', $command);
+		$command = str_replace($EOL, ' ', $command);
 		/* check for ; at end and remove if there */
 		$command = preg_replace('/;\s*$/', '', $command);
 		
@@ -441,7 +441,7 @@ class CQP
 		{
 			/* delete carriage returns from the line */
 			$line = trim($line, "\r\n");
-			$line = preg_replace('/\r/', '', $line);
+			$line = str_replace("\r", '', $line);
 
 			/* special line due to ".EOL.;" marks end of output */
 			/* avoids having to mess around with stream_select */
@@ -465,7 +465,7 @@ class CQP
 				
 			if (! empty($my_line_handler))
 				/* call the specified function */
-				$my_line_handler($line);
+				$my_line_handler($this->filter_output($line));
 			else
 				/* add the line to an array of results */
 				$result[] = $line;
@@ -478,12 +478,13 @@ class CQP
 		/* return the array of results */
 		return $this->filter_output($result);
 	}
-	/* end of method execute() */
 
 
 
 	/**
-	 * Like execute(), but only allows query commands, so is safer.
+	 * Like execute(), but only allows query commands, so is safer for user-supplied
+	 * commands.
+	 * 
 	 * Returns an array of results.
 	 */
 	public function query($command, $my_line_handler = false)

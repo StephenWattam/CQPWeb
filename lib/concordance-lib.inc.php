@@ -651,18 +651,6 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	/* divide up the CQP line */
 	list($kwic_lc, $kwic_match, $kwic_rc) = explode('--%%%--', $cqp_line);
 
-	/* create arrays of words from the incoming variables: split at space * /
-	$lc = explode(' ', $kwic_lc);
-	$rc = explode(' ', $kwic_rc);
-	$node = explode(' ', $kwic_match);
-	
-	/* how many words in each array? * /
-	$lcCount = ($lc[0] == '' ? 0 : count($lc));
-	$rcCount = ($rc[0] == '' ? 0 : count($rc));
-	$nodeCount = ($node[0] == '' ? 0 : count($node));
-	*/
-
-
 	/* left context string */
 	list($lc_string, $lc_tool_string) 
 		= concordance_line_blobprocess($kwic_lc, 'left', $highlight_position, $highlight_show_pos);
@@ -708,15 +696,15 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 		. metadata_tooltip($text_id) . '>' . $text_id . ($position_label === '' ? '' : " $position_label") . '</a></td>';
 
 	
-	if ($viewMode == 'kwic') 
+	if ($viewMode == 'kwic')
 	{
 		/* print three cells - kwic view */
 
-		$final_string .= '<td class="before" nowrap="nowrap"><div class="before">' . $lc_final . '</div></td>';
+		$final_string .= '<td class="before" nowrap="nowrap"><div class="before">' . $lc_final   . '</div></td>';
 
-		$final_string .= '<td class="node" nowrap="nowrap">'. $node_final . '</td>';
+		$final_string .= '<td class="node"   nowrap="nowrap">'                     . $node_final . '</td>';
 		
-		$final_string .= '<td class="after" nowrap="nowrap"><div class="after">' . $rc_final . '</div></td>';
+		$final_string .= '<td class="after"  nowrap="nowrap"><div class="after">'  . $rc_final   . '</div></td>';
 	}
 	else
 	{
