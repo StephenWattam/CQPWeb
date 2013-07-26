@@ -712,11 +712,11 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	{
 		/* print three cells - kwic view */
 
-		$final_string .= '<td class="before" nowrap="nowrap">' . $lc_final . '</td>';
+		$final_string .= '<td class="before" nowrap="nowrap"><div class="before">' . $lc_final . '</div></td>';
 
 		$final_string .= '<td class="node" nowrap="nowrap">'. $node_final . '</td>';
 		
-		$final_string .= '<td class="after" nowrap="nowrap">' . $rc_final . '</td>';
+		$final_string .= '<td class="after" nowrap="nowrap"><div class="after">' . $rc_final . '</div></td>';
 	}
 	else
 	{
