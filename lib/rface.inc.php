@@ -107,8 +107,8 @@ class RFace
 	/** setting: flag determining whether or not the stream in $debug_dest will be closed on destruct() */
 	private $debug_dest_autoclose = false;
 	
-	/** stream that debug messages will be sent to; defaults to STDERR */
-	private $debug_dest = STDERR;
+	/** stream that debug messages will be sent to; if none specified, constructor sets it to php://output */
+	private $debug_dest;
 	
 	
 	
@@ -123,18 +123,23 @@ class RFace
 	 * There are no compulsory arguments. The path to R should be a relative or absolute
 	 * path of the directory where the R executable lives (i.e. DON'T put "/R" or "/R.exe"
 	 * or whatever at the end of this string). If it is false, however, the normal PATH 
-	 * variable from the environment is used.
+	 * variable from $_ENV is used.
 	 *  
 	 * Note that the debug destination stream can be set up at construct-time, or later, using
 	 * the dedicated functions.
 	 */
-	function __construct($path_to_r = false, $debug = false, $debug_dest = STDOUT, $debug_dest_autoclose = false)
+	function __construct($path_to_r = false, $debug = false, $debug_dest = false, $debug_dest_autoclose = false)
 	{
 		/* Constructor errors are critical, so let's turn on exit_on_error. */
 		$this->exit_on_error = true;
 
 		/* passthru settings for debug mode for this object */
 		$this->set_debug($debug);
+		if (false === $debug_dest)
+		{
+			$debug_dest = fopen("php://output", "w");
+			$debug_dest_autoclose = true;
+		}
 		$this->set_debug_destination($debug_dest, $debug_dest_autoclose);
 
 		/* work out whether the call to R will need a '.exe' */
@@ -263,19 +268,27 @@ class RFace
 			return false;
 		}
 		/* that executes the command ... */
+		if (false === fwrite($this->handle[0], "cat(\"-::-EOL-::-\\n\")" . PHP_EOL))
+		{
+			$this->error("RFace: ERROR: problem writing to the R input stream\n");
+			return false;
+		}
 
 		$result = array();
 		
 		/* then, get lines one by one from [OUT] */
-		while (0 < ($ready = stream_select($r=array($this->handle[1]), $w=NULL, $e=NULL, 0)))
+		while (1)
 		{
 			$line = fgets($this->handle[1]);
-			if (empty($line))
-				break;
-			/* we break on an empty line because it means that the select() call gave us bad info! */
-				
-			/* delete whitespace from the line; blank lines NEVER added to the array. */
+
+			/* delete whitespace from the line; */
 			$line = trim($line, " \t\r\n");
+			
+			/* check for delimiter being printed for end-of-output */
+			if ($line == '-::-EOL-::-')
+				break;
+				
+			/* blank lines NEVER added to the array */
 			if (empty($line))
 				continue;
 
@@ -469,6 +482,37 @@ class RFace
 	public function get_which_R() { return $this->which; }
 	
 	
+	/**
+	 * Gets the version of the current R executable.
+	 * 
+	 * @param $what  Can have one of the following values:
+	 *               "all" -- return the R version string in full
+	 *               "version" -- return just the version number xx.yy.zz
+	 *               "date" -- return just the build date yyyy-mm-dd 
+	 */
+	public function get_R_version($what = "all")
+	{
+		$v = $this->execute("R.Version.string");	
+		switch($what)
+		{
+		case "version":
+			if ( 0 < preg_match('/R version (\d+\.\d+\.\d+)/', $v, $m))
+				return $m[1];
+			else
+				$this->error("RFace: ERROR: Could not parse version string for version number.\n");
+			break;
+		case "date":
+			if ( 0 < preg_match('/R version \d+\.\d+\.\d+/ \((\d+-\d+-\d+)\)', $v, $m))
+				return $m[1];
+			else
+				$this->error("RFace: ERROR: Could not parse version string for build date.\n");
+			break;
+		default: 
+		case "all":
+			return $v;
+		}
+	}
+	
 	
 	/*
 	 * load methods (move data object from PHP to R)
@@ -562,8 +606,10 @@ class RFace
 	 * 
 	 * (1) that lines are terminated by \n or \r\n
 	 * (2) that fields are separated by \t
-	 * (3) that objects = rows and fields = columns   // TODO check this -- see below
+	 * (3) that objects = rows and fields = columns
 	 * (4) if $header_row, then the first line is treated as containing column names
+	 *     that can be used as variable labels
+	 * (5) if $header_col, then the first column is treated as containing row labels
 	 *     that can be used as object names
 	 * 
 	 * If $data is an array, then the following assumptions are made:
@@ -586,32 +632,32 @@ class RFace
 	 * 
 	 * @return               Boolean: true = success, 
 	 */
-// TODO: check: what is the standard R input format, columns as vectors or rows as vectors?
-// to put it another way, does each input vector = an object, or does each input vector = a propery? 
-// Whatever is normal for R should be the OPPOSITE because the default is for invert_data to be TRUE.
-// Need to take a long hard look at the process for creating data frames before going further with this.
-	public function load_data_frame($varname, &$data, $header_row = true, $invert_array = true)
+	public function load_data_frame($varname, &$data, $header_row = true, $header_col = true, $invert_array = false)
 	{
 		if (is_string($data))
-			$this->load_data_frame_from_string($varname, $data, $header_row);
+			return $this->load_data_frame_from_string($varname, $data, $header_row, $header_col);
 		else if (is_array($data))
-			$this->load_data_frame_from_2darray($varname, $data, $header_row, $invert_array);
+			return $this->load_data_frame_from_2darray($varname, $data, $header_row, $header_col, $invert_array);
 	}
 	
 	/** helper function called only by @see load_data_frame */
-	private function load_data_frame_from_string($varname, &$data, $header_row)
+	private function load_data_frame_from_string($varname, &$data, $header_row, $header_col)
 	{
-		//TODO
+		$tmpnam = $this->new_object_name();
+		$this->execute("$tmpnam = \"$data\"");
+		$this->execute("$varname = read.table(text=$tmpnam, header=" . ($header_row ? 'TRUE' : 'FALSE') . ($header_col ? ", row.names=1)" : ")"));
+		$this->drop_object($tmpnam);
+		return true;
 	}
 	
 	/** helper function called only by @see load_data_frame */
-	private function load_data_frame_from_2darray($varname, &$data, $header_row, $invert_array)
+	private function load_data_frame_from_2darray($varname, &$data, $header_row, $header_col, $invert_array)
 	{
 		if ($invert_array)
 		{
 			$temp_data = array();
 			// TODO: move data (inverted)to $temp_data
-			return $this->load_data_frame_from_2darray($varname, $temp_data, $header_row, false);
+			return $this->load_data_frame_from_2darray($varname, $temp_data, $header_row, $header_col, false);
 		}
 		
 		// TODO
@@ -838,7 +884,7 @@ class RFace
 		if ($rawtext == 'character(0)')
 			/* no objects */
 			return array();
-		
+
 		if (preg_match_all('/"(\S+)"/', $rawtext, $matches, PREG_PATTERN_ORDER) < 1)
 			$this->error('Error parsing output from ls() >> R!', __LINE__);
 		
