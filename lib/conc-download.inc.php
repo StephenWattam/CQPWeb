@@ -351,8 +351,8 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 			if ($tagged_as_well)
 				echo "\tTagged concordance line";
 		}
-		foreach($fields_to_include as &$c)
-			echo "\t" . metadata_expand_field($c);
+		foreach($fields_to_include as $f)
+			echo "\t" . metadata_expand_field($f);
 		if ($context_url)
 			echo "\tURL";
 		if ($include_positions)
@@ -436,7 +436,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 			$untagged = preg_replace('/\s*~~~\*\*\*###\s*/', $kwiclimiter, $untagged);
 
 
-			if (!empty($sql_metadata_fields)) 
+			if (!empty($fields_to_include)) 
 			{
 				$categorisation_string = "\t";
 
@@ -681,6 +681,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 						, metadata_expand_field($field)
 						, "<br/>";
 				?>
+				
 			</td>
 		</tr>
 		<tr>
