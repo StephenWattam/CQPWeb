@@ -156,7 +156,13 @@ function cqpweb_shutdown_environment()
 
 
 
-/* connect/disconnect functions */
+/* 
+ * ============================
+ * connect/disconnect functions 
+ * ============================
+ */
+
+
 
 /**
  * Creates a global connection to a CQP child process.

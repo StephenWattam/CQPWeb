@@ -516,7 +516,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 
 <table class="concordtable" width="100%">
 	<tr>
-		<th class="concordtable">Switch download format</th>
+		<th class="concordtable">Switch download type</th>
 	</tr>
 	<form action="redirect.php" method="get">
 		<tr>

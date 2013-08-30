@@ -108,8 +108,8 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 		/* the filename for the output */
 		$filename = 'concordance_download.txt';
 		
-		/* NO classifications */
-		$classifications_to_include = array();
+		/* NO metadata */
+		$fields_to_include = array();
 		
 		break;
 		
@@ -144,16 +144,11 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 		/* include url as column? */
 		$context_url = true;
 		
-		
 		/* the filename for the output */
 		$filename = "concordance_filemaker_import.txt";
 		
 		/* in this case, ALL categories are downloaded */
-		$classifications_metadata = metadata_list_classifications();
-		$classifications_to_include = array();
-		foreach ( $classifications_metadata as &$s)
-			$classifications_to_include[] = $s['handle'];
-
+		$fields_to_include = metadata_list_fields();
 
 		break;
 	
@@ -242,16 +237,19 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 
 		/* the categories to include */
 		
-		$classifications_metadata = metadata_list_classifications();
-		foreach ( $classifications_metadata as &$s)
-			$list_of_classifications[] = $s['handle'];
-
-		$classifications_to_include = array();
+		$field_full_list = metadata_list_fields();
+		$fields_to_include = array();
 		
 		switch ($_GET['downloadMetaMethod'])
 		{
 		case 'all':
-			$classifications_to_include = $list_of_classifications;
+			$fields_to_include = $field_full_list;
+			break;
+		
+		case 'allclass':
+			foreach ($field_full_list as $f)
+				if (metadata_field_is_classification($f))
+					$fields_to_include[] = $f;
 			break;
 		
 		case 'ticked':
@@ -260,14 +258,14 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 				if (substr($key, 0, 13) != 'downloadMeta_')
 					continue;
 				$c = substr($key, 13);
-				if ($val && in_array($c, $list_of_classifications))
-					$classifications_to_include[] = $c;
+				if ($val && in_array($c, $field_full_list))
+					$fields_to_include[] = $c;
 			}
 			break;
 		
 		default:
 			/* shouldn't ever get here */
-			/* add no classifications to the array to include */
+			/* add no metadata fields to the array to include */
 			break;
 		}
 		
@@ -288,24 +286,24 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 		/* print the header line from the query */
 		
 		echo str_replace('&rdquo;', '"', 
-			str_replace('&ldquo;', '"', 
-				preg_replace('/<[^>]+>/', '', 
-					create_solution_heading(check_cache_qname($qname)))))
-						. $da . $da ;
+				str_replace('&ldquo;', '"', 
+					preg_replace('/<[^>]+>/', '', 
+						create_solution_heading(check_cache_qname($qname))))),
+			$da, $da;
 		
-		/* print the rest of the printer-friendly header */
+		/* print the rest of the header */
 		
-		echo "Processed for $username at " . url_absolutify('') . "$da$da";
+		echo "Processed for <$username> at <", url_absolutify(''), '>', $da, $da;
 		echo "Order of tab-delimited text:$da";
 		echo "1. Number of hit$da";
-		echo "2. Text ID$crlf";
+		echo "2. Text ID$da";
 		if ($download_view_mode == 'kwic')
 		{
 			echo "3. Context before{$da}4. Query item{$da}5. Context after$da";
 			$j = 6;
 			if ($tagged_as_well)
 			{
-				echo "6. Tagged context before{$da}7. Tagged query item{$da}8. Tagged context after$da";
+				echo "6. Tagged context before{$da}7. Tagged query item{$da}8. Tagged context after{$da}";
 				$j = 9;
 			}
 		}
@@ -319,9 +317,9 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 				$j = 5;
 			}
 		}
-		foreach($classifications_to_include as $c)
+		foreach($fields_to_include as $c)
 		{
-			echo "$j. " . metadata_expand_field($c) . $da;
+			echo $j, '. ' , metadata_expand_field($c) , $da;
 			$j++;
 		}
 		if ($context_url)
@@ -353,7 +351,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 			if ($tagged_as_well)
 				echo "\tTagged concordance line";
 		}
-		foreach($classifications_to_include as &$c)
+		foreach($fields_to_include as &$c)
 			echo "\t" . metadata_expand_field($c);
 		if ($context_url)
 			echo "\tURL";
@@ -380,14 +378,17 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 	list($num_of_solutions) = $cqp->execute("size $qname");
 
 
-	/* set up the category string for SQL queries */
-	$sql_classifications = '';
-	if (!empty($classifications_to_include)) 
-		$sql_classifications = implode(',', $classifications_to_include);
-
-	/* and get category descriptions for if they need expanding */
-	foreach ($classifications_to_include as &$c)
-		$category_descriptions[$c] = metadata_category_listdescs($c);
+	/* get category descriptions for each field that is a classification (iff they need expanding) */
+	foreach ($fields_to_include as $f)
+	{
+		if (metadata_field_is_classification($f))
+		{
+			$category_descriptions[$f] = metadata_category_listdescs($f);
+			if ($category_handles_only)
+				foreach($category_descriptions as $k => &$v)
+					$v = $k;
+		}
+	}
 
 
 
@@ -435,21 +436,16 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 			$untagged = preg_replace('/\s*~~~\*\*\*###\s*/', $kwiclimiter, $untagged);
 
 
-			if (!empty($sql_classifications)) 
+			if (!empty($sql_metadata_fields)) 
 			{
-//TODO this is the sql query where S got a problem
-				$sql_query = "SELECT $sql_classifications FROM text_metadata_for_$corpus_sql_name where text_id='$text_id'";
-				$result = do_mysql_query($sql_query);
+				$categorisation_string = "\t";
 
-				$category_output = mysql_fetch_assoc($result);
-
-				$categorisation_string  = "\t";
-				foreach($category_output as $class => &$cat)
+				foreach(metadata_of_text($text_id, $fields_to_include) as $field => $value)
 				{
-					if (! $category_handles_only) 
-						$categorisation_string .= $category_descriptions[$class][$cat] . "\t" ;
+					if (isset($category_descriptions[$field])) 
+						$categorisation_string .= $category_descriptions[$field][$value] . "\t";
 					else
-						$categorisation_string .= $cat . "\t";
+						$categorisation_string .= $value . "\t";
 				}
 				if (substr($categorisation_string, -1) == "\t")
 					$categorisation_string = substr($categorisation_string, 0, -1);
@@ -561,7 +557,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 		</tr>
 		
 		<tr>
-			<td class="concordgeneral">Print short handles or full values for textual categories:</td>
+			<td class="concordgeneral">Print short handles or full values for text categories:</td>
 			<td class="concordgeneral">
 				<select name="downloadFullMeta">
 					<option selected="selected" value="full">full values</option>
@@ -571,7 +567,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 		</tr>
 		
 		<tr>
-			<td class="concordgeneral">Mark query result in sentence (format: &lt;&lt;&lt; result &gt;&gt;&gt;): </td>
+			<td class="concordgeneral">Mark query results as <b>&lt;&lt;&lt; result &gt;&gt;&gt;</b>: </td>
 			<td class="concordgeneral">
 				<select name="downloadResultAnglebrackets">
 					<option value="1">Yes</option>
@@ -668,18 +664,22 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 			<td class="concordgeneral">Method:</td>
 			<td class="concordgeneral">
 				<select name="downloadMetaMethod">
-					<option value="all">Download all text metadata</option>
+					<option value="all"                       >Download all text metadata</option>
+					<option value="allclass"                  >Download classification-type metadata only</option>
 					<option value="ticked" selected="selected">Download text metadata ticked below</option>
 				</select>
 			</td>
 		</tr>
 		<tr>
-			<td class="concordgeneral">Select from available text categorisation schemes:
+			<td class="concordgeneral">Select from available text metadata:
 			<td class="concordgeneral">
 				<?php	
-				foreach ( metadata_list_classifications() as $scheme )
+				foreach ( metadata_list_fields() as $field )
 					echo "\n\t\t\t\t<input type=\"checkbox\" name=\"downloadMeta_"
-						. "{$scheme['handle']}\" value=\"1\">{$scheme['description']}<br/>";
+						, $field
+						, '" value="1" />'
+						, metadata_expand_field($field)
+						, "<br/>";
 				?>
 			</td>
 		</tr>
@@ -687,8 +687,6 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 			<td class="concordgeneral" colspan="2" align="center">
 				&nbsp;<br/>
 				<input type="submit" value="Download with settings above" />
-				<!-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-				<input type="reset" value="Clear form" />-->
 				<br/>&nbsp;
 			</td>
 		</tr>
@@ -698,23 +696,15 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 		<input type="hidden" name="downloadTypical" value="NULL" />
 		<input type="hidden" name="uT" value="y" />
 	</form>
-	<?php
-	
-	// TODO
-	/*
-	 * should we have the functionality to allow an annotation OTHER THAN the primary attribute
-	 * to be selected for a concordance download?
-	 */
-	
-	?>
+
 	<tr>
-		<th class="concordtable" colspan="2">Switch download format</th>
+		<th class="concordtable" colspan="2">Switch download type</th>
 	</tr>
 	<form action="redirect.php" method="get">
 		<tr>
 			<td class="concordgeneral" colspan="2" align="center">
 				&nbsp;<br/>
-				<input type="submit" value="Download query as plain-text table" />
+				<input type="submit" value="Download query as plain-text tabulation" />
 				<br/>&nbsp;
 			</td>
 		</tr>
@@ -729,13 +719,19 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	<?php
 
 
+	/*
+	 * should we have the functionality to allow an annotation OTHER THAN the primary attribute
+	 * to be selected for a concordance download?
+	 * 
+	 * For now, NO, because we already have the ability to access arbitrary annotations via "tabulate".
+	 */
+	
+
 } /* end of the huge determining if-else */
 
 
 /* disconnect CQP child process and mysql */
 disconnect_all();
-
-/* end of script */
 
 
 ?>

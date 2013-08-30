@@ -268,7 +268,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 	case 0:		/* Rank by frequency */
 		$sql = "select $item, $O11 as observed,  $E11 as expected,
 			$freq_table.freq, count(distinct(text_id)) as text_id_count
-			from $bwMYSQLusertable.$dbname, $freq_table 
+			from $dbname, $freq_table 
 			$sql_endclause";
 		/* for rank by freq, we need to sort by something other than frequency */
 		$sql = str_replace('order by significance', 'order by observed', $sql);

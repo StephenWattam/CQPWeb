@@ -363,50 +363,106 @@ function corpus_annotation_taglist($field)
 }
 
 
-function metadata_expand_attribute($field, $value)
+
+/** 
+ * Core function for metadata: gets an array of info about this corpus' fields. 
+ * Other functions that ask things about metadata fields interface to this. 
+ * 
+ * So this gets you "metadata about metadata", so to speak.
+ * 
+ * Format: an array of objects (keys = field handles). Each object has three members: handle, description, is_classification.
+ */ 
+function metadata_get_array_of_metadata()
 {
 	global $corpus_sql_name;
-	/* value may not be a handle, so it needs escaping */
-	$value = mysql_real_escape_string($value);
 	
-	$sql_query = 'SELECT description FROM text_metadata_values WHERE corpus = '
-		. "'$corpus_sql_name' AND field_handle = '$field' AND handle = '$value' LIMIT 1";
-
-
-	$result = do_mysql_query($sql_query);
-
-	if (mysql_num_rows($result) == 0)
-		$exp_val = $value;
-	else
+	/* we cache this data to cut down on MySQL queries, because it is likely to be no more than a few
+	 * dozen array entries; so let's hold the data in PHP. */
+	static $cache = NULL;
+	
+	if (!is_array($cache))
 	{
-		$row = mysql_fetch_row($result);
-		$exp_val = $row[0];
-		if ($exp_val == '')
-			$exp_val = $value;
-	}
-	
-	unset($row);
-	unset($result);
-	
-
-	$sql_query = 'SELECT description FROM text_metadata_fields WHERE corpus = '
-		. "'$corpus_sql_name' AND handle = '$field' LIMIT 1";
+		$cache = array();
 		
-	$result = do_mysql_query($sql_query);	
+		$field = mysql_real_escape_string($field);
+		$result = do_mysql_query("SELECT handle, description, is_classification 
+							      FROM text_metadata_fields WHERE corpus = '$corpus_sql_name'");
 
-	if (mysql_num_rows($result) == 0)
-		$exp_field = $field;
-	else
-	{
-		$row = mysql_fetch_row($result);
-		$exp_field = $row[0];
-		if ($exp_field == '')
-			$exp_field = $field;
+		while (false !== ($r = mysql_fetch_object($result)))
+		{
+			/* switch to PHP bool type... */
+			$r->is_classification = (bool)$r->is_classification; 
+			$cache[$r->handle] = $r;
+		}
 	}
-	
-	return array('field' => $exp_field, 'value' => $exp_val);
+
+	return $cache;	
 }
 
+/**
+ * Returns a three-member object (->handle, ->is_classification, ->description) or NULL
+ * if the field supplied as argument does not exist.
+ * 
+ * (Single-field accessor function to the static cache in metadata_get_array_of_metadata().)
+ */
+function metadata_get_field_metadata($field)
+{
+	$array = metadata_get_array_of_metadata();
+
+	return (isset($array[$field]) ? $array[$field] : NULL);
+}
+
+
+
+/**
+ * Returns an array of field handles for the metadata table in this corpus.
+ */
+function metadata_list_fields()
+{
+	return array_keys(metadata_get_array_of_metadata());
+}
+
+
+
+/**
+ * Returns an array of arrays listing all the classification schemes & 
+ * their descs for the current corpus. 
+ * 
+ * Return format: array('handle'=>$the_handle,'description'=>$the_description) 
+ * 
+ * If the description is NULL or an empty string in the database, a copy of the handle 
+ * is put in place of the description. This default functionality can be turned off 
+ * by passing a FALSE argument.
+ */
+function metadata_list_classifications($disallow_empty_descriptions = true)
+{
+	$return_me = array();
+
+	foreach(metadata_get_array_of_metadata() as $m)
+	{
+		if ($m->is_classification)
+		{
+			if ($disallow_empty_descriptions && empty($m->description))
+				$m->description = $m->handle;
+			$return_me[] = array('handle' => $m->handle, 'description' => $m->description);
+		}
+	}
+	
+	return $return_me;
+}
+
+/**
+ * Returns true if this field name is a classification; false if it is free text.
+ * 
+ * An exiterror will occur if the field does not exist!
+ */
+function metadata_field_is_classification($field)
+{
+	$obj = metadata_get_field_metadata($field);
+	if (empty($obj))
+		exiterror_general("Unknown metadata field specified!\n");
+	return $obj->is_classification;
+}
 
 
 
@@ -417,39 +473,65 @@ function metadata_expand_attribute($field, $value)
  */
 function metadata_expand_field($field)
 {
+	$obj = metadata_get_field_metadata($field);
+	return (empty($obj) ? $field : $obj->description);
+}
+
+
+/**
+ * Expands a pair of field/value handles to their descriptions.
+ * 
+ * Returns an array with two members: field, value - each containing the "expansion",
+ * i.e. the description entry from MySQl.
+ */
+function metadata_expand_attribute($field, $value)
+{
 	global $corpus_sql_name;
 	
-	$field = mysql_real_escape_string($field);
-	$sql_query = 'SELECT description FROM text_metadata_fields WHERE corpus = '
-		. "'$corpus_sql_name' AND handle = '$field' LIMIT 1";
-		
+	$efield = mysql_real_escape_string($field);
+	$value = mysql_real_escape_string($value);
+	
+	$sql_query = 'SELECT description FROM text_metadata_values WHERE corpus = '
+		. "'$corpus_sql_name' AND field_handle = '$efield' AND handle = '$value'";
+
 	$result = do_mysql_query($sql_query);
 
 	if (mysql_num_rows($result) == 0)
-		$exp_field = $field;
+		$exp_val = $value;
 	else
 	{
-		list($exp_field) = mysql_fetch_row($result);
-		if (empty($exp_field))
-			$exp_field = $field;
+		list($exp_val) = mysql_fetch_row($result);
+		if (empty($exp_val))
+			$exp_val = $value;
 	}
-
-	return $exp_field;
+	
+	return array('field' => metadata_expand_field($field), 'value' => $exp_val);
 }
 
 
 
+
 /**
- * Returns an associative array (field=>value) for the text with the specified text id
+ * Returns an associative array (field=>value) for the text with the specified text id.
+ * 
+ * If the second argument is specified, it should be an array of field handles; only those fields will be returned.
+ * If the second argument is not specified, then all fields will be returned.
  */
-function metadata_of_text($text_id)
+function metadata_of_text($text_id, $fields = NULL)
 {
 	global $corpus_sql_name;
 
 	$text_id = mysql_real_escape_string($text_id);
+	
+	if (empty($fields))
+		$sql_fields = '*';
+	else
+	{
+		$fields = array_map('mysql_real_escape_string', $fields);
+		$sql_fields = '`' . implode('`,`', $fields) . '`';
+	}
 
-	$sql_query = "select * from text_metadata_for_$corpus_sql_name 
-					where text_id = '$text_id' limit 1";
+	$sql_query = "select $sql_fields from text_metadata_for_$corpus_sql_name where text_id = '$text_id'";
 	
 	return mysql_fetch_assoc(do_mysql_query($sql_query));
 }
@@ -465,7 +547,8 @@ function metadata_tooltip($text_id)
 	
 	static $stored_tts = array();
 	
-	/* avoid re-running a double mysql query for a text whose tooltip has already been created */
+	/* avoid re-running the queries / string building code for a text whose tooltip has already been created;
+	 * worth doing because we KNOW a common use-case is to have lots of concordances from the same text visible at once */
 	if (isset($stored_tts[$text_id]))
 		return $stored_tts[$text_id]; 
 	
@@ -501,81 +584,6 @@ function metadata_tooltip($text_id)
 	return $tt;
 }
 
-/**
- * Returns an array of field handles for the metadata table in this corpus.
- */
-function metadata_list_fields()
-{
-	global $corpus_sql_name;
-
-	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus_sql_name'";
-	$result = do_mysql_query($sql_query);
-			
-	$r = array();
-	while (($temp = mysql_fetch_row($result)) != false)
-		$r[] = $temp[0];
-	
-	return $r;
-}
-
-
-/**
- * Returns true if this field name is a classification; false if it is free text.
- * 
- * An exiterror will occur if the field does not exist!
- */
-function metadata_field_is_classification($field)
-{
-	global $corpus_sql_name;
-
-	$field = mysql_real_escape_string($field);
-
-	$sql_query = "SELECT is_classification FROM text_metadata_fields WHERE 
-		corpus = '$corpus_sql_name' and handle = '$field'";
-		
-	$result = do_mysql_query($sql_query);
-
-	if (mysql_num_rows($result) < 1)
-		exiterror_general("Unknown metadata field specified!\n\n$sql_query", __FILE__, __LINE__);
-
-	list($return_me) = mysql_fetch_row($result);
-	
-	return (bool)$return_me;
-}
-
-
-
-/**
- * Returns an array of arrays listing all the classification schemes & 
- * their descs for the current corpus. 
- * 
- * Return format: array('handle'=>$the_handle,'description'=>$the_description) 
- * 
- * If the description is NULL or an empty string in the database, a copy of the handle 
- * is put in place of the description. This default functionality can be turned off 
- * by passing a FALSE argument.
- */
-function metadata_list_classifications($disallow_empty_descriptions = true)
-{
-	global $corpus_sql_name;
-	
-	$disallow_empty_descriptions = (bool)$disallow_empty_descriptions;
-
-	$sql_query = "SELECT handle, description FROM text_metadata_fields WHERE 
-		corpus = '$corpus_sql_name' and is_classification = 1";
-		
-	$result = do_mysql_query($sql_query);
-
-	$return_me = array();
-
-	while (($r = mysql_fetch_assoc($result)) != false)
-	{
-		if ($disallow_empty_descriptions && empty($r['description']))
-			$r['description'] = $r['handle'];
-		$return_me[] = $r;
-	}
-	return $return_me;
-}
 
 
 /**
@@ -585,6 +593,7 @@ function metadata_category_listall($classification)
 {
 	global $corpus_sql_name;
 
+	$classification = mysql_real_escape_string($classification);
 
 	$sql_query = "SELECT handle FROM text_metadata_values 
 		WHERE field_handle = '$classification' AND corpus = '$corpus_sql_name'";
@@ -610,6 +619,8 @@ function metadata_category_listall($classification)
 function metadata_category_listdescs($classification)
 {
 	global $corpus_sql_name;
+	
+	$classification = mysql_real_escape_string($classification);
 
 	$sql_query = "SELECT handle, description FROM text_metadata_values 
 		WHERE field_handle = '$classification' AND corpus = '$corpus_sql_name'";
@@ -667,7 +678,7 @@ function metadata_size_of_cat($classification, $category)
 }
 
 
-/* as above, but thins by an additional classification-catgory pair (for crosstabs) */
+/** As metadata_size_of_cat(), but thins by an additional classification-catgory pair (for crosstabs) */
 function metadata_size_of_cat_thinned($classification, $category, $class2, $cat2)
 {
 	global $corpus_sql_name;

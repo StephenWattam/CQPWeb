@@ -709,6 +709,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.0.11</b>, 2013-08-30<br/>&nbsp;<br/>
+		New feature: non-classification metadata fields can now be included in a concordance-download. 
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.0.10</b>, 2013-04-22<br/>&nbsp;<br/>
 		Added some extra protection against possible XSS (cross-site-scripting) attacks. 
 		<br/>&nbsp;</li>
