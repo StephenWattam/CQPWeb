@@ -355,15 +355,18 @@ function print_sc_define_query()
 /* this function ENDS the create form */
 function print_sc_define_metadata_scan()
 {
-	$fields = metadata_list_fields();
+	$in_fields = metadata_list_fields();
 
-	$field_options = "\n";
+	/* allow sort by description... */
+	foreach($in_fields as $if)
+		$fields[$if] = metadata_expand_field($if);	
 	
-	foreach($fields as &$f)
-	{
-		$l = metadata_expand_field($f);
+	natcasesort($fields);
+	
+	$field_options = "\n";
+
+	foreach($fields as $f => $l)
 		$field_options .= "<option value=\"$f\">$l</option>\n";
-	}
 	?>
 	<table class="concordtable" width="100%">
 		<form action="subcorpus-admin.php" method="get">
