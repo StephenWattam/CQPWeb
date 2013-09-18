@@ -45,27 +45,14 @@
  * 
  * IMPORTANT NOTE : much of the code in this class is still untested.
  * 
- * 
- * 
- * ===================
- * ROUGH NOTES FOLLOW.
- * ===================
- * 
- * some functions that are prob needed:
- * 
- * load array to vector
- * load multi-d array to data table
- * get list of current objects as an array
- * get info about a named object (size, type etc)
- * save workspace as specified filename
- * check argument array
- * 
  */
 class RFace 
 {
 	/* class constants */
 	
 	const DEFAULT_CHART_FILENAME = 'R-chart';
+	
+	const DEFAULT_CHART_FILETYPE = 'png';
 	
 	const DEFAULT_WORKSPACE_FILENAME = '.RData';
 	
@@ -118,12 +105,12 @@ class RFace
 	
 	
 	/**
-	 * Constructor for RFace class.
+	 * Constructor function for RFace class.
 	 * 
 	 * There are no compulsory arguments. The path to R should be a relative or absolute
 	 * path of the directory where the R executable lives (i.e. DON'T put "/R" or "/R.exe"
 	 * or whatever at the end of this string). If it is false, however, the normal PATH 
-	 * variable from $_ENV is used.
+	 * variable from PHP's $_ENV superglobal array is used.
 	 *  
 	 * Note that the debug destination stream can be set up at construct-time, or later, using
 	 * the dedicated functions.
@@ -187,7 +174,9 @@ class RFace
 	
 	
 	
-	/** destructor */
+	/** 
+	 * Destructor function for the RFace class.
+	 */
 	function __destruct()
 	{
 		if (isset($this->handle[0]))
@@ -733,7 +722,7 @@ class RFace
 				
 			case 'logical':
 				/* vector -> zero-indexed array of booleans. */
-				$output = $this->read_output_to_array($data);
+				$output = $this->read_vector_output_to_string($data);
 				foreach ($output as &$o)
 					$o = ($o === 'TRUE');
 				break;
@@ -741,21 +730,21 @@ class RFace
 			case 'integer':
 				/* vector -> zero-indexed array of ints. */
 				// TODO. Factors also have typeof = integer. (But class() = factor).
-				$output = $this->read_output_to_array($data);
+				$output = $this->read_vector_output_to_string($data);
 				foreach ($output as &$o)
 					$o = (int) $o;
 				break;
 				
 			case 'double':
 				/* vector -> zero-indexed array of floats. */
-				$output = $this->read_output_to_array($data);
+				$output = $this->read_vector_output_to_string($data);
 				foreach ($output as &$o)
 					list($o) = sscanf(strtolower($o), '%e');
 				break;
 				
 			case 'character':
 				/* vector -> zero-indexed array of strings. */
-				$data = $this->read_output_to_string($data);
+				$data = $this->read_vector_output_to_string($data);
 				$output = array();
 				for ($i = 0, $n = strlen($data) ; $i < $n ; $i++)
 				{
@@ -1015,26 +1004,54 @@ class RFace
 	 */
 	
 	
-	//TODO finish this method
-	// I need to understand R charts system better to get things sorted out
 	/**
 	 * Saves the chart created by the given command to the specified filename.
+	 * 
+	 * To specify a chart that needs multiple commands to create, either (a)
+	 * use execute() for all but the final command; or, specify multiple commands
+	 * within this method's second argument by separating them using semi-colons.  
+	 * 
+	 * The type of the file is determined automagically by the file extension
+	 * of the file path provided. 
 	 */
 	public function make_chart($filename, $chart_command)
 	{
 		if (is_dir($filename))
-			$filename = rtrim($filename, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . self::DEFAULT_CHART_FILENAME;
+			$filename = rtrim($filename, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . self::DEFAULT_CHART_FILENAME.'.'.self::DEFAULT_CHART_FILETYPE;
 		
-		// TODO set the graphics output to save to this file
+		/* auto-guess the function to use, based on the filename extension. */
+		switch (substr($filename, -4))
+		{
+		case '.jpg':
+			$func = 'jpeg';
+			break;
+		case '.bmp':
+		case '.pdf':
+		case '.png':
+			$func = substr($filename, -3);
+			break;
+		default:
+			switch (substr($filename, -5))
+			{
+			case '.tiff':
+			case '.jpeg':
+				$func = substr($filename, -4);
+				break;
+			default:
+				$func = self::DEFAULT_CHART_FILETYPE;
+				return;
+			}
+			break;
+		}
 		
+		/* set the graphics output to save to this file */
+		$this->execute("$func(file = \"$filename\")");
+		
+		/* create our chart... */
 		$this->execute($chart_command);
 		
-		// TODO reset the graphics output
-		
-		// TODO: hang on, aren't charts created by multiple commands
-		// sometimes? If so, could this work?
-		// (presumably yes, if the lines are separated
-		// by \n)
+		/* reset the graphics output */
+		$this->execute("dev.off()");
 	}
 	
 	
@@ -1106,14 +1123,37 @@ class RFace
 	
 	
 	/** 
-	 * Checks whether the requested R library package is available, and
-	 * loads it if it is.
+	 * Loads the requested R library package (if it is available).
 	 */
-	public function load_package()
+	public function load_library($lib)
 	{
-		//TODO	
+		if ($this->library_is_available($lib))
+			$r->execute("library($lib)");
 	}
 	
+	/** 
+	 * Checks whether the specified R library package is available.
+	 */
+	public function library_is_available($lib)
+	{
+		return in_array($lib, $this->list_libraries());
+	}
+	
+	/**
+	 * Returns an array of available R library packages.
+	 */
+	public function list_libraries()
+	{
+		$obj = $this->new_object_name();
+		
+		$this->execute("$obj = .packages(all.available = TRUE)");
+		
+		$arr = $this->read($obj);
+		
+		$this->drop_object($obj);
+		
+		return $arr;
+	}
 	
 	
 	
