@@ -55,6 +55,7 @@ class RFace
 	const DEFAULT_CHART_FILETYPE = 'png';
 	
 	const DEFAULT_WORKSPACE_FILENAME = '.RData';
+
 	
 	/* member variables : general */
 	
@@ -70,11 +71,18 @@ class RFace
 	/** function (or array of object/classname + method at [0] and [1]) for handling textual output from R */
 	private $output_handler_callback = false;
 	
+	/** Array containing default options for the ->read() method. DO NOT CHANGE AT RUNTIME!! */
+	private $default_read_options = array ('transpose'=>false, 'use_labels'=>false);
+	
+	
 	
 	/* caches for oft-used R calls */
 	
 	/** cache of the list of object names; begins as false, set it back to false to clear it! */
 	private $object_list_cache = false;
+	
+	/** cache for whether or not it is possible to use the json function (NULL to begin with, later true or false) */
+	private $json_is_possible_cache = NULL;
 	
 	
 	/* variables for error handling and debug logging */
@@ -151,9 +159,9 @@ class RFace
 
 		/* array of settings for the three pipe-handles */
 		$io_settings = array(
-			0 => array("pipe", "r"), /* pipe allocated to child's stdin  */
-			1 => array("pipe", "w"), /* pipe allocated to child's stdout */
-			2 => array("pipe", "w")  /* pipe allocated to child's stderr */
+			0 => array("pipe", "r"),  /* pipe allocated to child's stdin  */
+			1 => array("pipe", "w"),  /* pipe allocated to child's stdout */
+			2 => array("pipe", "w")   /* pipe allocated to child's stderr */
 			);
 		
 		$command = "$path_to_r/R$ext --slave --no-readline";
@@ -165,6 +173,9 @@ class RFace
 		else
 			$this->debug_alert("RFace: R backend successfully started up.\n");
 			
+		/* make life easier by getting rid of most/all line wrapping */
+		$this->execute('options(width=10000)');
+		
 		/* remember the executable */
 		$this->which = "$path_to_r/R$ext";
 		
@@ -181,7 +192,7 @@ class RFace
 	{
 		if (isset($this->handle[0]))
 		{
-			fwrite($this->handle[0], 'q()\n');
+			fwrite($this->handle[0], 'q(save="no", runLast=FALSE)\n');
 			fclose($this->handle[0]);
 		}
 		if (isset($this->handle[1]))
@@ -191,12 +202,11 @@ class RFace
 		
 		$this->debug_alert("RFace: Pipes to R backend successfully closed.\n");
 		
-		/* and finally shut down the child process so script doesn't hang*/
+		/* and finally shut down the child process so script doesn't hang */
 		if (isset($this->process))
-			$stat = proc_close($this->process);
+			proc_close($this->process);
 
-		$this->debug_alert("RFace: R slave process has been closed with termination status [ $stat ].\n"
-						   . "\tRFace object will now destruct.\n");
+		$this->debug_alert("RFace: R slave process has been closed; RFace object will now destruct.\n");
 		
 		if ($this->debug_dest_autoclose)
 		{
@@ -257,7 +267,7 @@ class RFace
 			return false;
 		}
 		/* that executes the command ... */
-		if (false === fwrite($this->handle[0], "cat(\"-::-EOL-::-\\n\")" . PHP_EOL))
+		if (false === fwrite($this->handle[0], "cat(\"\\n-::-EOL-::-\\n\")" . PHP_EOL))
 		{
 			$this->error("RFace: ERROR: problem writing to the R input stream\n");
 			return false;
@@ -269,6 +279,13 @@ class RFace
 		while (1)
 		{
 			$line = fgets($this->handle[1]);
+			
+			/* should never happen, unless there was a syntax error before we got to the cat() call */
+			if(false === $line)
+			{
+				$this->error("RFace: ERROR: Read from pipe failed; probably means an R syntax error\n");
+				return false;
+			}
 
 			/* delete whitespace from the line; */
 			$line = trim($line, " \t\r\n");
@@ -276,7 +293,7 @@ class RFace
 			/* check for delimiter being printed for end-of-output */
 			if ($line == '-::-EOL-::-')
 				break;
-				
+			
 			/* blank lines NEVER added to the array */
 			if (empty($line))
 				continue;
@@ -448,7 +465,7 @@ class RFace
 	}
 	
 	/**
-	 * Print a message to the debug stream, if debug output is enabled.
+	 * Print a message to the debug stream, iff debug output is enabled.
 	 */
 	private function debug_alert($msg)
 	{
@@ -526,6 +543,7 @@ class RFace
 	 *                a single variable, then it will be converted to a one-member
 	 *                vector.
 	 * @param type    Optionally specify the type of array: 'string', 'number', 'deduce'.
+	 * @return        Boolean: true if load successful, otherwise false.
 	 */
 	public function load_vector($varname, &$array, $type = 'deduce')
 	{
@@ -551,8 +569,17 @@ class RFace
 	
 	private function load_vector_of_strings($varname, &$array)
 	{
-		$instring = "$varname = c(\"" . implode('","', $array) . '")';
-		$this->execute($instring);
+		/* build comma-delimited string of values */
+		$instring = '';
+		foreach($array as &$a)
+			$instring .= '","' . addslashes($a);
+		
+		/* now, add start and end of command, before sending to R */
+		$instring = "$varname = c(\"" . substr($instring, 2) . '")';
+		$r = $this->execute($instring);
+		
+		/* successful load will have returned empty array */
+		return (empty($r) && is_array($r));
 	}
 	
 	private function load_vector_of_numbers($varname, &$array)
@@ -573,19 +600,82 @@ class RFace
 	}
 	
 	/**
+	 * Creates a matrix from a 2 dimensional PHP array. By default, 
+	 * inner arrays represent columns; set transpose to true to have inner 
+	 * arrays represent rows instead.
+	 * 
+	 * The matrix will be created without row names or row labels.
+	 * 
+	 * @param varname      The name the resulting variable is to have in R. 
+	 *                     If an object of that name already exists, it will 
+	 *                     be overwritten.
+	 * @param array        The array to load. It is passed by reference but
+	 *                     not modified. It is assumed to be a 2D array with
+	 *                     equal-length subarrays (length deduced from that of
+	 *                     the first subarray). It is also assumed that each
+	 *                     subarray, and each value within each subarray, is 
+	 *                     sorted in the order they should be in; keys are 
+	 *                     ignored.
+	 * @param transpose    If true, each inner array is taken to represent a 
+	 *                     row. If false (which is default as in R), each 
+	 *                     inner array is taken to represent a column. 
+	 * @param as_strings   If true, then a matrix of strings will be created.
+	 *                     If false, a matrix of numbers will be created.
+	 *                     False is the default.
+	 * @return             Boolean: true if load successful, otherwise false.
+	 */
+	public function load_matrix($varname, &$array, $transpose = false, $as_strings = false)
+	{
+		/* build the 1d data vector */
+		if ($as_strings)
+		{
+			foreach($array as $a)
+				if (isset($c_string))
+					$c_string .= '","' . implode('","' , array_map("addslashes", $a));
+				else
+					$c_string = '"' . implode('","' , array_map("addslashes", $a)); 
+			$c_string .= '"';
+		}
+		else
+		{
+			$c_string = '';
+			foreach($array as $a)
+				$c_string .= ',' . implode(',', array_map("RFace::num", $a));
+			$c_string = ltrim($c_string, ',');
+		}
+		
+		$n_inner = count($array);
+		
+		if ($transpose)
+			$extra_commands = "nrow=$n_inner, byrow=TRUE";
+		else
+			$extra_commands = "ncol=$n_inner, byrow=FALSE";
+		
+		$ret_arr = $this->execute("$varname = matrix(c($c_string), $extra_commands)");
+		
+		/* successful load will have returned empty array */
+		return (empty($ret_arr) && is_array($ret_arr));
+	}
+	
+	/**
 	 * Creates a factor from a PHP array of strings.
 	 * 
 	 * See load_vector for how conversion works.
+	 * 
+	 * @return        Boolean: true if load successful, otherwise false.
 	 */
 	public function load_factor($varname, &$array)
 	{
 		$temp_obj = $this->new_object_name();
 
-		$this->load_vector_of_strings($temp_obj, $array);
+		if (! $this->load_vector_of_strings($temp_obj, $array))
+			return false;
 
-		$this->execute("$varname = factor($temp_obj)");
+		$ret_arr = $this->execute("$varname = factor($temp_obj)");
 
 		$this->drop_object($temp_obj);
+		
+		return (empty($ret_arr) && is_array($ret_arr)); 
 	}
 	
 	/**
@@ -603,54 +693,133 @@ class RFace
 	 * 
 	 * If $data is an array, then the following assumptions are made:
 	 * 
-	 * (1) that each member of the array represents a row of the table (data object)
-	 * (2) that each member is a one-dimensional array representing properties of objects
+	 * (1) that each member of the array represents a column of the table (a variable)
+	 * (2) that each member is a one-dimensional array representing the values of that variable
 	 * (3) that all inner arrys are of the same length and same type (that is, they
 	 *     would work as R vectors)
-	 * (4) if $header_row, then the first inner array is treated as containing column names
+	 * (4) if $header_row, then the first element of each array is treated as containing column names
+	 *     that can be used as variable labels
+	 * (5) if $header_col, then the first element of each array is treated as containing 
+	 *     column labels that
 	 * 
+	 * In either mode, $transpose can be set to true: in which case, the inner arrays
+	 * are assumed to be rows rather than columns (and the effects of $header_row and
+	 * $header_col are switched).
 	 * 
-	 * @param $varname       The name the resulting variable is to have in R. If an object of
+	 * @param varname        The name the resulting variable is to have in R. If an object of
 	 *                       that name already exists, it will be overwritten.
-	 * @param $data          The data frame to be loaded (string representation of table, 
+	 * @param data           The data frame to be loaded (string representation of table, 
 	 *                       or 2d array). Passed by reference, but not modified.
-	 * @param $header_row    Boolean: does the data contain a header row? (Header row = 
+	 * @param header_row     Boolean: does the data contain a header row? (Header row = 
 	 *                       everything up to or including the first \n in a string; or,
-	 *                       the first member of the array contains a header element.)
-	 * @param $invert_array  Boolean: if true, the two dimensions of an array are swopped
+	 *                       the first member of each array (the first array iff $transpose)
+	 *                       contains a header string.) Defaults to true.
+	 * @param header_col     Boolean: does the data contain a header column? (Header column = 
+	 *                       everything up to the first \t per line in a string; or,
+	 *                       the first array (the first member of each array iff $transpose)
+	 *                       contains a header string.) Defaults to true.
+	 * @param transpose      Boolean: if true, the two dimensions of an array are swopped.
 	 * 
-	 * @return               Boolean: true = success, 
+	 * @return               Boolean: true if load successful, otherwise false., 
 	 */
-	public function load_data_frame($varname, &$data, $header_row = true, $header_col = true, $invert_array = false)
+	public function load_data_frame($varname, &$data, $header_row = true, $header_col = true, $transpose = false)
 	{
 		if (is_string($data))
-			return $this->load_data_frame_from_string($varname, $data, $header_row, $header_col);
+			return $this->load_data_frame_from_string($varname, $data, $header_row, $header_col, $transpose);
 		else if (is_array($data))
-			return $this->load_data_frame_from_2darray($varname, $data, $header_row, $header_col, $invert_array);
+			return $this->load_data_frame_from_2darray($varname, $data, $header_row, $header_col, $transpose);
 	}
 	
 	/** helper function called only by @see load_data_frame */
-	private function load_data_frame_from_string($varname, &$data, $header_row, $header_col)
+	private function load_data_frame_from_string($varname, &$data, $header_row, $header_col, $transpose)
 	{
 		$tmpnam = $this->new_object_name();
 		$this->execute("$tmpnam = \"$data\"");
-		$this->execute("$varname = read.table(text=$tmpnam, header=" . ($header_row ? 'TRUE' : 'FALSE') . ($header_col ? ", row.names=1)" : ")"));
+		$cmd = "$varname = read.table(text=$tmpnam, header=" . ($header_row ? 'TRUE' : 'FALSE') . ($header_col ? ", row.names=1)" : ")");
+		$ret_arr = $this->execute($cmd);
 		$this->drop_object($tmpnam);
-		return true;
+
+		if (empty($ret_arr) && is_array($ret_arr))
+		{
+			if ($transpose)
+				$this->execute("$varname = as.data.frame(t($varname))");
+				/* explanation: t(t(df)) is not equal to df - it loses its row labels, 
+				 * cos t() always returns a matrix. 
+				 * as.data.frame(t(as.data.frame(t(df)))) DOES equal df . 
+				 */ 		
+			return true;
+		}
+		else
+			return false;
 	}
 	
 	/** helper function called only by @see load_data_frame */
-	private function load_data_frame_from_2darray($varname, &$data, $header_row, $header_col, $invert_array)
+	private function load_data_frame_from_2darray($varname, &$data, $header_row, $header_col, $transpose)
 	{
-		if ($invert_array)
-		{
-			$temp_data = array();
-			// TODO: move data (inverted)to $temp_data
-			return $this->load_data_frame_from_2darray($varname, $temp_data, $header_row, $header_col, false);
-		}
+		if ($transpose)
+			return $this->load_data_frame_from_2darray($varname, self::transpose($data), $header_row, $header_col, false);
+		// TODO will this actually work, or will it muck up the treatment of header row / header col? 
+		// well that depends on what happens below!
+
+		$tmpnam = $this->new_object_name();
+		// $this->load_matrix
+		// then make df from matrix
 		
 		// TODO
+		// could this be done by loading a matrix and then converting to a data frame??
+		// yes, yes it could 
+		$ret_arr = $this->execute("$varname = data.frame($tmpnam)");
+		// TODO but in this case how do we handle the header row, header col? see ?data.frame: you can specify the column/row containing lables
+		// so the above call needs modifuying
+		// but note that we can't just transmit the keys in the matrix, cos they are (potentially) of a different type to
+		// the rest of the matrix
+		// so we need ot separate out the names and insert them as separate string vectors.
+		$this->drop_object($tmpnam);
+		return (empty($ret_arr) && is_array($ret_arr));
 	}
+	
+	/** 
+	 * Alternative method of object transfer using JSON as the interchange format. 
+	 * 
+	 * If the JSON library is not available, an error is raised and false returned.
+	 * 
+	 * The library used is package "rjson". Please read and understand its
+	 * documentation!
+	 * 
+	 * @see                 read_via_json
+	 * 
+	 * @param varname       The name the new R object should have. It is also possible to
+	 *                      overwrite an object, as usual in R. No checks are performed on
+	 *                      overwriting.
+	 * @param object        The object itself (or, an already-encoded JSON string, see below); 
+	 *                      passed by reference.
+	 * @param already_json  Boolean: if true, the object parameter will be treated
+	 *                      as a pre-encoded JSON string. If false (the default) the
+	 *                      object parameter is assumed to be a normal object.
+	 * @return              Boolean: true for success, false for failure.
+	 */
+	public function load_via_json($varname, &$object, $already_json = false)
+	{
+		if (! $this->json_is_possible())
+		{
+			$this->error("RFace: ERROR: Package rjson is not available, so the load_via_json() method cannot be used.");
+			return false;
+		}
+		
+		if ($already_json)
+		$cmd = "$varname = fromJSON(json_str=\"" 
+			. addslashes( $already_json ? $object : json_encode($object)) 
+			. "\")";
+		else
+			$cmd = "$varname = fromJSON(\"" . addslashes(json_encode($object)) . "\")";
+		// TODO check whether the use of addslashes above is excessive. It may be. Then again may not.
+	
+		$ret_arr = $this->execute($cmd);
+		return (empty($ret_arr) && is_array($ret_arr));
+		// TODO test this function
+	}
+	
+	
 	
 	
 	/*
@@ -663,40 +832,73 @@ class RFace
 	 * The basic way of using the method returns an array equivalent to the R vector
 	 * or other object specified.
 	 * 
-	 * @param varname   Name of the object to read
-	 * @param mode      How to read the object.
-	 *                  Options:
-	 *                     'object' -- the default, create a PHP value matching the R object as closely 
-	 *                                 as possible. This works for the different types of vector. It may 
-	 *                                 not work for other object types; any object type not covered
-	 *                                 will fallback to 'verbatim' mode.
-	 *                     'verbatim' -- create a string containing the verbatim description
-	 *                                   of the object from R's output (including whitespace/linebreaks).
-	 *                     'solo' -- for use with one-element vectors: returns it as a single variable,
-	 *                               not as an array, with the appropriate type. If this option is
-	 *                               used for a multi-element vector, you only get the first element.
-	 *                               If it is used for something that doesn't come out as a vector,
-	 *                               then you'll get an error.
+	 * @param varname    Name of the object to read
+	 * @param mode       String specifying how to read the object.
+	 *                   Options:
+	 *                      'object'   -- the default, create a PHP value matching the R object as closely 
+	 *                                    as possible. This works for the different types of vector, 
+	 *                                    for matrices, for lists, and for data frames. It may 
+	 *                                    not work for other object types; any object type not covered
+	 *                                    will fallback to 'verbatim' mode.
+	 *                      'verbatim' -- create a string containing the verbatim description
+	 *                                    of the object from R's output (including whitespace/linebreaks).
+	 *                      'solo'     -- for use with one-element vectors: returns it as a single variable,
+	 *                                    not as an array, with the appropriate type. If this option is
+	 *                                    used for a multi-element vector, you only get the first element.
+	 *                                    If it is used for something that doesn't come out as a vector,
+	 *                                    then you'll get an error.
+	 * @param options    An associative array of extra options controlling details of the functions behaviour.
+	 *                   The array key specifies the option; its value is the value you want to give that option.
+	 *                   The following options are available:
+	 *                   
+	 *                   * "transpose" (Boolean)
+	 *   
+	 *                      By default, matrices and dataframes are returned as arrays-of-arrays where the
+	 *                      inner arrays each represent a column. If "transpose" is set to true, then such
+	 *                      objects will be transposed before being returned, so that inner arrays represent
+	 *                      rows. "transpose" has no effect if the output is not an array of arrays.
+	 * 
+	 *                   * "use_labels" (Boolean)
+	 * 
+	 *                      By default, dataframes are returned as zero-indexed arrays-of-arrays. If 
+	 *                      "use_labels" is set to true, then a dataframe will instead be returned as
+	 *                      an associative array (of associative arrays). The column and row names of the 
+	 *                      R dataframe will be used as the array keys (normally the column names are the
+	 *                      outer key, but if "transpose" is also true, then the row names will be the 
+	 *                      outer key).
+	 * 
+	 *                      "use_labels" also affect non-dataframe lists; 
+	 * 
+	 * @return           A PHP value of the appropriate datatype. In case the object does not exist, then
+	 *                   an error is raised, and false is returned.
 	 * 
 	 * General TODO :
 	 * 
 	 * This function covers all the obvious object types (vectors of basic types - bool, int, double, string.
-	 * But it needs to have more "special" object types added.
-	 * For example:
-	 *  * Data frame to 2D array
-	 *  * 
-	 * TODO Points to ponder. What if the object is a data frame, special object etc?
-	 * Data frame should be converted into 2D array. Special object should probably be
-	 * returned as string (only user knows exactly what to do with it) that just contains
-	 * whatever R printed.
+	 * But it needs to have more "special" object types added. Any special type not explicitly covered
+	 * should probably be returned as a verbatim string... (only user knows exactly what to do with it)
+	 * 
+	 * Specific TODO :
+	 * 
+	 * This function is known not to work for: vectors with names!
+	 * How to fix: test for presence of names, and if they're there, Then (iff use_labels, build an
+	 * assoc array, else extract the values without names in the printout)
 	 * 
 	 */
-	public function read($varname, $mode = 'object')
+	public function read($varname, $mode = 'object', $options = false)
 	{
+		/* fill in empty options in the array with default values */
+		if (empty($options))
+			$options = $this->default_read_options;
+		else
+			foreach ($this->default_read_options as $k => $v)
+				if (! isset($options[$k]))
+					$options[$k] = $v;
+		
 		if (!$this->object_exists($varname))
 		{
 			$this->error("RFace: ERROR: Cannot read contents of nonexistent R object $varname!\n");
-			return;
+			return false;
 		}
 		/* first, request the variable's contents as an array */
 		$data = $this->execute($varname);
@@ -708,6 +910,35 @@ class RFace
 		{
 		case 'solo':
 		case 'object':
+		
+			/* for matrices: call this function recursively */
+			if ($this->classof($varname) == 'matrix')
+			{
+				$output = array();
+				/* handle transposition */
+				if ($options['transpose'])
+				{
+					/* by rows ... */
+					$c_1 = '';
+					$c_2 = ',';
+					list($n) = $this->dimensions($varname);
+				}
+				else
+				{
+					/* by columns ... */
+					$c_1 = ',';
+					$c_2 = '';
+					list(,$n) = $this->dimensions($varname);
+				}
+				/* note we do not need to "really_transpose" in either case... */
+
+				for ($i = 1 ; $i <= $n ; $i++)
+					$output[] = $this->read_execute("{$varname}[$c_1$i$c_2]", "object");
+				
+				break;
+			}
+			/* code for non-matrices follows... */
+			
 			/* 
 			 * This switch converts various types of R object to PHP values.
 			 * The output is always stored in $output.
@@ -719,28 +950,68 @@ class RFace
 				/* PHP's NULL and R's NULL correspond closely. */
 				$output = NULL;
 				break;
+			/* endcase NULL */
+			
 				
 			case 'logical':
 				/* vector -> zero-indexed array of booleans. */
-				$output = $this->read_vector_output_to_string($data);
+				$output = $this->read_vector_output_to_array($data);
 				foreach ($output as &$o)
 					$o = ($o === 'TRUE');
 				break;
+			/* endcase logical */
+			
 				
 			case 'integer':
 				/* vector -> zero-indexed array of ints. */
-				// TODO. Factors also have typeof = integer. (But class() = factor).
-				$output = $this->read_vector_output_to_string($data);
-				foreach ($output as &$o)
-					$o = (int) $o;
+				if ($this->classof($varname) == 'factor')
+				{
+					/* A factor has type==integer but class==factor. 
+					 * Convert it to an array of strings, 
+					 * even if levels are composed of numbers. */
+					
+					/* First, get an array of the levels in the factor. */
+					$levels = $this->factor_levels($varname);
+					/* backwards-sort it, so that if one level = the beginning of another,
+					 * the longer one comes first in the array and will be preferred as an alternative 
+					 * by PCRE (php.net/pcre:"The matching process tries each alternative in turn, 
+					 * from left to right, and the first one that succeeds is used").
+					 */
+					rsort($levels);
+					
+					/* now, get rid of the factors in the data output */
+					foreach($data as &$d)
+						if (0 < preg_match('/^(\d+\s+)?Levels:/', $d))
+							unset($d);
+					$s = $this->read_vector_output_to_string($data);
+					
+					$levels_as_alt = implode('|', array_map("preg_quote", $levels));
+					
+					$n = preg_match_all("/\b($levels_as_alt)\b/", $s, $m, PREG_PATTERN_ORDER);
+					
+					$output = $m[1];
+					
+					// TODO test the above
+				}
+				else
+				{
+					/* normal integer vector */
+					$output = $this->read_vector_output_to_array($data);
+					foreach ($output as &$o)
+						$o = (int) $o;
+				}
 				break;
+			/* endcase integer (inc. factor) */
+			
 				
 			case 'double':
 				/* vector -> zero-indexed array of floats. */
-				$output = $this->read_vector_output_to_string($data);
+				$output = $this->read_vector_output_to_array($data);
 				foreach ($output as &$o)
 					list($o) = sscanf(strtolower($o), '%e');
 				break;
+			/* endcase double */
+			
 				
 			case 'character':
 				/* vector -> zero-indexed array of strings. */
@@ -774,11 +1045,78 @@ class RFace
 					}	
 				} 
 				break;
+			/* endcase character */
 			
-			/* TODO : More data types here? */
 			
-			// case 'list':
-				// NB. data frames are a type of list.
+			case 'list':
+				/* list -> zero-indexed array of objects of whatever kind (not always the same) */
+				/* so, we do this by recursion */
+				
+				if ($this->classof($varname) == 'data.frame')
+				{
+					/* dataframes are somewhat different to other types of list... */
+					
+					if ($options['use_labels'])
+					{
+						$colnames = $this->read_execute("names($varname)");
+						$rownames = $this->read_execute("row.names($varname)");
+						if ($options['transpose'])
+						{
+							foreach($rownames as $r)
+							{
+								$r_s = addslashes($r);
+								$output[$r] = array();
+								foreach($colnames as $c)
+								{
+									$c_s = addslashes($c);
+									$output[$r][$c] = $this->read_execute("{$varname}[\"$r_s\",\"$c_s\"]", "solo");
+								}
+							}
+						}
+						else
+						{
+							foreach($colnames as $c)
+							{
+								$c_s = addslashes($c);
+								$output[$c] = array();
+								$temp_r = $this->read_execute("{$varname}[[\"$c_s\"]]", "object");
+								foreach($rownames as $k => $r)
+									$output[$c][$r] = $temp_r[$k];
+							}
+						}
+						break;
+					}
+					else
+					{
+						if ($options['transpose'])
+							$really_transpose = true;
+						/* since we don't need subscripts, we don't break: we just let the inner
+						 * arrays get collected by normal list recursion */
+					}
+						
+				} /* endif class is data.frame */
+
+				/* if not broken above, we do this by recursion */
+				$temp_r = array();
+				$n = $this->sizeof($varname);
+				for ($i = 1; $i <= $n; $i++)
+					$temp_r[] = $this->read_execute("{$varname}[[$i]]", "object");
+				/* temporary array used so we can decide what to do with the key... */
+				
+				if ($options['use_labels'])
+				{
+					$labels = $this->read_execute("names($varname)");
+					$output = array(); 
+					foreach ($labels as $k => $l)
+						$output[$l] = $temp_r[$k];
+				}
+				else
+					$output = $temp_r;
+				break;
+			/* endcase list */
+			
+			
+			// Other data types that might need a case to treat them:
 			// case 'special':
 			// case 'builtin':
 			// case 'complex':
@@ -786,19 +1124,24 @@ class RFace
 			// case 'environment':
 			// case 'S4':
 			
-			/* data types covered by default:
+			
+			/* data types *intentionally* covered by default:
 			 *     -- closure (we want a verbatim print of the function's code)
 			 */
 			default:
 				$verbatim_fallthrough = true;
 				break;
 				
-			}	/* end of switch typeof(varname) */
+			}	/* endswitch typeof(varname) */
 			
 			/* final operations in case object / solo:
-			 * (1) check for solo mode, and de-array if found.
-			 * (2) fallthrough to verbatim if we didn't have an algorithm!
+			 * (1) do transposition if it was flagged in the switch above
+			 * (2) check for solo mode, and de-array if found.
+			 * (3) fallthrough to verbatim if we didn't have an algorithm!
 			 */
+			/* transpose if necessary */
+			if (isset($really_transpose) && $really_transpose)
+				$output = self::transpose($output);	
 			if ($mode == 'solo' && is_array($output))
 				$output = $output[0];
 			if (! $verbatim_fallthrough)
@@ -814,6 +1157,8 @@ class RFace
 			$this->error("RFace: ERROR: Unacceptable object read-mode $mode!\n");
 			return;
 		}
+		/* endswitch mode */
+		
 		
 		return $output;
 	}
@@ -840,7 +1185,7 @@ class RFace
 	 * Converts an output array from ->execute() (array of lines)
 	 * into a PHP array of strings split on whitespace.
 	 * 
-	 * Important note: will only work for vecytors of booleans or numbers -
+	 * Important note: will only work for vectors of booleans or numbers -
 	 * not for vectors of strings, which need a different approach.
 	 */
 	private function read_vector_output_to_array(&$array)
@@ -851,6 +1196,65 @@ class RFace
 			return array();
 		return preg_split('/\s+/', $s, NULL, PREG_SPLIT_NO_EMPTY);
 	}
+	
+
+	/**
+	 * Like ->read(), but should be passed an R command instead of a variable name;
+	 * that command is executed, and whatever value it outputs is returned.
+	 * 
+	 * The return value is a PHP object of the appropriate type, depending on
+	 * what kind of object the execution the command outputs.
+	 * 
+	 * Note that the command must be one that evaluates to something 
+	 * (as its result will be assigned to a temporary variable).
+	 * 
+	 * @see            read
+	 * 
+	 * @param command  An executable R command that evaluates to something.
+	 * @param mode     See the like parameter for the ->read() method.
+	 * @param options  See the like parameter for the ->read() method. 
+	 */ 
+	public function read_execute($command, $mode = 'object', $options = false)
+	{
+		$temp_obj = $this->new_object_name();
+		$this->execute("$temp_obj = $command");
+		$return_me = $this->read($temp_obj, $mode, $options);
+		$this->drop_object($temp_obj);
+		return $return_me;
+	}
+	
+	
+	/** 
+	 * Alternative method of object transfer using JSON as the interchange format. 
+	 * 
+	 * If the JSON library is not available, an error is raised and false returned.
+	 * 
+	 * The library used is package "rjson". Please read and understand its
+	 * documentation!
+	 * 
+	 * @see            load_via_json
+	 * @param varname  The variable to read.
+	 * @return         A PHP value representing whatever was read; Boolean false in 
+	 *                 case of error (you can check for errors in the RFace object to
+	 *                 distinguish this from a simplex Boolean false as the intended
+	 *                 transfer object).
+	 */
+	public function read_via_json($varname)
+	{
+		if ( ! $this->error_if_not_object_exists($varname, "read_via_json"))
+			return false;
+		
+		if (! $this->json_is_possible())
+		{
+			$this->error("RFace: ERROR: Package rjson is not available, so the read_via_json() method cannot be used.");
+			return false;
+		}
+		
+		return json_decode($this->read_execute("toJSON($varname)"));
+		// TODO test this function
+	}
+	
+
 	
 	
 	/*
@@ -875,7 +1279,7 @@ class RFace
 			return array();
 
 		if (preg_match_all('/"(\S+)"/', $rawtext, $matches, PREG_PATTERN_ORDER) < 1)
-			$this->error('Error parsing output from ls() >> R!', __LINE__);
+			$this->error('RFace: ERROR: Error parsing output from ls()!', __LINE__);
 		
 		$this->object_list_cache = $matches[1];
 		return $matches[1];
@@ -890,6 +1294,31 @@ class RFace
 	}
 	
 	/**
+	 * Internal method raising an RFace error if an object does not exist.
+	 * 
+	 * Call this function before doing something that would cause a problem 
+	 * if the object does not exist, as follows:
+	 * 
+	 * if (!$this->error_if_not_object_exists($obj, "name_of_calling_method"))
+	 *     return false;
+	 * 
+	 * Thus, we pre-empt causing an R error that would cause trouble later.
+	 */
+	private function error_if_not_object_exists($obj, $caller = false)
+	{
+		if ($this->object_exists($obj))
+			return true;
+		else
+		{
+			$msg = "RFace: ERROR: " 
+				. ($caller ? "Cannot call $caller()" : "Function called on") 
+				. " on nonexistent R object $obj!\n";
+			$this->error($msg);
+			return false;
+		}
+	}
+	
+	/**
 	 * Gets the type of an object in the active R workspace.
 	 * 
 	 * Returns a string indicating the type (same strings as in R)
@@ -897,13 +1326,8 @@ class RFace
 	 */
 	public function typeof($obj)
 	{
-		if ( ! $this->object_exists($obj))
-		{
-			/* we'll get an error message from R if we send this in.
-			 * Ergo, we should pre-empt, and send an error message of our own. */
-			$this->error("RFace: ERROR: Cannot call typeof() on nonexistent R object $obj!\n");
+		if ( ! $this->error_if_not_object_exists($obj, "typeof"))
 			return false;
-		}
 		else
 		{
 			/* we know it will just be a "[1] ..." printout, so we can shortcut */
@@ -919,12 +1343,8 @@ class RFace
 	 */
 	public function classof($obj)
 	{
-		/* see "typeof" for comments on the checks performed */
-		if ( ! $this->object_exists($obj))
-		{
-			$this->error("RFace: ERROR: Cannot call classof() on nonexistent R object $obj!\n");
-			return;
-		}
+		if ( ! $this->error_if_not_object_exists($obj, "classof"))
+			return false;
 		else
 		{
 			list($rawtext) = $this->execute("class($obj)");
@@ -944,12 +1364,8 @@ class RFace
 	 */
 	public function sizeof($obj)
 	{
-		/* see "typeof" for comments on the checks performed */
-		if ( ! $this->object_exists($obj))
-		{
-			$this->error("RFace: ERROR: Cannot call sizeof() on nonexistent R object $obj!\n");
-			return;
-		}
+		if ( ! $this->error_if_not_object_exists($obj, "sizeof"))
+			return false;
 		else
 		{
 			list($rawtext) = $this->execute("length($obj)");
@@ -964,6 +1380,45 @@ class RFace
 	public function length($obj) { return $this->sizeof($obj); }
 	
 
+
+	/*
+	 * Get the length of each dimension in a multi-dimensional object
+	 * such as a matrix or data frame.
+	 * 
+	 * The return value is an array of dimension lengths. In a 2D object
+	 * such as a matrix or data frame, [0] will contain the number of
+	 * rows, and [1] the number of columns. 
+	 * 
+	 * If passed a one-dimensional object, this function will behave
+	 * like ->sizeof() (unlike R's native function dim() which returns
+	 * NULL in such a case) except that the return is a one-member
+	 * array rather than an uncontained integer.
+	 * 
+	 * @return  An array of dimension lengths for the specified object.
+	 */
+	public function dimensions($obj)
+	{
+		if ( ! $this->error_if_not_object_exists($obj, "dimensions"))
+			return false;
+		else
+		{
+			$dims = $this->read_execute("dim($obj)");
+
+			/* account for one-D objects */
+			if(is_null($dims))
+				$dims = array($this->sizeof($obj));
+
+			return $dims;
+		}
+	}
+	
+	public function factor_levels($obj)
+	{
+		if ( ! $this->error_if_not_object_exists($obj, "factor_levels"))
+			return false;
+		
+		
+	}
 	
 	/**
 	 * Deletes an object, checking first if it exists.
@@ -996,6 +1451,7 @@ class RFace
 		}
 		/* sanity check, should not be reached */
 		$this->error("RFace: ERROR: New object name could not be generated.\n");
+		return false;
 	}
 	
 	
@@ -1144,6 +1600,7 @@ class RFace
 	 */
 	public function list_libraries()
 	{
+		/*
 		$obj = $this->new_object_name();
 		
 		$this->execute("$obj = .packages(all.available = TRUE)");
@@ -1153,10 +1610,33 @@ class RFace
 		$this->drop_object($obj);
 		
 		return $arr;
+		*/
+		return $this->read_execute(".packages(all.available = TRUE)");
 	}
 	
 	
-	
+	/**
+	 * Checks whether or not it is possible to use JSON (and if it is,
+	 * loads the relevant library package). 
+	 */
+	public function json_is_possible()
+	{
+		if (!is_null($this->json_is_possible_cache))
+			return $this->json_is_possible_cache;
+			
+		if ($this->library_is_available("rjson"))
+		{
+			$this->load_library("rjson");
+			
+			$this->json_is_possible_cache = true;
+			return true;	
+		}
+		else
+		{
+			$this->json_is_possible_cache = false;
+			return false;
+		}
+	}
 	
 	/*
 	 * Static methods
@@ -1223,6 +1703,20 @@ class RFace
 		return 1 * $string;
 	}
 
+	/** 
+	 * Transposes a two-dimensional array - rows become columns 
+	 * and columns become rows.
+	 * 
+	 * This is the "canonical" way to transpose an array in PHP,
+	 * according to the manual; included here as a utility function,
+	 * because it is sometimes convenient to do transposition at 
+	 * "this end" of the pipe, rather than use R's t() function. 
+	 */
+	public static function transpose($array)
+	{
+		array_unshift($array, NULL);
+		return call_user_func_array('array_map', $array);
+	}
 
 
 	/* end of class RFace */
