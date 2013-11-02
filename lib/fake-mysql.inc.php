@@ -75,16 +75,30 @@ function mysql_connect($server = NULL, $username = NULL, $password = NULL)
 		return false; 
 }
 
+
 /**
  * Fake MySQL close-connection function using MySQLi.
  */
-function mysql_close($link_identifier)
+function mysql_close($link_identifier = NULL)
 {
 	if (!mysql_fake_force_link_set($link_identifier))
 		return false;
 
 	return mysqli_close($link_identifier);	
 }
+
+
+/**
+ * Fake MySQL version-string-getter using MySQLi.
+ */
+function mysql_get_server_info($link_identifier = NULL)
+{
+	if (!mysql_fake_force_link_set($link_identifier))
+		return false;
+	
+	return mysqli_get_server_info($link_identifier);
+}
+
 
 /**
  * Fake MySQL real-escape-string function using MySQLi.
