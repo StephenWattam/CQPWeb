@@ -445,8 +445,8 @@ function install_new_corpus()
 		exec($encode_command, $output_lines_from_cwb, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_fullpage("cwb-encode reported an error! Corpus indexing aborted. <pre>"
-				. implode("\n", $output_lines_from_cwb) . '</pre>'
-				, __FILE__, __LINE__);
+				. implode("\n", $output_lines_from_cwb) 
+				. '</pre>');
 
 		chmod("/$cwb_registry/$corpus", 0664);
 
@@ -454,8 +454,8 @@ function install_new_corpus()
 		exec($makeall_command, $output_lines_from_cwb, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_fullpage("cwb-makeall reported an error! Corpus indexing aborted. <pre>"
-				. implode("\n", $output_lines_from_cwb) . '</pre>'
-				, __FILE__, __LINE__);
+				. implode("\n", $output_lines_from_cwb)
+				. '</pre>');
 
 		/* use a separate array for the compression utilities (merged into main output block later) */
 		$compression_output = array();
@@ -463,15 +463,15 @@ function install_new_corpus()
 		exec($huffcode_command, $compression_output, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_fullpage("cwb-huffcode reported an error! Corpus indexing aborted. <pre>"
-				. implode("\n", array_merge($output_lines_from_cwb,$compression_output)) . '</pre>'
-				, __FILE__, __LINE__);
+				. implode("\n", array_merge($output_lines_from_cwb,$compression_output)) 
+				. '</pre>');
 
 		$compression_output[] = $compress_rdx_command = "/$path_to_cwb/cwb-compress-rdx -r /$cwb_registry -A $CORPUS 2>&1";
 		exec($compress_rdx_command, $compression_output, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_fullpage("cwb-compress-rdx reported an error! Corpus indexing aborted. <pre>"
-				. implode("\n", array_merge($output_lines_from_cwb,$compression_output)) . '</pre>'
-				, __FILE__, __LINE__);
+				. implode("\n", array_merge($output_lines_from_cwb,$compression_output)) 
+				. '</pre>');
 
 		foreach($compression_output as $line)
 		{
@@ -483,8 +483,7 @@ function install_new_corpus()
 
 		
 		/*
-		 TODO save the entire output blob in a mysql table that preserves its contents for a day 
-		 (clean out on next update).
+		 TODO save the entire output blob in a mysql table that preserves its contents (as a field of corpus_metadata_fixed?).
 		 Then, the "finished" screen can have an extra link:Javascript function to display the
 		 output from CWB.
 		 This will allow you to see, f'rinstance, any dodgy messages about XML elements that were droppped
