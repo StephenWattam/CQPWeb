@@ -26,12 +26,15 @@
 
 
 
-/* index.inc.php --- this file contains the code that renders 
- * various search screens and other front-page stuff (basically
- * everything you access from the mainpage side-menu).
- */
-
-/* The main paramater for forms that access this script:
+/** 
+ * @file
+ * 
+ * This file contains the code that renders 
+ * various search screens and other front-page stuff 
+ * (basically everything you access from the mainpage side-menu).
+ *
+ *
+ * The main paramater for forms that access this script:
  *
  * thisQ - specify the type of query you want to pop up
  * 
@@ -65,6 +68,7 @@ require_once("../lib/freqtable.inc.php");
 require_once("../lib/metadata.inc.php");
 require_once("../lib/concordance-lib.inc.php");
 require_once("../lib/colloc-lib.inc.php");
+require_once('../lib/xml.inc.php');
 
 /* this is probably _too_ paranoid. but hey */
 if (user_is_superuser($username))
@@ -72,7 +76,6 @@ if (user_is_superuser($username))
 	require_once('../lib/apache.inc.php');
 	require_once('../lib/admin-lib.inc.php');
 	require_once('../lib/corpus-settings.inc.php');
-	require_once('../lib/xml.inc.php');		// move to main section if users need XML functions
 }
 
 
@@ -216,6 +219,7 @@ unset($row);
 
 
 /* print a link to each tagset for which an external_url is declared in metadata */
+// todo: change this to use get_corpus_annotation_info()
 $sql_query = "select description, tagset, external_url from annotation_metadata "
 	. "where corpus = '$corpus_sql_name' and external_url IS NOT NULL";
 $result = do_mysql_query($sql_query);

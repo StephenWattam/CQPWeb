@@ -53,14 +53,17 @@ function printquery_search()
 	else
 		$select_qmode = ($corpus_uses_case_sensitivity ? 'sq_case' : 'sq_nocase');
 
+
+
 ?>
 <table class="concordtable" width="100%">
 
-	<tr>
-		<th class="concordtable">Standard Query</th>
-	</tr>
+<tr>
+	<th class="concordtable">Standard Query</th>
+</tr>
 
-	<tr><td class="concordgeneral">
+<tr>
+	<td class="concordgeneral">
 	
 		<form action="concordance.php" accept-charset="UTF-8" method="get"> 
 	
@@ -72,101 +75,104 @@ function printquery_search()
 			&nbsp;<br/>
 			
 			<table>	
-				<tr><td class="basicbox">Query mode:</td>
-				
-				<td class="basicbox">
-					<select name="qmode">
-						<option value="cqp"<?php if ($select_qmode == 'cqp') echo ' selected="selected"';?>>
-							CQP syntax
-						</option>
-						<option value="sq_nocase"<?php if ($select_qmode == 'sq_nocase') echo ' selected="selected"';?>>
-							Simple query (ignore case)
-						</option>
-						<option value="sq_case"<?php if ($select_qmode == 'sq_case') echo ' selected="selected"';?>>
-							Simple query (case-sensitive)
-						</option>
-					</select>
-					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-					<a target="_blank" href="../doc/Simple_query_language.pdf"
-						onmouseover="return escape('How to compose a search using the Simple Query language')">
-						Simple query language syntax
-					</a>
-				</td></tr>
+				<tr>
+					<td class="basicbox">Query mode:</td>
+					
+					<td class="basicbox">
+						<select name="qmode">
+							<option value="cqp"<?php if ($select_qmode == 'cqp') echo ' selected="selected"';?>>
+								CQP syntax
+							</option>
+							<option value="sq_nocase"<?php if ($select_qmode == 'sq_nocase') echo ' selected="selected"';?>>
+								Simple query (ignore case)
+							</option>
+							<option value="sq_case"<?php if ($select_qmode == 'sq_case') echo ' selected="selected"';?>>
+								Simple query (case-sensitive)
+							</option>
+						</select>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a target="_blank" href="../doc/Simple_query_language.pdf"
+							onmouseover="return escape('How to compose a search using the Simple Query language')">
+							Simple query language syntax
+						</a>
+					</td>
+				</tr>
 			
-				<tr><td class="basicbox">Number of hits per page:</td>
-				
-				<td class="basicbox">	
-					<select name="pp">
-						<option value="count">count hits</option>
-						<option value="10"<?php if ($default_per_page == 10) echo ' selected="selected"';?>>10</option>
-						<option value="50"<?php if ($default_per_page == 50) echo ' selected="selected"';?>>50</option>
-						<option value="100"<?php if ($default_per_page == 100) echo ' selected="selected"';?>>100</option>
-						<option value="250"<?php if ($default_per_page == 250) echo ' selected="selected"';?>>250</option>
-						<option value="350"<?php if ($default_per_page == 350) echo ' selected="selected"';?>>350</option>
-						<option value="500"<?php if ($default_per_page == 500) echo ' selected="selected"';?>>500</option>
-						<option value="1000<?php if ($default_per_page == 1000) echo ' selected="selected"';?>">1000</option>
-						<?php
-						/* this option is currently restricted to superusers, but
-						 * perhaps I should invent a category of "power users" who
-						 * can be trusted not to misuse features like this  ????   */
-						if (user_is_superuser($username))
-							echo '<option value="all">show all</option>';
-						?>
-					</select>
-				</td></tr>
+				<tr>
+					<td class="basicbox">Number of hits per page:</td>
+					
+					<td class="basicbox">	
+						<select name="pp">
+							<option value="count">count hits</option>
+							<option value="10"<?php   if ($default_per_page == 10)   echo ' selected="selected"';?>>10</option>
+							<option value="50"<?php   if ($default_per_page == 50)   echo ' selected="selected"';?>>50</option>
+							<option value="100"<?php  if ($default_per_page == 100)  echo ' selected="selected"';?>>100</option>
+							<option value="250"<?php  if ($default_per_page == 250)  echo ' selected="selected"';?>>250</option>
+							<option value="350"<?php  if ($default_per_page == 350)  echo ' selected="selected"';?>>350</option>
+							<option value="500"<?php  if ($default_per_page == 500)  echo ' selected="selected"';?>>500</option>
+							<option value="1000"<?php if ($default_per_page == 1000) echo ' selected="selected"';?>>1000</option>
+							<?php
+							if (user_is_superuser($username))
+								echo '<option value="all">show all</option>';
+							?>
+
+						</select>
+					</td>
+				</tr>
 	
 				<tr>
-				<td class="basicbox">Restriction:</td>
-				<input type="hidden" name="del" size="-1" value="begin" />
-				<td class="basicbox">
-					<select name="t">
-						
-						<?php
-						
-						/* first option is always whole corpus */
-						echo '<option value="" ' 
-							. ( $insertSubcorpus == '**search all**' ? 'selected="selected"' : '' )
-							. '>None (search whole corpus)</option>'; 
-						
-						/* create options for the Primary Classification */
-						$sql_query = "select primary_classification_field from corpus_metadata_fixed
-							where corpus = '$corpus_sql_name'";
-						$result = do_mysql_query($sql_query);
-						$row = mysql_fetch_row($result);
-						$field = $row[0];
-						
-						$catlist = metadata_category_listdescs($field);
-						
-						foreach ($catlist as $h => $c)
-							echo "<option value=\"$field~$h\">".(empty($c) ? $h : $c)."</option>\n";
-
-						
-						/* list the user's subcorpora for this corpus */
-						/* including the last set of restrictions used */
-						
-						$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
-							where corpus = '$corpus_sql_name' and user = '$username' order by subcorpus_name";
-						$result = do_mysql_query($sql_query);
-
-						while (($row = mysql_fetch_assoc($result)) != false)
-						{
-							if ($row['subcorpus_name'] == '__last_restrictions')
-								echo '<option value="__last_restrictions">Last restrictions ('
-									. make_thousands($row['numwords']) . ' words in ' 
-									. make_thousands($row['numfiles']) . ' texts)</option>';
-							else
-								echo '<option value="subcorpus~' . $row['subcorpus_name'] . '"'
-									. ($insertSubcorpus == $row['subcorpus_name'] ? ' selected="selected"' : '')
-									. '>'
-									. 'Subcorpus: ' . $row['subcorpus_name'] . ' ('
-									. make_thousands($row['numwords']) . ' words in ' 
-									. make_thousands($row['numfiles']) . ' texts)</option>';
-						}
-
-						?>
-
-					</select>
-				</td></tr>
+					<td class="basicbox">Restriction:</td>
+					<input type="hidden" name="del" size="-1" value="begin" />
+					<td class="basicbox">
+						<select name="t">
+							
+							<?php
+							
+							/* first option is always whole corpus */
+							echo '<option value="" ' 
+								. ( $insertSubcorpus == '**search all**' ? 'selected="selected"' : '' )
+								. '>None (search whole corpus)</option>'; 
+							
+							/* create options for the Primary Classification */
+							$sql_query = "select primary_classification_field from corpus_metadata_fixed
+								where corpus = '$corpus_sql_name'";
+							$result = do_mysql_query($sql_query);
+							$row = mysql_fetch_row($result);
+							$field = $row[0];
+							
+							$catlist = metadata_category_listdescs($field);
+							
+							foreach ($catlist as $h => $c)
+								echo "<option value=\"$field~$h\">".(empty($c) ? $h : $c)."</option>\n";
+	
+							
+							/* list the user's subcorpora for this corpus */
+							/* including the last set of restrictions used */
+							
+							$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
+								where corpus = '$corpus_sql_name' and user = '$username' order by subcorpus_name";
+							$result = do_mysql_query($sql_query);
+	
+							while (($row = mysql_fetch_assoc($result)) != false)
+							{
+								if ($row['subcorpus_name'] == '__last_restrictions')
+									echo '<option value="__last_restrictions">Last restrictions ('
+										. make_thousands($row['numwords']) . ' words in ' 
+										. make_thousands($row['numfiles']) . ' texts)</option>';
+								else
+									echo '<option value="subcorpus~' . $row['subcorpus_name'] . '"'
+										. ($insertSubcorpus == $row['subcorpus_name'] ? ' selected="selected"' : '')
+										. '>'
+										. 'Subcorpus: ' . $row['subcorpus_name'] . ' ('
+										. make_thousands($row['numwords']) . ' words in ' 
+										. make_thousands($row['numfiles']) . ' texts)</option>';
+							}
+	
+							?>
+	
+						</select>
+					</td>
+				</tr>
 				<input type="hidden" name="del" size="-1" value="end" />			
 				<tr>
 					<td class="basicbox">&nbsp;</td>
@@ -180,7 +186,8 @@ function printquery_search()
 			<!-- this input ALWAYS comes last -->
 			<input type="hidden" name="uT" value="y"/>
 		</form>
-	</td></tr>
+	</td>
+</tr>
 
 </table>
 <?php
@@ -304,9 +311,11 @@ function printquery_restricted()
 
 
 
-/* this provides the metadata restrictions block that is used for queries and for subcorpora
- * checkarray is an array of categories / classes that are to be checked
- * if it is NULL, the http query string will be searched for pairs of inherited values */
+/**
+ * This provides the metadata restrictions block that is used for queries and for subcorpora.
+ * checkarray is an array of categories / classes that are to be checked;
+ * if it is NULL, the http query string will be searched for pairs of inherited values.
+ */
 function printquery_build_restriction_block($checkarray, $thing_to_produce)
 {
 	if ($checkarray === NULL)
@@ -398,6 +407,38 @@ function printquery_build_restriction_block($checkarray, $thing_to_produce)
 	return $block;
 }
 
+
+
+
+/**
+ * Returns a string containing a blob of HTML that contains info about the CWB/CQP attributes
+ * available to those using CQP syntax.  
+ */
+function printquery_build_attribute_block()
+{
+	$html = "<p>The following p-attributes are available in this corpus:</p>\n\n";
+	
+	$html .= "<center>\n<table class=\"basicbox\" width=\"80%\">\n";
+	
+	$html .= "<tr>\t<td width=\"18%\"><code>word</code></td>\t<td>Main word-token attribute</td>\t</tr>\n";
+	
+	foreach(get_corpus_annotation_info() as $p)
+	{
+		$tagset = (empty($p->tagset) ? '' : "(using {$p->tagset})");
+		$html .= "<tr>\t<td><code>{$p->handle}</code></td>\t<td>{$p->description}$tagset</td>\t</tr>\n";
+	}
+	
+	$html .= "</table>\n\n\n";
+	
+	$html .= "<p>The following s-attributes are available in this corpus:</p>\n\n<ul>\n";
+	
+	foreach(get_xml_all() as $s)
+		$html .= "\t<li><code>$s</code></li>\n";
+	
+	$html .= "</ul>\n\n";
+	
+	return $html;
+}
 
 
 

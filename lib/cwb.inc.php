@@ -106,6 +106,8 @@ function cwb_corpus_exists($corpus_name)
 	
 	// use cwb-describe-corpus instead?? naah this is quicker
 	
+	// TODO this does not work because it does not allow for cwb_external.
+	
 	if  ( is_file("/$cwb_registry/$corpus_name") && is_dir("/$cwb_datadir/$corpus_name") )
 		return true;
 	else

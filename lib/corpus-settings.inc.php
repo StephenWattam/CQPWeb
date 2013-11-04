@@ -42,6 +42,9 @@ class CQPwebSettings
 	private $context_scope;
 	private $context_s_attribute;
 	
+	/* extended context initial (also minimum) and max values - both ints, N of tokens. */
+	private $initial_extended_context;
+	private $max_extended_context; 
 	
 	/* visualisation control variables (two bools and a string for each) */
 	private $visualise_gloss_in_concordance;
@@ -117,6 +120,13 @@ class CQPwebSettings
 			$this->directory_override_data = $new_value;
 	}
 	
+
+	public function get_initial_extended_context() { return $this->initial_extended_context; }
+	public function set_initial_extended_context($new_value) { $this->initial_extended_context = (int) $new_value; } 
+	public function get_max_extended_context() { return $this->max_extended_context; }
+	public function set_max_extended_context($new_value) { $this->max_extended_context = (int) $new_value; } 
+	
+	
 	public function get_visualise_gloss_in_concordance() { return $this->visualise_gloss_in_concordance; }
 	public function set_visualise_gloss_in_concordance($new_value) { $this->visualise_gloss_in_concordance = (bool) $new_value; }
 	public function get_visualise_gloss_in_context() { return $this->visualise_gloss_in_context; }
@@ -185,6 +195,7 @@ class CQPwebSettings
 			if ($corpus_sql_name !== $this->corpus_sql_name)
 				return "CQPwebSettings Error: the original file does not match the specified SQL-name!";
 		}
+		// TODO could this be simplified with a "foreach" and variable variables?
 		if (isset($corpus_title))
 			$this->corpus_title = $corpus_title;
 		if (isset($corpus_cqp_name))
@@ -199,6 +210,10 @@ class CQPwebSettings
 			$this->context_scope = (int)$context_scope;
 		if (isset($context_s_attribute))
 			$this->context_s_attribute = $context_s_attribute;
+		if (isset($initial_extended_context))
+			$this->initial_extended_context = $initial_extended_context;
+		if (isset($max_extended_context))
+			$this->max_extended_context = $max_extended_context;
 		if (isset($visualise_gloss_in_concordance))
 			$this->visualise_gloss_in_concordance = (bool)$visualise_gloss_in_concordance;
 		if (isset($visualise_gloss_in_context))
@@ -246,6 +261,11 @@ class CQPwebSettings
 			$data .= "\$context_scope = {$this->context_scope};\n";
 		if (isset($this->context_s_attribute))
 			$data .= "\$context_s_attribute = '{$this->context_s_attribute}';\n";
+
+		if (isset($this->initial_extended_context))
+			$data .= "\$initial_extended_context = {$this->initial_extended_context};\n";
+		if (isset($this->max_extended_context))
+			$data .= "\$max_extended_context = {$this->max_extended_context};\n";
 		
 		if (isset($this->visualise_gloss_in_concordance))
 			$data .= "\$visualise_gloss_in_concordance = " . ($this->visualise_gloss_in_concordance ? 'true' : 'false') . ";\n";
@@ -266,7 +286,7 @@ class CQPwebSettings
 		if (isset($this->visualise_position_label_attribute))
 			$data .= "\$visualise_position_label_attribute = '{$this->visualise_position_label_attribute}';\n";		
 				
-		$data .= "?>";
+		$data .= "?>\n";
 		
 		file_put_contents("{$this->cqpweb_root_directory_path}/{$this->corpus_sql_name}/settings.inc.php", $data);
 			

@@ -299,6 +299,8 @@ function disconnect_all()
 /**
  * Does a MySQL query on the CQPweb database, with error checking.
  * 
+ * Auto-connects to the database if necessary.
+ * 
  * Note - this function should replace all direct calls to mysql_query,
  * thus avoiding duplication of error-checking code.
  * 
@@ -1424,8 +1426,7 @@ function recursive_delete_directory($path)
 	if (!is_dir($path))
 		return;
 
-	$files_to_delete = scandir($path);
-	foreach($files_to_delete as &$f)
+	foreach(scandir($path) as &$f)
 	{
 		if ($f == '.' || $f == '..')
 			;
@@ -1435,6 +1436,38 @@ function recursive_delete_directory($path)
 			unlink("$path/$f");
 	}
 	rmdir($path);
+}
+
+/**
+ * Convenience function to recursively copy a directory.
+ * 
+ * Both $from and $to should be directory paths. 
+ * 
+ * If $from is a file or symlink rather than a directory, 
+ * we default back to the behaviour
+ * of php's builtin copy() function.
+ * 
+ * If $to already exists, it will be overwritten.
+ */
+function recursive_copy_directory($from, $to)
+{
+	if (is_dir($from))
+	{
+		recursive_delete_directory($to);
+		mkdir($to);
+		
+		foreach(scandir($from) as $f)
+		{
+			if ($f == '.' || $f == '..')
+				;
+			else if (is_dir("$from/$f"))
+				recursive_copy_directory("$from/$f", "$to/$f");
+			else
+				copy("$from/$f", "$to/$f");
+		}
+	}
+	else
+		copy($from, $to);
 }
 
 

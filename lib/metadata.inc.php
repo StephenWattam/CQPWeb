@@ -25,7 +25,10 @@
 
 
 
-/* library of functions for dealing with metadata tables */
+/** 
+ * @file 
+ * library of database-access functions for dealing with metadata tables, annotation, etc.
+ */
 
 
 
@@ -151,11 +154,10 @@ function get_corpus_metadata($field)
 
 	$result = do_mysql_query($query);
 
-	if ($result != false && mysql_num_rows($result) != 0)
+	if ($result !== false && mysql_num_rows($result) != 0)
 	{
 		/* data was found */
-		$r = mysql_fetch_row($result);
-		$value = $r[0];
+		list($value) = mysql_fetch_row($result);
 	}
 	else
 	{
@@ -214,6 +216,24 @@ function update_corpus_context_scope($newcount, $newunit)
 	$settings->set_context_scope($newcount);
 	$settings->set_context_s_attribute($newunit);
 	$settings->save();
+}
+
+function update_corpus_initial_extended_context($newval)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$settings->set_initial_extended_context($newval);
+	$settings->save();	
+}
+
+function update_corpus_max_extended_context($newval)
+{
+	global $corpus_sql_name;
+	$settings = new CQPwebSettings('..');
+	$settings->load($corpus_sql_name);
+	$settings->set_max_extended_context($newval);
+	$settings->save();	
 }
 
 function update_corpus_visualisation_position_labels($show, $attribute)
@@ -285,11 +305,9 @@ function get_corpus_wordcount()
 {
 	global $corpus_sql_name;
 
-	// this should prob be an auto-genrerated item of fixed metadata
+	// TODO this should prob be an auto-genrerated item of fixed metadata
 	// obviating the need for this function separate from the above
-	$sql_query = "select sum(words) from text_metadata_for_$corpus_sql_name";
-	$result = do_mysql_query($sql_query);
-	$row = mysql_fetch_row($result);
+	$row = mysql_fetch_row(do_mysql_query("select sum(words) from text_metadata_for_$corpus_sql_name"));
 
 	return (int)$row[0];
 }
@@ -322,8 +340,25 @@ function get_corpus_annotations()
 }
 
 /**
- * Boolean: is $handle the handle of an actually-existing
- * word-level annotation?
+ * Returns an associative array: the keys are annotation handles,
+ * the values are objects with four members: handle, description, tagset, external_url
+ */  
+function get_corpus_annotation_info()
+{
+	global $corpus_sql_name;
+	
+	$result = do_mysql_query("select * from annotation_metadata where corpus = '$corpus_sql_name'");
+
+	$compiled = array();
+
+	while (($r = mysql_fetch_object($result)) !== false)
+		$compiled[$r->handle] = $r;
+
+	return $compiled;
+}
+
+/**
+ * Boolean: is $handle the handle of an actually-existingword-level annotation?
  */
 function check_is_real_corpus_annotation($handle)
 {
@@ -358,6 +393,7 @@ function corpus_annotation_taglist($field)
 	while ( ($r = mysql_fetch_row($result)) !== false )
 		$tags[] = $r[0];
 	
+	/* better would be: sort($tags, SORT_NATURAL | SORT_FLAG_CASE); but that requires PHP >= 5.4)  */
 	sort($tags);
 	return $tags;
 }
@@ -451,6 +487,7 @@ function metadata_list_classifications($disallow_empty_descriptions = true)
 	return $return_me;
 }
 
+
 /**
  * Returns true if this field name is a classification; false if it is free text.
  * 
@@ -515,6 +552,7 @@ function metadata_expand_attribute($field, $value)
  * Returns an associative array (field=>value) for the text with the specified text id.
  * 
  * If the second argument is specified, it should be an array of field handles; only those fields will be returned.
+ * 
  * If the second argument is not specified, then all fields will be returned.
  */
 function metadata_of_text($text_id, $fields = NULL)
@@ -708,7 +746,7 @@ function metadata_size_of_cat_thinned($classification, $category, $class2, $cat2
 
 /** 
  * counts the number of words in each text class for this corpus,
- * and updates the table containing that info 
+ * and updates the table containing that info.
  */
 function metadata_calculate_category_sizes()
 {

@@ -41,6 +41,11 @@
  */
 function get_xml_all()
 {
+	/* TODO - eventually this info should prob be in the DB rather than using cwb-d-c every time
+	 * 
+	 * and, like the get_corpus_annotation(s|_info) functions, we should prob get info as well as a list...
+	 * 
+	 * */
 	global $cwb_registry;
 	global $corpus_cqp_name;
 	

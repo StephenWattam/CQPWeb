@@ -709,6 +709,16 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.0.13</b>, 2013-11-04<br/>&nbsp;<br/>
+		Implemented context-width restrictions for limited-license corpora.
+		<br/>&nbsp;</li>
+
+		<li>
+		<b>Version 3.0.12</b>, 2013-11-02<br/>&nbsp;<br/>
+		Updated database template for newer MySQL servers.
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.0.11</b>, 2013-08-30<br/>&nbsp;<br/>
 		New feature: non-classification metadata fields can now be included in a concordance-download. 
 		<br/>&nbsp;</li>

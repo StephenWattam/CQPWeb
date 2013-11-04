@@ -163,6 +163,7 @@ connect_global_cqp();
 
 /* run the function */
 
+/*
 switch($argc)
 {	
 case 0:		$function();	break;
@@ -179,7 +180,8 @@ case 10:	$function($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5], $
 
 default:
 	break;
-}
+}*/
+call_user_func_array($function, $argv);
 
 disconnect_all();
 
@@ -192,13 +194,6 @@ disconnect_all();
 if ( isset($_GET['locationAfter']) && headers_sent() == false )
 	header('Location: ' . url_absolutify($_GET['locationAfter']));
 else if ( ! isset($_GET['locationAfter']) && headers_sent() == false )
-	execute_print_and_exit( 'CQPweb -- execute.php', 
-'Your function call has been finished executing!
-
-Thank you for flying with execute.php.
-
-On behalf of CQP and all the corpora, I wish you a very good day,
-and I hope we\'ll see you again soon.'
-		);
+	execute_print_and_exit( 'CQPweb -- execute.php', 'Your function call has been finished executing!');
 
 ?>

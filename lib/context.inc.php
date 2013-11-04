@@ -101,11 +101,15 @@ default:
 
 
 if (isset($_GET['contextSize']))
-	$context_size = $_GET['contextSize'];
+	$context_size = (int)$_GET['contextSize'];
 else
-	$context_size = $default_extended_context;
+	$context_size = $initial_extended_context;
 
-
+/* restrict possible values */
+if ($context_size > $max_extended_context)
+	$context_size = $max_extended_context;
+if ($context_size < $initial_extended_context)
+	$context_size = $initial_extended_context;
 
 
 
@@ -266,9 +270,9 @@ $bdo_tag2 = ($corpus_main_script_is_r2l ? '</bdo>' : '');
 						File info for text <?php echo $text_id; ?>
 					</option>
 					<?php 
-					if ($context_size < $default_max_context)
+					if ($context_size < $max_extended_context)
 						echo '<option value="moreContext">More context</option>';
-					if ($context_size > $default_extended_context)
+					if ($context_size > $initial_extended_context)
 						echo '<option value="lessContext">Less context</option>';
 					?>
 					<option value="backFromContext">Back to main query result</option>

@@ -161,6 +161,7 @@ function printquery_corpusoptions()
 			<input type="hidden" name="function" value="update_css_path" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
+		
 		<form action="index.php" method="get">
 			<tr>
 				<td class="concordgrey" align="center">
@@ -199,6 +200,41 @@ function printquery_corpusoptions()
 			<input type="hidden" name="thisQ" value="corpusSettings" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
+
+		<form action="execute.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					Initial words to show (each way) in extended context:
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="text" name="args" value="<?php echo $settings->get_initial_extended_context(); ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
+			<input type="hidden" name="function" value="update_corpus_initial_extended_context" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+
+		<form action="execute.php" method="get">
+			<tr>
+				<td class="concordgrey" align="center">
+					Maximum words to show (each way) in extended context:
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="text" name="args" value="<?php echo $settings->get_max_extended_context(); ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+			</tr>
+			<input type="hidden" name="locationAfter" value="index.php?thisQ=corpusSettings&uT=y" />
+			<input type="hidden" name="function" value="update_corpus_max_extended_context" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+
 
 
 		<tr>

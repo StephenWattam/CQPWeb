@@ -26,7 +26,7 @@
 /* ------------------------------- */
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '3.0.11');
+define('CQPWEB_VERSION', '3.0.12');
 
 /* php stubs in each corpus directory; we can't make this constant, but it should be treated as if it was! */ 
 $cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
@@ -267,6 +267,8 @@ if (!isset($graph_img_path))
 if (!isset($dist_num_files_to_list))
 	$dist_num_files_to_list = 100;
 
+// TODO. these variables talk about "context", but actually refer to the concordance. Might be useful to clarify this.
+
 if (isset($context_s_attribute))
 	$context_scope_is_based_on_s = true;
 else
@@ -275,7 +277,7 @@ else
 if (!isset($context_scope))
 	$context_scope = ( $context_scope_is_based_on_s ? 1 : 12 );
 
-//TODO. next few variable names are confusing
+//TODO. next 2 variable names are confusing, cos they are not defaults: they can be set per-corpus.
 
 if (!isset($default_per_page))
 	$default_per_page = 50;
@@ -283,11 +285,15 @@ if (!isset($default_per_page))
 if (!isset($default_history_per_page))
 	$default_history_per_page = 100;
 
-if (!isset($default_extended_context))
-	$default_extended_context = 100;
+if (!isset($initial_extended_context))
+	$initial_extended_context = 100;
 
-if (!isset($default_max_context))
-	$default_max_context = 1100;
+if (!isset($max_extended_context))
+	$max_extended_context = 1100;
+
+/* and sanity check the above two... */
+if ($initial_extended_context > $max_extended_context)
+	$initial_extended_context = $max_extended_context;
 
 /* position labels default off */
 if (!isset($visualise_position_labels))
@@ -455,12 +461,14 @@ if (! isset($this_script))
 
 
 
-/* ------------ */
-/* MAGIC QUOTES */
-/* ------------ */
+/* --------------------- */
+/* MAGIC QUOTES, BEGONE! */
+/* --------------------- */
 
-/* a simplified version of the code here: http://php.net/manual/en/security.magicquotes.disabling.php 
- * (simplified because we know that in CQPweb $_GET/$_POST is always a one-dimensional array) */
+/* A simplified version of the code here: http://php.net/manual/en/security.magicquotes.disabling.php 
+ * (simplified because we know that in CQPweb $_GET/$_POST is always a one-dimensional array). 
+ * In PHP > 5.4 magic quotes don't exist, but that's OK, because the function in the test will 
+ * always return false. */
 
 if (get_magic_quotes_gpc()) 
 {

@@ -350,9 +350,9 @@ switch ($statistic)
 				as theValue 
 			from {$table_name[1]}, {$table_name[2]}
 			
-			where {$table_name[1]}.item = {$table_name[2]}.item 
-			and {$table_name[1]}.freq >= {$minfreq[1]}
-			and {$table_name[2]}.freq >= {$minfreq[2]}
+			where {$table_name[1]}.item =  {$table_name[2]}.item 
+			and   {$table_name[1]}.freq >= {$minfreq[1]}
+			and   {$table_name[2]}.freq >= {$minfreq[2]}
 			
 			having theValue >= $threshold
 			$show_only_clause
