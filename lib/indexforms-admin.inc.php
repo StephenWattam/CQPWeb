@@ -30,6 +30,8 @@
 function printquery_corpusoptions()
 {
 	global $corpus_sql_name;
+	global $initial_extended_context;
+	global $max_extended_context;
 	
 	if (isset($_GET['settingsUpdateURL']))
 		update_corpus_metadata('external_url',$_GET['settingsUpdateURL']);
@@ -60,6 +62,7 @@ function printquery_corpusoptions()
 	$settings->load($corpus_sql_name);
 	$r2l = $settings->get_r2l();
 	$case_sensitive = $settings->get_case_sens();
+	
 
 
 
@@ -207,7 +210,7 @@ function printquery_corpusoptions()
 					Initial words to show (each way) in extended context:
 				</td>
 				<td class="concordgeneral" align="center">
-					<input type="text" name="args" value="<?php echo $settings->get_initial_extended_context(); ?>" />
+					<input type="text" name="args" value="<?php echo $initial_extended_context; ?>" />
 				</td>
 				<td class="concordgeneral" align="center">
 					<input type="submit" value="Update" />
@@ -224,7 +227,7 @@ function printquery_corpusoptions()
 					Maximum words to show (each way) in extended context:
 				</td>
 				<td class="concordgeneral" align="center">
-					<input type="text" name="args" value="<?php echo $settings->get_max_extended_context(); ?>" />
+					<input type="text" name="args" value="<?php echo $max_extended_context; ?>" />
 				</td>
 				<td class="concordgeneral" align="center">
 					<input type="submit" value="Update" />

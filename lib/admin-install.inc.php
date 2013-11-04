@@ -88,8 +88,8 @@ class corpus_install_info
 			exiterror_fullpage('Error: Corpus CWB names cannot end in __freq!!');
 		
 		/* other basic parameters */
-		$this->script_is_r2l = ( $_GET['corpus_scriptIsR2L'] === '1' );
-		$this->encode_charset = ( $_GET['corpus_encodeIsLatin1'] === '1' ? 'latin1' : 'utf8' );
+		$this->script_is_r2l = ( isset($_GET['corpus_scriptIsR2L']) && $_GET['corpus_scriptIsR2L'] === '1' );
+		$this->encode_charset = ( (isset($_GET['corpus_encodeIsLatin1']) && $_GET['corpus_encodeIsLatin1'] === '1') ? 'latin1' : 'utf8' );
 		$this->description = addcslashes($_GET['corpus_description'], "'");
 		
 		

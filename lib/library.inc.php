@@ -1426,7 +1426,7 @@ function recursive_delete_directory($path)
 	if (!is_dir($path))
 		return;
 
-	foreach(scandir($path) as &$f)
+	foreach(scandir($path) as $f)
 	{
 		if ($f == '.' || $f == '..')
 			;
