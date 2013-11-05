@@ -189,6 +189,8 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 			$words_in_context = (int) $_GET['downloadContext'];
 		else
 			$words_in_context = $default_words_in_download_context;
+		if ($words_in_context > $max_extended_context)
+			$words_in_context = $max_extended_context;
 		
 		/* tagged and untagged? */
 
@@ -590,7 +592,10 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 					<option value="8">8 words each way</option>
 					<option value="9">9 words each way</option>
 					<option value="10" selected="selected">10 words each way</option>
-					<option value="50">50 words each way</option>
+					<?php
+					if ($max_extended_context >= 50) 
+						echo '<option value="50">50 words each way</option>';
+					?> 
 				</select>
 			</td>
 		</tr>
