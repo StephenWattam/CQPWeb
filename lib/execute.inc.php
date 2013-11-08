@@ -131,8 +131,10 @@ if (isset($_GET['args']))
 	$argc = count($argv);
 }
 else
+{
 	$argc = 0;
-
+	$argv = array();
+}
 if ($argc > 10)
 	execute_print_and_exit('Too many arguments for execute.php', 
 'You specified too many arguments for execute.php.
