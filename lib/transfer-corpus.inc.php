@@ -139,9 +139,13 @@ function export_cqpweb_corpus($corpus, $filepath)
 			recursive_copy_directory("/$cwb_datadir/$corpus", "$d/data/index");
 		else
 		{
+// temp code
 			// this doesn't work for now, since my test space does not have any.
-			return false;
+			exiterror_general("You called export_cqpweb_corpus() on a corpus with an external index!!!!!");
+// end temp code
 			// TODO find the path from the registry file (would be useful to have an interface to the registry)
+			$reg_content = file_get_contents("/$cwb_registry/$corpus");
+			
 			$src = "TODO";
 			recursive_copy_directory($src, "$d/data/index");
 		}

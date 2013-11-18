@@ -387,7 +387,25 @@ function print_warning_cell($query_record)
 	
 	list($words, $junk) = amount_of_text_searched($query_record['subcorpus'], $query_record['restrictions']);
 
-	if ( $words >= $collocation_warning_cutoff )
+	if ( $words >= $collocation_disallow_cutoff )
+		/* we need to point out that the main corpus WILL be used */
+		$s = '
+			<tr>
+				<td class="concorderror" colspan="3">
+					The current set of hits was retrieved from a large subpart of the corpus 
+					(' . make_thousands($words) . ' words). No cached frequency data
+					was found, and this is too much text for frequency lists to be compiled 
+					on the fly in order to provide accurate measures of collocational strength. 
+					<br/>&nbsp;<br/>
+					The frequency lists for the main corpus will be used instead (less precise
+					results, but probably reliable if word-frequencies are 
+					relatively homogenous across the corpus).
+
+					<input type="hidden" name="freqtableOverride" value="1" />
+				</td>
+			</tr>
+			';
+	else if ( $words >= $collocation_warning_cutoff )
 		/* we need a major warning */
 		$s = '
 			<tr>

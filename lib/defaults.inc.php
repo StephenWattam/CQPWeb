@@ -26,7 +26,7 @@
 /* ------------------------------- */
 
 /* version number of CQPweb */
-define('CQPWEB_VERSION', '3.0.12');
+define('CQPWEB_VERSION', '3.0.14');
 
 /* php stubs in each corpus directory; we can't make this constant, but it should be treated as if it was! */ 
 $cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
@@ -348,8 +348,17 @@ if (!isset($default_colloc_minfreq))
 if (!isset($default_collocations_per_page))
 	$default_collocations_per_page = 50;
 	
+if (!isset($collocation_disallow_cutoff))
+	$collocation_disallow_cutoff = 100000000; /* cutoff for disallowing on-the-fly freqtables altogether: 100 million */
+	
 if (!isset($collocation_warning_cutoff))
-	$collocation_warning_cutoff = 5000000; /* cutoff for going from a minor warning to a major warning */
+	$collocation_warning_cutoff = 5000000; /* cutoff for going from a minor warning to a major warning: 5 million */
+
+/* NB, warning cutoff must always be lower than disallow cutoff: so let's sanity check */
+if ($collocation_warning_cutoff >= $collocation_disallow_cutoff)
+	$collocation_warning_cutoff = $collocation_disallow_cutoff - 1;
+
+/* TODO ultimately, the "disallow" cutoff should be a user privilege. */
 
 /* collocation download default */
 if (!isset($default_words_in_download_context))

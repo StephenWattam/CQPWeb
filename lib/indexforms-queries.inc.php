@@ -631,9 +631,11 @@ function printquery_keywords()
 	<tr>
 		<td class="concordgrey" colspan="4">
 			<center>
+				&nbsp;<br/>
 				Keyword lists are compiled by comparing frequency lists you have 
 				created for different subcorpora. <a href="index.php?thisQ=subcorpus&uT=y">Click 
 				here to create/view frequency lists</a>.
+				<br/>&nbsp;
 			</center>
 		</td>
 	</tr>

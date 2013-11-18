@@ -1036,21 +1036,24 @@ function php_execute_time_relimit()
 }
 
 
-/** THIS IS A DEBUG FUNCTION */
+/** 
+ * Call as show_var($x, get_defined_vars());
+ * 
+ * Omit 2nd arg in global scope.
+ * 
+ * THIS IS A DEBUG FUNCTION. 
+ */
 function show_var(&$var, $scope=false, $prefix='unique', $suffix='value')
 {
-	/* some code off the web to get the variable name */
-	if($scope)	$vals = $scope;
-	else		$vals = $GLOBALS;
+	$vals = (is_array($scope) ? $scope : $GLOBALS);
+
 	$old = $var;
 	$var = $new = $prefix.rand().$suffix;
 	$vname = FALSE;
 	foreach($vals as $key => $val) 
-	{
-		if($val === $new) $vname = $key;
-	}
+		if($val === $new) 
+			$vname = $key;
 	$var = $old;
-
 
 	echo "\n<pre>-->\$$vname<--\n";
 	var_dump($var);
@@ -1097,7 +1100,7 @@ function coming_soon_page()
 	/* initialise variables from settings files in local scope */
 	/* -- they will prob not have been initialised in global scope anyway */
 	
-	require("settings.inc.php");
+	require_once("settings.inc.php");
 	
 	echo '<title>' . $corpus_title . ' -- unfinished function!</title>';
 	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
@@ -1490,13 +1493,11 @@ function longvalue_store($value)
 	global $instance_name;
 	
 	/* clear out old longvalues */
-	$sql_query = "delete from system_longvalues where timestamp < DATE_SUB(NOW(), INTERVAL 5 DAY)";
-	do_mysql_query($sql_query);
+	do_mysql_query("delete from system_longvalues where timestamp < DATE_SUB(NOW(), INTERVAL 5 DAY)");
 	
 	$value = mysql_real_escape_string($value);
 	
-	$sql_query = "insert into system_longvalues (id, value) values ('$instance_name', '$value')";
-	do_mysql_query($sql_query);
+	do_mysql_query("insert into system_longvalues (id, value) values ('$instance_name', '$value')");
 
 	return $instance_name;
 }
@@ -1509,8 +1510,7 @@ function longvalue_retrieve($id)
 {	
 	$id = mysql_real_escape_string($id);
 	
-	$sql_query = "select value from system_longvalues where id = '$id'";
-	$result = do_mysql_query($sql_query);
+	$result = do_mysql_query("select value from system_longvalues where id = '$id'");
 	
 	$r = mysql_fetch_row($result);
 		

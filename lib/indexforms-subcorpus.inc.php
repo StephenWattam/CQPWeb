@@ -663,27 +663,37 @@ function print_sc_showsubcorpora()
 				/* freq tables exist for this subcorpus, ergo... */
 				echo 'Available';
 			else
+			{
+// TODO we use $collocation_disallow_cutoff but it should relaly be a more generalised "freq list user build" cutoff
+			if ($row['numwords'] >= $collocation_disallow_cutoff)
+				echo '<a class="menuItem" " onmouseover="return escape(\'Cannot compile frequency tables for this subcorpus ,'
+					, ' as it is too big\')">Cannot compile</a>';
+			else
 				echo '<a class="menuItem" href="freqtable-compile.php?compileSubcorpus=' 
-					. $row['subcorpus_name'] . '&compileAfter=index_sc&uT=y'
-					. '" onmouseover="return escape(\'Compile frequency tables for subcorpus <b>'
-					. $row['subcorpus_name']
-					. '</b>, allowing calculation of collocations and keywords\')">Compile</a>';
+					, $row['subcorpus_name']
+					, '&compileAfter=index_sc&uT=y'
+					, '" onmouseover="return escape(\'Compile frequency tables for subcorpus <b>'
+					, $row['subcorpus_name']
+					, '</b>, allowing calculation of collocations and keywords\')">Compile</a>';
+			}
 			echo '</center></td>';
 			
 			echo '<td class="concordgeneral"><center><a class="menuItem" ' 
-				. 'href="index.php?thisQ=subcorpus&subcorpusFunction=copy_subcorpus&subcorpusToCopy=' 
-				. $row['subcorpus_name'] . '&uT=y" onmouseover="return escape(\'Copy this subcorpus\')">'   
-				. '[copy]</a></center></td>';
+				, 'href="index.php?thisQ=subcorpus&subcorpusFunction=copy_subcorpus&subcorpusToCopy=' 
+				, $row['subcorpus_name'] 
+				, '&uT=y" onmouseover="return escape(\'Copy this subcorpus\')">'   
+				, '[copy]</a></center></td>';
 	
 			echo '<td class="concordgeneral"><center><a class="menuItem" ' 
-				. 'href="index.php?thisQ=subcorpus&subcorpusFunction=add_texts_to_subcorpus&subcorpusToAddTo=' 
-				. $row['subcorpus_name'] . '&uT=y" onmouseover="return escape(\'Add texts to this subcorpus\')">'   
-				. '[add]</a></center></td>';
+				, 'href="index.php?thisQ=subcorpus&subcorpusFunction=add_texts_to_subcorpus&subcorpusToAddTo=' 
+				, $row['subcorpus_name'] 
+				, '&uT=y" onmouseover="return escape(\'Add texts to this subcorpus\')">'   
+				, '[add]</a></center></td>';
 
 			echo '<td class="concordgeneral"><center>' 
-				. '<a class="menuItem" href="subcorpus-admin.php?scriptMode=delete&subcorpusToDelete='
-				. $row['subcorpus_name'] . '&uT=y" onmouseover="return escape(\'Delete this subcorpus\')">'
-				. '[x]</a></center></td>';
+				, '<a class="menuItem" href="subcorpus-admin.php?scriptMode=delete&subcorpusToDelete='
+				, $row['subcorpus_name'] . '&uT=y" onmouseover="return escape(\'Delete this subcorpus\')">'
+				, '[x]</a></center></td>';
 				
 			echo "</tr>\n";
 		}

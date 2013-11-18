@@ -83,7 +83,7 @@ function printquery_corpusoptions()
 					Corpus title:
 				</td>
 				<td class="concordgeneral" align="center">
-					<input type="text" name="args" value="<?php echo $settings->get_corpus_title(); ?>" />
+					<input type="text" name="args" value="<?php echo cqpweb_htmlspecialchars($settings->get_corpus_title()); ?>" />
 				</td>
 				<td class="concordgeneral" align="center">
 					<input type="submit" value="Update" />
@@ -1214,7 +1214,7 @@ function printquery_managemeta()
 							(you may wish to modify):
 							<br/>&nbsp;<br/>
 							<input type="text" name="args" value="<?php 
-								echo $corpus_title;
+								echo cqpweb_htmlspecialchars($corpus_title);
 								?>" size="40" maxlength="100" />
 							<br/>&nbsp;<br/>
 							<input type="submit" value="Make this frequency table public"/>

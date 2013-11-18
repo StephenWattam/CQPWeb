@@ -420,7 +420,7 @@ function metadata_get_array_of_metadata()
 	{
 		$cache = array();
 		
-		$field = mysql_real_escape_string($field);
+		//$field = mysql_real_escape_string($field); # this line seems to be useless.
 		$result = do_mysql_query("SELECT handle, description, is_classification 
 							      FROM text_metadata_fields WHERE corpus = '$corpus_sql_name'");
 

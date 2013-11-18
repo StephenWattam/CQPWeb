@@ -126,7 +126,12 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 				$begin_anchor = $_GET["c{$i}_beginAnch"];
 			else
 				exiterror_parameter("Invalid begin anchor for column $i.");
-			$begin_offset = ( isset($_GET["c{$i}_beginOff"]) ? (int)$_GET["c{$i}_beginOff"] : 0);	
+			$begin_offset = ( isset($_GET["c{$i}_beginOff"]) ? (int)$_GET["c{$i}_beginOff"] : 0);
+			/* note, this is a heuristic, since $max_extended_context is meant to apply to the beginning/end
+			 * of the match. But this will not have any effect unless $max_extended_context is very low, as
+			 * it only budges what is possible by one or two tokens, in most cases. */
+			if (abs($begin_offset) > $max_extended_context)
+				exiterror_general("In this corpus, you are not permitted to tabulate positions with an offset greater than $max_extended_context.");
 			
 			/* end point! */
 			if (! isset($_GET["c{$i}_endAnch"]))
@@ -135,7 +140,9 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 				$end_anchor = $_GET["c{$i}_endAnch"];
 			else
 				exiterror_parameter("Invalid end anchor for column $i.");
-			$end_offset = ( isset($_GET["c{$i}_endOff"]) ? (int)$_GET["c{$i}_endOff"] : 0);	
+			$end_offset = ( isset($_GET["c{$i}_endOff"]) ? (int)$_GET["c{$i}_endOff"] : 0);
+			if (abs($end_offset) > $max_extended_context)
+				exiterror_general("In this corpus, you are not permitted to tabulate positions with an offset greater than $max_extended_context.");
 			
 			/* build range spec */
 			$range = ($begin_offset == 0 ? "$begin_anchor" : "{$begin_anchor}[$begin_offset]");
