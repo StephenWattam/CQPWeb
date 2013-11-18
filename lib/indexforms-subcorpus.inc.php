@@ -665,6 +665,7 @@ function print_sc_showsubcorpora()
 			else
 			{
 // TODO we use $collocation_disallow_cutoff but it should relaly be a more generalised "freq list user build" cutoff
+var_dump($row['numwords'] , $collocation_disallow_cutoff);
 			if ($row['numwords'] >= $collocation_disallow_cutoff)
 				echo '<a class="menuItem" " onmouseover="return escape(\'Cannot compile frequency tables for this subcorpus ,'
 					, ' as it is too big\')">Cannot compile</a>';
