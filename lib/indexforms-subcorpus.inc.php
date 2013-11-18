@@ -609,6 +609,7 @@ function print_sc_showsubcorpora()
 {
 	global $username;
 	global $default_history_per_page;	/* the same variable used for query history is used here */
+	global $collocation_disallow_cutoff;
 	global $corpus_sql_name;
 
 	if (user_is_superuser($username))
@@ -666,16 +667,16 @@ function print_sc_showsubcorpora()
 			{
 // TODO we use $collocation_disallow_cutoff but it should relaly be a more generalised "freq list user build" cutoff
 var_dump($row['numwords'] , $collocation_disallow_cutoff);
-			if ($row['numwords'] >= $collocation_disallow_cutoff)
-				echo '<a class="menuItem" " onmouseover="return escape(\'Cannot compile frequency tables for this subcorpus ,'
-					, ' as it is too big\')">Cannot compile</a>';
-			else
-				echo '<a class="menuItem" href="freqtable-compile.php?compileSubcorpus=' 
-					, $row['subcorpus_name']
-					, '&compileAfter=index_sc&uT=y'
-					, '" onmouseover="return escape(\'Compile frequency tables for subcorpus <b>'
-					, $row['subcorpus_name']
-					, '</b>, allowing calculation of collocations and keywords\')">Compile</a>';
+				if ($row['numwords'] >= $collocation_disallow_cutoff)
+					echo '<a class="menuItem" " onmouseover="return escape(\'Cannot compile frequency tables for this subcorpus ,'
+						, ' as it is too big\')">Cannot compile</a>';
+				else
+					echo '<a class="menuItem" href="freqtable-compile.php?compileSubcorpus=' 
+						, $row['subcorpus_name']
+						, '&compileAfter=index_sc&uT=y'
+						, '" onmouseover="return escape(\'Compile frequency tables for subcorpus <b>'
+						, $row['subcorpus_name']
+						, '</b>, allowing calculation of collocations and keywords\')">Compile</a>';
 			}
 			echo '</center></td>';
 			
