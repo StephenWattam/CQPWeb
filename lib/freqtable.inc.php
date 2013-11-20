@@ -424,13 +424,13 @@ function touch_freqtable($freqtable_name)
  * Returns the record (associative array) of the freqtable cluster for the subcorpus
  * OR returns false.
  * 
- * note this function DOESNT check usernames, whereas check_freqtable_subcorpus DOES 
+ * Note this function DOESN'T check usernames, whereas check_freqtable_subcorpus() DOES (by default).
  */
 function check_freqtable_restriction($restrictions)
 {
 	global $corpus_sql_name;
 
-	/* especially important because restricitons often contain single quotes */
+	/* especially important because restrictions often contain single quotes */
 	$restrictions = mysql_real_escape_string($restrictions);
 
 	$sql_query = "select * from saved_freqtables 
@@ -438,27 +438,47 @@ function check_freqtable_restriction($restrictions)
 
 	$result = do_mysql_query($sql_query);
 
-	if (mysql_num_rows($result) == 0)
-		return false;
-	else 
+	if (mysql_num_rows($result) > 0)
 		return mysql_fetch_assoc($result);
+	else 
+	{
+		/* check for a subcorpus whose freq list was based on these restrictions */
+		$sql_query = "select subcorpus_name from saved_subcorpora 
+			where corpus = '$corpus_sql_name' and restrictions = '$restrictions'";
+		$result = do_mysql_query($sql_query);
+		if (mysql_num_rows($result) > 0)
+		{
+			/* someone has a subcorp with these restrictions, so let's see if it
+			 * has a freqtable..... */
+			list($sn) = mysql_fetch_row($result);
+			return check_freqtable_subcorpus($sn);
+		}
+		else
+			/* no one has a subcorp with these restrictions */
+			return false;
+	}
 }
 
 
 /**
  * Returns the record (associative array) of the freqtable cluster for the subcorpus
  * OR returns false. 
+ * 
+ * If $with_username_check is true, only a freqtable for a subcorpus owned by the current 
+ * user will be returned. If false, it will look for freqtables of subcorpora owned by other users too.
  */
-function check_freqtable_subcorpus($subcorpus_name)
+function check_freqtable_subcorpus($subcorpus_name, $with_user_name_check = true)
 {
 	global $corpus_sql_name;
 	global $username;
+	
+	$userline = ($with_user_name_check ? "and user = '$username'" : '');
 	
 	$subcorpus_name = mysql_real_escape_string($subcorpus_name);
 	
 	$sql_query = "select * from saved_freqtables 
 		where corpus = '$corpus_sql_name' 
-		and user = '$username' 
+		$userline
 		and subcorpus = '$subcorpus_name'";
 	$result = do_mysql_query($sql_query);
 
@@ -480,7 +500,13 @@ function delete_freqtable($freqtable_name)
 {
 	$freqtable_name = mysql_real_escape_string($freqtable_name);
 	
-	$result = do_mysql_query("show tables like '$freqtable_name%'");
+	/* delete no tables if this is not a real entry in the freqtable db
+	 * (this check should in theory not be needed, but let's make sure) */
+	$result = do_mysql_query("select freqtable_name from saved_freqtables where freqtable_name = '$freqtable_name'");
+	if (1 > mysql_num_rows($result))
+		return;
+	
+	$result = do_mysql_query("show tables like '{$freqtable_name}_%'");
 
 	while ( ($r = mysql_fetch_row($result)) !== false )
 		do_mysql_query("drop table if exists ${r[0]}");

@@ -405,7 +405,7 @@ else if ($query_record['restrictions'] != 'no_restriction')
  */
 
 
-if ( isset($freqtable_record) && $freqtable_record != false)  /* ie (a) IF the if above was true.... */
+if ( isset($freqtable_record) && $freqtable_record !== false)  /* ie (a) IF the if above was true.... */
 {
  	/* we are using a subsection (sc or retriction): touch it and assign the freqtable name */
 	$freq_table_to_use = "{$freqtable_record['freqtable_name']}_{$att_for_calc}";

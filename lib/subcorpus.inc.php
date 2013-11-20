@@ -265,11 +265,15 @@ function subcorpus_alter_text_list($subcorpus, $new_list)
 
 	$subcorpus = mysql_real_escape_string($subcorpus);
 	
+	/* if this subcorpus has a compiled freq table, delete it */
+	if ( ! (false === ($ft = check_freqtable_subcorpus($subcorpus))))
+		delete_freqtable($ft['freqtable_name']);
+	
+	
 	/* find out the new size of the subcorpus and update */
 	$sql_query = "SELECT count(*), sum(words) FROM text_metadata_for_$corpus_sql_name 
 		WHERE " . translate_textlist_to_where($new_list);
-	$result = do_mysql_query($sql_query);
-	list($numfiles, $numwords) = mysql_fetch_row($result);
+	list($numfiles, $numwords) = mysql_fetch_row(do_mysql_query($sql_query));
 
 	$sql_query = "update saved_subcorpora 
 		SET restrictions = NULL, text_list = '$new_list', numfiles = $numfiles, numwords = $numwords 

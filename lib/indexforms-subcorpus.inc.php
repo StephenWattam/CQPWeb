@@ -54,7 +54,7 @@ function printquery_subcorpus()
 	switch($function)
 	{
 	case 'list_subcorpora':
-		print_sc_newform();
+		print_sc_newform(false);
 		print_sc_showsubcorpora();
 		break;
 	
@@ -75,7 +75,7 @@ function printquery_subcorpus()
 		break;
 	
 	case 'define_subcorpus':
-		print_sc_newform();	/* this is here to allow them to abort and select a new method */
+		print_sc_newform(true);	/* this is here to allow them to abort and select a new method */
 		
 		switch($create_method)
 		{
@@ -122,7 +122,7 @@ function printquery_subcorpus()
 
 
 
-function print_sc_newform()
+function print_sc_newform($with_return_option)
 {
 	?>
 	<table class="concordtable" width="100%">
@@ -140,12 +140,13 @@ function print_sc_newform()
 							</td>
 							<td class="basicbox">
 								<select name="subcorpusCreateMethod">
-									<option value="metadata">Corpus metadata</option>
+									<option value="metadata"     >Corpus metadata</option>
 									<option value="metadata_scan">Scan text metadata</option>
-									<option value="manual">Manual entry of filenames</option>
-									<option value="invert">Invert an existing subcorpus</option>
-									<option value="query">Texts found in a saved query</option>
-									<option value="text_id">Create a subcorpus for every text</option>
+									<option value="manual"       >Manual entry of filenames</option>
+									<option value="invert"       >Invert an existing subcorpus</option>
+									<option value="query"        >Texts found in a saved query</option>
+									<option value="text_id"      >Create a subcorpus for every text</option>
+									<?php if ($with_return_option) echo "<option value=\"return\">Return to list of existing subcorpora</option>\n"; ?>
 								</select>
 							</td>
 							<td class="basicbox">
@@ -666,7 +667,6 @@ function print_sc_showsubcorpora()
 			else
 			{
 // TODO we use $collocation_disallow_cutoff but it should relaly be a more generalised "freq list user build" cutoff
-var_dump($row['numwords'] , $collocation_disallow_cutoff);
 				if ($row['numwords'] >= $collocation_disallow_cutoff)
 					echo '<a class="menuItem" " onmouseover="return escape(\'Cannot compile frequency tables for this subcorpus ,'
 						, ' as it is too big\')">Cannot compile</a>';

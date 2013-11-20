@@ -709,6 +709,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.0.15</b>, 2013-11-20<br/>&nbsp;<br/>
+		Improved background handling of frequency lists (no changed a user would notice).
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.0.14</b>, 2013-11-18<br/>&nbsp;<br/>
 		Added protection against users compiling very, very large frequency tables for subcorpora or on-the-fly for collocations.
 		<br/>&nbsp;</li>

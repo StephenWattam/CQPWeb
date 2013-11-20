@@ -399,8 +399,7 @@ case 'delete_texts':
 
 	if (!empty($m[1]))
 	{
-		foreach($m[1] as &$current)
-			$current = mysql_real_escape_string($current);
+		$m[1] = array_map('mysql_real_escape_string', $m[1]);
 		subcorpus_remove_texts($subcorpus_from, $m[1]);
 	}
 	else
