@@ -450,8 +450,10 @@ function check_freqtable_restriction($restrictions)
 		{
 			/* someone has a subcorp with these restrictions, so let's see if it
 			 * has a freqtable..... */
-			list($sn) = mysql_fetch_row($result);
-			return check_freqtable_subcorpus($sn);
+			while(false !== ($r = mysql_fetch_row($result)))
+				if (false !== ($check = check_freqtable_subcorpus($r[0], false)))
+					return $check;
+			return false;
 		}
 		else
 			/* no one has a subcorp with these restrictions */
