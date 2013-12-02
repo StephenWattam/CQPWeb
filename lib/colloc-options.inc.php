@@ -365,6 +365,7 @@ disconnect_global_mysql();
 function print_warning_cell($query_record)
 {
 	global $collocation_warning_cutoff;
+	global $collocation_disallow_cutoff;
 	
 	$issue_warning = false;
 
