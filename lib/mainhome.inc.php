@@ -102,7 +102,7 @@ foreach ($categories as $idno => $cat)
 
 
 	if ($use_corpus_categories_on_homepage)
-		echo '<tr><th colspan="3" class="concordtable">' . $cat . "</th></tr>\n\n";
+		echo "\t\t<tr><th colspan=\"3\" class=\"concordtable\">$cat</th></tr>\n\n";
 	
 	
 	
@@ -112,7 +112,7 @@ foreach ($categories as $idno => $cat)
 	foreach ($corpus_list as $c)
 	{
 		if ($i == 0)
-			echo '<tr>';
+			echo "\t\t<tr>";
 		
 		/* get $corpus_title */
 		include ("../{$c->corpus}/settings.inc.php");
@@ -124,13 +124,13 @@ foreach ($categories as $idno => $cat)
 				&nbsp;<br/>
 				<a href=\"{$c->corpus}/\">$corpus_title</a>
 				<br/>&nbsp;
-			</td>";
+			</td>\n";
 		
 		$celltype = ($celltype=='concordgrey'?'concordgeneral':'concordgrey');
 		
 		if ($i == 2)
 		{
-			echo '</tr>';
+			echo "\t\t</tr>\n";
 			$i = 0;
 		}
 		else
@@ -143,18 +143,20 @@ foreach ($categories as $idno => $cat)
 	
 	if ($i == 1)
 	{
-		echo "<td class=\"$celltype\" width=\"33%\" align=\"center\">&nbsp;</td>";
+		echo "\t\t\t<td class=\"$celltype\" width=\"33%\" align=\"center\">&nbsp;</td>\n";
 		$i++;
 		$celltype = ($celltype=='concordgrey'?'concordgeneral':'concordgrey');
 	}
 	if ($i == 2)
-		echo "<td class=\"$celltype\" width=\"33%\" align=\"center\">&nbsp;</td>";
+		echo "\t\t\t<td class=\"$celltype\" width=\"33%\" align=\"center\">&nbsp;</td>\n\t\t</tr>\n";
 }
 
 ?>
 
 			
 </table>
+
+<a name="messages"></a>
 
 <?php
 
