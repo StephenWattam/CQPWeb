@@ -2436,8 +2436,8 @@ function printquery_showfreqtables()
 		{
 			if ((bool)$row['public'])
 			{
-				echo '<td class="concordgeneral"><center><a class="menuItem" 
-					onmouseover="return escape(\'This frequency list is public on the system!\')">Yes</a>
+				echo '<td class="concordgeneral"><center><span 
+					onmouseover="return escape(\'This frequency list is public on the system!\')">Yes</span>
 					<a class="menuItem" href="execute.php?function=unpublicise_freqtable&args='
 					. $row['freqtable_name'] . "&locationAfter=$return_to_url&uT=y"
 					. '" onmouseover="return escape(\'Make this frequency list unpublic\')">[&ndash;]</a>
@@ -2445,8 +2445,8 @@ function printquery_showfreqtables()
 			}
 			else
 			{
-				echo '<td class="concordgeneral"><center><a class="menuItem" 
-					onmouseover="return escape(\'This frequency list is not publicly accessible\')">No</a>	
+				echo '<td class="concordgeneral"><center><span
+					onmouseover="return escape(\'This frequency list is not publicly accessible\')">No</span>
 					<a class="menuItem" href="execute.php?function=publicise_freqtable&args='
 					. $row['freqtable_name'] . "&locationAfter=$return_to_url&uT=y"
 					. '" onmouseover="return escape(\'Make this frequency list public\')">[+]</a>
