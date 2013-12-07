@@ -611,12 +611,19 @@ function printquery_who()
 			provide readers with a reference to the following paper:</p>
 			
 			<ul>
-				<li>Hardie, A (forthcoming) <em>CQPweb - combining power, flexibility 
-					and usability in a corpus analysis tool</em>.</li>
+				<li>
+					Hardie, A (2012) <strong>CQPweb - combining power, flexibility 
+					and usability in a corpus analysis tool</strong>. 
+					<em>International Journal of Corpus Linguistics</em> 17 (3): 380&ndash;409.
+					<a href="http://www.ingentaconnect.com/content/jbp/ijcl/2012/00000017/00000003/art00004" target="_blank">
+						[Full text on publisher's website]
+					</a>
+					<a href="http://www.lancaster.ac.uk/staff/hardiea/cqpweb-paper.pdf" target="_blank">
+						[Alternative link]
+					</a>
+				</li>
 			</ul>
-			
-			<p>The paper itself will be made available to download as soon as it is finished!</p>	
-			
+						
 			<p><a href="http://cwb.sourceforge.net/doc_links.php">Click here</a> for other references relating
 			to Corpus Workbench software.</p>
 			
@@ -710,7 +717,7 @@ function printquery_latest()
 -->
 		<li>
 		<b>Version 3.0.15</b>, 2013-11-20<br/>&nbsp;<br/>
-		Improved background handling of frequency lists (no changed a user would notice).
+		Improved background handling of frequency lists (no changes a user would notice).
 		<br/>&nbsp;</li>
 
 		<li>

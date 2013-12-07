@@ -246,7 +246,7 @@ class CQPwebSettings
 		$data = "<?php\n\n";
 		
 		/* variables that must be written */
-		$data .= "\$corpus_title = '{$this->corpus_title}';\n";
+		$data .= "\$corpus_title = '" . addcslashes($this->corpus_title, "'") . "';\n";
 		$data .= "\$corpus_sql_name = '{$this->corpus_sql_name}';\n";
 		$data .= "\$corpus_cqp_name = '{$this->corpus_cqp_name}';\n";
 		$data .= "\$css_path = '{$this->css_path}';\n";

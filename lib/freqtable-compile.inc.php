@@ -77,6 +77,7 @@ if (isset($_GET['compileSubcorpus']))
 else
 {
 	/* are we to compile all subcorpora? */
+	/* deactivate compile all (dangerous!)
 	if (isset($_GET['compileSubcorpusAll']) && $_GET['compileSubcorpusAll'] == '1')
 	{
 		$freqtabled_subcorpora = list_freqtabled_subcorpora();
@@ -85,7 +86,8 @@ else
 				subsection_make_freqtables($sc);
 	}
 	else
-		exiterror_parameter('Critical parameter "compileSubcorpus" was not defined!', __FILE__, __LINE__);
+	*/
+	exiterror_parameter('Critical parameter "compileSubcorpus" was not defined!', __FILE__, __LINE__);
 }
 
 
@@ -103,8 +105,8 @@ if (!isset($_GET['compileAfter']))
 switch($_GET['compileAfter'])
 {
 /* other cases here, if seen as necessary */
-case 'index_sc':
-	/* just the default */
+
+/* defaults to subcorpus index page */
 default:
 	set_next_absolute_location('index.php?thisQ=subcorpus&uT=y');
 	break;

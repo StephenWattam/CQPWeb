@@ -444,12 +444,14 @@ function check_freqtable_restriction($restrictions)
 	{
 		/* check for a subcorpus whose freq list was based on these restrictions */
 		$sql_query = "select subcorpus_name from saved_subcorpora 
-			where corpus = '$corpus_sql_name' and restrictions = '$restrictions'";
+			where corpus = '$corpus_sql_name' 
+			and restrictions = '$restrictions' 
+			and subcorpus !='__last_restrictions";
 		$result = do_mysql_query($sql_query);
 		if (mysql_num_rows($result) > 0)
 		{
-			/* someone has a subcorp with these restrictions, so let's see if it
-			 * has a freqtable..... */
+			/* someone has a subcorp with these restrictions, 
+			 * so let's see if it has a freqtable..... */
 			while(false !== ($r = mysql_fetch_row($result)))
 				if (false !== ($check = check_freqtable_subcorpus($r[0], false)))
 					return $check;

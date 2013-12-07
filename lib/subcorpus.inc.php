@@ -269,7 +269,6 @@ function subcorpus_alter_text_list($subcorpus, $new_list)
 	if ( ! (false === ($ft = check_freqtable_subcorpus($subcorpus))))
 		delete_freqtable($ft['freqtable_name']);
 	
-	
 	/* find out the new size of the subcorpus and update */
 	$sql_query = "SELECT count(*), sum(words) FROM text_metadata_for_$corpus_sql_name 
 		WHERE " . translate_textlist_to_where($new_list);

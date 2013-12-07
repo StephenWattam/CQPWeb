@@ -41,6 +41,10 @@ function printquery_subcorpus()
 	else
 		$create_method = $_GET['subcorpusCreateMethod'];
 
+	/* a short circuit for returning to the subcorpus list from the "define...." dropdown */
+	if ($function == 'define_subcorpus' && $create_method == 'return')
+		$function = 'list_subcorpora'; 
+
 	if (!isset($_GET['subcorpusBadName']))
 		$badname_entered = false;
 	else
@@ -666,7 +670,7 @@ function print_sc_showsubcorpora()
 				echo 'Available';
 			else
 			{
-// TODO we use $collocation_disallow_cutoff but it should relaly be a more generalised "freq list user build" cutoff
+// TODO we use $collocation_disallow_cutoff but it should really be a more generalised "freq list user build" cutoff
 				if ($row['numwords'] >= $collocation_disallow_cutoff)
 					echo '<a class="menuItem" " onmouseover="return escape(\'Cannot compile frequency tables for this subcorpus ,'
 						, ' as it is too big\')">Cannot compile</a>';
@@ -706,6 +710,7 @@ function print_sc_showsubcorpora()
 		else
 		{
 			?>
+			<!-- in retrospet, this button is a very bad idea. Switched off! both here and in freqtable-compile.
 			<tr>
 				<td colspan="7" class="concordgrey" align="center">
 					&nbsp<br/>
@@ -716,6 +721,7 @@ function print_sc_showsubcorpora()
 					</form>
 				</td>
 			</tr>
+			-->
 			<?php
 		}
 		
