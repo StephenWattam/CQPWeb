@@ -446,7 +446,7 @@ function check_freqtable_restriction($restrictions)
 		$sql_query = "select subcorpus_name from saved_subcorpora 
 			where corpus = '$corpus_sql_name' 
 			and restrictions = '$restrictions' 
-			and subcorpus !='__last_restrictions";
+			and subcorpus_name !='__last_restrictions'";
 		$result = do_mysql_query($sql_query);
 		if (mysql_num_rows($result) > 0)
 		{
