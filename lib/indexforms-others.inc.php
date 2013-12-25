@@ -716,6 +716,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.0.16</b>, 2013-12-24<br/>&nbsp;<br/>
+		Fixed two minor bugs in the concordance download function.
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.0.15</b>, 2013-11-20<br/>&nbsp;<br/>
 		Improved background handling of frequency lists (no changes a user would notice).
 		<br/>&nbsp;</li>

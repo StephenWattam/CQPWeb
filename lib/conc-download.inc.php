@@ -181,7 +181,6 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 			$hit_delimiter_before = '<<< ';
 			$hit_delimiter_after  = ' >>>';
 		}
-
 		
 		/* context size */
 		
@@ -191,7 +190,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 			$words_in_context = $default_words_in_download_context;
 		if ($words_in_context > $max_extended_context)
 			$words_in_context = $max_extended_context;
-		
+	
 		/* tagged and untagged? */
 
 		if (isset($_GET['downloadTaggedAndUntagged']) && $_GET['downloadTaggedAndUntagged'] == 1)
@@ -202,11 +201,18 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 		/* file-start info format */
 		
 		$header_format = NULL;
-		switch (isset($_GET['downloadHeadType']))
+		if (isset($_GET['downloadHeadType']))
 		{
-		case 'list':	$header_format = 'list';	break;
-		case 'tabs':	$header_format = 'tabs';	break;
-		default: 		/* leave as NULL */ ;		break;
+			switch ($_GET['downloadHeadType'])
+			{
+			case 'list':
+			case 'tabs':
+				$header_format = $_GET['downloadHeadType'];
+				break;
+			default:
+				/* leave as NULL */
+				break;
+			}
 		}
 		
 		/* kwic or line? */
@@ -387,7 +393,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 		{
 			$category_descriptions[$f] = metadata_category_listdescs($f);
 			if ($category_handles_only)
-				foreach($category_descriptions as $k => &$v)
+				foreach($category_descriptions[$f] as $k => &$v)
 					$v = $k;
 		}
 	}

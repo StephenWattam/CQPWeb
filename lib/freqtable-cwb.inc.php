@@ -36,21 +36,28 @@
 
 
 
-/* check if a cwb-frequency-"corpus" exists for the specified lowercase name */
-/* only for subcorpora, not for corpora */
-	// I have no idea what the comment on the rpeceding line actually means...
+/**
+ * Check if a cwb-frequency-"corpus" exists for the specified lowercase corpus name.
+ * 
+ * For true to be returned, BOTH the cwb "__freq" corpus AND the corresponding text
+ * index must exist.
+ * 
+ * Note: does not work for subcorpora, because they have neither a CWB "__freq" table,
+ * nor a freq text index!
+ */
 function check_cwb_freq_index($corpus_name)
 {
-	$lowercase_name = $corpus_name . '__freq'; 
+	if (! cwb_corpus_exists($corpus_name . '__freq') )
+		return false;
+	 
 	$mysql_table = "freq_text_index_$corpus_name";
 	
 	$result = do_mysql_query("show tables");
 	while ( ($r = mysql_fetch_row($result)) !== false)
-		$a[] = $r[0];
-
-	unset($result);
-
-	return ( in_array($mysql_table, $a) && cwb_corpus_exists($lowercase_name) ) ;
+		if ($r[0] == $mysql_table)
+			return true;
+	
+	return false;
 }
 
 
