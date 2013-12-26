@@ -533,7 +533,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 				<br/>&nbsp;
 			</td>
 		</tr>
-		<input type="hidden" name="redirect" value="download" />
+		<input type="hidden" name="redirect" value="download-conc" />
 		<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
 		<input type="hidden" name="uT" value="y" />
 	</form>

@@ -716,6 +716,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.1.0</b>, 2013-12-26<br/>&nbsp;<br/>
+		
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.0.16</b>, 2013-12-24<br/>&nbsp;<br/>
 		Fixed two minor bugs in the concordance download function.
 		<br/>&nbsp;</li>
