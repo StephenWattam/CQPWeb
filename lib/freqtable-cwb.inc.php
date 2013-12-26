@@ -202,6 +202,7 @@ function make_cwb_freq_index()
 
 
 	/* make the indexes & compress */
+	$output = array();
 	exec($cmd_makeall,  $output);
 	exec($cmd_huffcode, $output);
 	exec($cmd_pressrdx, $output);

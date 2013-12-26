@@ -1488,7 +1488,7 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 					. '</em> ';
 			}
 			
-			$description .= $bdo_tag1 . '(' . make_thousands($hit_array[$i]) . ' hits)' . $bdo_tag2;
+			$description .= $bdo_tag1 . '(' . number_format((float)$hit_array[$i]) . ' hits)' . $bdo_tag2;
 			$i++;
 			
 			break;
@@ -1498,7 +1498,7 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 			$description .= "collocating with $att_id <em>{$args[2]}</em>"
 				. ( empty($args[5]) ? '' : " with tag restriction <em>{$args[5]}</em>" )
 				. " $bdo_tag1("
-				. make_thousands($hit_array[$i]) . ' hits)'. $bdo_tag2;
+				. number_format((float)$hit_array[$i]) . ' hits)'. $bdo_tag2;
 			$i++;
 			break;
 			
@@ -1512,14 +1512,14 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 			
 		case 'thin':
 			$method = ($args[1] == 'r' ? 'random selection' : 'random selection (non-reproducible)');
-			$count = make_thousands($hit_array[$i]);
+			$count = number_format((float)$hit_array[$i]);
 			$description .= "thinned with method <em>$method</em> to $count hits";
 			$i++;
 			break;
 		
 		case 'cat':
 			$description.= "manually categorised as &ldquo;{$args[0]}&rdquo; ("
-				. make_thousands($hit_array[$i]) . " hits)";
+				. number_format((float)$hit_array[$i]) . " hits)";
 			$i++;
 			break;
 		
@@ -1531,20 +1531,20 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 				$description .= 'word: <em>' . $args[0] . '</em> ';
 			else
 				$description .= 'word-tag combination: <em>' . $args[0] . '_' . $args[1] . '</em> ';
-			$description .= '(' . make_thousands($hit_array[$i]) . ' hits)';
+			$description .= '(' . number_format((float)$hit_array[$i]) . ' hits)';
 			$i++;
 			break;
 		
 		case 'dist':
 			$labels = metadata_expand_attribute($args[0], $args[1]);
 			$description .= "distribution over <em>{$labels['field']} : {$labels['value']}</em> ";
-			$description .= '(' . make_thousands($hit_array[$i]) . ' hits)';
+			$description .= '(' . number_format((float)$hit_array[$i]) . ' hits)';
 			$i++;
 			break;
 		
 		case 'text':
 			$description .= "occurrences in text <em>{$args[0]}</em> ";
-			$description .= '(' . make_thousands($hit_array[$i]) . ' hits)';
+			$description .= '(' . number_format((float)$hit_array[$i]) . ' hits)';
 			$i++;
 			break;
 		
@@ -1554,7 +1554,7 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 			/* custom PP descs are allowd to be empty, in which case, we just add the
 			 * new number of hits. */
 			$description .= $obj->get_postprocess_description()
-				. " $bdo_tag1("	. make_thousands($hit_array[$i]) . ' hits)'. $bdo_tag2;
+				. " $bdo_tag1("	. number_format((float)$hit_array[$i]) . ' hits)'. $bdo_tag2;
 			$i++;
 			unset($obj);
 			break;

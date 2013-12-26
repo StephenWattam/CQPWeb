@@ -772,7 +772,7 @@ function printquery_installcorpus_unindexed()
 					<td class="concordgeneral" align="left"><?php echo $f; ?></td>
 					
 					<td class="concordgeneral" align="right";>
-						<?php echo make_thousands(round($stat['size']/1024, 0)); ?>
+						<?php echo number_format(round($stat['size']/1024, 0)); ?>
 					</td>
 				
 					<td class="concordgeneral" align="center">
@@ -1221,7 +1221,7 @@ function printquery_uploadarea()
 			<td class="concordgeneral" align="left"><?php echo $f; ?></td>
 			
 			<td class="concordgeneral" align="right";>
-				<?php echo make_thousands(round($stat['size']/1024, 0)); ?>
+				<?php echo number_format(round($stat['size']/1024, 0)); ?>
 			</td>
 			
 			<td class="concordgeneral" align="center"><?php echo date('Y-M-d H:i:s', $stat['mtime']); ?></td>
@@ -1272,7 +1272,7 @@ function printquery_uploadarea()
 		}
 		
 		echo '<tr><td align="left" class="concordgrey" colspan="7">'
-			. $total_files . ' files (' . make_thousands(round($total_bytes/1024, 0)) . ' K)'
+			. $total_files . ' files (' . number_format(round($total_bytes/1024, 0)) . ' K)'
 			. '</td></tr>';
 		
 		?>
@@ -1483,7 +1483,7 @@ function printquery_useradmin()
 			for ($n = 100, $i = 1; $i < 8; $i++)
 			{
 				$n *= 10;
-				$w = make_thousands($n);
+				$w = number_format((float)$n);
 				$limit_options .= "<option value=\"{$r['username']}#max_dbsize#$n\">$w</option>\n";
 			}
 			?>
@@ -1491,7 +1491,7 @@ function printquery_useradmin()
 				<tr>
 					<td class="concordgeneral"><strong><?php echo $r['username'];?></strong></td>
 					<td class="concordgeneral" align="center">
-						<?php echo make_thousands($r['max_dbsize']); ?>
+						<?php echo number_format((float)$r['max_dbsize']); ?>
 					</td>
 					<td class="concordgeneral" align="center">
 						<select name="args">
@@ -1951,7 +1951,7 @@ function printquery_skins()
 					<td class="concordgeneral" align="left"><?php echo $f; ?></td>
 					
 					<td class="concordgeneral" align="right";>
-						<?php echo make_thousands(round($stat['size']/1024, 0)); ?>
+						<?php echo number_format(round($stat['size']/1024, 0)); ?>
 					</td>
 				
 					<td class="concordgeneral" align="center">
@@ -2318,7 +2318,7 @@ function printquery_systemsnapshots()
 				</td>
 				
 				<td class="concordgeneral" align="right";>
-					<?php echo make_thousands(round($stat['size']/1024, 0)); ?>
+					<?php echo number_format(round($stat['size']/1024, 0)); ?>
 				</td>
 				
 				<td class="concordgeneral" align="center">
@@ -2875,7 +2875,7 @@ function printquery_statistic($type = 'user')
 			echo "<tr>\n";
 			echo '<td class="concordgeneral" align="center">' . "$i</td>\n";
 			echo '<td class="concordgeneral" align="left">' . "{$row[0]}</td>\n";
-			echo '<td class="concordgeneral" align="center">' . make_thousands($row[1]) . "</td>\n";
+			echo '<td class="concordgeneral" align="center">' . number_format((float)$row[1]) . "</td>\n";
 			echo "\n</tr>\n";
 		}
 		?>

@@ -43,9 +43,7 @@
 
 
 /* initialise variables from settings files  */
-
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include function library files */
@@ -452,7 +450,7 @@ $result = do_mysql_query($sql_query);
 /* "time" == time to create the db (if nec), create the freqtable (if nec), + run the BIIIG query */
 $timeTaken = round(microtime(true) - $startTime, 3);
 
-$description = "There are " . make_thousands($db_types_total) . " different " 
+$description = "There are " . number_format((float)$db_types_total) . " different " 
 	. strtolower($att_desc[$att_for_calc]) 
 	. "s in your collocation database for &ldquo;{$query_record['cqp_query']}&rdquo;. (" 
 	. create_solution_heading($query_record, false) . ') ' 
@@ -680,9 +678,9 @@ else
 			$row['significance'] = 'n/a';
 		else
 			$row['significance'] = round($row['significance'], 3);
-		$row['observed'] = make_thousands($row['observed']);
+		$row['observed'] = number_format((float)$row['observed']);
 		$row['expected'] = round($row['expected'], 3);
-		$row['freq'] = make_thousands($row['freq']);
+		$row['freq'] = number_format((float)$row['freq']);
 		
 		$att_for_calc_tt_show = strtr($row[$att_for_calc], array("'"=>"\'", '"'=>'&quot;'));
 		

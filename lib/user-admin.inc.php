@@ -26,8 +26,7 @@
 
 
 /* include defaults and settings */
-require('settings.inc.php');
-require('../lib/defaults.inc.php');
+require('../lib/environment.inc.php');
 
 
 /* library files */

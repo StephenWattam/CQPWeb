@@ -26,9 +26,7 @@
 /* print a form to collect the options for running collocations */
 
 /* initialise variables from settings files  */
-
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include function library files */
@@ -394,7 +392,7 @@ function print_warning_cell($query_record)
 			<tr>
 				<td class="concorderror" colspan="3">
 					The current set of hits was retrieved from a large subpart of the corpus 
-					(' . make_thousands($words) . ' words). No cached frequency data
+					(' . number_format((float)$words) . ' words). No cached frequency data
 					was found, and this is too much text for frequency lists to be compiled 
 					on the fly in order to provide accurate measures of collocational strength. 
 					<br/>&nbsp;<br/>
@@ -412,7 +410,7 @@ function print_warning_cell($query_record)
 			<tr>
 				<td class="concorderror" colspan="2">
 					The current set of hits was retrieved from a large subpart of the corpus 
-					(' . make_thousands($words) . ' words). No cached frequency data
+					(' . number_format((float)$words) . ' words). No cached frequency data
 					was found and frequency lists for the relevant part of the corpus will have to 
 					be compiled in order to provide accurate measures of collocational strength. 
 					Depending on the size of the subcorpus this may take several minutes and will
@@ -436,7 +434,7 @@ function print_warning_cell($query_record)
 			<tr>
 				<td class="concorderror" colspan="3">
 					<strong>Note:</strong> The current set of hits was retrieved from a subpart 
-					of the corpus (' . make_thousands($words) . ' words). No cached frequency data 
+					of the corpus (' . number_format((float)$words) . ' words). No cached frequency data 
 					was found and frequency lists for the relevant part of the corpus will have to 
 					be compiled in order to provide accurate measures of collocational strength. 
 			 		This will increase the time needed for the calculation - please be patient.

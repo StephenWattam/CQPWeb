@@ -605,9 +605,7 @@ function import_settings_as_global($corpus)
 	/* get list of variables and create global references */
 	preg_match_all('/\$(\w+)\W/', $data, $m, PREG_PATTERN_ORDER);
 	foreach($m[1] as $v)
-	{
 		global $$v;	
-	}
 	include("../$corpus/settings.inc.php");
 	
 	/* one special one */
@@ -630,15 +628,16 @@ function regex_add_anchors($s)
 	return '^' . $s . '$';
 }
 
-/**
- * Converts an integer to a string with commas every three digits.
- * 
- * Note: this was created when I didn't know about the existence of number_format()! -- AH.
- */
-function make_thousands($number)
-{
-	return number_format((float)$number);
-}
+//TODO remove completely...
+///**
+// * Converts an integer to a string with commas every three digits.
+// * 
+// * Note: this was created when I didn't know about the existence of number_format()! -- AH.
+// */
+//function make_thousands($number)
+//{
+//	return number_format((float)$number);
+//}
 
 
 
@@ -1096,12 +1095,6 @@ function coming_soon_page()
 	<html>
 	<head>
 	<?php
-	
-	/* initialise variables from settings files in local scope */
-	/* -- they will prob not have been initialised in global scope anyway */
-	
-	require_once("settings.inc.php");
-	
 	echo '<title>' . $corpus_title . ' -- unfinished function!</title>';
 	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	?>
@@ -1159,6 +1152,8 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 		1 => array("pipe", "w"), // stdout 
 		2 => array("pipe", "w")  // stderr 
 	); 
+	
+	$handles = false;
 	
 	$process = proc_open($call, $io_settings, $handles);
 

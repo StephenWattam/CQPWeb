@@ -26,10 +26,11 @@
 chdir('bin');
 
 
-include ("../lib/defaults.inc.php");
-include ("../lib/library.inc.php");
-include ("../lib/metadata.inc.php");
-include ("../lib/exiterror.inc.php");
+require('../lib/environment.inc.php');
+
+require('../lib/library.inc.php');
+require('../lib/metadata.inc.php');
+require('../lib/exiterror.inc.php');
 
 /* connect to mySQL */
 connect_global_mysql();

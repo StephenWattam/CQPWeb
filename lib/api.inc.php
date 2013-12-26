@@ -33,8 +33,7 @@
  * manipulable within Perl or PHP).
  */
 
-require_once("settings.inc.php");
-require_once("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include function library files */

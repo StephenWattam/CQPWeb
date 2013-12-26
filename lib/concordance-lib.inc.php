@@ -165,11 +165,11 @@ function create_solution_heading($record, $include_corpus_size = true)
 		$final_string .= ', restricted to ' . translate_restrictions_to_prose($restrictions) . ',';
 
 		
-	$final_string .= ' returned ' . make_thousands($num_of_solutions) . ' matches';	
+	$final_string .= ' returned ' . number_format((float)$num_of_solutions) . ' matches';	
 
 
 	if ($num_of_files > 1) 
-		$final_string .= ' in ' . make_thousands($num_of_files) . ' different texts';
+		$final_string .= ' in ' . number_format((float)$num_of_files) . ' different texts';
 	else 
 		$final_string .= ' in 1 text';
 
@@ -186,8 +186,8 @@ function create_solution_heading($record, $include_corpus_size = true)
 			/* this should never happen, but the following should avoid problems with div-by-zero */
 			$num_of_words_searched = 0.1;
 	
-		$final_string .= ' (in ' . make_thousands($num_of_words_searched) . ' words [' 
-			. make_thousands($num_of_files_searched) . ' texts]; frequency: ' 
+		$final_string .= ' (in ' . number_format((float)$num_of_words_searched) . ' words [' 
+			. number_format((float)$num_of_files_searched) . ' texts]; frequency: ' 
 			. round(($num_of_solutions / $num_of_words_searched) * 1000000, 2)
 			. ' instances per million words)';
 	}
@@ -646,6 +646,7 @@ function print_concordance_line($cqp_line, $position_table, $line_number,
 	}
 
 	/* extract the text_id and delete that first bit of the line */
+	$text_id = $position_label = false;
 	extract_cqp_line_position_labels($cqp_line, $text_id, $position_label);
 	
 	/* divide up the CQP line */

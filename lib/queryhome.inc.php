@@ -51,40 +51,38 @@
 
 
 /* initialise variables from settings files  */
-
-require_once("settings.inc.php");
-require_once("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include function library files */
-require_once("../lib/library.inc.php");
-require_once("../lib/user-settings.inc.php");
-require_once("../lib/exiterror.inc.php");
-require_once("../lib/cache.inc.php");
-require_once("../lib/subcorpus.inc.php");
-require_once("../lib/db.inc.php");
-require_once("../lib/ceql.inc.php");
-require_once("../lib/freqtable.inc.php");
-require_once("../lib/metadata.inc.php");
-require_once("../lib/concordance-lib.inc.php");
-require_once("../lib/colloc-lib.inc.php");
-require_once('../lib/xml.inc.php');
+require('../lib/library.inc.php');
+require('../lib/user-settings.inc.php');
+require('../lib/exiterror.inc.php');
+require('../lib/cache.inc.php');
+require('../lib/subcorpus.inc.php');
+require('../lib/db.inc.php');
+require('../lib/ceql.inc.php');
+require('../lib/freqtable.inc.php');
+require('../lib/metadata.inc.php');
+require('../lib/concordance-lib.inc.php');
+require('../lib/colloc-lib.inc.php');
+require('../lib/xml.inc.php');
 
 /* this is probably _too_ paranoid. but hey */
 if (user_is_superuser($username))
 {
-	require_once('../lib/apache.inc.php');
-	require_once('../lib/admin-lib.inc.php');
-	require_once('../lib/corpus-settings.inc.php');
+	require('../lib/apache.inc.php');
+	require('../lib/admin-lib.inc.php');
+	require('../lib/corpus-settings.inc.php');
 }
 
 
 /* especially, include the functions for each type of query */
-require_once("../lib/indexforms-queries.inc.php");
-require_once("../lib/indexforms-saved.inc.php");
-require_once("../lib/indexforms-admin.inc.php");
-require_once("../lib/indexforms-subcorpus.inc.php");
-require_once("../lib/indexforms-others.inc.php");
+require_once('../lib/indexforms-queries.inc.php');
+require_once('../lib/indexforms-saved.inc.php');
+require_once('../lib/indexforms-admin.inc.php');
+require_once('../lib/indexforms-subcorpus.inc.php');
+require_once('../lib/indexforms-others.inc.php');
 
 
 

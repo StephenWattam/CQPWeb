@@ -378,10 +378,10 @@ function printquery_corpusmetadata()
 	/* number of files in corpus */
 	$result_textlist = do_mysql_query("select count(text_id) from text_metadata_for_$corpus_sql_name");
 	list($num_texts) = mysql_fetch_row($result_textlist);
-	$num_texts = make_thousands($num_texts);
+	$num_texts = number_format((float)$num_texts);
 	
 	/* now get total word length of all files */
-	$words_in_all_texts = make_thousands($tokens = get_corpus_wordcount());
+	$words_in_all_texts = number_format((float)$tokens = get_corpus_wordcount());
 	
 	/* work out number of types and type token ratio */
 	$result_temp = do_mysql_query("show tables like 'freq_corpus_{$corpus_sql_name}_word'");
@@ -389,7 +389,7 @@ function printquery_corpusmetadata()
 	{
 		$result_types = do_mysql_query("select count(distinct(item)) from freq_corpus_{$corpus_sql_name}_word");
 		list($types) = mysql_fetch_row($result_types);
-		$types_in_corpus = make_thousands($types);
+		$types_in_corpus = number_format((float)$types);
 		$type_token_ratio = round( ($types / $tokens) , 2) . ' types per token';
 	}
 	else

@@ -891,9 +891,9 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 			. $print_name . '</a></td>';
 
 		if (!empty($row['hits_left']))
-			$hits_print = make_thousands(array_pop($temp_array = explode('~', $row['hits_left'])));
+			$hits_print = number_format((float)array_pop($temp_array = explode('~', $row['hits_left'])));
 		else
-			$hits_print = make_thousands($row['hits']);
+			$hits_print = number_format((float)$row['hits']);
 		
 		echo '<td class="concordgeneral"><center>' . $hits_print . '</center></td>';
 		

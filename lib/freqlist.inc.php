@@ -37,9 +37,7 @@
 
 
 /* initialise variables from settings files  */
-
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include function library files */
@@ -392,7 +390,7 @@ function print_freqlist_line($data, $line_number, $att, $restricts)
 	$string  = "<td class=\"concordgeneral\" align=\"right\"><b>$line_number</b></td>";
 	$string .= "<td class=\"concordgeneral\"><b><a $link>{$data->item}</a></b></td>";
 	$string .= "<td class=\"concordgeneral\"  align=\"center\">" 
-		. make_thousands($data->freq) . '</td>';
+		. number_format((float)$data->freq) . '</td>';
 	
 	return $string;
 }

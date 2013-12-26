@@ -24,12 +24,17 @@
 
 
 
-/* print a form to collect the options for running collocations */
+/**
+ * @file
+ * 
+ * This script prints a form to collect the options for numerically-thinning a query.
+ */
 
-/* initialise variables from settings files  */
 
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
+
+
+
+require('../lib/environment.inc.php');
 
 
 /* include function library files */
@@ -81,7 +86,7 @@ if ($query_record === false)
 
 $hits = ( empty($query_record['hits_left']) ? $query_record['hits']: $query_record['hits_left'] );
 
-$num_of_hits_text = '(current no. of instances: ' . make_thousands($hits) . ')';
+$num_of_hits_text = '(current no. of instances: ' . number_format((float)$hits) . ')';
 
 $reproducible_is_selected = get_user_setting($username, 'thin_default_reproducible');
 

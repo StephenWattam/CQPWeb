@@ -602,7 +602,7 @@ function metadata_tooltip($text_id)
 		return "";
 	
 	$tt = 'onmouseover="return escape(\'Text <b>' . $text_id . '</b><BR>'
-		. '<i>(length = ' . make_thousands($text_data['words']) 
+		. '<i>(length = ' . number_format((float)$text_data['words']) 
 		. ' words)</i><BR>--------------------<BR>';
 	
 	while (($field_handle = mysql_fetch_row($field_result)) != false)

@@ -35,10 +35,7 @@
 
 
 /* initialise variables from settings files  */
-
-require_once("settings.inc.php");
-require_once("../lib/defaults.inc.php");
-
+require('../lib/environment.inc.php');
 
 /* include function library files */
 require_once('../lib/library.inc.php');

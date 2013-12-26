@@ -31,8 +31,7 @@
 
 
 /* include defaults and settings */
-require_once('settings.inc.php');
-require_once('../lib/defaults.inc.php');
+require('../lib/environment.inc.php');
 
 
 /* include function files */
@@ -155,7 +154,7 @@ case 'create_from_metadata':
 
 		disconnect_all();
 		$_GET['subcorpusFunction'] = 'list_of_files';
-		require("../lib/index.inc.php");
+		require("../lib/queryhome.inc.php");
 	}
 	else
 	{
@@ -238,7 +237,7 @@ case 'create_from_metadata_scan':
 	$_GET['subcorpusFunction'] = 'list_of_files';
 
 	disconnect_all();
-	require('../lib/index.inc.php');
+	require('../lib/queryhome.inc.php');
 	exit();
 
 
@@ -289,7 +288,7 @@ case 'create_from_query':
 		
 		disconnect_all();
 		$_GET['subcorpusFunction'] = 'list_of_files';
-		require('../lib/index.inc.php');
+		require('../lib/queryhome.inc.php');
 	}
 	exit();
 

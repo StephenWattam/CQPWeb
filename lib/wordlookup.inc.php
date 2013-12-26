@@ -26,8 +26,8 @@
  * concordance.php and then calls a "location" */
 
 
-require('settings.inc.php');
-require('../lib/defaults.inc.php');
+require('../lib/environment.inc.php');
+
 //require('../lib/library.inc.php');
 require('../lib/concordance-lib.inc.php');
 require('../lib/exiterror.inc.php');

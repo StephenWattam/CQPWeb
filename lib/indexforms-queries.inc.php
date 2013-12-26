@@ -157,15 +157,15 @@ function printquery_search()
 							{
 								if ($row['subcorpus_name'] == '__last_restrictions')
 									echo '<option value="__last_restrictions">Last restrictions ('
-										. make_thousands($row['numwords']) . ' words in ' 
-										. make_thousands($row['numfiles']) . ' texts)</option>';
+										. number_format((float)$row['numwords']) . ' words in ' 
+										. number_format((float)$row['numfiles']) . ' texts)</option>';
 								else
 									echo '<option value="subcorpus~' . $row['subcorpus_name'] . '"'
 										. ($insertSubcorpus == $row['subcorpus_name'] ? ' selected="selected"' : '')
 										. '>'
 										. 'Subcorpus: ' . $row['subcorpus_name'] . ' ('
-										. make_thousands($row['numwords']) . ' words in ' 
-										. make_thousands($row['numfiles']) . ' texts)</option>';
+										. number_format((float)$row['numwords']) . ' words in ' 
+										. number_format((float)$row['numfiles']) . ' texts)</option>';
 							}
 	
 							?>

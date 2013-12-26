@@ -42,23 +42,21 @@ header('Content-Type: text/html; charset=utf-8');
 
 
 /* initialise variables from settings files  */
-
-require_once("settings.inc.php");
-require_once("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include function library files */
-require_once ("../lib/library.inc.php");
-require_once ("../lib/concordance-lib.inc.php");
-require_once ("../lib/concordance-post.inc.php");
-require_once ("../lib/exiterror.inc.php");
-require_once ("../lib/user-settings.inc.php");
-require_once ("../lib/metadata.inc.php");
-require_once ("../lib/subcorpus.inc.php");
-require_once ("../lib/cache.inc.php");
-require_once ("../lib/db.inc.php");
-require_once ("../lib/cwb.inc.php");
-require_once ("../lib/cqp.inc.php");
+require("../lib/library.inc.php");
+require("../lib/concordance-lib.inc.php");
+require("../lib/concordance-post.inc.php");
+require("../lib/exiterror.inc.php");
+require("../lib/user-settings.inc.php");
+require("../lib/metadata.inc.php");
+require("../lib/subcorpus.inc.php");
+require("../lib/cache.inc.php");
+require("../lib/db.inc.php");
+require("../lib/cwb.inc.php");
+require("../lib/cqp.inc.php");
 
 
 
@@ -492,12 +490,12 @@ function print_distribution_filefreqs($qname_for_link)
 				</a>
 			</td>
 			<td align="center" class="concordgeneral">
-				<?php echo make_thousands($master_array[$i]['words']); ?>
+				<?php echo number_format((float)$master_array[$i]['words']); ?>
 			</td>
 			<!-- note - link to restricted query (to just that text) needed here -->
 			<td align="center" class="concordgeneral">
 				<a href="<?php echo $textlink; ?>">
-					<?php echo make_thousands($master_array[$i]['hits']); ?>
+					<?php echo number_format((float)$master_array[$i]['hits']); ?>
 				</a>
 			</td>
 			<td align="center" class="concordgeneral">
@@ -536,12 +534,12 @@ function print_distribution_filefreqs($qname_for_link)
 				</a>
 			</td>
 			<td align="center" class="concordgeneral">
-				<?php echo make_thousands($master_array[$i]['words']); ?>
+				<?php echo number_format((float)$master_array[$i]['words']); ?>
 			</td>
 			<!-- note - link to restricted query (to just that text) needed here -->
 			<td align="center" class="concordgeneral">
 				<a href="<?php echo $textlink; ?>">
-					<?php echo make_thousands($master_array[$i]['hits']); ?>
+					<?php echo number_format((float)$master_array[$i]['hits']); ?>
 				</a>
 			</td>
 			<td align="center" class="concordgeneral">
@@ -652,7 +650,7 @@ function print_distribution_graph($classification_handle, $classification_desc, 
 
 		$html_for_hover = "Category: <b>$this_label</b></br><hr color=&quot;#000099&quot;>" 
 			. '<font color=&quot;#DD0000&quot;>' . $master_array[$i]['hits'] . '</font> hits in '
-			. '<font color=&quot;#DD0000&quot;>' . make_thousands($master_array[$i]['words_in_cat']) 
+			. '<font color=&quot;#DD0000&quot;>' . number_format((float)$master_array[$i]['words_in_cat']) 
 			. '</font> words.';
 			
 

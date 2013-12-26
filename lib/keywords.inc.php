@@ -37,9 +37,7 @@
 
 
 /* initialise variables from settings files  */
-
-require_once("settings.inc.php");
-require_once("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include function library files */
@@ -562,9 +560,9 @@ function print_keyword_line($data, $line_number, $att_for_comp, $restricts)
 	$string .= "<td class=\"concordgrey\" align=\"right\"><b>$line_number</b></td>";
 	$string .= "<td class=\"$leftstyle\"><b>{$data->item}</b></td>";
 	$string .= "<td class=\"$leftstyle\"  align=\"center\"><a $link[1]>"
-		. make_thousands($data->freq1) . '</a></td>';
+		. number_format((float)$data->freq1) . '</a></td>';
 	$string .= "<td class=\"$rightstyle\" align=\"center\"><a $link[2]>" 
-		. make_thousands($data->freq2) . '</a></td>';
+		. number_format((float)$data->freq2) . '</a></td>';
 	if (isset($plusminus))
 	{
 		$string .= "<td class=\"concordgrey\" align=\"center\">$plusminus</td>";

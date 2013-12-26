@@ -32,8 +32,7 @@ header('Content-Type: text/html; charset=utf-8');
 
 
 /* include defaults and settings */
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include function files */
@@ -41,7 +40,7 @@ include('../lib/cqp.inc.php');
 include('../lib/cache.inc.php');
 include('../lib/library.inc.php');
 include('../lib/uploads.inc.php');
-include ("../lib/exiterror.inc.php");
+include ('../lib/exiterror.inc.php');
 
 /* sort out our incoming variables.... */
 foreach($_POST as $k=>$v)

@@ -59,7 +59,7 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		foreach ($_GET as $k=>&$g)
 			unset($_GET[$k]);
 		$this_script = 'index.php';
-		require("../lib/index.inc.php");
+		require("../lib/queryhome.inc.php");
 		break;
 	
 	
@@ -186,7 +186,7 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 	case 'newKeywords':
 		unset($_GET);
 		$_GET['thisQ'] = 'keywords';
-		require("../lib/index.inc.php");
+		require("../lib/queryhome.inc.php");
 		break;
 
 	case 'downloadKeywords':
@@ -223,7 +223,7 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 	case 'newFreqlist':
 		unset($_GET);
 		$_GET['thisQ'] = 'freqList';
-		require("../lib/index.inc.php");
+		require("../lib/queryhome.inc.php");
 		break;
 
 	case 'downloadFreqList':

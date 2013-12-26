@@ -546,9 +546,9 @@ function print_sc_define_invert()
 			echo '<td class="concordgeneral">'
 			. $row['subcorpus_name'] . '</td>';
 		
-		echo '<td class="concordgeneral"><center>' . make_thousands($row['numfiles']) 
+		echo '<td class="concordgeneral"><center>' . number_format((float)$row['numfiles']) 
 			. '</center></td>'
-			. '<td class="concordgeneral"><center>' . make_thousands($row['numwords'])
+			. '<td class="concordgeneral"><center>' . number_format((float)$row['numwords'])
 			. '</center></td>';
 			
 		echo "</tr>\n";
@@ -657,9 +657,9 @@ function print_sc_showsubcorpora()
 				. $row['subcorpus_name'] 
 				. '</a></td>';
 			
-			echo '<td class="concordgeneral"><center>' . make_thousands($row['numfiles']) 
+			echo '<td class="concordgeneral"><center>' . number_format((float)$row['numfiles']) 
 				. '</center></td>'
-				. '<td class="concordgeneral"><center>' . make_thousands($row['numwords'])
+				. '<td class="concordgeneral"><center>' . number_format((float)$row['numwords'])
 				. '</center></td>';
 			
 			echo '<td class="concordgeneral"><center>';
@@ -951,8 +951,8 @@ function print_sc_view_and_edit()
 						Viewing subcorpus
 						<?php
 						echo "<em>$subcorpus</em>: this subcorpus consists of "
-							. make_thousands($size['files']) . " texts with a total of "
-							. make_thousands($size['words']) . " words.";
+							. number_format((float)$size['files']) . " texts with a total of "
+							. number_format((float)$size['words']) . " words.";
 						?>
 						<br/>
 					</strong>
@@ -1004,7 +1004,7 @@ function print_sc_view_and_edit()
 
 		/* number of words in file */
 		echo '<td class="concordgeneral" align="center">'
-			. make_thousands($meta['words'])
+			. number_format((float)$meta['words'])
 			. '</td>';
 			
 		/* tickbox for delete */
@@ -1145,7 +1145,7 @@ function print_sc_list_of_files()
 	
 			/* number of words in file */
 			echo '<td class="concordgeneral" align="center">'
-				. make_thousands($meta['words'])
+				. number_format((float)$meta['words'])
 				. '</td>';
 				
 			/* tickbox for add */

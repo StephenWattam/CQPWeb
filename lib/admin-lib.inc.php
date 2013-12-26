@@ -44,6 +44,7 @@
  */
 function delete_corpus_from_cqpweb($corpus)
 {
+	global $corpus_cqp_name;
 	global $cwb_registry;
 	global $cwb_datadir;
 	$corpus = mysql_real_escape_string($corpus);

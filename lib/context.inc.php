@@ -36,10 +36,7 @@
 
 
 /* initialise variables from settings files  */
-
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
-
+require('../lib/environment.inc.php');
 
 /* include function library files */
 include ("../lib/library.inc.php");

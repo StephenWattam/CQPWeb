@@ -1231,7 +1231,7 @@ class CQP
 
 		} while (false);
 		
-		/* if the process was not created successfully, we do not need ot close it */
+		/* if the process was not created successfully, we do not need to close it */
 		if (is_resource($process))
 		{
 			$infoblob .= "{$EOL}Attempting to shut down test process...$EOL";

@@ -35,8 +35,7 @@ header('Content-Type: text/html; charset=utf-8');
 
 
 /* include defaults and settings */
-require("settings.inc.php");
-require("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include function files */

@@ -519,7 +519,8 @@ function install_create_corpus_script_files($in_dir)
 	global $cqpweb_script_files;
 	foreach ($cqpweb_script_files as $c)
 	{
-		file_put_contents("$in_dir/$c.php", "<?php require('../lib/$c.inc.php'); ?>");
+		$l = ($c == 'index' ? 'queryhome' : $c);
+		file_put_contents("$in_dir/$c.php", "<?php require('../lib/$l.inc.php'); ?>");
 		chmod("$in_dir/$c.php", 0664);
 	}		
 }

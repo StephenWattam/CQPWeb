@@ -29,7 +29,7 @@
  * This is to make distributing alerts about downtime etc. a bit easier.
  */
 
-require("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 include("../lib/library.inc.php");
 include("../lib/exiterror.inc.php");

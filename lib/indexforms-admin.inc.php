@@ -707,7 +707,7 @@ function printquery_managemeta()
 					<td class="concordgeneral" colspan="2" align="left"><?php echo $f; ?></td>
 					
 					<td class="concordgeneral" align="right";>
-						<?php echo make_thousands(round($stat['size']/1024, 0)); ?>
+						<?php echo number_format(round($stat['size']/1024, 0)); ?>
 					</td>
 				
 					<td class="concordgeneral" align="center">
@@ -2332,7 +2332,7 @@ function printquery_showfreqtables()
 			<td colspan="2" class="concordgeneral">
 				&nbsp;<br/>
 				The currently saved frequency tables for all corpora have a total size of 
-				<?php echo make_thousands($size) . " bytes, $percent%"; ?>
+				<?php echo number_format((float)$size) . " bytes, $percent%"; ?>
 				of the maximum cache.
 				<br/>&nbsp;
 			</td>
@@ -2518,7 +2518,7 @@ function printquery_showdbs()
 			<td colspan="2" class="concordgeneral">
 				&nbsp;<br/>
 				The currently saved databases for all corpora have a total size of 
-				<?php echo make_thousands($size) . " bytes, $percent%"; ?>
+				<?php echo number_format((float)$size) . " bytes, $percent%"; ?>
 				of the maximum cache.
 				<br/>&nbsp;
 			</td>

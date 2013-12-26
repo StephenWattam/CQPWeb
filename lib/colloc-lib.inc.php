@@ -533,11 +533,11 @@ function run_script_for_solo_collocation()
 	
 	}
 	/* this lot don't need doing on every iteration; they pick up their values from its last loop */
-	$observed_to_show = make_thousands($row['observed']);
+	$observed_to_show = number_format((float)$row['observed']);
 	$observed_for_calc = $row['observed'];
 	$expected_to_show = round($row['expected'], 3);
-	$basis_to_show = make_thousands($row['freq']);
-	$number_of_files_to_show = make_thousands($row['text_id_count']);
+	$basis_to_show = number_format((float)$row['freq']);
+	$number_of_files_to_show = number_format((float)$row['text_id_count']);
 	if ($query_record['subcorpus'] == 'no_subcorpus' && $query_record['restrictions'] == 'no_restriction')
 		$basis_point = 'the whole corpus';
 	else
@@ -660,8 +660,8 @@ function run_script_for_solo_collocation()
 				. urlencode($tag_filter)
 				. "&uT=y\" onmouseover=\"return escape('Show solutions collocating with "
 				. "<B>$soloform</B> at position <B>$i</B>')\">$i</a>";
-			$n_hits = make_thousands($row[0]);
-			$n_texts = make_thousands($row[1]);
+			$n_hits = number_format((float)$row[0]);
+			$n_texts = number_format((float)$row[1]);
 			$percent = round(($row[0]/$observed_for_calc)*100.0, 1);	
 		}
 		echo "

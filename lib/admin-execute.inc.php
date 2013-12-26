@@ -377,7 +377,7 @@ switch($_GET['admFunction'])
 		{
 			$_GET['args'] = "You cannot use the \"hash\" character in a mapping table.";
 			// Actually this is a lie. You can, should you really want to do something that bonkers.
-			// the problem is that then it can't be passed to execute.inc.php
+			// the problem is, rather, that then it can't be passed to execute.inc.php ,
 			// because hash is an argument separator.
 			// TODO: clean this up.
 			$_GET['function'] = 'exiterror_fullpage';

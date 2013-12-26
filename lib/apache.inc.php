@@ -488,6 +488,7 @@ class apache_htaccess
 		else
 			$c = 'c';
 
+		$junk = $val = NULL;
 		exec("{$this->path_to_apache_password_utility_directory}/htpasswd"
 				. " -b$c {$this->path_to_password_file} $username $password"
 				, $junk, $val);
