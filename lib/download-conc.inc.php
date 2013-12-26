@@ -106,7 +106,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 		$context_url = false;
 		
 		/* the filename for the output */
-		$filename = 'concordance_download.txt';
+		$filename = 'concordance-download.txt';
 		
 		/* NO metadata */
 		$fields_to_include = array();
@@ -239,8 +239,8 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 		/* the filename for the output */
 
 		$filename = (isset($_GET['downloadFilename']) ? preg_replace('/\W/', '', $_GET['downloadFilename']) : '' );
-		if ($filename == '')
-			$filename = 'concordance_download';
+		if (empty($filename))
+			$filename = 'concordance-download';
 		$filename .= '.txt';
 
 		/* the categories to include */
@@ -520,7 +520,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 				<input type="submit" 
 					value="Download with typical settings for copy-paste into Word, Excel etc." />
 				<br/>
-				<input type="hidden" name="redirect" value="download" />
+				<input type="hidden" name="redirect" value="download-conc" />
 				<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
 				<input type="hidden" name="downloadGo" value="yes" />
 				<input type="hidden" name="downloadTypical" value="copypaste" />
@@ -531,7 +531,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 				<input type="submit" 
 					value="Download with typical settings for FileMaker Pro" />
 				<br/>&nbsp;
-				<input type="hidden" name="redirect" value="download" />
+				<input type="hidden" name="redirect" value="download-conc" />
 				<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
 				<input type="hidden" name="downloadGo" value="yes" />
 				<input type="hidden" name="downloadTypical" value="filemaker" />
@@ -702,7 +702,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 				<br/>&nbsp;
 			</td>
 		</tr>
-		<input type="hidden" name="redirect" value="download" />
+		<input type="hidden" name="redirect" value="download-conc" />
 		<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
 		<input type="hidden" name="downloadGo" value="yes" />
 		<input type="hidden" name="downloadTypical" value="NULL" />

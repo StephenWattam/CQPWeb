@@ -93,8 +93,9 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		require("../lib/colloc-options.inc.php");
 		break;
 
-	case 'download':
-		require("../lib/conc-download.inc.php");
+	case 'download-conc':
+		/* nb. also comes from download-tab */
+		require("../lib/download-conc.inc.php");
 		break;
 
 	case 'categorise':
@@ -268,7 +269,7 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		break;
 
 
-	/* from conc-download */
+	/* from download-conc */
 
 	case 'download-tab':
 		require("../lib/download-tab.inc.php");

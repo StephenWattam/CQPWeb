@@ -378,7 +378,7 @@ function print_control_row()
 			<option value="distribution">Distribution</option>
 			<option value="sort">Sort</option>
 			<option value="collocations">Collocations...</option>
-			<option value="download">Download...</option>
+			<option value="download-conc">Download...</option>
 			<option value="categorise">Categorise...</option>
 			<option value="saveHits">Save current set of hits...</option>
 			' . $custom_options . '
