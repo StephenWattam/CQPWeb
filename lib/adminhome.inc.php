@@ -29,21 +29,22 @@
 
 
 /* first, process the various "actions" that this script may be asked to perform */
-require_once ('../lib/admin-execute.inc.php');
+require('../lib/admin-execute.inc.php');
 
-/* initialise variables from settings files  */
-require_once ("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include function library files */
-require_once ("../lib/library.inc.php");
-require_once ("../lib/apache.inc.php");
-require_once ("../lib/admin-lib.inc.php");
-require_once ("../lib/exiterror.inc.php");
-require_once ("../lib/metadata.inc.php");
-require_once ("../lib/ceql.inc.php");
-require_once ("../lib/cqp.inc.php");
+require("../lib/library.inc.php");
+require('../lib/html-lib.inc.php');
+require("../lib/apache.inc.php");
+require("../lib/admin-lib.inc.php");
+require("../lib/exiterror.inc.php");
+require("../lib/metadata.inc.php");
+require("../lib/ceql.inc.php");
+require("../lib/cqp.inc.php");
 
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST);
 
 if (!user_is_superuser($username))
 	exiterror_general("You do not have permission to use this program.");
@@ -57,15 +58,11 @@ $thisF = ( isset($_GET["thisF"]) ? $_GET["thisF"] : 'showCorpora' );
 
 
 
-/* connect to mySQL */
-connect_global_mysql();
-
-
 /* before anything else... */
 header('Content-Type: text/html; charset=utf-8');
 
 
-
+// TODO move the raw .js out of here.
 ?>
 <html>
 <head>
@@ -430,10 +427,9 @@ default:
 </table>
 <?php
 
-print_footer(NULL);
+echo print_html_footer();
 
-/* ... and disconnect mysql */
-disconnect_all();
+cqpweb_shutdown_environment();
 
 /* ------------- */
 /* END OF SCRIPT */

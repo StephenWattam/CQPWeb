@@ -27,26 +27,15 @@
 require('../lib/environment.inc.php');
 
 /* include function library files */
-require_once ('../lib/library.inc.php');
-//require_once ('../lib/concordance-lib.inc.php');
-//require_once ('../lib/concordance-post.inc.php');
-//require_once ('../lib/cache.inc.php');
-//require_once ('../lib/subcorpus.inc.php');
-require_once ('../lib/exiterror.inc.php');
-require_once ('../lib/metadata.inc.php');
-require_once ('../lib/user-settings.inc.php');
-//require_once ('../lib/cwb.inc.php'); /* NOT TESTED YET - used by dump and undump, I think */
-require_once ('../lib/cqp.inc.php');
+require('../lib/library.inc.php');
+require('../lib/html-lib.inc.php');
+require('../lib/exiterror.inc.php');
+require('../lib/metadata.inc.php');
+require('../lib/user-settings.inc.php');
+require('../lib/cqp.inc.php');
 
 
-
-
-/* connect to mySQL */
-connect_global_mysql();
-
-
-/* connect to CQP */
-connect_global_cqp();
+cqpweb_startup_environment();
 
 
 
@@ -536,7 +525,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 		<input type="hidden" name="uT" value="y" />
 	</form>
 </table>
-<?php print_footer(); ?>
+<?php echo print_html_footer(); ?>
 </body>
 </html>
 	<?php
@@ -546,7 +535,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 
 
 /* disconnect CQP child process and mysql */
-disconnect_all();
+cqpweb_shutdown_environment();
 
 /* end of script */
 

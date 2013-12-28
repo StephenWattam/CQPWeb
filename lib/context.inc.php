@@ -39,17 +39,16 @@
 require('../lib/environment.inc.php');
 
 /* include function library files */
-include ("../lib/library.inc.php");
-include ("../lib/exiterror.inc.php");
-include ("../lib/concordance-lib.inc.php");
-include ("../lib/metadata.inc.php");
-include ("../lib/cwb.inc.php");
-include ("../lib/cqp.inc.php");
+require('../lib/library.inc.php');
+require('../lib/html-lib.inc.php');
+require('../lib/exiterror.inc.php');
+require('../lib/concordance-lib.inc.php');
+require('../lib/metadata.inc.php');
+require('../lib/cwb.inc.php');
+require('../lib/cqp.inc.php');
 
 
-if (!url_string_is_valid())
-	exiterror_bad_url();
-
+cqpweb_startup_environment();
 
 
 
@@ -110,16 +109,6 @@ if ($context_size < $initial_extended_context)
 
 
 
-/* connect to mySQL */
-connect_global_mysql();
-
-
-/* connect to CQP */
-connect_global_cqp();
-
-
-
-
 
 /* before anything else */
 header('Content-Type: text/html; charset=utf-8');
@@ -129,12 +118,12 @@ header('Content-Type: text/html; charset=utf-8');
 
 <html>
 <head>
-<?php
-echo '<title>' . $corpus_title . ' -- CQPweb showing extra context</title>';
-echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>
-<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<?php
+	echo '<title>' . $corpus_title . ' -- CQPweb showing extra context</title>';
+	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
+	?>
+	<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 </head>
 <body>
@@ -312,14 +301,10 @@ $bdo_tag2 = ($corpus_main_script_is_r2l ? '</bdo>' : '');
 
 
 
-/* create page end HTML */
-print_footer();
+echo print_html_footer();
 
-/* disconnect CQP child process */
-disconnect_global_cqp();
+cqpweb_shutdown_environment();
 
-/* disconnect mysql */
-disconnect_global_mysql();
 
 
 /* ------------- */

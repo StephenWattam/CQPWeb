@@ -56,6 +56,7 @@ require('../lib/environment.inc.php');
 
 /* include function library files */
 require('../lib/library.inc.php');
+require('../lib/html-lib.inc.php');
 require('../lib/user-settings.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/cache.inc.php');
@@ -68,22 +69,26 @@ require('../lib/concordance-lib.inc.php');
 require('../lib/colloc-lib.inc.php');
 require('../lib/xml.inc.php');
 
+/* especially, include the functions for each type of query */
+require('../lib/indexforms-queries.inc.php');
+require('../lib/indexforms-saved.inc.php');
+require('../lib/indexforms-subcorpus.inc.php');
+require('../lib/indexforms-others.inc.php');
+
+
+/* in the case of the index page, we can allow there not to be any arguments, and supply a default;
+ * so don't check for presence of uT=y */
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST);
+
+
 /* this is probably _too_ paranoid. but hey */
 if (user_is_superuser($username))
 {
 	require('../lib/apache.inc.php');
 	require('../lib/admin-lib.inc.php');
 	require('../lib/corpus-settings.inc.php');
+	require('../lib/indexforms-admin.inc.php');
 }
-
-
-/* especially, include the functions for each type of query */
-require_once('../lib/indexforms-queries.inc.php');
-require_once('../lib/indexforms-saved.inc.php');
-require_once('../lib/indexforms-admin.inc.php');
-require_once('../lib/indexforms-subcorpus.inc.php');
-require_once('../lib/indexforms-others.inc.php');
-
 
 
 
@@ -91,8 +96,7 @@ require_once('../lib/indexforms-others.inc.php');
 
 /* initialise variables from $_GET */
 
-/* in the case of index.php, we can allow there not to be any arguments, and supply a default;
- * so don't check for presence of uT=y */
+
 
 /* thisQ: the query whose interface page is to be displayed on the right-hand-side. */
 $thisQ = ( isset($_GET["thisQ"]) ? $_GET["thisQ"] : 'search' );
@@ -103,27 +107,16 @@ $thisQ = ( isset($_GET["thisQ"]) ? $_GET["thisQ"] : 'search' );
 
 
 
-/* connect to mySQL */
-connect_global_mysql();
-
-
-
 
 
 /* before anything else */
 header('Content-Type: text/html; charset=utf-8');
-?>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<?php
-echo '<title>' . $corpus_title . ' -- CQPweb</title>';
-echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>
-<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
-</head>
-<body>
 
+echo print_html_header('CQPweb', array('cqpweb-clientside'));
+
+
+
+?>
 <table class="concordtable" width="100%">
 	<tr>
 		<td valign="top">
@@ -441,7 +434,7 @@ default:
 </table>
 <?php
 
-print_footer();
+echo print_html_footer();
 
 cqpweb_shutdown_environment();
 

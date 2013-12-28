@@ -34,15 +34,13 @@ require('../lib/environment.inc.php');
 
 
 /* include function library files */
-include ("../lib/library.inc.php");
-include ("../lib/exiterror.inc.php");
-include ("../lib/metadata.inc.php");
+require('../lib/library.inc.php');
+require('../lib/html-lib.inc.php');
+require('../lib/exiterror.inc.php');
+require('../lib/metadata.inc.php');
 
 
-
-
-if (!url_string_is_valid())
-	exiterror_bad_url();
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
 
 
@@ -62,9 +60,6 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 
 
 /* download the information */
-
-/* connect to mySQL */
-connect_global_mysql();
 
 
 	
@@ -144,13 +139,12 @@ for ( $i = 0 ; $i < $n ; $i++ )
 	unset($att);
 }
 
-/* disconnect mysql */
-disconnect_global_mysql();
+
 
 echo '</table>';
 
-print_footer();
+echo print_html_footer();
+
+cqpweb_shutdown_environment();
 
 ?>
-</body>
-</html>

@@ -41,33 +41,18 @@ require('../lib/environment.inc.php');
 
 
 /* include function library files */
-require_once("../lib/library.inc.php");
-require_once("../lib/freqtable.inc.php");
-require_once("../lib/exiterror.inc.php");
-require_once("../lib/metadata.inc.php");
-require_once("../lib/user-settings.inc.php");
-require_once("../lib/cwb.inc.php");         // needed?
-require_once("../lib/cqp.inc.php");
-
-
-// debug
-ob_implicit_flush(true);
-
-
-if (!url_string_is_valid())
-	exiterror_bad_url();
+require("../lib/library.inc.php");
+require('../lib/html-lib.inc.php');
+require("../lib/freqtable.inc.php");
+require("../lib/exiterror.inc.php");
+require("../lib/metadata.inc.php");
+require("../lib/user-settings.inc.php");
+require("../lib/cwb.inc.php");         // needed?
+require("../lib/cqp.inc.php");
 
 
 
-
-
-
-/* connect to mySQL */
-connect_global_mysql();
-
-
-
-
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
 
 
@@ -101,7 +86,7 @@ if (!isset($_GET['flAtt']) )
 else
 	$att = $_GET['flAtt'];
 if (preg_match('/\W/', $_GET['flAtt']) > 0)
-	exiterror_fullpage("An invalid word-annotation ($att) was specified!", __FILE__, __LINE__);
+	exiterror_general("An invalid word-annotation ($att) was specified!", __FILE__, __LINE__);
 /* validated below */
 
 /* determine the order of the frequency list */
@@ -345,16 +330,13 @@ else
 	
 	echo '</table>';	
 	
-	/* create page end HTML */
-	print_footer();
+	echo print_html_footer();
 
 }
 
 
 
-/* disconnect mysql */
-disconnect_global_mysql();
-
+cqpweb_shutdown_environment();
 
 
 /* ------------- */

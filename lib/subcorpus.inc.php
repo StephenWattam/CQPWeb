@@ -138,7 +138,6 @@ function create_subcorpus_query($subcorpus_name, $qname)
 	/* then call the function we already have */
 	create_subcorpus_list($subcorpus_name, $list_of_texts);
 
-
 	if (!$cqp_was_set)
 		disconnect_global_cqp();
 }
@@ -224,7 +223,7 @@ function subcorpus_remove_texts($subcorpus, $text_array)
 	$new_list = trim($new_list);
 
 	if (empty($new_list))
-		exiterror_fullpage('There would not be any texts left if you deleted all these!');
+		exiterror_general('There would not be any texts left if you deleted all these!');
 
 	subcorpus_alter_text_list($subcorpus, $new_list);
 }
@@ -900,113 +899,6 @@ function check_real_text_name($text)
 }
 
 
-
-/* this function, for admin use only, updates the SQL table of metadata with begin and end */
-/* positions for each text, acquired from CQP; needs running on setup */
-
-/* note, this function presumes no xml other than <text id="..."> ... </text> */
-/* which, for now, is accurate - but I might want to add more XMLsupport in the future */
-/* if we have, say, </s></text>, would the CQP queries used here still work? */
-/* I think they should - doesn't an XML-line always have the same "position" */
-/* as the word after it? or something? */
-
-/* very important problem: this can take hours to run if there are many texts in the corpus. */
-/* eg, a corpus with 34 K texts took 5 hours, 10 minutes to run the mySQL query. */
-/* in the long run, might have to look into some system such as what BNCweb uses to insert */
-/* individual texts' start-and-end indices. */
-
-
-// would it be easier to do from /corpus/cwb/bin/cwb-s-decode DICKENS -S text_id
-//which produces
-//0       119841  AN
-//119842  550031  BH
-//550032  586988  BL
-//586989  894668  BR
-//894669  930334  CC
-
-// not quite sure why this is here
-// prob better files for it to be in 
-
-function populate_corpus_cqp_positions()
-{
-	global $corpus_sql_name;
-	
-	global $cqp;
-
-	if (isset($cqp))
-		$cqp_was_set = true;
-	else
-	{
-		$cqp_was_set = false;
-		connect_global_cqp();
-	}
-
-	/* more efficient implementation of this code (SE, 2009-12-19) */
-
-	$cqp->execute("A = <text> [] expand to text");
-	$lines = $cqp->execute("tabulate A match, matchend, match text_id");
-	foreach ($lines as &$a)
-	{
-		$item = explode("\t", $a);
-		/* Doing a mysql query inside a loop would be much more efficient if we could
-		 * use a prepared query - but, alas, we don't want to require the more recent
-		 * versions of the mysql server that enable this (or, indeed, PHP's mysqli 
-		 * extension that supports it) */
-		do_mysql_query("update text_metadata_for_$corpus_sql_name
-			set cqp_begin = {$item[0]}, cqp_end = {$item[1]}
-			where text_id = '{$item[2]}'");
-	}
-	unset($lines);
-
-	/* update word counts for each text 
-	 * (NB: previous calculation, words = cqp_end - cqp_begin, was wrong!) */
-	$sql_query = "update text_metadata_for_$corpus_sql_name set words = cqp_end - cqp_begin + 1";
-	do_mysql_query($sql_query);
-
-/* old version
-	foreach ($lines as &$a)
-	{
-		preg_match("/\A\s*(\d+): <text_id (\w+)>:/", $a, $m);
-	
-		$corpus_file_positions[$m[2]]['begin'] = $m[1];
-		
-//		unset($m);
-	}
-	
-//	unset($lines);
-
-	$cqp->execute("B = [] </text>");
-	$lines = $cqp->execute("cat B");
-
-	foreach ($lines as &$b)
-	{
-		preg_match("/\A\s*(\d+): <text_id (\w+)>:/", $b, $m);
-
-		$corpus_file_positions[$m[2]]['end'] = $m[1];
-
-//		unset($m);
-	}
-	
-	unset($lines);
-
-	foreach ($corpus_file_positions as $text_id => &$c)
-	{
-		/* no need to escape strings cos all variables have come from cqp * /
-
-		$sql_query = "update text_metadata_for_$corpus_sql_name set cqp_begin = "
-			. $c['begin'] . ", cqp_end = " . $c['end'] . ", words = " . ($c['end'] - $c['begin']) 
-			. " where text_id = '$text_id'";
-
-		$result = do_mysql_query($sql_query);
-		unset($result, $sql_query);
-	}
-*/
-
-	if (!$cqp_was_set)
-		disconnect_global_cqp();
-
-	return;
-}
 
 
 

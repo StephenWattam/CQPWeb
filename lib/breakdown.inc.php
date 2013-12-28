@@ -36,6 +36,7 @@ require('../lib/environment.inc.php');
 
 /* include function library files */
 require('../lib/library.inc.php');
+require('../lib/html-lib.inc.php');
 require('../lib/metadata.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/cache.inc.php');
@@ -47,11 +48,12 @@ require('../lib/user-settings.inc.php');
 require("../lib/cwb.inc.php");
 require("../lib/cqp.inc.php");
 
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP );
+
+
 /* write progressively to output in case of long loading time */
 ob_implicit_flush(true);
 
-if (!url_string_is_valid())
-	exiterror_bad_url();
 
 
 
@@ -140,9 +142,6 @@ $limit_string = ($download_mode ? '' : ("LIMIT ". ($page_no-1) * $per_page . ', 
 
 
 
-/* connect to mySQL */
-connect_global_mysql();
-
 
 
 
@@ -155,7 +154,7 @@ $primary_annotation = get_corpus_metadata('primary_annotation');
 
 if (empty($primary_annotation) && $breakdown_of != 'words')
 {
-	exiterror_fullpage('You cannot do a frequency breakdown based on annotation, ' 
+	exiterror_general('You cannot do a frequency breakdown based on annotation, ' 
 		. 'because no primary annotation is specified for this corpus.');
 }
 
@@ -168,7 +167,7 @@ if (empty($primary_annotation) && $breakdown_of != 'words')
 
 $query_record = check_cache_qname($qname);
 if ($query_record === false)
-	exiterror_fullpage("The specified query $qname was not found in cache!", __FILE__, __LINE__);
+	exiterror_general("The specified query $qname was not found in cache!", __FILE__, __LINE__);
 
 
 /* now, search the db list for a db whose parameters match those of the query
@@ -371,11 +370,11 @@ else
 	
 	
 	/* create page end HTML */
-	print_footer();
+	echo print_html_footer();
 	
 } /* end of if / else tree for doing something with the result of the main SQL query" */
 
-disconnect_all();
+cqpweb_shutdown_environment();
 
 /* ------------- */
 /* END OF SCRIPT */

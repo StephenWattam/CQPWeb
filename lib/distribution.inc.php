@@ -31,14 +31,11 @@
 
 /* this file contains the code for calculating and showing distribution of hits across text cats */
 
-// note, this file really needs its functions taking out of it, because it is far too big
 
 /* ------------ */
 /* BEGIN SCRIPT */
 /* ------------ */
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
 
 
 /* initialise variables from settings files  */
@@ -47,6 +44,7 @@ require('../lib/environment.inc.php');
 
 /* include function library files */
 require("../lib/library.inc.php");
+require('../lib/html-lib.inc.php');
 require("../lib/concordance-lib.inc.php");
 require("../lib/concordance-post.inc.php");
 require("../lib/exiterror.inc.php");
@@ -59,17 +57,10 @@ require("../lib/cwb.inc.php");
 require("../lib/cqp.inc.php");
 
 
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
-
-// debug
-ob_implicit_flush(true);
-
-
-if (!url_string_is_valid())
-	exiterror_bad_url();
-
-
-
+/* before anything else */
+header('Content-Type: text/html; charset=utf-8');
 
 /* ------------------------------- */
 /* initialise variables from $_GET */
@@ -125,12 +116,6 @@ if (isset($_GET['tableDownloadMode']) && $_GET['tableDownloadMode'] == 1)
 	$download_mode = true;
 else
 	$download_mode = false;
-
-
-
-
-/* connect to mySQL */
-connect_global_mysql();
 
 
 
@@ -396,14 +381,13 @@ else
 	
 	echo '</table>';
 	
-	/* create page end HTML */
-	print_footer();
+	echo print_html_footer();
 
 } /* end of "else" for "if download_mode" */
 
 
-/* disconnect mysql */
-disconnect_global_mysql();
+cqpweb_shutdown_environment();
+
 
 /* ------------- */
 /* END OF SCRIPT */

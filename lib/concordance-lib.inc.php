@@ -1087,67 +1087,53 @@ function extract_cqp_line_position_labels(&$cqp_line, &$text_id, &$position_labe
 }
 
 
-/* print a sorry-no-solutions page, shut down CQP, and end */
-//TODO: This should actually output a full page inc. HTML header
+/** print a sorry-no-solutions page, shut down CQP, and end */
 function say_sorry($instance_name, $sorry_input = "no_solutions")
 {
-	history_update_hits($instance_name, 0);
-	$errorType = "";
 
-	if ($sorry_input == "no_files")
-		$errorText = "There are no files that match your restrictions.";
-	else /* sorry_input is "no_solutions" */
-		$errorText = "There are no matches for your query.";
+	switch ($sorry_input)
+	{
+	case  'empty_postproc':
+		$errorText = "No results were left after performing that operation!";
+		break;
+	case "no_files":
+		$errorText = "There are no texts in the corpus that match your restrictions.";
+		break;
+	case 'no_solutions':
+		$errorText = "Your query had no results.";
+		break;
+	default:
+		$errorText = "Somthing went wrong!";
+		break;
+	}
+	if (!empty($instance_name))
+		history_update_hits($instance_name, 0);
+		// TODO logically, the above DOES NOT BELONG IN THIS FUNCTION. move out & do alongside, not within
+	
+	
+	echo print_html_header();
+
+	// TODO proper formatting below (as in exiterror)
 	?>
 		<table width="100%">
 			<tr>
 				<td>
-					<!-- To do: proper structural formatting here -->
-					<p class="errormessage"><b>Your query had no results.</b></p>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<p class="errormessage">
-						<?php echo $errorText . "<br/>\n" . $errorType . "\n"; ?>
-					</p>
-				</td>
-			</tr>
-		</table>
-	<?php
-
-	print_footer();
-	disconnect_all();
-	exit(0);
-}
-
-/* print a sorry-no-solutions page, shut down CQP, and end */
-//TODO: same as previous function
-function say_sorry_postprocess()
-{
-	$errorText = "<br/><b>There are no matches left in your query.";
-	?>
-		<table width="100%">
-			<tr>
-				<td>
-					<!-- To do: proper structural formatting here -->
-					<p class="errormessage"><b>No results were left after performing that operation!.</b></p>
+					<p class="errormessage"><b><?php echo $errorText; ?></b></p>
 					<p class="errormessage"><b>Press [Back] and try again.</b></p>
 				</td>
 			</tr>
-			<tr>
-				<td>
-					<p class="errormessage">
-						<?php echo $errorText . "<br/>\n" . "\n"; ?>
-					</p>
-				</td>
-			</tr>
 		</table>
 	<?php
 
-	print_footer();
-	disconnect_all();
+	echo print_html_footer();
+	cqpweb_shutdown_environment();
 	exit(0);
+}
+
+/** print a sorry-no-solutions page, shut down CQP, and end */
+function say_sorry_postprocess()
+{
+	say_sorry(false, 'empty_postproc');
 }
 
 

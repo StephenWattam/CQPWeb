@@ -34,17 +34,19 @@ require('../lib/environment.inc.php');
 include("../lib/library.inc.php");
 include("../lib/exiterror.inc.php");
 
-/* setup RSS variables */
 
 /*
+ * Important note, we do not use the normal startup function, because we don't actually require the 
+ * whole environment here. This page NEVER uses a user logon, and it ONLY uses the MySQL connection. 
+ */
+connect_global_mysql();
+
+/* setup RSS variables
+ *
  * We would normally do this in "defaults", but since these are so script-specific,
  * we'll do it here.
- *
- * Exception: defaults will set $rss_feed_available to false if it isn't set to
- * true in the config file.
  */
-
-if (!$rss_feed_available)
+if (! (isset($rss_feed_available) && $rss_feed_available) )
 	exit();
 
 if (!isset($rss_link))
@@ -56,8 +58,6 @@ if (!isset($rss_description))
 if (!isset($rss_feed_title))
 	$rss_feed_title = 'CQPweb System Messages';
 
-
-connect_global_mysql();
 
 /* use output buffering because we want to serve as quick-and-easily as possible */
 ob_start();

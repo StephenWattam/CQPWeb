@@ -77,15 +77,18 @@ A CEQL parser can be told to accept the following varieties of attribute:
           };
 
 ** the attribute that will be searched if "{.../...}" is used in simple queries.
-   In this BNC, this is "lemma". CEQL by default doesn't have a parameter for this. 
+   In this BNC, this is "lemma". CEQL by default doesn't have a parameter for this (see below). 
    So cqpwebCEQL adds one. It is called 'combo_attribute'.
    IF combo_attribute is not defined, it uses the SECONDARY ANNOTATION and the TERTIARY ANNOTAION.
 
-** the lookup table for s-attributes (XML). Again, a hash table. It should contain the names of all
+** the lookup table for s-attributes (XML). Again, a hash table[*]. It should contain the names of all
    the allowable s-attributes mapped to 1. For the default, you are supposed to always have at least
    { "s" => 1 }
    since we'd expect a CWB corpus to have at least s-tags. Unfortunately, for CQPweb,
    this can't be guaranteed. But if there aren't any, then at least nothing will go wrong.
+   
+   [*] actually, a hash -reference-. In the code implementation below, note that the hash is
+   generated using "map()" and "qw()" from a space-delimited list of available XML elements.
 
 ** there are 2 other parameters:
    default_ignore_case : 0 means case is not ignored, 1 means it is
@@ -138,9 +141,8 @@ function get_ceql_script_for_perl($query, $case_sensitive)
 			= mysql_fetch_row($result);
 	
 	$string_with_table_of_3ary_mappings = lookup_tertiary_mappings($name_of_table_of_3ary_mappings);
+	$string_with_xml_tags_to_insert = implode(' ', get_xml_all());
 	
-	/* we accept the overhead of multiple str_replace() calls for the sake of not having
-	 * to escape quote marks and dollar signs all over the shop! */
 	$script = '
 		require "../lib/perl/cqpwebCEQL.pm";
 		
@@ -155,6 +157,7 @@ function get_ceql_script_for_perl($query, $case_sensitive)
 		#~~xml_annotation_command~~#
 		
 		$CEQL->SetParam("default_ignore_case", ##~~case_sensitivity_here~~##);
+
 		$cqp_query = $CEQL->Parse(<<\'END_OF_CEQL_QUERY\');
 
 ##~~string_of_query_here~~##
@@ -213,9 +216,9 @@ END_OF_CEQL_QUERY
 		$script = str_replace('#~~combo_annotation_command~~#', '', $script);
 	
 	/* if there is an allowed-xml table, specify it */
-	if (isset($string_with_table_of_xml_to_insert))
+	if (!empty($string_with_xml_tags_to_insert))
 		$script = str_replace('#~~xml_annotation_command~~#',
-			"\$CEQL->SetParam(\"s_attributes\", $string_with_table_of_xml_to_insert); ", $script);
+			"my %xml_tags = map { \$_ =>1 } qw($string_with_xml_tags_to_insert); \n\$CEQL->SetParam(\"s_attributes\", \\%xml_tags); ", $script);
 	else
 		$script = str_replace('#~~xml_annotation_command~~#', '', $script);	
 
@@ -248,6 +251,7 @@ function process_simple_query($query, $case_sensitive)
 	/* note, this function ALSO accepts an XML table, but this isn't implemented yet */
 	$script = get_ceql_script_for_perl($query, $case_sensitive);
 
+	$cqp_query = $ceql_errors = false;
 	
 	if ( ! run_perl_script($script, $cqp_query, $ceql_errors))
 		exiterror_cqp_full(array("The CEQL parser could not be run (problem with perl)!"));
@@ -262,8 +266,7 @@ function process_simple_query($query, $case_sensitive)
 			($case_sensitive ? 'sq_case' : 'sq_nocase'));
 		history_update_hits($instance_name, -1);
 
-		array_unshift($ceql_errors, "<u>Syntax error</u>", "Sorry, your simple query
-	        ' $query ' contains a syntax error.");
+		array_unshift($ceql_errors, "<u>Syntax error</u>", "Sorry, your simple query [[[ $query ]]] contains a syntax error.");
 	        
 		print_debug_message("Error in perl script for CEQL: this was the script\n\n$script\n\n");
 		
@@ -299,6 +302,8 @@ function run_perl_script($script, &$output, &$errors)
 	$cmd = "/$path_to_perl/perl";
 	foreach($cwb_extra_perl_directories as $d)
 		$cmd .= " -I \"/$d\"";
+	
+	$handles = false;
 	
 	if (is_resource($process = proc_open($cmd, $io_settings, $handles))) 
 	{

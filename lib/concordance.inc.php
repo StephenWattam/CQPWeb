@@ -38,37 +38,26 @@
 require('../lib/environment.inc.php');
 
 /* include function library files */
-require_once('../lib/library.inc.php');
-require_once('../lib/concordance-lib.inc.php');
-require_once('../lib/concordance-post.inc.php');
-require_once('../lib/ceql.inc.php');
-require_once('../lib/metadata.inc.php');
-require_once('../lib/exiterror.inc.php');
-require_once('../lib/cache.inc.php');
-require_once('../lib/subcorpus.inc.php');
-require_once('../lib/db.inc.php');
-require_once('../lib/user-settings.inc.php');
-require_once('../lib/plugins.inc.php');
-require_once('../lib/xml.inc.php');
-require_once("../lib/cwb.inc.php");
-require_once("../lib/cqp.inc.php");
+require('../lib/library.inc.php');
+require('../lib/html-lib.inc.php');
+require('../lib/concordance-lib.inc.php');
+require('../lib/concordance-post.inc.php');
+require('../lib/ceql.inc.php');
+require('../lib/metadata.inc.php');
+require('../lib/exiterror.inc.php');
+require('../lib/cache.inc.php');
+require('../lib/subcorpus.inc.php');
+require('../lib/db.inc.php');
+require('../lib/user-settings.inc.php');
+require('../lib/plugins.inc.php');
+require('../lib/xml.inc.php');
+require("../lib/cwb.inc.php");
+require("../lib/cqp.inc.php");
 
 
-/* write progressively to output in case of long loading time */
-ob_implicit_flush(true);
+cqpweb_startup_environment();
 
-if (!url_string_is_valid())
-	exiterror_bad_url();
-
-
-
-/* connect to mySQL */
-connect_global_mysql();
-
-
-/* connect to CQP */
-connect_global_cqp();
-/* and load user macros! */
+/* Load user macros! */
 user_macro_loadall($username);
 
 
@@ -680,7 +669,7 @@ if ($program == 'lookup')
 {
 	$showtype = ($_GET['lookupShowWithTags'] == 0 ? 'concBreakdownWords' : 'concBreakdownBoth');
 	header("Location: redirect.php?redirect=$showtype&qname=$qname&pp=$per_page&uT=y");
-	disconnect_all();
+	cqpweb_shutdown_environment();
 	exit();
 }
 
@@ -718,8 +707,8 @@ echo '<tr><th colspan="8" class="concordtable">'
 if ($count_hits_then_cease)
 {
 	echo '</table>';
-	print_footer();
-	disconnect_all();
+	echo print_html_footer();
+	cqpweb_shutdown_environment();
 	exit();
 }
 
@@ -869,8 +858,9 @@ if ($num_of_solutions_final > 15 && $per_page > 15)
 
 
 
-/* create page end HTML */
-print_footer();
+echo print_html_footer();
+
+
 
 //TODO: can we detach the client session at this point?
 
@@ -881,14 +871,8 @@ delete_cache_overflow();
 if ($restrictions != 'no_restriction')
 	create_subcorpus_restrictions('__last_restrictions', $restrictions);
 
-/* disconnect CQP child process */
-disconnect_global_cqp();
-
-/* disconnect mysql */
-disconnect_global_mysql();
+cqpweb_shutdown_environment();
 
 
-/* ------------- */
-/* END OF SCRIPT */
-/* ------------- */
+
 ?>

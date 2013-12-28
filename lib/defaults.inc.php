@@ -228,8 +228,7 @@ if (!isset($debug_messages_textonly))
 if (php_sapi_name() == 'cli')
 	$debug_messages_textonly = false;
 
-if (!isset($rss_feed_available))
-	$rss_feed_available = false;
+
 
 
 
@@ -468,32 +467,6 @@ if (! isset($this_script))
 	$this_script = $m[1];
 }
 
-
-
-/* --------------------- */
-/* MAGIC QUOTES, BEGONE! */
-/* --------------------- */
-
-/* A simplified version of the code here: http://php.net/manual/en/security.magicquotes.disabling.php 
- * (simplified because we know that in CQPweb $_GET/$_POST is always a one-dimensional array). 
- * In PHP > 5.4 magic quotes don't exist, but that's OK, because the function in the test will 
- * always return false. */
-
-if (get_magic_quotes_gpc()) 
-{
-	foreach ($_POST as $k => $v) 
-	{
-		unset($_POST[$k]);
-		$_POST[stripslashes($k)] = stripslashes($v);
-	}
-	unset($k, $v);
-	foreach ($_GET as $k => $v) 
-	{
-		unset($_GET[$k]);
-		$_GET[stripslashes($k)] = stripslashes($v);
-	}
-	unset($k, $v);
-}
 
 
 ?>

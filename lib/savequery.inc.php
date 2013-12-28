@@ -30,8 +30,6 @@
 /* BUT the only bit that is used for the save is $qname */
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
 
 
 /* include defaults and settings */
@@ -39,6 +37,7 @@ require('../lib/environment.inc.php');
 
 
 /* include function files */
+require('../lib/html-lib.inc.php');
 include('../lib/cache.inc.php');
 include('../lib/concordance-lib.inc.php');
 include('../lib/library.inc.php');
@@ -46,9 +45,7 @@ include('../lib/user-settings.inc.php');
 include ("../lib/exiterror.inc.php");
 
 
-
-if (!url_string_is_valid())
-	exiterror_bad_url();
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP );
 
 
 $qname = safe_qname_from_get();
@@ -61,12 +58,8 @@ else
 
 
 
-
-
-/* connect to mySQL */
-connect_global_mysql();
-
-
+/* before anything else */
+header('Content-Type: text/html; charset=utf-8');
 
 
 switch ($this_script_mode)
@@ -117,7 +110,7 @@ case 'get_save_name':
 case 'ready_to_save':
 
 	if(!isset($_GET['saveScriptSaveName']))
-		exiterror_fullpage('No save name was specified!', __FILE__, __LINE__);
+		exiterror_general('No save name was specified!');
 	
 	$savename = $_GET['saveScriptSaveName'];
 
@@ -125,7 +118,7 @@ case 'ready_to_save':
 	{
 		$url = 'redirect.php?' 
 			. url_printget(array(array('redirect', 'saveHits'), array('saveScriptSaveName', ''), array('saveScriptMode', 'save_error')));
-		disconnect_all();
+		cqpweb_shutdown_environment();
 		header('Location: ' . url_absolutify($url));
 		exit();
 	}
@@ -135,7 +128,7 @@ case 'ready_to_save':
 		$url = 'redirect.php?' 
 			. url_printget(array(array('redirect', 'saveHits'), array('saveScriptSaveName', ''), 
 				array('saveScriptMode', 'save_error'), array('saveScriptNameExists', $savename)));
-		disconnect_all();
+		cqpweb_shutdown_environment();
 		header('Location: ' . url_absolutify($url));
 		exit();
 	}
@@ -158,7 +151,7 @@ case 'ready_to_save':
 		/* delete theData cos god knows how often it's been passed around */
 		/* delete all the parameters to do with redirect.php and savequery.php */
 	
-	disconnect_all();
+	cqpweb_shutdown_environment();
 	header('Location: ' . url_absolutify($url));
 	exit();
 
@@ -201,7 +194,7 @@ case 'get_save_rename':
 case 'rename_saved':
 
 	if(!isset($_GET['saveScriptSaveReplacementName']))
-		exiterror_fullpage('No save name was specified!', __FILE__, __LINE__);
+		exiterror_general('No replacement save name was specified!');
 
 	$replacename = $_GET['saveScriptSaveReplacementName'];
 
@@ -209,7 +202,7 @@ case 'rename_saved':
 	{
 		$url = 'redirect.php?' 
 			. url_printget(array(array('redirect', 'saveHits'), array('saveScriptSaveReplacementName', ''), array('saveScriptMode', 'rename_error')));
-		disconnect_all();
+		cqpweb_shutdown_environment();
 		header('Location: ' . url_absolutify($url));
 		exit();
 	}
@@ -220,7 +213,7 @@ case 'rename_saved':
 	
 	$url = 'index.php?'
 		. url_printget(array(array('theData', ''), array('redirect', ''), array('saveScriptSaveReplacementName', ''), array('saveScriptMode', '')));
-	disconnect_all();
+	cqpweb_shutdown_environment();
 	header('Location: ' . url_absolutify($url));
 	exit();
 
@@ -232,14 +225,14 @@ case 'delete_saved':
 	delete_cached_query($qname);
 	$url = 'index.php?'
 		. url_printget(array(array('qname', ''), array('theData', ''), array('redirect', ''), array('saveScriptMode', '')));
-	disconnect_all();
+	cqpweb_shutdown_environment();
 	header('Location: ' . url_absolutify($url));
 	exit();
 
 
 
 default:
-	exiterror_fullpage('Unrecognised scriptmode for savequery.inc.php!', __FILE__, __LINE__);
+	exiterror_general('Unrecognised scriptmode for savequery.inc.php!');
 
 
 } /* end of switch */
@@ -304,8 +297,8 @@ function print_savename_page()
 		</tr>
 	</table>
 	<?php
-	print_footer();
-	disconnect_all();
+	echo print_html_footer();
+	cqpweb_shutdown_environment();
 	exit(0);
 }
 
@@ -366,8 +359,8 @@ function print_replacesavename_page()
 		</tr>
 	</table>
 	<?php
-	print_footer();
-	disconnect_all();
+	echo print_html_footer();
+	cqpweb_shutdown_environment();
 	exit(0);
 }
 

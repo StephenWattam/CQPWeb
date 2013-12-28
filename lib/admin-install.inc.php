@@ -72,20 +72,20 @@ class corpus_install_info
 		/* mysql name */
 		$this->corpus_mysql_name = $_GET['corpus_mysql_name'];
 		if (! cqpweb_handle_check($this->corpus_mysql_name))
-			exiterror_fullpage("That corpus name is invalid." 
+			exiterror_general("That corpus name is invalid." 
 				. "You must specify a corpus name using only letters, numbers and underscore");
 		/* check for reserved words */
 		global $cqpweb_reserved_subdirs;
 		if (in_array($this->corpus_mysql_name, $cqpweb_reserved_subdirs))
-			exiterror_fullpage("The following corpus names are not allowed: " . implode(' ', $cqpweb_reserved_subdirs));
+			exiterror_general("The following corpus names are not allowed: " . implode(' ', $cqpweb_reserved_subdirs));
 		
 		/* cwb name */
 		$this->corpus_cwb_name = strtolower($_GET['corpus_cwb_name']);
 		if (! cqpweb_handle_check($this->corpus_cwb_name))
-			exiterror_fullpage("That corpus name is invalid." 
+			exiterror_general("That corpus name is invalid." 
 				. "You must specify a corpus name using only letters, numbers and underscore");		
 		if (substr($this->corpus_cwb_name, -6) == '__freq')
-			exiterror_fullpage('Error: Corpus CWB names cannot end in __freq!!');
+			exiterror_general('Error: Corpus CWB names cannot end in __freq!!');
 		
 		/* other basic parameters */
 		$this->script_is_r2l = ( isset($_GET['corpus_scriptIsR2L']) && $_GET['corpus_scriptIsR2L'] === '1' );
@@ -112,9 +112,9 @@ class corpus_install_info
 					. '/' 
 					. $this->corpus_cwb_name;
 				if (is_file($registry_file))
-					exiterror_fullpage("A corpus by that name already exists in the CQPweb registry!");					
+					exiterror_general("A corpus by that name already exists in the CQPweb registry!");					
 				if (!is_file($orig_registry_file))
-					exiterror_fullpage("The specified CWB registry file does not seem to exist in that location.");
+					exiterror_general("The specified CWB registry file does not seem to exist in that location.");
 				
 				/* we have established that the registry file does not exist and the original does
 				 * so we can now import the registry file into CQPweb's registry */	
@@ -123,7 +123,7 @@ class corpus_install_info
 			else
 			{
 				if (!is_file($registry_file))
-					exiterror_fullpage("The specified CWB corpus does not seem to exist in CQPweb's registry.");
+					exiterror_general("The specified CWB corpus does not seem to exist in CQPweb's registry.");
 			}
 			
 			$regdata = file_get_contents($registry_file);
@@ -131,19 +131,19 @@ class corpus_install_info
 			if (preg_match("/\bHOME\s+(\/[^\n\r]+)\s/", $regdata, $m) < 1)
 			{
 				unlink($registry_file);
-				exiterror_fullpage("A data-directory path could not be found in the registry file for "
+				exiterror_general("A data-directory path could not be found in the registry file for "
 					. "the CWB corpus you specified.\n\nEither the data-directory is unspecified, or it is "
 					. "specified with a relative path (an absolute path is needed).");
 			}
 			$test_datadir = $m[1];
 			
 			if (!is_dir($test_datadir))
-				exiterror_fullpage("The data directory specified in the registry file [$test_datadir] could not be found.");
+				exiterror_general("The data directory specified in the registry file [$test_datadir] could not be found.");
 			
 			/* check that <text> and <text_id> are s-attributes */
 			if (preg_match('/\bSTRUCTURE\s+text\b/', $regdata) < 1 
 				|| preg_match('/\bSTRUCTURE\s+text_id\b/', $regdata) < 1)
-				exiterror_fullpage("Pre-indexed corpora require s-attributes text and text_id!!");
+				exiterror_general("Pre-indexed corpora require s-attributes text and text_id!!");
 		}
 		else /* ie if this is NOT an already indexed corpus */
 		{
@@ -159,11 +159,11 @@ class corpus_install_info
 				if (is_file($path))
 					$this->file_list[] = $path;
 				else
-					exiterror_fullpage("One of the files you selected seems to have been deleted.");
+					exiterror_general("One of the files you selected seems to have been deleted.");
 			}
 			
 			if (empty($this->file_list))
-				exiterror_fullpage("You must specify at least one file to include in the corpus!");		
+				exiterror_general("You must specify at least one file to include in the corpus!");		
 		}
 
 		
@@ -369,7 +369,7 @@ function install_new_corpus()
 	/* check whether corpus already exists */
 	$existing_corpora = list_corpora();
 	if ( in_array($info->corpus_mysql_name, $existing_corpora) )
-		exiterror_fullpage("Corpus `$corpus' already exists on the system." 
+		exiterror_general("Corpus `$corpus' already exists on the system." 
 			. "Please specify a different SQL name for your new corpus.");
 
 	/* ======================================================
@@ -444,7 +444,7 @@ function install_new_corpus()
 
 		exec($encode_command, $output_lines_from_cwb, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
-			exiterror_fullpage("cwb-encode reported an error! Corpus indexing aborted. <pre>"
+			exiterror_general("cwb-encode reported an error! Corpus indexing aborted. <pre>"
 				. implode("\n", $output_lines_from_cwb) 
 				. '</pre>');
 
@@ -453,7 +453,7 @@ function install_new_corpus()
 		$output_lines_from_cwb[] = $makeall_command = "/$path_to_cwb/cwb-makeall -r /$cwb_registry -V $CORPUS 2>&1";
 		exec($makeall_command, $output_lines_from_cwb, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
-			exiterror_fullpage("cwb-makeall reported an error! Corpus indexing aborted. <pre>"
+			exiterror_general("cwb-makeall reported an error! Corpus indexing aborted. <pre>"
 				. implode("\n", $output_lines_from_cwb)
 				. '</pre>');
 
@@ -462,14 +462,14 @@ function install_new_corpus()
 		$compression_output[] = $huffcode_command = "/$path_to_cwb/cwb-huffcode -r /$cwb_registry -A $CORPUS 2>&1";
 		exec($huffcode_command, $compression_output, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
-			exiterror_fullpage("cwb-huffcode reported an error! Corpus indexing aborted. <pre>"
+			exiterror_general("cwb-huffcode reported an error! Corpus indexing aborted. <pre>"
 				. implode("\n", array_merge($output_lines_from_cwb,$compression_output)) 
 				. '</pre>');
 
 		$compression_output[] = $compress_rdx_command = "/$path_to_cwb/cwb-compress-rdx -r /$cwb_registry -A $CORPUS 2>&1";
 		exec($compress_rdx_command, $compression_output, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
-			exiterror_fullpage("cwb-compress-rdx reported an error! Corpus indexing aborted. <pre>"
+			exiterror_general("cwb-compress-rdx reported an error! Corpus indexing aborted. <pre>"
 				. implode("\n", array_merge($output_lines_from_cwb,$compression_output)) 
 				. '</pre>');
 

@@ -7,7 +7,7 @@
  *
  * This file is part of CQPweb.
  * 
- * CQPweb is free software; you can redistribute it and/or modify
+ * CQPweb is free software; you can redistribute it and/or modifyCQPWEB_STARTUP_DONT_CHECK_URLTEST
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
@@ -41,35 +41,18 @@ require('../lib/environment.inc.php');
 
 
 /* include function library files */
-require_once("../lib/library.inc.php");
-require_once("../lib/exiterror.inc.php");
-require_once("../lib/metadata.inc.php");
-require_once("../lib/user-settings.inc.php");
-require_once("../lib/freqtable.inc.php");
-require_once("../lib/cwb.inc.php");         // needed?
-require_once("../lib/cqp.inc.php");
-
-
-// debug
-ob_implicit_flush(true);
+require("../lib/library.inc.php");
+require('../lib/html-lib.inc.php');
+require("../lib/exiterror.inc.php");
+require("../lib/metadata.inc.php");
+require("../lib/user-settings.inc.php");
+require("../lib/freqtable.inc.php");
+require("../lib/cwb.inc.php");         // needed?
+require("../lib/cqp.inc.php");
 
 
 
-if (!url_string_is_valid())
-	exiterror_bad_url();
-
-
-
-
-
-
-
-
-
-/* connect to mySQL */
-connect_global_mysql();
-
-
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
 
 
@@ -128,7 +111,7 @@ if (!isset($_GET['kwCompareAtt']) )
 else
 	$att_for_comp = $_GET['kwCompareAtt'];
 if (preg_match('/\W/', $_GET['kwCompareAtt']) > 0)
-	exiterror_fullpage("An invalid word-annotation ($att) was specified!", __FILE__, __LINE__);
+	exiterror_general("An invalid word-annotation ($att) was specified!");
 
 	
 
@@ -157,7 +140,7 @@ else
 //		case 'X2': 	$statistic = 'X2';	$statistic_display = 'Chi-square';	break;
 //		case 'MI': 	$statistic = 'MI';	$statistic_display = 'MI';			break;
 		default:
-			exiterror_fullpage("An invalid statistic ({$_GET['kwStatistic']}) was specified!", __FILE__, __LINE__);
+			exiterror_general("An invalid statistic ({$_GET['kwStatistic']}) was specified!");
 	}
 
 /* override statistic if we are not in keyword mode */
@@ -208,18 +191,17 @@ $limit_string = ($download_mode ? '' : ("LIMIT ". ($page_no-1) * $per_page . ', 
 /* -------------------------------------------------------------------------- */
 
 
-/* the two tables to compare */
-/* see note above in variable extraction */
+/* the two tables to compare; see note above in variable extraction */
 
 if (isset($_GET['kwTable1']) )
 	list($subcorpus[1], $table_base[1], $table_desc[1], $table_foreign[1]) = parse_keyword_table_parameter($_GET['kwTable1']);
 else
-	exiterror_fullpage("No frequency table was specified (table 1)!", __FILE__, __LINE__);
+	exiterror_general("No frequency table was specified (table 1)!");
 	
 if (isset($_GET['kwTable2']) )
 	list($subcorpus[2], $table_base[2], $table_desc[2], $table_foreign[2]) = parse_keyword_table_parameter($_GET['kwTable2']);
 else
-	exiterror_fullpage("No frequency table was specified (table 2)!", __FILE__, __LINE__);
+	exiterror_general("No frequency table was specified (table 2)!");
 
 
 
@@ -229,16 +211,16 @@ else
 
 
 if ($table_base[1] === false || $table_base[2] === false)
-	exiterror_fullpage("CQPweb could not interpret the tables you specified!". __FILE__, __LINE__);
+	exiterror_general("CQPweb could not interpret the tables you specified!");
 
 
 /* check we've got two DIFFERENT tables */
 if ($table_base[1] == $table_base[2])
-	exiterror_fullpage("The two frequency lists you have chosen are identical!", __FILE__, __LINE__);
+	exiterror_general("The two frequency lists you have chosen are identical!");
 
 /* check that the first table isn't foreign */
 if ($table_foreign[1] === true)
-	exiterror_fullpage("A foreign frequency list was specified for frequency list (1)!", __FILE__, __LINE__);
+	exiterror_general("A foreign frequency list was specified for frequency list (1)!");
 
 /* get a string to put into queries with the subcorpus */
 foreach(array(1,2) as $i)
@@ -296,8 +278,7 @@ foreach (array(1, 2) as $i)
 	$sql_query = "select sum(freq) from {$table_name[$i]}";
 	$result = do_mysql_query($sql_query);
 	if (mysql_num_rows($result) < 1)
-		exiterror_fullpage("sum(freq) not found in from {$table_name[$i]}, 
-			0 rows returned from mySQL.", __FILE__, __LINE__);		
+		exiterror_general("sum(freq) not found in from {$table_name[$i]}, 0 rows returned from mySQL.");		
 	list($table_total[$i]) = mysql_fetch_row($result);
 	unset ($result);
 }
@@ -378,7 +359,7 @@ switch ($statistic)
 		break;
 	
 	default:
-		exiterror_fullpage("Undefined statistic!", __FILE__, __LINE__);
+		exiterror_general("Undefined statistic!");
 }
 
 
@@ -480,12 +461,12 @@ else
 
 	echo '</table>';
 	
-	/* create page end HTML */
-	print_footer();
+	echo print_html_footer();
 }
 
-/* disconnect mysql */
-disconnect_global_mysql();
+
+
+cqpweb_shutdown_environment();
 
 
 

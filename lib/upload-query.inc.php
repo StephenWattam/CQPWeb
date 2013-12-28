@@ -26,42 +26,18 @@
  * 
  * This file contains the script for uploading query files.
  */
-
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
-
 /* include defaults and settings */
 require('../lib/environment.inc.php');
 
 
 /* include function files */
-include('../lib/cqp.inc.php');
-include('../lib/cache.inc.php');
-include('../lib/library.inc.php');
-include('../lib/uploads.inc.php');
-include ('../lib/exiterror.inc.php');
+require('../lib/cqp.inc.php');
+require('../lib/cache.inc.php');
+require('../lib/library.inc.php');
+require('../lib/uploads.inc.php');
+require('../lib/exiterror.inc.php');
 
-/* sort out our incoming variables.... */
-foreach($_POST as $k=>$v)
-	$_GET[$k] = $v;
-unset($k,$v);
-/* now, we can be sure that any bits of the system that rely on
- * $_GET being there will work. Such as, indeed, the very next function call. */
-
-
-
-if (!url_string_is_valid())
-	exiterror_bad_url();
-	
-
-
-/* connect to mySQL */
-connect_global_mysql();
-
-
-/* connect to CQP */
-connect_global_cqp();
+cqpweb_startup_environment();
 
 
 
@@ -72,18 +48,25 @@ connect_global_cqp();
 /* check that we have the parameters we need */ 
 /* ----------------------------------------- */
 
+/* sort out our incoming variables.... */
+foreach($_POST as $k=>$v)
+	$_GET[$k] = $v;
+unset($k,$v);
+/* now, we can be sure that any bits of the system that rely on $_GET being there will work. */
+
+
 /* do we have the save name? */
 
 if (isset($_GET["uploadQuerySaveName"]))
 	$save_name = $_GET["uploadQuerySaveName"];
 else
-	exiterror_parameter('No save name was specified!', __FILE__, __LINE__);
+	exiterror_parameter('No save name was specified!');
 
 
 /* do we have the array of the uploaded file? */
 
 if (! (isset($_FILES["uploadQueryFile"]) && is_array($_FILES["uploadQueryFile"])) )
-	exiterror_parameter('Information on the uploaded file was not found!', __FILE__, __LINE__);
+	exiterror_parameter('Information on the uploaded file was not found!');
 
 
 
@@ -226,7 +209,7 @@ $cache_record = array(
 update_cached_query($cache_record);
 
 
-disconnect_all();
+cqpweb_shutdown_environment();
 
 
 

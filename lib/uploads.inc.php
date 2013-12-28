@@ -50,9 +50,9 @@ function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $t
 		break;
 	case UPLOAD_ERR_INI_SIZE:
 	case UPLOAD_ERR_FORM_SIZE:
-		exiterror_fullpage('That file is too big to upload! Contact your system administrator.');
+		exiterror_general('That file is too big to upload! Contact your system administrator.');
 	default:
-		exiterror_fullpage('The file did not upload correctly! Please try again.');
+		exiterror_general('The file did not upload correctly! Please try again.');
 	}
 	
 	/* We've checked the global restriction, now check the restriction for ordinary users 
@@ -63,7 +63,7 @@ function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $t
 	{
 		/* normal user limit is 2MB */
 		if ($file_size > 2097152)
-			exiterror_fullpage('That file is too big to upload! Contact your system administrator.');
+			exiterror_general('That file is too big to upload! Contact your system administrator.');
 	}
 	
 	/* check the directory exists for user-uploaded files */
@@ -86,7 +86,7 @@ function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $t
 	if (move_uploaded_file($temp_path, $new_path)) 
 		chmod($new_path, 0664);
 	else
-		exiterror_fullpage("The file could not be processed! Possible file upload attack.");
+		exiterror_general("The file could not be processed! Possible file upload attack.");
 	
 	return $new_path;
 }
@@ -103,8 +103,7 @@ function uploaded_file_fix_linebreaks($filename)
 	$path = "/$cqpweb_uploaddir/$filename";
 	
 	if (!file_exists($path))
-		exiterror_fullpage('Your request could not be completed - that file does not exist.', 
-			__FILE__, __LINE__);
+		exiterror_general('Your request could not be completed - that file does not exist.');
 	
 	$intermed_path = "/$cqpweb_uploaddir/__________uploaded_file_fix_linebreaks________temp_________datoa__________.___";
 	
@@ -134,8 +133,7 @@ function uploaded_file_delete($filename)
 	$path = "/$cqpweb_uploaddir/$filename";
 	
 	if (!file_exists($path))
-		exiterror_fullpage('Your request could not be completed - that file does not exist.', 
-			__FILE__, __LINE__);
+		exiterror_general('Your request could not be completed - that file does not exist.');
 	
 	unlink($path);
 }
@@ -148,16 +146,14 @@ function uploaded_file_gzip($filename)
 	$path = "/$cqpweb_uploaddir/$filename";
 	
 	if (!file_exists($path))
-		exiterror_fullpage('Your request could not be completed - that file does not exist.', 
-			__FILE__, __LINE__);
+		exiterror_general('Your request could not be completed - that file does not exist.');
 
 	$zip_path = $path . '.gz';
 	
 	$in_file = fopen($path, "rb");
 	if (!$out_file = gzopen ($zip_path, "wb"))
 	{
-		exiterror_fullpage('Your request could not be completed - compressed file could not be opened.', 
-			__FILE__, __LINE__);
+		exiterror_general('Your request could not be completed - compressed file could not be opened.');
 	}
 
 	php_execute_time_unlimit();
@@ -184,12 +180,10 @@ function uploaded_file_gunzip($filename)
 	$path = "/$cqpweb_uploaddir/$filename";
 	
 	if (!file_exists($path))
-		exiterror_fullpage('Your request could not be completed - that file does not exist.', 
-			__FILE__, __LINE__);
+		exiterror_general('Your request could not be completed - that file does not exist.');
 	
 	if (preg_match('/(.*)\.gz$/', $filename, $m) < 1)
-		exiterror_fullpage('Your request could not be completed - that file does not appear to be compressed.', 
-			__FILE__, __LINE__);
+		exiterror_general('Your request could not be completed - that file does not appear to be compressed.');
 
 	$unzip_path = "/$cqpweb_uploaddir/{$m[1]}";
 	
@@ -220,8 +214,7 @@ function uploaded_file_view($filename)
 	$path = "/$cqpweb_uploaddir/$filename";
 
 	if (!file_exists($path))
-		exiterror_fullpage('Your request could not be completed - that file does not exist.', 
-			__FILE__, __LINE__);
+		exiterror_general('Your request could not be completed - that file does not exist.');
 
 	$fh = fopen($path, 'r');
 	

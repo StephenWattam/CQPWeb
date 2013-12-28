@@ -34,18 +34,12 @@ require('../lib/user-settings.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/library.inc.php');
 
+// TODO this should prob not be a file....
 
-/* connect to mySQL */
-connect_global_mysql();
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
+update_multiple_user_settings($username, parse_get_user_settings());
 
-
-
-
-
-$new_settings = parse_get_user_settings();
-update_multiple_user_settings($username, $new_settings);
-
-disconnect_all();
+cqpweb_shutdown_environment();
 header('Location: ' . url_absolutify('index.php?thisQ=userSettings&uT=y'));
 exit(0);
 

@@ -87,17 +87,9 @@ include('../lib/cwb.inc.php');
 include('../lib/cqp.inc.php');
 
 
-/** a special form of "exit" function just used by execute.php script */
-function execute_print_and_exit($title, $content)
-{
-	exit("
-<html><head><title>$title</title></head><body><pre>
-$content
 
-CQPweb (c) 2010
-</pre></body></html>
-		");
-}
+cqpweb_startup_environment();
+
 
 /* only superusers get to use this script */
 if (!user_is_superuser($username))
@@ -158,33 +150,11 @@ around calling passthru() or unlink() or any other such dodgy function with arbi
 
 
 
-/* connect to mySQL and cqp, in case the function call needs them as globals */
-connect_global_mysql();
-connect_global_cqp();
-
 /* run the function */
-
-/*
-switch($argc)
-{	
-case 0:		$function();	break;
-case 1:		$function($argv[0]);	break;
-case 2:		$function($argv[0], $argv[1]);	break;
-case 3:		$function($argv[0], $argv[1], $argv[2]);	break;
-case 4:		$function($argv[0], $argv[1], $argv[2], $argv[3]);	break;
-case 5:		$function($argv[0], $argv[1], $argv[2], $argv[3], $argv[4]);	break;
-case 6:		$function($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5]);	break;
-case 7:		$function($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5], $argv[6]);	break;
-case 8:		$function($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5], $argv[6], $argv[7]);	break;
-case 9:		$function($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5], $argv[6], $argv[7], $argv[8]);	break;
-case 10:	$function($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5], $argv[6], $argv[7], $argv[8], $argv[9]);	break;
-
-default:
-	break;
-}*/
 call_user_func_array($function, $argv);
 
-disconnect_all();
+
+cqpweb_shutdown_environment();
 
 
 /* go to the specified address, if one was specified AND if the HTTP headers have not been sent yet 
@@ -196,5 +166,28 @@ if ( isset($_GET['locationAfter']) && headers_sent() == false )
 	header('Location: ' . url_absolutify($_GET['locationAfter']));
 else if ( ! isset($_GET['locationAfter']) && headers_sent() == false )
 	execute_print_and_exit( 'CQPweb -- execute.php', 'Your function call has been finished executing!');
+
+
+/*
+ * =============
+ * END OF SCRIPT
+ * =============
+ */
+
+
+/** a special form of "exit" function just used by execute.php script */
+function execute_print_and_exit($title, $content)
+{
+	exit("
+<html><head><title>$title</title></head><body><pre>
+$content
+
+CQPweb (c) 2008-today
+</pre></body></html>
+		");
+}
+
+
+
 
 ?>

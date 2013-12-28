@@ -31,14 +31,13 @@ require('../lib/environment.inc.php');
 
 /* include function library files */
 require("../lib/library.inc.php");
+require('../lib/html-lib.inc.php');
 require("../lib/exiterror.inc.php");
 require("../lib/cache.inc.php");
 require("../lib/freqtable.inc.php");
 require("../lib/concordance-lib.inc.php");
 
-if (!url_string_is_valid())
-	exiterror_bad_url();
-
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
 
 /* before anything else */
@@ -69,9 +68,6 @@ $qname = safe_qname_from_get();
 
 
 
-
-/* connect to mySQL */
-connect_global_mysql();
 
 
 
@@ -344,12 +340,10 @@ if (false) // also temp, the next html block will be unconditional
 <?php
 }
 
-/* create page end HTML */
-print_footer();
+echo print_html_footer();
 
 
-/* disconnect mysql */
-disconnect_global_mysql();
+cqpweb_shutdown_environment();
 
 
 /* ------------- */

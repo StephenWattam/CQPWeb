@@ -212,7 +212,7 @@ function add_new_user($username, $password, $email = NULL)
 	$password = preg_replace('/\W/', '', $password);
 	
 	if ($username === '' || $password === '')
-		exiterror_fullpage("Usernames and passwords can only contain letters, numbers and underscores.",
+		exiterror_general("Usernames and passwords can only contain letters, numbers and underscores.",
 			__FILE__, __LINE__);
 	
 	$apache->new_user($username, $password);
@@ -334,7 +334,7 @@ function add_user_to_group($user, $group)
 	$group = preg_replace('/\W/', '', $group);
 	
 	if ($user === '' || $group === '')
-		exiterror_fullpage("Invalid username or group name!",
+		exiterror_general("Invalid username or group name!",
 			__FILE__, __LINE__);
 
 	$apache->add_user_to_group($user, $group);
@@ -347,9 +347,9 @@ function remove_user_from_group($user, $group, $superuseroverride = false)
 		return;
 	
 	if (empty($user))
-		exiterror_fullpage("Unspecified username - cannot continue.");
+		exiterror_general("Unspecified username - cannot continue.");
 	if (empty($group))
-		exiterror_fullpage("Unspecified user group - cannot continue.");
+		exiterror_general("Unspecified user group - cannot continue.");
 	
 	$apache = get_apache_object('nopath');
 	$apache->delete_user_from_group($user, $group);
@@ -482,6 +482,49 @@ function get_apache_object($path_to_web_directory)
 
 	return $obj;
 }
+
+/**
+ * This function, for admin use only, updates the text metadata of the corpus with begin and end 
+ * positions for each text, acquired from CQP; needs running on setup.
+ */
+function populate_corpus_cqp_positions($corpus)
+{
+	$corpus = mysql_real_escape_string($corpus);
+
+	global $cqp;
+
+	if (isset($cqp))
+		$cqp_was_set = true;
+	else
+	{
+		$cqp_was_set = false;
+		connect_global_cqp();
+	}
+
+	$cqp->execute("A = <text> [] expand to text");
+	$lines = $cqp->execute("tabulate A match, matchend, match text_id");
+
+	foreach ($lines as &$a)
+	{
+		$item = explode("\t", $a);
+		/* Doing a mysql query inside a loop would be much more efficient if we could
+		 * use a prepared query - but, alas, we don't want to require the more recent
+		 * versions of the mysql server that enable this (or, indeed, PHP's mysqli 
+		 * extension that supports it) */
+		do_mysql_query("update text_metadata_for_$corpus
+			set cqp_begin = {$item[0]}, cqp_end = {$item[1]}
+			where text_id = '{$item[2]}'");
+	}
+
+	/* update word counts for each text */
+	do_mysql_query("update text_metadata_for_$corpus set words = cqp_end - cqp_begin + 1");
+
+	if (!$cqp_was_set)
+		disconnect_global_cqp();
+
+	return;
+}
+
 
 
 function update_text_metadata_values_descriptions()
@@ -789,14 +832,14 @@ function create_text_metadata_for()
 	$corpus = cqpweb_handle_enforce($create_text_metadata_for_info['corpus']);
 	
 	if (!is_dir("../$corpus"))
-		exiterror_fullpage("Corpus $corpus does not seem to be installed!\nMetadata setup aborts.");	
+		exiterror_general("Corpus $corpus does not seem to be installed!\nMetadata setup aborts.");	
 	
 	if (empty($create_text_metadata_for_info['filename']))
-		exiterror_fullpage("No input file was specified!\nMetadata setup aborts.");
+		exiterror_general("No input file was specified!\nMetadata setup aborts.");
 				
 	$file = "/$cqpweb_uploaddir/{$create_text_metadata_for_info['filename']}";
 	if (!is_file($file))
-		exiterror_fullpage("The metadata file you specified does not appear to exist!\nMetadata setup aborts.");
+		exiterror_general("The metadata file you specified does not appear to exist!\nMetadata setup aborts.");
 
 	$input_file = "/$cqpweb_tempdir/___install_temp_{$create_text_metadata_for_info['filename']}";
 	
@@ -928,7 +971,7 @@ function create_text_metadata_for()
 		import_settings_as_global($corpus);
 
 		/* do unconditionally */
-		populate_corpus_cqp_positions();
+		populate_corpus_cqp_positions($corpus);
 		
 		/* if there are any classifications... */
 		if (mysql_num_rows(
@@ -966,12 +1009,11 @@ function create_text_metadata_for_minimalist()
 	
 	
 	if (!is_dir("../$corpus_sql_name"))
-		exiterror_fullpage("Corpus $corpus_sql_name does not seem to be installed!", __FILE__, __LINE__);	
+		exiterror_general("Corpus $corpus_sql_name does not seem to be installed!");	
 
 	$input_file = "/$cqpweb_tempdir/___install_temp_metadata_$corpus_sql_name";
 
-	exec("/$path_to_cwb/cwb-s-decode -n -r /$cwb_registry $corpus_cqp_name -S text_id"
-		. " > $input_file");
+	exec("/$path_to_cwb/cwb-s-decode -n -r /$cwb_registry $corpus_cqp_name -S text_id > $input_file");
 
 	/* note, size of text_id is 50 to allow possibility of non-decoded UTF8 - they should be shorter */
 	$create_statement = "create table `text_metadata_for_$corpus_sql_name`(
@@ -995,7 +1037,7 @@ function create_text_metadata_for_minimalist()
 	unlink($input_file);
 	
 	/* finally call position and word count update. */
-	populate_corpus_cqp_positions();
+	populate_corpus_cqp_positions($corpus_sql_name);
 }
 
 

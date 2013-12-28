@@ -717,7 +717,9 @@ function printquery_latest()
 -->
 		<li>
 		<b>Version 3.1.0</b>, 2013-12-26<br/>&nbsp;<br/>
-		
+		Added a script to automatically upgrade an existing CQPweb MySQL database to match a more recent version of the code.
+		<br/>&nbsp;<br/>
+		Fixed bug affecting use of XML tags in CEQL queries.
 		<br/>&nbsp;</li>
 
 		<li>

@@ -38,6 +38,8 @@
 //////////// ideally based on tables rather than errormessage paras
 
 /**
+ * Function internal to the exiterror module.
+ * 
  * Writes the start of an error page, if and only if nothing has been sent back
  * via HTTP yet.
  * 
@@ -93,18 +95,18 @@ function exiterror_printlines($lines)
 	$before = ($debug_messages_textonly ? '' : '<p class="errormessage">');
 	$after  = ($debug_messages_textonly ? "\n\n" : "</p>\n\n");
 
-	if ($debug_messages_textonly)
-		foreach($lines as &$l)
-			$l = wordwrap($l, 72);
+//	if ($debug_messages_textonly)
+//		foreach($lines as &$l)
+//			$l = wordwrap($l, 72);
 	
 	foreach($lines as &$l)
-		echo $before . $l . $after;
+		echo $before . cqpweb_htmlspecialchars($l) . $after;
 }
 
 /**
  * Function internal to exiterror module.
  * 
- * Prints a de
+ * Prints a debug backtrace if user is superuser.
  * 
  * Prints a footer iff we're in HTML context; then kills CQPweb.
  * 
@@ -142,10 +144,10 @@ function exiterror_endpage($backlink = false)
 			<p class="errormessage"><a href="index.php">Back to corpus home page.</a></p>
 			<?php
 		}
-		print_footer();
+		echo print_html_footer();
 	}
 	
-	disconnect_all();
+	cqpweb_shutdown_environment();
 	exit();
 }
 
@@ -167,11 +169,11 @@ function exiterror_msg_location(&$array, $script=NULL, $line=NULL)
 
 
 
-/** Obsolete function now that exiterror_general does the same thing. */
-function exiterror_fullpage($errormessage, $script=NULL, $line=NULL)
-{
-	exiterror_general($errormessage, $script, $line);
-}
+///** Obsolete function now that exiterror_general does the same thing. */
+//function exiterror_fullpage($errormessage, $script=NULL, $line=NULL)
+//{
+//	exiterror_general($errormessage, $script, $line);
+//}
 
 /**
  * Primary function to be called by other modules.

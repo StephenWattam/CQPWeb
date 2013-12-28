@@ -24,7 +24,8 @@
 /**
  * @file
  * 
- * This script does a number of different thihngs, depending on the value of GET->categoriseAction 
+ * This script does a number of different thihngs, depending on the value of GET->categoriseAction .
+ * 
  */
 
 /* ------------ */
@@ -37,6 +38,7 @@ require('../lib/environment.inc.php');
 
 /* include function library files */
 require('../lib/library.inc.php');
+require('../lib/html-lib.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/cache.inc.php');
 require('../lib/db.inc.php');
@@ -45,23 +47,10 @@ require('../lib/user-settings.inc.php');
 require("../lib/cwb.inc.php");
 require("../lib/cqp.inc.php");
 
+cqpweb_startup_environment();
 
 /* write progressively to output in case of long loading time */
 ob_implicit_flush(true);
-
-if (!url_string_is_valid())
-	exiterror_bad_url();
-
-
-
-/* connect to mySQL */
-connect_global_mysql();
-
-
-/* connect to CQP */
-connect_global_cqp();
-
-
 
 
 
@@ -122,11 +111,7 @@ switch ($_GET['categoriseAction'])
 }
 
 
-/* disconnect CQP child process using destructor function */
-disconnect_global_cqp();
-
-/* disconnect mysql */
-disconnect_global_mysql();
+cqpweb_shutdown_environment();
 
 
 /* ------------- */
@@ -156,7 +141,7 @@ function categorise_create_query()
 	$qname = safe_qname_from_get();
 
 	if (check_cache_qname($qname) === false)
-		exiterror_fullpage("The specified query $qname was not found in cache!", __FILE__, __LINE__);
+		exiterror_general("The specified query $qname was not found in cache!", __FILE__, __LINE__);
 	
 
 	if(isset($_GET['defaultCat']))
@@ -169,13 +154,13 @@ function categorise_create_query()
 	if (empty($_GET['categoriseCreateName']))
 	{
 		categorise_enter_categories('no_name');
-		disconnect_all();
+		cqpweb_shutdown_environment();
 		exit();
 	}
 	else if ( ! cqpweb_handle_check($savename = $_GET['categoriseCreateName']) )
 	{
 		categorise_enter_categories('bad_names');
-		disconnect_all();
+		cqpweb_shutdown_environment();
 		exit();
 	}
 	
@@ -185,7 +170,7 @@ function categorise_create_query()
 	if (mysql_num_rows($result) > 0)
 	{
 		categorise_enter_categories('name_exists');
-		disconnect_all();
+		cqpweb_shutdown_environment();
 		exit();
 	}
 
@@ -202,14 +187,14 @@ function categorise_create_query()
 		if ( ! cqpweb_handle_check($thiscat) )
 		{
 			categorise_enter_categories('bad_names');
-			disconnect_all();
+			cqpweb_shutdown_environment();
 			exit();
 		}
 		/* make sure there are no categories that are the same */
 		if (in_array($thiscat, $categories))
 		{
 			categorise_enter_categories('cat_repeated');
-			disconnect_all();
+			cqpweb_shutdown_environment();
 			exit();
 		}
 		/* this cat is OK! */
@@ -219,7 +204,7 @@ function categorise_create_query()
 	if (count($categories) == 0)
 	{
 		categorise_enter_categories('no_cats');
-		disconnect_all();
+		cqpweb_shutdown_environment();
 		exit();
 	}
 	$categories[] = 'other';
@@ -316,7 +301,7 @@ function categorise_separate()
 	/* check that the query in question exists and is a catquery */
 	$query_record = check_cache_qname($qname);
 	if ($query_record === false || $query_record['saved'] != 2)
-		exiterror_fullpage("The specified categorised query \"$qname\" was not found!", __FILE__, __LINE__);
+		exiterror_general("The specified categorised query \"$qname\" was not found!", __FILE__, __LINE__);
 	
 	
 	$dbname = catquery_find_dbname($qname);
@@ -442,10 +427,10 @@ function categorise_add_new_value()
 	if (isset($_GET['newCategory']))
 		$new_cat = mysql_real_escape_string($_GET['newCategory']);
 	else
-		exiterror_fullpage('Critical parameter "newCategory" was not defined!', __FILE__, __LINE__);
+		exiterror_general('Critical parameter "newCategory" was not defined!', __FILE__, __LINE__);
 	
 	if (! cqpweb_handle_check($new_cat))
-		exiterror_fullpage('The category name you tried to add contains spaces or punctuation. '
+		exiterror_general('The category name you tried to add contains spaces or punctuation. '
 							. 'Category labels can only contain unaccented letters, digits, and the underscore.');
 
 	/* get the current list of categories */
@@ -547,9 +532,7 @@ function categorise_enter_new_value()
 	
 	<?php
 	
-	/* create page end HTML */
-	print_footer();	
-		
+	echo print_html_footer();	
 }
 
 
@@ -696,9 +679,7 @@ function categorise_enter_categories($error = NULL)
 	</form>
 	
 	<?php
-	
-	/* create page end HTML */
-	print_footer();
+	echo print_html_footer();
 
 }
 ?>

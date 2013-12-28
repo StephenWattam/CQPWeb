@@ -48,6 +48,7 @@ require('../lib/environment.inc.php');
 
 /* include function library files */
 require("../lib/library.inc.php");
+require('../lib/html-lib.inc.php');
 require("../lib/concordance-lib.inc.php");
 require("../lib/concordance-post.inc.php");
 require("../lib/colloc-lib.inc.php");
@@ -70,21 +71,7 @@ ob_implicit_flush(true);
 
 
 
-
-if (!url_string_is_valid())
-	exiterror_bad_url();
-
-
-
-
-
-
-/* connect to mySQL */
-connect_global_mysql();
-
-
-/* connect to CQP */
-connect_global_cqp();
+cqpweb_startup_environment();
 
 
 /* download all user settings */
@@ -428,8 +415,8 @@ else
 if ($solomode === true)
 {
 	run_script_for_solo_collocation();
-	print_footer();
-	disconnect_all();
+	echo print_html_footer();
+	cqpweb_shutdown_environment();
 	exit(0);
 }
 
@@ -742,20 +729,14 @@ else
 	
 	echo $navlinks;
 	
-	/* create page end HTML */
-	print_footer();
+	echo print_html_footer();
 
 
 } /* endof "else" for "if $download_mode" */
 
 
 
-/* disconnect CQP child process */
-disconnect_global_cqp();
-
-/* disconnect mysql */
-disconnect_global_mysql();
-
+cqpweb_shutdown_environment();
 
 
 /* ------------- */

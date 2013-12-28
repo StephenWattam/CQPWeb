@@ -39,12 +39,12 @@ require('../lib/environment.inc.php');
 
 /* include function library files */
 require("../lib/library.inc.php");
+require('../lib/html-lib.inc.php');
 require("../lib/exiterror.inc.php");
 require("../lib/cache.inc.php");
 require("../lib/user-settings.inc.php");
 
-if (!url_string_is_valid())
-	exiterror_bad_url();
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
 
 
@@ -71,10 +71,6 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 
 $qname = safe_qname_from_get();
 
-
-
-/* connect to mySQL */
-connect_global_mysql();
 
 
 
@@ -142,11 +138,10 @@ $reproducible_is_selected = get_user_setting($username, 'thin_default_reproducib
 
 
 /* create page end HTML */
-print_footer();
+echo print_html_footer();
 
 
-/* disconnect mysql */
-disconnect_global_mysql();
+cqpweb_shutdown_environment();
 
 
 /* ------------- */

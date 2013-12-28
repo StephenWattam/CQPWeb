@@ -380,7 +380,7 @@ switch($_GET['admFunction'])
 			// the problem is, rather, that then it can't be passed to execute.inc.php ,
 			// because hash is an argument separator.
 			// TODO: clean this up.
-			$_GET['function'] = 'exiterror_fullpage';
+			$_GET['function'] = 'exiterror_general';
 		}
 		else
 		{

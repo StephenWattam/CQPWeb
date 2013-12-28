@@ -29,11 +29,12 @@ chdir('bin');
 require('../lib/environment.inc.php');
 
 require('../lib/library.inc.php');
+require('../lib/html-lib.inc.php');
 require('../lib/metadata.inc.php');
 require('../lib/exiterror.inc.php');
 
-/* connect to mySQL */
-connect_global_mysql();
+
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST);
 
 
 
@@ -52,6 +53,29 @@ else
 	/* empty string: to make the loops cycle once */
 	$categories = array(0=>'');
 }
+
+
+/* devise the HTML for the hreader-bar logos. */
+$logo_divs = '';
+foreach ( array('left', 'right') as $side)
+{
+	$addresses = 'homepage_logo_'.$side;
+	if (!isset($$addresses))
+		continue;
+	if (false !== strpos($$addresses, "\t"))
+		list ($img_url, $link_url) = explode("\t", $$addresses, 2);	
+	else
+	{
+		$img_url = $$addresses;
+		$link_url = false;
+	}
+	$logo_divs .= "<div style=\"float: $side;\">" .
+		($link_url ? "<a href=\"$link_url\">" : '') .
+		"<img src=\"$img_url\" height=\"80\"  border=\"0\" >" .
+		($link_url ? '</a>' : '') .
+		'</div>      ';
+}
+
 
 
 
@@ -73,7 +97,7 @@ header('Content-Type: text/html; charset=utf-8');
 
 	<tr>
 		<th colspan="3" class="concordtable">
-			<?php mainpage_print_logos(); echo $homepage_welcome_message; ?>
+			<?php echo $logo_divs, $homepage_welcome_message; ?>
 			<br/>
 			<em>Please select a corpus from the list below to enter.</em>
 		</th>
@@ -163,35 +187,11 @@ foreach ($categories as $idno => $cat)
 
 display_system_messages();
 
-print_footer('admin');
+echo print_html_footer('admin');
 
-/* disconnect mysql */
-disconnect_global_mysql();
+cqpweb_shutdown_environment();
 
 
 /* END OF SCRIPT */
 
-/* this is in a function to keep all the if clauses out of the way of the main HTML */
-function mainpage_print_logos()
-{
-	foreach ( array('left', 'right') as $side)
-	{
-		$addresses = 'homepage_logo_'.$side;
-		global $$addresses;
-		if (!isset($$addresses))
-			continue;
-		if (false !== strpos($$addresses, "\t"))
-			list ($img_url, $link_url) = explode("\t", $$addresses, 2);	
-		else
-		{
-			$img_url = $$addresses;
-			$link_url = false;
-		}
-		echo "<div style=\"float: $side;\">";
-		if ($link_url) echo "<a href=\"$link_url\">";
-		echo "<img src=\"$img_url\" height=\"80\"  border=\"0\" >";
-		if ($link_url) echo '</a>';
-		echo '</div>      ';
-	}
-} 
 ?>

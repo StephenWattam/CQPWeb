@@ -54,7 +54,7 @@ cqpwebCEQL - CQPweb extension of the Common Elementary Query Language (CEQL)
   # You can also set a list of XML elements allowed within queries
   $self->SetParam("s_attributes", HASH_TABLE_OF_S_ATTRIBUTES);
   
-  # As CQPweb does nto currently have terribly good XML support, a default
+  # As CQPweb does not currently have terribly good XML support, a default
   # "allow only s" option is preset. Future versions of cqpwebCEQL may remove this. 
 
   # $ceql_query must be in utf-8

@@ -22,7 +22,9 @@
  */
 
 
-/*
+/**
+ * 
+ * @file
  * This file contains the main script for the CQPweb API-via-HTTP.
  * 
  * It processes incoming requests and calls other bits of CQPweb in
@@ -37,18 +39,18 @@ require('../lib/environment.inc.php');
 
 
 /* include function library files */
-require_once('../lib/library.inc.php');
-require_once('../lib/concordance-lib.inc.php');
-require_once('../lib/concordance-post.inc.php');
-require_once('../lib/ceql.inc.php');
-require_once('../lib/metadata.inc.php');
-require_once('../lib/exiterror.inc.php');
-require_once('../lib/cache.inc.php');
-require_once('../lib/subcorpus.inc.php');
-require_once('../lib/db.inc.php');
-require_once('../lib/user-settings.inc.php');
-require_once("../lib/cwb.inc.php");
-require_once("../lib/cqp.inc.php");
+require('../lib/library.inc.php');
+require('../lib/concordance-lib.inc.php');
+require('../lib/concordance-post.inc.php');
+require('../lib/ceql.inc.php');
+require('../lib/metadata.inc.php');
+require('../lib/exiterror.inc.php');
+require('../lib/cache.inc.php');
+require('../lib/subcorpus.inc.php');
+require('../lib/db.inc.php');
+require('../lib/user-settings.inc.php');
+require('../lib/cwb.inc.php');
+require('../lib/cqp.inc.php');
 
 /*
  * Important note: what about exiterror? should we engage a special mode where it writes

@@ -38,16 +38,14 @@
 /* ------------ */
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
 
 /* initialise variables from settings files  */
 require('../lib/environment.inc.php');
 
 
 /* include function library files */
-require ("../lib/library.inc.php");
+require('../lib/library.inc.php');
+require('../lib/html-lib.inc.php');
 //require ("../lib/user-settings.inc.php");
 //require ("../lib/exiterror.inc.php");
 //require ("../lib/cache.inc.php");
@@ -61,11 +59,13 @@ require ("../lib/library.inc.php");
 //require ("../lib/colloc-lib.inc.php");
 
 
-/* connect to mySQL */
-connect_global_mysql();
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
 
 
+
+/* before anything else */
+header('Content-Type: text/html; charset=utf-8');
 
 
 ?>
@@ -205,10 +205,9 @@ echo "Report bugs</a></td></tr>";
 
 <?php
 
-print_footer();
+echo print_html_footer();
 
-/* ... and disconnect mysql */
-disconnect_global_mysql();
+cqpweb_shutdown_environment();
 
 /* ------------- */
 /* END OF SCRIPT */

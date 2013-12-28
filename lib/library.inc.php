@@ -27,7 +27,7 @@
 
 
 
-/* this file contains a library of broadly useful functions */
+/** @file This file contains a library of broadly useful functions. */
 
 
 
@@ -46,7 +46,7 @@ if  (!extension_loaded('mysql'))
 	if (!class_exists('mysqli', false))
 		exit('CQPweb fatal error: neither mysql nor mysqli is available. Contact the system administrator.');
 	else
-		include('../lib/fake-mysql.inc.php');
+		require('../lib/fake-mysql.inc.php');
 }
 
 
@@ -56,96 +56,6 @@ if  (!extension_loaded('mysql'))
 
 
 
-
-
-/*
- * FLAGS for cqpweb_startup_environment()
- */
- 
-define('CQPWEB_NO_STARTUP_FLAGS',             0);
-define('CQPWEB_STARTUP_DONT_CONNECT_CQP',     1);
-define('CQPWEB_STARTUP_DONT_CONNECT_MYSQL',   2);
-define('CQPWEB_STARTUP_DONT_CHECK_URLTEST',   4);
-
-
-/**
- * Function that starts up CQPweb and sets up the required environment.
- * 
- * All scripts that require the environment should call this function.
- * 
- * It should be called *after* the inclusion of most functions, but
- * *before* the inclusion of admin functions (if any).
- * 
- * Ultimately, this function will be used instead of the various "setup
- * stuff" that uis currently done repeatedly, per-script.
- * 
- * Pass in bitwise-OR'd flags to control the behaviour. 
- * 
- * TODO When we have the new user system, this function will prob get bigger
- * and bigger. Also when the system can be silent for the web-api, this
- * function will deal with it. As a result it will prob
- * be necessary to move this function, as well as the equiv shutdown
- * function, into a file of its own. (startup.inc.php) together with
- * depedencies like session setup functions, the control flag constants, etc.
- */
-function cqpweb_startup_environment($flags = CQPWEB_NO_STARTUP_FLAGS)
-{
-	// TODO, move here the check for a bad URL.
-	// conditional on CQPWEB_STARTUP_DONT_CHECK_URLTEST
-	
-	
-	// TODO ,move into here the getting of the username
-	// TODO, a call to session_start() -- and other cookie/login stuff -
-	// prob belongs here.
-	
-	// TODO, move into here the setup of plugins
-	// (so this is done AFTER all functions are imported, not
-	// in the defaults.inc.php file)
-
-	// TODO, move into here setting the HTTP response headers, charset and the like???
-	// (make dependent on whether we are writing plaintext or an HTML response?
-	// (do we want a flag CQPWEB_STARTUP_NONINTERACTIVE for when HTML response is NTO wanted?
-	
-	// TODO likewise have an implicit policy on ob_*_flush() usage in different scirpts.
-
-	/*
-	 * The flags are for "dont" because we assume the default behaviour
-	 * is to need both a DB connection and a slave CQP process.
-	 * 
-	 * If one or both is not required, a script can be passed in to 
-	 * save the connection (not much of a saving in the case of the DB,
-	 * potentially quite a performance boost for the slave process.)
-	 */
-	if ($flags & CQPWEB_STARTUP_DONT_CONNECT_CQP)
-		;
-	else
-		connect_global_cqp();
-	
-	if ($flags & CQPWEB_STARTUP_DONT_CONNECT_MYSQL)
-		;
-	else
-		connect_global_mysql();
-}
-
-/**
- * Performs shutdown and cleanup for the CQPweb system.
- * 
- * The only thing that it will not do is finish off HTML. The
- * script should do that separately -- BEFORE calling this script.
- * 
- * TODO this function does not really contain much yet, but eventually all
- * web-callable scruipts should use it.
- */
-function cqpweb_shutdown_environment()
-{
-	// TODO, should it do a client disconnect? 
-	// if so, it needs to be done AFTER a location call / print end of page.
-	// should the location call / print end of page be done here?
-	
-	/* these funcs have their own "if" clauses so can be called here unconditionally... */
-	disconnect_global_cqp();
-	disconnect_global_mysql();
-}
 
 
 
@@ -283,17 +193,6 @@ function disconnect_global_mysql()
 		mysql_close($mysql_link);
 }
 
-/**
- * Disconnects from both cqp & mysql, assuming standard global variable names are used.
- * 
- * DEPRACATED: use cqpweb_shutdown_environment() instead.
- */
-function disconnect_all()
-{
-	disconnect_global_cqp();
-	disconnect_global_mysql();
-}
-
 
 
 /**
@@ -319,7 +218,7 @@ function do_mysql_query($sql_query)
 		if (false === mysql_query("select 1", $mysql_link))
 			connect_global_mysql();
 
-	print_debug_message("About to run the following MySQL query:\n\n$sql_query\n");
+	print_debug_message("About to run the following MySQL query:\n\t$sql_query\n");
 	$start_time = time();
 	
 	$result = mysql_query($sql_query, $mysql_link);
@@ -543,7 +442,7 @@ function database_enable_keys($table)
 
 
 
-
+// TODO this could be a method on the config object
 /**
  * Returns an integer containing the RAM limit to be passed to CWB programs that
  * allow a RAM limit to be set - note, the flag (-M or whatever) is not returned,
@@ -589,8 +488,7 @@ function print_debug_message($message)
  */
 function pre_echo($s)
 {
-	// TODO we should prob call htmlspecialchars here, sans double encoding....
-	echo "\n\n<pre>\n$s\n</pre>\n";
+	echo "\n\n<pre>\n", htmlspecialchars($s), "\n</pre>\n";
 }
 
 /**
@@ -621,23 +519,12 @@ function import_settings_as_global($corpus)
  */
 function regex_add_anchors($s)
 {
-	$s = preg_replace('/^\^/', '', $s);
-	$s = preg_replace('/^\\A/', '', $s);
-	$s = preg_replace('/\$$/', '', $s);
+	$s = preg_replace('/^\^/',     '', $s);
+	$s = preg_replace('/^\\A/',    '', $s);
+	$s = preg_replace('/\$$/',     '', $s);
 	$s = preg_replace('/\\[Zz]$/', '', $s);
-	return '^' . $s . '$';
+	return "^$s\$";
 }
-
-//TODO remove completely...
-///**
-// * Converts an integer to a string with commas every three digits.
-// * 
-// * Note: this was created when I didn't know about the existence of number_format()! -- AH.
-// */
-//function make_thousands($number)
-//{
-//	return number_format((float)$number);
-//}
 
 
 
@@ -715,11 +602,11 @@ function cqpweb_handle_check($string, $length = -1)
 function safe_qname_from_get($index = 'qname')
 {
 	if (!isset($_GET[$index]))
-		exiterror_fullpage('No query ID was specified!', __FILE__, __LINE__);
+		exiterror_general('No query ID was specified!');
 	else
 		$qname = $_GET[$index];
 	if (! cqpweb_handle_check($qname))
-		exiterror_fullpage('The specified query ID is badly formed!', __FILE__, __LINE__);
+		exiterror_general('The specified query ID is badly formed!');
 	return $qname;
 }
 
@@ -758,7 +645,7 @@ function set_next_absolute_location($relative_url)
  * $cqpweb_root_url.
  * 
  * $u will be treated as a relative address  (as explained above) if it does not 
- * begin with "http" and as an absolute address if it does.
+ * begin with "http:" or "https:" and as an absolute address if it does.
  * 
  * Note, this "absolute" in the sense of having a server specified at the start, 
  * it can still contain relativising elements such as '/../' etc.
@@ -809,6 +696,8 @@ function url_absolutify($u, $special_subdir = NULL)
  */
 function url_string_is_valid()
 {
+	if ( (!isset($_GET['uT'])) && isset($_POST['uT']))
+		return ($_POST['uT'] == 'y');
 	return (array_key_exists('uT', $_GET) && $_GET['uT'] == 'y');
 }
 
@@ -1089,20 +978,7 @@ function dump_mysql_result($result)
 
 function coming_soon_page()
 {
-	global $corpus_title;
-	global $css_path;
-	?>
-	<html>
-	<head>
-	<?php
-	echo '<title>' . $corpus_title . ' -- unfinished function!</title>';
-	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-	?>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	</head>
-	<body>
-
-	<?php
+	echo print_html_header('unfinished function!');
 	coming_soon_finish_page();
 }
 
@@ -1167,9 +1043,9 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 		else
 			$output = "";
 
-		fclose($handles[0]);    
-		fclose($handles[1]);    
-		fclose($handles[2]);    
+		fclose($handles[0]);
+		fclose($handles[1]);
+		fclose($handles[2]);
 		proc_close($process);
 		
 		return $output;
@@ -1180,104 +1056,6 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 
 
 
-
-
-/**
- * Creates a table row for the index-page left-hand-side menu, which is either a link,
- * or a greyed-out entry if the variable specified as $current_query is equal to
- * the link handle. It is returned as a string, -not- immediately echoed.
- *
- * This is the version for adminhome.
- */
-function print_menurow_admin($link_handle, $link_text)
-{
-	global $thisF;
-	return print_menurow_backend($link_handle, $link_text, $thisF, 'thisF');
-}
-/**
- * Creates a table row for the index-page left-hand-side menu, which is either a link,
- * or a greyed-out entry if the variable specified as $current_query is equal to
- * the link handle. It is returned as a string, -not- immediately echoed.
- *
- * This is the version for the normal user-facing index.
- */
-function print_menurow_index($link_handle, $link_text)
-{
-	global $thisQ;
-	return print_menurow_backend($link_handle, $link_text, $thisQ, 'thisQ');
-}
-function print_menurow_backend($link_handle, $link_text, $current_query, $http_varname)
-{
-	$s = "\n<tr>\n\t<td class=\"";
-	if ($current_query != $link_handle)
-		$s .= "concordgeneral\">\n\t\t<a class=\"menuItem\""
-			. " href=\"index.php?$http_varname=$link_handle&uT=y\">";
-	else 
-		$s .= "concordgrey\">\n\t\t<a class=\"menuCurrentItem\">";
-	$s .= "$link_text</a>\n\t</td>\n</tr>\n";
-	return $s;
-}
-
-
-/**
- * Creates a page footer for CQPweb.
- * 
- * Pass in the string "admin" for an admin-logon link. 
- * Default link is to a help page.
- */ 
-function print_footer($link = 'help')
-{
-	global $username;
-	
-	/* javascript location diverter */
-	$diverter = '../';
-	
-	if ($link == 'help')
-	{
-		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
-			<a class="cqpweb_copynote_link" href="help.php" target="_NEW">Corpus and tagset help</a>
-		</td>';
-	}
-	else if ($link == 'admin')
-	{
-		/* use the help cell for an admin logon link instead */
-		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
-			<a href="adm"  class="cqpweb_copynote_link" >[Admin logon]</a>
-		</td>';	
-		/* when link is admin, javascript is in lib, which is a subdir. */
-		$diverter = '';
-	}
-	else
-	{
-		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
-			&nbsp;
-		</td>';
-	}
-	
-	?>
-	<hr/>
-	<table class="concordtable" width="100%">
-		<tr>
-			<td align="left" class="cqpweb_copynote" width="33%">
-				CQPweb v<?php echo CQPWEB_VERSION; ?> &#169; 2008-2013
-			</td>
-			<?php echo $help_cell; ?>  
-			<td align="right" class="cqpweb_copynote" width="33%">
-				<?php
-				if ($username == '__unknown_user')
-					echo 'You are not logged in';
-				else
-					echo "You are logged in as user [$username]";
-				?>
-			</td>
-		</tr>
-	</table>
-	<script language="JavaScript" type="text/javascript" src="<? echo $diverter; ?>lib/javascript/wz_tooltip.js">
-	</script>
-	</body>
-</html>
-	<?php
-}
 
 
 
@@ -1390,8 +1168,8 @@ function display_system_messages()
 			<td rowspan="2" class="concordgeneral" nowrap="nowrap">
 				<a class="menuItem" onmouseover="return escape(\'Delete this system message\')"
 				href="'. $execute_path . '&args='
-				. $r->message_id .
-				'&locationAfter=' . $after_path . '&uT=y">
+				, $r->message_id ,
+				'&locationAfter=' , $after_path , '&uT=y">
 					[x]
 				</a>
 			</td>';

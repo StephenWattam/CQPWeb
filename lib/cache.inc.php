@@ -67,12 +67,6 @@ function cqp_file_unlink($qname)
  */
 function cqp_file_copy($oldqname, $newqname)
 {
-	/* the old way to do it
-	global $cqpweb_tempdir;
-	global $corpus_cqp_name;
-	$of = "/$cqpweb_tempdir/$corpus_cqp_name:$oldqname";
-	$nf = "/$cqpweb_tempdir/$corpus_cqp_name:$newqname";
-	*/
 	$of = cqp_file_path($oldqname);
 	$nf = preg_replace("/:$oldqname\z/", ":$newqname", $of);
 	if ( file_exists($of) && ! file_exists($nf) )
