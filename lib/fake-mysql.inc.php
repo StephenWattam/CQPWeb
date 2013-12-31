@@ -99,6 +99,17 @@ function mysql_get_server_info($link_identifier = NULL)
 	return mysqli_get_server_info($link_identifier);
 }
 
+/**
+ * False MySQL charset set function using MySQLi.
+ */
+function mysql_set_charset($charset, $link_identifier = NULL)
+{
+	if (!mysql_fake_force_link_set($link_identifier))
+		return false;
+	
+	return mysqli_set_charset($link_identifier, $charset);
+}
+
 
 /**
  * Fake MySQL real-escape-string function using MySQLi.

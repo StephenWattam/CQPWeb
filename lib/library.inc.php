@@ -148,7 +148,7 @@ function connect_global_mysql()
 	global $mysql_webuser;
 	global $mysql_webpass;
 	global $mysql_schema;
-	global $utf8_set_required;
+	global $mysql_utf8_set_required;
 	
 	/* check for previous connection */
 	if ( ! is_null($mysql_link) )
@@ -174,9 +174,8 @@ function connect_global_mysql()
 	mysql_select_db($mysql_schema, $mysql_link);
 	
 	/* utf-8 setting is dependent on a variable defined in config.inc.php */
-	if ($utf8_set_required)
-		mysql_query("SET NAMES utf8", $mysql_link);
-	// TODO but see: http://www.php.net/manual/en/function.mysql-set-charset.php
+	if ($mysql_utf8_set_required)
+		mysql_set_charset("utf8", $mysql_link);
 }
 /**
  * Disconnects from the MySQL server.

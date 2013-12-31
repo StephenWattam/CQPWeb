@@ -520,8 +520,8 @@ function printquery_managemeta()
 							<br/>&nbsp;<br/>
 							
 							<em>Note: you must only select annotations that occur <strong>at or above</strong>
-							the level of &lt;text&gt; in the XML hierarchy of your corpus; doing otherwise will 
-							cause a CQP error.</em> 
+							the level of &lt;text&gt; in the XML hierarchy of your corpus; doing otherwise may 
+							cause a CQP error, and will in any case not give you the expecteds results.</em> 
 							
 							<br/>&nbsp;<br/>
 							
@@ -846,11 +846,9 @@ function printquery_managemeta()
 				<th class="concordtable" >My metadata is embedded in the XML of my corpus!</th>
 			</tr>
 			<?php
-			
-			$possible_annotations = get_xml_annotations();
-			
+						
 			/* there is always at least one */
-			if (count($possible_annotations) == 1)
+			if (count(get_xml_annotations()) == 1)
 			{
 				?>
 				<tr>
@@ -1028,6 +1026,7 @@ function printquery_managemeta()
 						<input type="submit" value="<?php echo $button_label; ?>"/>
 						<br/>
 						<input type="hidden" name="function" value="populate_corpus_cqp_positions" />
+						<input type="hidden" name="args" value="<?php echo $corpus_sql_name; ?>" />
 						<input type="hidden" name="locationAfter" value="index.php?thisQ=manageMetadata&uT=y" />
 						<input type="hidden" name="uT" value="y" />
 					</form>
