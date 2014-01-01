@@ -264,7 +264,7 @@ function printquery_history()
 			echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
 				. "theData=" . urlencode($row['cqp_query']) 
 				. "&simpleQuery=" . urlencode($row['simple_query'])
-				. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+				. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
 				. "Run error</a></td>";
 				break;
 		case -1:
@@ -276,20 +276,20 @@ function printquery_history()
 					. "theData=" . urlencode($row['cqp_query']) 
 					. "&del=begin&t=subcorpus~{$row['subcorpus']}&del=end"
 					. "&simpleQuery=" . urlencode($row['simple_query'])
-					. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+					. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
 					. $row['hits'] . "</a></td>";
 			else if ($row['restrictions'] != 'no_restriction')
 				echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
 					. "theData=" . urlencode($row['cqp_query']) 
 					. "&simpleQuery=" . urlencode($row['simple_query'])
 					. '&' . untranslate_restrictions_definition_string($row['restrictions'])
-					. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+					. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
 					. $row['hits'] . "</a></td>";
 			else
 				echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
 					. "theData=" . urlencode($row['cqp_query']) 
 					. "&simpleQuery=" . urlencode($row['simple_query'])
-					. "&qmode=cqp&qname=INIT&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+					. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
 					. $row['hits'] . "</a></td>";
 			break;
 		}

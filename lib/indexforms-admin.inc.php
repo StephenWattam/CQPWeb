@@ -328,142 +328,120 @@ function printquery_corpusoptions()
 function printquery_manageaccess()
 {
 	global $corpus_sql_name;
-	global $cqpweb_uses_apache;
 	
-	if ($cqpweb_uses_apache)
-	{	
-		$access = get_apache_object(realpath('.'));
-		$access->load();
-		
-		$all_groups = $access->list_groups();
-		$allowed_groups = $access->get_allowed_groups();
-		$disallowed_groups = array();
-		foreach($all_groups as &$g)
-			if (! in_array($g, $allowed_groups))
-				$disallowed_groups[] = $g;
+	$access = get_apache_object(realpath('.'));
+	$access->load();
 	
-		$options_groups_to_add = '';
-		foreach($disallowed_groups as &$dg)
-			$options_groups_to_add .= "\n\t\t<option>$dg</option>";
-			
-		$options_groups_to_remove = '';
-		foreach($allowed_groups as &$ag)
-		{
-			if ($ag == 'superusers')
-				continue;
-			$options_groups_to_remove .= "\n\t\t<option>$ag</option>";
-		}
-			
-		?>
-		<table class="concordtable" width="100%">
-			<tr>
-				<th class="concordtable" colspan="2">Corpus access control panel</th>
-			</tr>
-			<tr>
-				<td class="concordgrey" align="center" colspan="2">
-					&nbsp;<br/>
-					The following user groups have access to this corpus:
-					<br/>&nbsp;
-				</td>
-			</tr>
-			<tr>
-				<th class="concordtable" width="50%">Group</th>
-				<th class="concordtable">Members</th>
-			</tr>
-			
-			<?php
-			foreach ($allowed_groups as &$group)
-			{
-				echo "\n<tr>\n<td class=\"concordgeneral\" align=\"center\"><strong>$group</strong></td>\n";
-				$member_list = $access->list_users_in_group($group);
-				sort($member_list);
-				echo "\n<td class=\"concordgeneral\">";
-				$i = 0;
-				foreach ($member_list as &$member)
-				{
-					echo $member . ' ';
-					$i++;
-					if ($i == 5)
-					{
-						echo "<br/>\n";
-						$i = 0;
-					}
-				}
-				echo '</td>';
-			}
-			?>
-			
-			<tr>
-				<th class="concordtable">Add group</th>
-				<th class="concordtable">Remove group</th>
-			</tr>
-			<tr>
-				<td class="concordgeneral" align="center">
-					<form action="../adm/index.php" method="get">
-						<br/>
-						<select name="groupToAdd">
-							<?php echo $options_groups_to_add ?>
-						</select>
-						&nbsp;
-						<input type="submit" value="Go!" />
-						<br/>
-						<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name ?>"/>
-						<input type="hidden" name="admFunction" value="accessAddGroup"/>
-						<input type="hidden" name="uT" value="y"/>
-					</form>
-				</td>
-				<td class="concordgeneral" align="center">
-					<form action="../adm/index.php" method="get">
-						<br/>
-						<select name="groupToRemove">
-							<?php echo $options_groups_to_remove ?>
-						</select>
-						&nbsp;
-						<input type="submit" value="Go!" />
-						<br/>
-						<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name ?>"/>
-						<input type="hidden" name="admFunction" value="accessRemoveGroup"/>
-						<input type="hidden" name="uT" value="y"/>
-					</form>
-				</td>
-			</tr>
-			<tr>
-				<td class="concordgrey" align="center" colspan="2">
-					&nbsp;<br/>
-					You can manage group membership via the 
-					<a href="../adm/index.php?thisF=groupAdmin&uT=y">Sysadmin Control Panel</a>.
-					<br/>&nbsp;
-				</th>
-			</tr>
-		</table>
+	$all_groups = $access->list_groups();
+	$allowed_groups = $access->get_allowed_groups();
+	$disallowed_groups = array();
+	foreach($all_groups as &$g)
+		if (! in_array($g, $allowed_groups))
+			$disallowed_groups[] = $g;
+
+	$options_groups_to_add = '';
+	foreach($disallowed_groups as &$dg)
+		$options_groups_to_add .= "\n\t\t<option>$dg</option>";
 		
-		<?php
-	} /* endif $cqpweb_uses_apache */
-	else
+	$options_groups_to_remove = '';
+	foreach($allowed_groups as &$ag)
 	{
-		?>
-		<table class="concordtable" width="100%">
-			<tr>
-				<th class="concordtable">Corpus access control panel</th>
-			</tr>
-			<tr>
-				<td class="concordgrey" align="center">
-					&nbsp;<br/>
-					CQPweb internal corpus access management is not available 
-					(requires Apache web server).
-					<br/>&nbsp;
-				</td>
-			</tr>
-		</table>
-		<?php
+		if ($ag == 'superusers')
+			continue;
+		$options_groups_to_remove .= "\n\t\t<option>$ag</option>";
 	}
+		
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="2">Corpus access control panel</th>
+		</tr>
+		<tr>
+			<td class="concordgrey" align="center" colspan="2">
+				&nbsp;<br/>
+				The following user groups have access to this corpus:
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable" width="50%">Group</th>
+			<th class="concordtable">Members</th>
+		</tr>
+		
+		<?php
+		foreach ($allowed_groups as &$group)
+		{
+			echo "\n<tr>\n<td class=\"concordgeneral\" align=\"center\"><strong>$group</strong></td>\n";
+			$member_list = $access->list_users_in_group($group);
+			sort($member_list);
+			echo "\n<td class=\"concordgeneral\">";
+			$i = 0;
+			foreach ($member_list as &$member)
+			{
+				echo $member . ' ';
+				$i++;
+				if ($i == 5)
+				{
+					echo "<br/>\n";
+					$i = 0;
+				}
+			}
+			echo '</td>';
+		}
+		?>
+		
+		<tr>
+			<th class="concordtable">Add group</th>
+			<th class="concordtable">Remove group</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral" align="center">
+				<form action="../adm/index.php" method="get">
+					<br/>
+					<select name="groupToAdd">
+						<?php echo $options_groups_to_add ?>
+					</select>
+					&nbsp;
+					<input type="submit" value="Go!" />
+					<br/>
+					<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name ?>"/>
+					<input type="hidden" name="admFunction" value="accessAddGroup"/>
+					<input type="hidden" name="uT" value="y"/>
+				</form>
+			</td>
+			<td class="concordgeneral" align="center">
+				<form action="../adm/index.php" method="get">
+					<br/>
+					<select name="groupToRemove">
+						<?php echo $options_groups_to_remove ?>
+					</select>
+					&nbsp;
+					<input type="submit" value="Go!" />
+					<br/>
+					<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name ?>"/>
+					<input type="hidden" name="admFunction" value="accessRemoveGroup"/>
+					<input type="hidden" name="uT" value="y"/>
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgrey" align="center" colspan="2">
+				&nbsp;<br/>
+				You can manage group membership via the 
+				<a href="../adm/index.php?thisF=groupAdmin&uT=y">Sysadmin Control Panel</a>.
+				<br/>&nbsp;
+			</th>
+		</tr>
+	</table>
+	
+	<?php
 }
 
 
 
 function printquery_managemeta()
-{	
-	global $cqpweb_uploaddir;
+{
+	global $Config;
 	global $corpus_sql_name;
 	
 	
@@ -684,11 +662,11 @@ function printquery_managemeta()
 				<th class="concordtable">Date modified</th>
 			</tr>
 			<?php
-			$file_list = scandir("/$cqpweb_uploaddir/");
+			$file_list = scandir($Config->dir->upload);
 	
 			foreach ($file_list as &$f)
 			{
-				$file = "/$cqpweb_uploaddir/$f";
+				$file = "$Config->dir->upload/$f";
 				
 				if (!is_file($file)) continue;
 				
@@ -1098,11 +1076,10 @@ function printquery_managemeta()
 			
 			<?php
 			
-			global $cwb_registry;
 			global $corpus_cqp_name;
 			$corpus_cqp_name_lower = strtolower($corpus_cqp_name);
 			
-			if (file_exists("/$cwb_registry/{$corpus_cqp_name_lower}__freq"))
+			if (file_exists("$Config->dir->registry/{$corpus_cqp_name_lower}__freq"))
 			{
 				$message = 'The text-by-text list for this corpus <strong>has already been created</strong>. Use
 								the button below to delete and recreate it.';

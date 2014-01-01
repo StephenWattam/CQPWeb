@@ -287,11 +287,12 @@ function process_simple_query($query, $case_sensitive)
  * $script is actually a script, not a path to a script on disk!
  *
  * Maximum output length is currently 10240 bytes.
+ * 
+ * TODO this seems to duplicate perl_interface (in library.inc.php)
  */
 function run_perl_script($script, &$output, &$errors)
 {
-	global $path_to_perl;
-	global $cwb_extra_perl_directories;
+	global $Config;
 
 	$io_settings = array(
 		0 => array("pipe", "r"), // stdin 
@@ -299,9 +300,9 @@ function run_perl_script($script, &$output, &$errors)
 		2 => array("pipe", "w")  // stderr 
 	); 
 	
-	$cmd = "/$path_to_perl/perl";
-	foreach($cwb_extra_perl_directories as $d)
-		$cmd .= " -I \"/$d\"";
+	$cmd = "{$Config->path_to_perl}perl";
+	foreach($Config->perl_extra_directories as $d)
+		$cmd .= " -I \"$d\"";
 	
 	$handles = false;
 	

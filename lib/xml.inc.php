@@ -46,7 +46,7 @@ function get_xml_all()
 	 * and, like the get_corpus_annotation(s|_info) functions, we should prob get info as well as a list...
 	 * 
 	 * */
-	global $cwb_registry;
+	global $Config;
 	global $corpus_cqp_name;
 	
 	/* we stick the result in a static cache var to reduce the number of file accesses */
@@ -55,7 +55,7 @@ function get_xml_all()
 	if (is_null($cache))
 	{
 		/* use of strtolower() is OK because CWB identifiers *MUST ALWAYS* be ASCII */ 
-		$data = file_get_contents("/$cwb_registry/" . strtolower($corpus_cqp_name));
+		$data = file_get_contents($Config->dir->registry . '/' . strtolower($corpus_cqp_name));
 		// but long-term consider caching the lowercase CWB name somewhere....
 		
 		preg_match_all("/STRUCTURE\s+(\w+)\s*[#\n]/", $data, $m, PREG_PATTERN_ORDER);
@@ -86,26 +86,8 @@ function xml_exists($element)
 function get_xml_annotations()
 {
 	/* TODO - eventually this info should prob be in the DB rather than using cwb-d-c every time*/
-	
-/* --old version of code......
-	$full_list = get_xml_all();
-	
-	/* for each s-attribute, extract all its annotations * /
-	foreach ($full_list as $tester)
-		foreach($full_list as $k=>$found)
-			if (substr($found, 0, strlen($tester)+1) == $tester.'_')
-			{
-				/* embedded string creates new var, not reference * /
-				$return_list[] = "$found";
-				/* so that we don't look for annotations of annotations * /
-				unset($full_list[$k]);
-			}
 
-	return $return_list;
-*/
-
-	global $path_to_cwb;
-	global $cwb_registry;
+	global $Config;
 	global $corpus_cqp_name;
 	
 	/* we stick the result in a static cache var to reduce the number of slave processes
@@ -114,8 +96,9 @@ function get_xml_annotations()
 	
 	if (is_null($return_list))
 	{
-		$cmd = "/$path_to_cwb/cwb-describe-corpus -r /$cwb_registry -s $corpus_cqp_name";
+		$cmd = "{$Config->path_to_cwb}cwb-describe-corpus -r \"$Config->dir->registry\" -s $corpus_cqp_name";
 		
+		$results = array();;
 		exec($cmd, $results);
 		
 		$return_list = array();

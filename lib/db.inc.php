@@ -53,8 +53,8 @@ function dbname_unique($dbname)
 /** creates a db in mysql for the named query of the specified type & returns its name*/
 function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $postprocess)
 {
+	global $Config;
 	global $cqp;
-	global $cqpweb_tempdir;
 	global $corpus_sql_name;
 	global $corpus_cqp_name;
 	
@@ -115,9 +115,9 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 
 	/* name for a file containing table with result of tabulation command*/
-	$tabfile = "/$cqpweb_tempdir/tab_{$db_type}_$qname";
+	$tabfile = "$Config->dir->cache/tab_{$db_type}_$qname";
 	/* name for a file containing the awk script */
-	$awkfile = "/$cqpweb_tempdir/awk_{$db_type}_$qname";
+	$awkfile = "$Config->dir->cache/awk_{$db_type}_$qname";
 
 	if (is_file($tabfile))
 		unlink($tabfile);
@@ -132,7 +132,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 		/* if an awk script to intervene between cqp and mysql has been returned,
 		 * create an awk script file ... */
 		file_put_contents($awkfile, $commands['awk']);
-		$tabulate_dest = "\"| awk -f '$awkfile' > '$tabfile'\"";
+		$tabulate_dest = "\"| {$Config->path_to_gnu}awk -f '$awkfile' > '$tabfile'\"";
 	}
 	else
 		$tabulate_dest = "'$tabfile'";

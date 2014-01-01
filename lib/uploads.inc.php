@@ -40,7 +40,7 @@
  */
 function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $temp_path, $error_code, $user_upload = false)
 {
-	global $cqpweb_uploaddir;
+	global $Config;
 	global $username;
 
 	/* Check for upload errors; convert back to int: execute.inc.php may have turned it to a string */
@@ -69,16 +69,16 @@ function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $t
 	/* check the directory exists for user-uploaded files */
 	if ($user_upload)
 	{	
-		if (!is_dir("/$cqpweb_uploaddir/usr"))
-			mkdir("/$cqpweb_uploaddir/usr", 0775);
-		if (!is_dir("/$cqpweb_uploaddir/usr/$username"))
-			mkdir("/$cqpweb_uploaddir/usr/$username", 0775);
+		if (!is_dir("$Config->dir->upload/usr"))
+			mkdir("$Config->dir->upload/usr", 0775);
+		if (!is_dir("$Config->dir->upload/usr/$username"))
+			mkdir("$Config->dir->upload/usr/$username", 0775);
 	}
 	
 	/* find a new name - a file that does not exist */
 	for ($filename = basename($original_name); 1 ; $filename = '_' . $filename)
 	{
-		$new_path = "/$cqpweb_uploaddir/" . ($user_upload ? "usr/$username/" : '' ) . "$filename";
+		$new_path = $Config->dir->upload . '/' . ($user_upload ? "usr/$username/" : '' ) . "$filename";
 		if ( ! file_exists($new_path) )
 			break;
 	}
@@ -98,24 +98,19 @@ function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $t
  */
 function uploaded_file_fix_linebreaks($filename)
 {
-	global $cqpweb_uploaddir;
+	global $Config;
 
-	$path = "/$cqpweb_uploaddir/$filename";
+	$path = "$Config->dir->upload/$filename";
 	
 	if (!file_exists($path))
 		exiterror_general('Your request could not be completed - that file does not exist.');
 	
-	$intermed_path = "/$cqpweb_uploaddir/__________uploaded_file_fix_linebreaks________temp_________datoa__________.___";
+	$intermed_path = "$Config->dir->upload/__________uploaded_file_fix_linebreaks________temp_________datoa__________.___";
 	
-	/*
-	$data = file_get_contents($path);
-	$data = str_replace("\xd\xa", "\xa", $data);
-	file_put_contents($intermed_path, $data);
-	*/
 	$source = fopen($path, 'r');
 	$dest = fopen($intermed_path, 'w');
 	while ( false !== ($line = fgets($source)))
-		fputs($dest, str_replace("\xd\xa", "\xa", $line));
+		fputs($dest, str_replace("\r\n", "\n", $line));
 	fclose($source);
 	fclose($dest);
 	
@@ -128,9 +123,9 @@ function uploaded_file_fix_linebreaks($filename)
 // TODO - account for files in the usr directory
 function uploaded_file_delete($filename)
 {	
-	global $cqpweb_uploaddir;
+	global $Config;
 
-	$path = "/$cqpweb_uploaddir/$filename";
+	$path = "$Config->dir->upload/$filename";
 	
 	if (!file_exists($path))
 		exiterror_general('Your request could not be completed - that file does not exist.');
@@ -140,10 +135,10 @@ function uploaded_file_delete($filename)
 
 // TODO - account for files in the usr directory
 function uploaded_file_gzip($filename)
-{	
-	global $cqpweb_uploaddir;
+{
+	global $Config;
 
-	$path = "/$cqpweb_uploaddir/$filename";
+	$path = "$Config->dir->upload/$filename";
 	
 	if (!file_exists($path))
 		exiterror_general('Your request could not be completed - that file does not exist.');
@@ -175,9 +170,9 @@ function uploaded_file_gzip($filename)
 // TODO - account for files in the usr directory
 function uploaded_file_gunzip($filename)
 {
-	global $cqpweb_uploaddir;
+	global $Config;
 
-	$path = "/$cqpweb_uploaddir/$filename";
+	$path = "$Config->dir->upload/$filename";
 	
 	if (!file_exists($path))
 		exiterror_general('Your request could not be completed - that file does not exist.');
@@ -185,7 +180,7 @@ function uploaded_file_gunzip($filename)
 	if (preg_match('/(.*)\.gz$/', $filename, $m) < 1)
 		exiterror_general('Your request could not be completed - that file does not appear to be compressed.');
 
-	$unzip_path = "/$cqpweb_uploaddir/{$m[1]}";
+	$unzip_path = "$Config->dir->upload/{$m[1]}";
 	
 	$in_file = gzopen($path, "rb");
 	$out_file = fopen($unzip_path, "wb");
@@ -209,9 +204,9 @@ function uploaded_file_gunzip($filename)
 // TODO - account for files in the usr directory
 function uploaded_file_view($filename)
 {
-	global $cqpweb_uploaddir;
+	global $Config;
 	
-	$path = "/$cqpweb_uploaddir/$filename";
+	$path = "$Config->dir->upload/$filename";
 
 	if (!file_exists($path))
 		exiterror_general('Your request could not be completed - that file does not exist.');

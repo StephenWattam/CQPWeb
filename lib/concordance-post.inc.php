@@ -797,9 +797,9 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
  */
 function run_postprocess_collocation($cache_record, &$descriptor)
 {
+	global $Config;
 	global $instance_name;
 	global $cqp;
-	global $cqpweb_tempdir;
 	global $username;
 	
 	
@@ -811,7 +811,7 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 	$cache_record['time_of_query'] = time();
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqpweb_tempdir/temp_coll_$new_qname.tbl";
+	$tempfile  = "$Config->dir->cache/temp_coll_$new_qname.tbl";
 
 	$sql_query = $descriptor->colloc_sql_for_queryfile();
 
@@ -857,9 +857,9 @@ function run_postprocess_collocation($cache_record, &$descriptor)
  */
 function run_postprocess_sort($cache_record, &$descriptor)
 {
+	global $Config;
 	global $instance_name;
 	global $cqp;
-	global $cqpweb_tempdir;
 	global $username;
 
 	$orig_cache_record = $cache_record;
@@ -871,7 +871,7 @@ function run_postprocess_sort($cache_record, &$descriptor)
 	$cache_record['time_of_query'] = time();
 	
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqpweb_tempdir/temp_sort_$new_qname.tbl";
+	$tempfile  = "$Config->dir->cache/temp_sort_$new_qname.tbl";
 
 	$sql_query = $descriptor->sort_sql_for_queryfile($orig_cache_record);
 
@@ -1059,9 +1059,9 @@ function run_postprocess_thin($cache_record, &$descriptor)
  */
 function run_postprocess_item($cache_record, &$descriptor)
 {
+	global $Config;
 	global $instance_name;
 	global $cqp;
-	global $cqpweb_tempdir;
 	global $username;
 
 	$old_qname = $cache_record['query_name'];	
@@ -1077,7 +1077,7 @@ function run_postprocess_item($cache_record, &$descriptor)
 	/* actually do it ! */
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqpweb_tempdir/temp_item_$new_qname.tbl";
+	$tempfile  = "$Config->dir->cache/temp_item_$new_qname.tbl";
 
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->item_sql_for_queryfile($orig_cache_record);
@@ -1127,9 +1127,9 @@ function run_postprocess_item($cache_record, &$descriptor)
  */
 function run_postprocess_dist($cache_record, &$descriptor)
 {
+	global $Config;
 	global $instance_name;
 	global $cqp;
-	global $cqpweb_tempdir;
 	global $username;
 
 	$old_qname = $cache_record['query_name'];	
@@ -1146,7 +1146,7 @@ function run_postprocess_dist($cache_record, &$descriptor)
 	/* actually do it ! */
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqpweb_tempdir/temp_dist_$new_qname.tbl";
+	$tempfile  = "$Config->dir->cache/temp_dist_$new_qname.tbl";
 
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->dist_sql_for_queryfile($orig_cache_record);
@@ -1194,9 +1194,9 @@ function run_postprocess_dist($cache_record, &$descriptor)
  */
 function run_postprocess_text($cache_record, &$descriptor)
 {
+	global $Config;
 	global $instance_name;
 	global $cqp;
-	global $cqpweb_tempdir;
 	global $username;
 
 	$old_qname = $cache_record['query_name'];	
@@ -1213,7 +1213,7 @@ function run_postprocess_text($cache_record, &$descriptor)
 	/* actually do it ! */
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "/$cqpweb_tempdir/temp_text_$new_qname.tbl";
+	$tempfile  = "$Config->dir->cache/temp_text_$new_qname.tbl";
 
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->text_sql_for_queryfile($orig_cache_record);
@@ -1254,10 +1254,10 @@ function run_postprocess_text($cache_record, &$descriptor)
 
 function run_postprocess_custom($cache_record, &$descriptor)
 {
+	global $Config;
 	global $instance_name;
 	global $cqp;
 	global $username;
-	global $cqpweb_tempdir;
 
 	$old_qname = $cache_record['query_name'];	
 
@@ -1274,7 +1274,7 @@ function run_postprocess_custom($cache_record, &$descriptor)
 	/* the heart of it: dump, process, undump */	
 	$matches = $cqp->dump($old_qname);
 	$matches = $descriptor->custom_obj->postprocess_query($matches);
-	$cqp->undump($new_qname, $matches, "/$cqpweb_tempdir");
+	$cqp->undump($new_qname, $matches, $Config->dir->cache);
 	$cqp->execute("save $new_qname");
 
 	/* get the size of the new query */
@@ -1595,7 +1595,7 @@ function pphelper_cpos_get_attribute($cpos, $attribute)
 		exiterror_general("pphelper_cpos_within_structure: invalid corpus index [$cpos]");
 
 	/* work out whether cpos is within an instance of the structure */
-	$cmd = "/$path_to_cwb/cwb-decode -C -s $num_of_token -e $num_of_token -r /$cwb_registry  $corpus_cqp_name -P $attribute";
+	$cmd = "{$Config->path_to_cwb}cwb-decode -C -s $num_of_token -e $num_of_token -r \"$Config->dir->registry\"  $corpus_cqp_name -P $attribute";
 	$proc = popen($cmd, 'r');
 	$value = fgets($proc);
 	pclose($proc);
@@ -1636,8 +1636,8 @@ function pphelper_get_concordance($matches,
                                   $context_n = 10,
                                   $context_units = 'words')
 {
+	global $Config;
 	global $cqp;
-	global $cqpweb_tempdir;
 	global $instance_name;
 	
 	/* don't allow an empty array */
@@ -1654,7 +1654,7 @@ function pphelper_get_concordance($matches,
 	$temp_qname = $instance_name . 'pph';
 
 	/* undump matches to that uniqid */
-	$cqp->undump($temp_qname, $matches, "/$cqpweb_tempdir/");
+	$cqp->undump($temp_qname, $matches, $Config->dir->cache);
 	unset($matches);
 
 	/* Set up CQP cponcordance output stuff:
@@ -1697,6 +1697,7 @@ function pphelper_get_concordance($matches,
  */
 function pphelper_cpos_within_structure($cpos, $struc_attribute)
 {
+	global $Config;
 	global $corpus_cqp_name;
 	
 	/* typecast in case anyone is foolish enough to pass a float... */
@@ -1709,7 +1710,7 @@ function pphelper_cpos_within_structure($cpos, $struc_attribute)
 		exiterror_general("pphelper_cpos_within_structure: invalid s-attribute index [$struc_attribute]");
 	
 	/* work out whether cpos is within an instance of the structure */
-	$cmd = "/$path_to_cwb/cwb-s-decode -r /$cwb_registry $corpus_cqp_name -S $struc_attribute";
+	$cmd = "{$Config->path_to_cwb}cwb-s-decode -r \"$Config->dir->registry\" $corpus_cqp_name -S $struc_attribute";
 	$proc = popen($cmd, 'r');
 	$within = false;
 	while ( false !== ($line = fgets($proc)) )

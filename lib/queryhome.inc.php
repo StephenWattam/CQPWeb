@@ -245,8 +245,7 @@ if (user_is_superuser($username))
 	<?php
 	
 	echo print_menurow_index('corpusSettings', 'Corpus settings');
-	if ($cqpweb_uses_apache)
-		echo print_menurow_index('userAccess', 'Manage access');
+	echo print_menurow_index('userAccess', 'Manage access');
 	echo print_menurow_index('manageMetadata', 'Manage metadata');
 	echo print_menurow_index('manageCategories', 'Manage text categories');
 	echo print_menurow_index('manageAnnotation', 'Manage annotation');

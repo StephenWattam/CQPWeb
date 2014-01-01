@@ -291,9 +291,9 @@ function categorise_update()
 
 function categorise_separate()
 {
+	global $Config;
 	global $username;
 	global $cqp;
-	global $cqpweb_tempdir;
 	global $corpus_sql_name;
 	
 	$qname = safe_qname_from_get();
@@ -311,7 +311,7 @@ function categorise_separate()
 	$newqname_root = $qname . '_';
 	$newsavename_root = $query_record['save_name'] . '_';
 
-	$outfile_path = "/$cqpweb_tempdir/temp_cat_$newqname_root.tbl";
+	$outfile_path = "$Config->dir->cache/temp_cat_$newqname_root.tbl";
 	if (is_file($outfile_path))
 		unlink($outfile_path);
 

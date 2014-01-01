@@ -21,12 +21,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* ------------------------------- */
-/* Constant definitions for CQPweb */
-/* ------------------------------- */
 
-/* version number of CQPweb */
-define('CQPWEB_VERSION', '3.1.0');
+/**
+ * @file
+ * 
+ * This file contains the global configuration checks and default values that are imported 
+ * into the $Config object.
+ */
+
+
 
 /* php stubs in each corpus directory; we can't make this constant, but it should be treated as if it was! */ 
 $cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
@@ -41,68 +44,18 @@ $cqpweb_reserved_subdirs = array('adm', 'bin', 'css', 'doc', 'lib', 'rss', 'usr'
 
 
 
-/* plugin type constants */
-
-define('PLUGIN_TYPE_UNKNOWN',				0);
-define('PLUGIN_TYPE_ANNOTATOR', 			1);
-define('PLUGIN_TYPE_FORMATCHECKER',			2);
-define('PLUGIN_TYPE_TRANSLITERATOR',		4);
-define('PLUGIN_TYPE_POSTPROCESSOR',			8);
-define('PLUGIN_TYPE_ANY',					1|2|4|8);
-/**
- * Declares a plugin for later use.
- *
- * This function will normally be used only in the config file.
- * It does not do any error checking, that is done later by the plugin
- * autoload function.
- * 
- * TODO: if I later have an "initialisation" file for all the username setup stuff,
- * this func wou be an obvious candidate for moving there. It has to be in defaults,
- * not library, because the function is called in config.inc.php. But obviously, this
- * is really messy.
- * 
- * @param class                The classname of the plugin. This should be the same as the
- *                             file that contains it, minus .php.
- * @param type                 The type of plugin. One of the following constants:
- *                             PLUGIN_TYPE_ANNOTATOR,
- *                             PLUGIN_TYPE_FORMATCHECKER,
- *                             PLUGIN_TYPE_TRANSLITERATOR,
- *                             PLUGIN_TYPE_POSTPROCESSOR.
- * @param path_to_config_file  What it says on the tin; optional.
- * @return                     No return value.
- */
-function declare_plugin($class, $type, $path_to_config_file = NULL)
-{
-	global $plugin_registry;
-	if (!isset($plugin_registry))
-		$plugin_registry = array();
-	
-	$temp = new stdClass();
-	
-	$temp->class = $class;
-	$temp->type  = $type;
-	$temp->path  = $path_to_config_file;
-	
-	$plugin_registry[] = $temp;
-}
 
 
-require_once('../lib/config.inc.php');
 
 
 /* ------------------------ */
 /* GENERAL DEFAULT SETTINGS */
 /* ------------------------ */
 
-/* can be overridden by setting these variables in config.inc.php */
 
 
 
-/* Global setting: are we running on Windows?
- * 
- * This is not expected to be set in the config file, but it can be if
- * the call to php_uname does not have the desired effect.
- */
+/* Global setting: are we running on Windows? */
 if (!isset($cqpweb_running_on_windows))
 	$cqpweb_running_on_windows = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');
 
@@ -112,7 +65,7 @@ if (!isset($cqpweb_running_on_windows))
  * mysql tables is done via the client-server link.
  * 
  * Giving mysqld file access, so that CQPweb can directly exchange files in 
- * $cqpweb_tempdir with the MySQL server, may be considerably more efficient.
+ * the temp/cache directory with the MySQL server, may be considerably more efficient.
  * 
  * (BUT -- we've not tested this yet)
  * 
@@ -147,14 +100,6 @@ else
 
 
 
-/* TEMPORARY DIRECTORY */
-if (!isset($cqpweb_tempdir))
-{
-	echo('CRITICAL ERROR: $cqpweb_tempdir has not been set');
-	exit();
-}
-
-
 /* These are defaults for the max amount of memory allowed for CWB programs that let you set this,
  * counted in megabytes. The first is used for web-scripts, the second for CLI-scripts. */
 if (!isset($cwb_max_ram_usage))
@@ -169,21 +114,22 @@ else
  * but is stingy in the Web interface, so admins can't bring down the server accidentally */
 
 
-/* Canonical form for $cwb_extra_perl_directories is an array of absolute directories without
- * an initial / even though they are absolute; but the input format is a string of pipe-
- * delimited directories. This bit of code converts. An empty array is used if the config
- * string vairable is not set. 
- */ 
-if (isset($cwb_extra_perl_directories))
+/* defaults for paths: we add on / unless it is empty, in which case, a zero-string gets embedded before program names. */
+$path_to_cwb  = (empty($path_to_cwb)  ? '' : rtrim($path_to_cwb,  DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR );
+$path_to_gnu  = (empty($path_to_gnu)  ? '' : rtrim($path_to_gnu,  DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR );
+$path_to_perl = (empty($path_to_perl) ? '' : rtrim($path_to_perl, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR );
+
+/* Canonical form for $cwb_extra_perl_directories is an array of  directories; but the input format is a string of pipe-
+ * delimited directories. This bit of code converts. An empty array is used if the config string vairable is not set.    */ 
+if (isset($perl_extra_directories))
 {
-	$cwb_extra_perl_directories = explode('|',$cwb_extra_perl_directories);
-	foreach($cwb_extra_perl_directories as &$perldir)
-		$perldir = trim($perldir, "/ \t\r\n");
+	$perl_extra_directories = explode('|',$perl_extra_directories);
+	foreach($perl_extra_directories as &$perldir)
+		$perldir = rtrim($perldir, "/ \t\r\n");
 	unset($perldir);
-	//TODO when the overall format of resource-location paths is changed, so should the code here. 
 }
 else
-	$cwb_extra_perl_directories = array();
+	$perl_extra_directories = array();
 	
 
 /* the following stops calls to CQP::set_corpus causing an error in the "adm" scripts */
@@ -212,12 +158,6 @@ if (!isset($searchpage_corpus_name_suffix))
 
 if (!isset($create_password_function))
 	$create_password_function = "password_insert_internal";
-
-if (!isset($password_more_security))
-	$password_more_security = false;
-
-if (!isset($cqpweb_uses_apache))
-	$cqpweb_uses_apache = true;
 
 if (!isset($print_debug_messages))
 	$print_debug_messages = false;
@@ -375,10 +315,10 @@ if (!isset($default_words_in_download_context))
 /* other maximums for mysql, NOT settable in config.inc.php */
 $max_textid_length = 40; // TODO should this not be used in the creation of the MySQL table?????
 
-/* Total size (in bytes) of temp files (for CQP only!) */
-/* before cached queries are deleted: default is 3 GB  */
+/* Size limit of cahce directory (based on CQP save-files only!) */
 if (!isset($cache_size_limit))
-	$cache_size_limit = 3221225472;
+	$cache_size_limit = 6442450944;
+
 
 //TODO the way DB maxima are calculated is dodgy, to say the least.
 // PROBLEMS: (1) names beginning $default that aren;t defaults is confusing, as above
@@ -407,25 +347,25 @@ $mysql_db_size_limit = $default_max_fullsize_dbs_in_cache * $colloc_db_premium *
 
 /* same for frequency tables: defaulting to 3 gig */
 if (!isset($mysql_freqtables_size_limit))
-	$mysql_freqtables_size_limit = 3221225472;
+	$mysql_freqtables_size_limit = 6442450944;
 
 /* max number of concurrent mysql processes of any one kind (big processes ie collocation, sort) */
-if (!isset($default_mysql_process_limit))
-	$default_mysql_process_limit = 5;
+if (!isset($mysql_big_process_limit))
+	$mysql_big_process_limit = 5;
 
 $mysql_process_limit = array(
-	'colloc' => $default_mysql_process_limit,
-	'freqtable' => $default_mysql_process_limit,
-	'sort' => $default_mysql_process_limit,
+	'colloc' => $mysql_big_process_limit,
+	'freqtable' => $mysql_big_process_limit,
+	'sort' => $mysql_big_process_limit,
 	'dist' => 100,
-	'catquery' => $default_mysql_process_limit
+	'catquery' => $mysql_big_process_limit
 	);
 /* plus names for if they need to be printed */
 $mysql_process_name = array(
 	'colloc'=> 'collocation',
 	'dist' => 'distribution',
 	'sort' => 'query sort',
-	'freq_table' => 'frequency list' // TODO shjould this be freqtable?????????
+	'freq_table' => 'frequency table'
 	// TODO do we need catquery here? see where this is used.
 	);
 
@@ -442,7 +382,8 @@ if (!isset($username))
 
 
 
-/* $instance_name is the unique identifier of the present run of a given script 
+/**
+ * $instance_name is the unique identifier of the present run of a given script 
  * which will be used as the name of any queries/records saved by the present script.
  * 
  * It was formerly the username plus the unix time, but this raised the possibility of

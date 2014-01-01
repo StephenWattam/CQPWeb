@@ -36,31 +36,172 @@
 /**
  * @file
  * 
- * This file contains two things:
+ * This file contains several things:
  * 
- * (1) The environment startup and shutdown functions that need to be called to get things moving.
+ * (1) Constant definitions for the system.
  * 
  * (2) The three global objects ($Config, $User, $Corpus) into which everything is stuffed.
  * 
+ * (3) The environment startup and shutdown functions that need to be called to get things moving.
  * 
  */
 
 
+/*
+ * THE FOLLOWING IS TEMP CODE TO PRESERVE THE OLD CONFIG SYSTEM WHILE IMPLEMENTING THE NEW
+ */
+
 /* include defaults and settings */
 if (file_exists("settings.inc.php"))
 	require( '' . "settings.inc.php");	/* concatenate to avoid annoying bug warning */
+require('../lib/config.inc.php');
 require("../lib/defaults.inc.php");
 
 
+
+/* ------------------------------- */
+/* Constant definitions for CQPweb */
+/* ------------------------------- */
+
+
+/* 
+ * version number of CQPweb 
+ */
+define('CQPWEB_VERSION', '3.1.0');
 
 /*
  * FLAGS for cqpweb_startup_environment()
  */
  
-define('CQPWEB_STARTUP_NO_FLAGS',             0);
-define('CQPWEB_STARTUP_DONT_CONNECT_CQP',     1);
-define('CQPWEB_STARTUP_DONT_CONNECT_MYSQL',   2);
-define('CQPWEB_STARTUP_DONT_CHECK_URLTEST',   4);
+define('CQPWEB_STARTUP_NO_FLAGS',              0);
+define('CQPWEB_STARTUP_DONT_CONNECT_CQP',      1);
+define('CQPWEB_STARTUP_DONT_CONNECT_MYSQL',    2);
+define('CQPWEB_STARTUP_DONT_CHECK_URLTEST',    4);
+
+/* 
+ * plugin type constants 
+ */
+
+define('PLUGIN_TYPE_UNKNOWN',                  0);
+define('PLUGIN_TYPE_ANNOTATOR',                1);
+define('PLUGIN_TYPE_FORMATCHECKER',            2);
+define('PLUGIN_TYPE_TRANSLITERATOR',           4);
+define('PLUGIN_TYPE_POSTPROCESSOR',            8);
+define('PLUGIN_TYPE_ANY',                      1|2|4|8);
+
+
+
+
+
+/* --------------------- *
+ * Global object classes *
+ * --------------------- */
+
+
+
+/**
+ * Class of which each run of CQPweb should only ever have ONE - it holds config settings as public variables
+ * (sometimes hierarchically using other objects).
+ * 
+ * The instantiation should always be the global $Config object.
+ * 
+ * Has only one function, its constructor, which loads all the config settings.
+ * 
+ * Config settings in the database are NOT loaded by the constructor.
+ * 
+ * 
+ */ 
+class CQPwebConfig
+{
+	/* we don't declare any members - the constructor function creates them dynamically */
+	
+	public function __construct()
+	{
+		/* import config variables from the global state of the config file */
+		if (file_exists("settings.inc.php"))
+			require( '' . "settings.inc.php");
+		require('../lib/config.inc.php');
+		require('../lib/defaults.inc.php');
+		
+		$variables = get_defined_vars();
+		foreach ($variables as $k => $v)
+			$this->$k = $v;
+			
+		/* check compulsory config variables */
+		$compulsory_config_variables = array(
+				'superuser_username',
+				'mysql_webuser',
+				'mysql_webpass',
+				'mysql_schema',
+				'mysql_server',
+				'cqpweb_tempdir',
+				'cqpweb_uploaddir',
+				'cwb_datadir',
+				'cwb_registry'
+			);
+		foreach ($compulsory_config_variables as $which)
+			if (!isset($this->$which))
+				exiterror_general("CRITICAL ERROR: \$$which has not been set in the configuration file.");
+
+		/* and now, let's organise the directory variables into something saner */
+		$this->dir = new stdClass;
+		$this->dir->cache = $this->cqpweb_tempdir;
+		unset($this->cqpweb_tempdir);
+		$this->dir->upload = $this->cqpweb_uploaddir;
+		unset($this->cqpweb_uploaddir);
+		$this->dir->index = $this->cwb_datadir;
+		unset($this->cwb_datadir);
+		$this->dir->registry = $this->cwb_registry;
+		unset($this->cwb_registry);
+	}
+}
+
+
+
+
+
+
+/* ============================== *
+ * Startup and shutdown functions *
+ * ============================== */
+
+
+
+/**
+ * Declares a plugin for later use.
+ *
+ * This function will normally be used only in the config file.
+ * It does not do any error checking, that is done later by the plugin
+ * autoload function.
+ * 
+ * TODO: it would be handy to move this function elsewhere as it is messy to have it in environment.
+ * 
+ * @param class                The classname of the plugin. This should be the same as the
+ *                             file that contains it, minus .php.
+ * @param type                 The type of plugin. One of the following constants:
+ *                             PLUGIN_TYPE_ANNOTATOR,
+ *                             PLUGIN_TYPE_FORMATCHECKER,
+ *                             PLUGIN_TYPE_TRANSLITERATOR,
+ *                             PLUGIN_TYPE_POSTPROCESSOR.
+ * @param path_to_config_file  What it says on the tin; optional.
+ * @return                     No return value.
+ */
+function declare_plugin($class, $type, $path_to_config_file = NULL)
+{
+	global $plugin_registry;
+	if (!isset($plugin_registry))
+		$plugin_registry = array();
+	
+	$temp = new stdClass();
+	
+	$temp->class = $class;
+	$temp->type  = $type;
+	$temp->path  = $path_to_config_file;
+	
+	$plugin_registry[] = $temp;
+}
+
+
 
 
 /**
@@ -106,6 +247,14 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 	
 	// TODO likewise have an implicit policy on ob_*_flush() usage in different scirpts.
 
+	/* create global settings options (these may have their own classes later on ) */
+	$Config = new CQPwebConfig();
+	$User   = new stdClass();
+	$Corpus = new stdClass();
+	
+	
+//var_dump($Config);
+	
 	/*
 	 * The flags are for "dont" because we assume the default behaviour
 	 * is to need both a DB connection and a slave CQP process.
@@ -124,12 +273,6 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 	else
 		connect_global_mysql();
 
-	
-	/* create global settings options (these may have their own classes later on ) */
-	$Config = new stdClass();
-	$User   = new stdClass();
-	$Corpus = new stdClass();
-	
 	
 	// TODO make this dependent on debug status
 	ob_implicit_flush(true);

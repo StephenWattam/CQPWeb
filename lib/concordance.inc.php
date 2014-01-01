@@ -54,7 +54,6 @@ require('../lib/xml.inc.php');
 require("../lib/cwb.inc.php");
 require("../lib/cqp.inc.php");
 
-
 cqpweb_startup_environment();
 
 /* Load user macros! */
@@ -71,10 +70,10 @@ $user_settings = get_all_user_settings($username);
 
 
 
-/* ------------------------------- */
-/* initialise variables from $_GET */
-/* and perform initial fiddling    */
-/* ------------------------------- */
+/* ------------------------------- *
+ * initialise variables from $_GET *
+ * and perform initial fiddling    *
+ * ------------------------------- */
 
 
 
@@ -87,13 +86,11 @@ $user_settings = get_all_user_settings($username);
  * 
  * In this case, we don't need $theData or anything like that.
  * 
- * If qname is INIT this indicates explicitly that this is a
- * new query, although this is also taken as implicitly indicated
- * by the qname parameter not being set at all.
+ * If qname is not set, this is a new query (but in may be in cache, 
+ * in whihc case we will get a query name from the database). 
  */
-if (isset($_GET['qname']) && $_GET['qname'] != 'INIT')
+if (isset($_GET['qname']))
 {
-	// TODO. INIT is a silly flag. Use __INIT.
 	$qname = safe_qname_from_get();
 	/* we did some pre-checks before calling the safe-qname function to allow 
 	 * the case where qname is absent to pass through, which normally would be Wrong */
@@ -101,8 +98,6 @@ if (isset($_GET['qname']) && $_GET['qname'] != 'INIT')
 }
 else
 {
-	/* if we're here, either $qname was INIT, or no qname was specified */
-	$_GET['qname'] = $qname = 'INIT';
 	$incoming_qname_specified = false;
 }
 
@@ -352,7 +347,7 @@ $history_inserted = false;
 
 if ( $incoming_qname_specified )
 {
-	/* TRACK FOR CACHED QUERY */
+	/* TRACK FOR CACHED QUERY WITH QNAME IN THE GET REQUEST */
 	
 	/* check the cache */
 	if ( ! (($cache_record = check_cache_qname($qname)) === false) )
@@ -361,7 +356,6 @@ if ( $incoming_qname_specified )
 	if  ( $cache_record === false || $num_of_solutions == 0 )
 	{
 		/* if query not found in cache, JUMP TRACKS */
-		$_GET['qname'] = $qname = 'INIT';
 		$incoming_qname_specified = false;	
 
 		/* check the now-compulsory variables */

@@ -79,19 +79,17 @@ if  (!extension_loaded('mysql'))
  */
 function connect_global_cqp()
 {
+	global $Config;
 	global $cqp;
-	global $cqpweb_tempdir;
 	global $corpus_cqp_name;
-	global $path_to_cwb;
-	global $cwb_registry;
 	global $print_debug_messages;
 
 	/* connect to CQP */
-	$cqp = new CQP("/$path_to_cwb", "/$cwb_registry");
+	$cqp = new CQP($Config->path_to_cwb, $Config->dir->registry);
 	/* select an error handling function */
 	$cqp->set_error_handler("exiterror_cqp");
 	/* set CQP's temporary directory */
-	$cqp->execute("set DataDirectory '/$cqpweb_tempdir'");
+	$cqp->execute("set DataDirectory '$Config->dir->cache'");
 	/* select corpus */
 	$cqp->set_corpus($corpus_cqp_name);
 	/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
@@ -123,17 +121,16 @@ function disconnect_global_cqp()
 function refresh_directory_global_cqp()
 {
 	global $cqp;
-	global $cqpweb_tempdir;
+	global $Config;
 	global $corpus_cqp_name;
 	
 	if (isset($cqp))
 	{
 		$switchdir = getcwd();
 		$cqp->execute("set DataDirectory '$switchdir'");
-		$cqp->execute("set DataDirectory '/$cqpweb_tempdir'");
+		$cqp->execute("set DataDirectory '$Config->dir->cache'");
 		$cqp->set_corpus($corpus_cqp_name);
 		// TODO Question: is this still necessary?
-		// TODO Windows compatability fail point! like all uses of $cqpweb_tempdir of course
 	}
 }
 
@@ -1007,12 +1004,12 @@ function coming_soon_finish_page()
  * 
  * script_path	   path to the script, relative to current PHP script (string)
  * arguments	   anything to add after the script name (string)
- * select_maxtime  time to wait for PErl to respond
+ * select_maxtime  time to wait for Perl to respond
  * 
  */
 function perl_interface($script_path, $arguments, $select_maxtime='!')
 {
-	global $path_to_perl;
+	global $Config;
 	
 	if (!is_int($select_maxtime))
 		$select_maxtime = 10;
@@ -1020,7 +1017,8 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 	if (! file_exists($script_path) )
 		return "ERROR: perl script could not be found.";
 		
-	$call = "/$path_to_perl/perl $script_path $arguments";
+	$call = "{$Config->path_to_perl}perl $script_path $arguments";
+	// TODO should we not use the extra include directories, if specified?
 	
 	$io_settings = array(
 		0 => array("pipe", "r"), // stdin 

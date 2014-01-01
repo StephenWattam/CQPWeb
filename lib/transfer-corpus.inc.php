@@ -35,6 +35,17 @@
 // yes, probably. return value not necessary.
 
 
+
+
+// TODO use cqpweb_dump_targzip / cqpweb_dump_untargzip
+
+
+
+
+
+
+
+
 /**
  * Export an indexed corpus into a single file that can be moved to another CQPweb installation and reimported.
  * 
@@ -55,15 +66,14 @@
  */
 function export_cqpweb_corpus($corpus, $filepath)
 {
-	global $cqpweb_tempdir;
-	global $cwb_registry;
+	global $Config;
 	
 	/* check that $corpus really is a corpus */
 	if (! in_array($corpus, list_corpora()))
 		return false;
 	
 	/* create a directory in the temp space to build the structure of the .cqpwebdata file. */
-	mkdir($d = "/$cqpweb_tempdir/export.$corpus");
+	mkdir($d = "$Config->dir->cache/export.$corpus");
 	mkdir("$d/mysql");
 	mkdir("$d/reg");
 	mkdir("$d/data");
@@ -116,7 +126,7 @@ function export_cqpweb_corpus($corpus, $filepath)
 		$result = do_mysql_query("select * from corpus_metadata_variable where corpus = '$corpus'");
 		while (false !== ($r = mysql_fetch_assoc($result)))
 		{
-			foreach(
+			//foreach(
 			
 		}
 		
@@ -132,11 +142,11 @@ function export_cqpweb_corpus($corpus, $filepath)
 	/* CWB data: */
 	
 		/* registry file */
-		copy("/$cwb_registry/$corpus", "$d/reg/$corpus");
+		copy("$Config->dir->registry/$corpus", "$d/reg/$corpus");
 		
 		/* index folder */
 		if (! get_corpus_metadata("cwb_external"))
-			recursive_copy_directory("/$cwb_datadir/$corpus", "$d/data/index");
+			recursive_copy_directory("$Config->dir->index/$corpus", "$d/data/index");
 		else
 		{
 // temp code
@@ -144,7 +154,7 @@ function export_cqpweb_corpus($corpus, $filepath)
 			exiterror_general("You called export_cqpweb_corpus() on a corpus with an external index!!!!!");
 // end temp code
 			// TODO find the path from the registry file (would be useful to have an interface to the registry)
-			$reg_content = file_get_contents("/$cwb_registry/$corpus");
+			$reg_content = file_get_contents("$Config->dir->registry/$corpus");
 			
 			$src = "TODO";
 			recursive_copy_directory($src, "$d/data/index");
@@ -157,9 +167,10 @@ function export_cqpweb_corpus($corpus, $filepath)
 	copy("../$corpus/settings.inc.php", "$d/php/settings.inc.php");
 
 	
+	// TODO use the functions from admin lib ?
 	/* tar and gzip it all */
-	exec("tar -cf $d.tar $d");
-	exec("gzip $d.tar");
+	exec("{$Config->path_to_gnu}tar -cf $d.tar $d");
+	exec("{$Config->path_to_gnu}gzip $d.tar");
 	
 	/* delete entire working directory that was in temp space... */
 	recursive_delete_directory($d);
@@ -179,6 +190,8 @@ function export_cqpweb_corpus($corpus, $filepath)
  */
 function import_cqpweb_corpus($filepath)
 {
+	global $Config;
+	
 	/* check: does file exist? */
 	if(!is_file($filepath))
 		return false;

@@ -38,6 +38,8 @@
  * Just a little object to hold info on the install corpus parsed from GET;
  * NOT an independent module in any way, shape or form, just a way to simplify
  * variable parsing.
+ * 
+ * Bit of a hack in fact - there is prob a better way to organise things.
  */
 class corpus_install_info
 {
@@ -63,6 +65,8 @@ class corpus_install_info
 	/* constructor is sole public function */
 	function __construct()
 	{
+		global $Config;
+		
 		/* first thing: establish which mode we are dealing with */
 		$this->already_cwb_indexed = ($_GET['admFunction'] === 'installCorpusIndexed'); 
 		
@@ -97,12 +101,11 @@ class corpus_install_info
 		
 		if ($this->already_cwb_indexed)
 		{
-			global $cwb_registry;
 			/* check that the corpus registry file exists, that the corpus datadir exists,
 			 * in the process, getting the "override" directories, if they exist */
 			
 			$use_normal_regdir = (bool)$_GET['corpus_useDefaultRegistry'];
-			$registry_file = "/$cwb_registry/{$this->corpus_cwb_name}";
+			$registry_file = "$Config->dir->registry/{$this->corpus_cwb_name}";
 			
 			if ( ! $use_normal_regdir)
 			{
@@ -147,15 +150,13 @@ class corpus_install_info
 		}
 		else /* ie if this is NOT an already indexed corpus */
 		{
-			global $cqpweb_uploaddir;
-			
 			preg_match_all('/includeFile=([^&]*)&/', $_SERVER['QUERY_STRING'], $m, PREG_PATTERN_ORDER);
 			
 			$this->file_list = array();
 			
 			foreach($m[1] as $file)
 			{
-				$path = "/$cqpweb_uploaddir/$file";
+				$path = "$Config->dir->upload/$file";
 				if (is_file($path))
 					$this->file_list[] = $path;
 				else
@@ -354,11 +355,8 @@ class corpus_install_info
 
 function install_new_corpus()
 {
-	global $path_to_cwb;
+	global $Config;
 	global $cqpweb_accessdir;
-	global $cqpweb_tempdir;
-	global $cwb_datadir;
-	global $cwb_registry;
 	
 	$info = new corpus_install_info;
 	/* we need both case versions here */
@@ -422,16 +420,16 @@ function install_new_corpus()
 	else
 	{
 		/* cwb-create the file */
-		$datadir = "/$cwb_datadir/$corpus";	
+		$datadir = "$Config->dir->index/$corpus";	
 		if (is_dir($datadir))
 			recursive_delete_directory($datadir);
 		mkdir($datadir, 0775);
 	
 		/* run the commands one by one */
 		
-		$encode_command =  "/$path_to_cwb/cwb-encode -xsB -c {$info->encode_charset} -d $datadir -f "
+		$encode_command =  "{$Config->path_to_cwb}cwb-encode -xsB -c {$info->encode_charset} -d $datadir -f "
 			. implode(' -f ', $info->file_list)
-			. " -R /$cwb_registry/$corpus "
+			. " -R \"$Config->dir->registry/$corpus\" "
 			. ( empty($info->p_attributes) ? '' : (' -P ' . implode(' -P ', $info->p_attributes)) )
 			. ' -S ' . implode(' -S ', $info->s_attributes)
 			. ' 2>&1';
@@ -448,9 +446,9 @@ function install_new_corpus()
 				. implode("\n", $output_lines_from_cwb) 
 				. '</pre>');
 
-		chmod("/$cwb_registry/$corpus", 0664);
+		chmod("$Config->dir->registry/$corpus", 0664);
 
-		$output_lines_from_cwb[] = $makeall_command = "/$path_to_cwb/cwb-makeall -r /$cwb_registry -V $CORPUS 2>&1";
+		$output_lines_from_cwb[] = $makeall_command = "{$Config->path_to_cwb}cwb-makeall -r \"$Config->dir->registry\" -V $CORPUS 2>&1";
 		exec($makeall_command, $output_lines_from_cwb, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_general("cwb-makeall reported an error! Corpus indexing aborted. <pre>"
@@ -459,14 +457,14 @@ function install_new_corpus()
 
 		/* use a separate array for the compression utilities (merged into main output block later) */
 		$compression_output = array();
-		$compression_output[] = $huffcode_command = "/$path_to_cwb/cwb-huffcode -r /$cwb_registry -A $CORPUS 2>&1";
+		$compression_output[] = $huffcode_command = "{$Config->path_to_cwb}cwb-huffcode -r \"$Config->dir->registry\" -A $CORPUS 2>&1";
 		exec($huffcode_command, $compression_output, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_general("cwb-huffcode reported an error! Corpus indexing aborted. <pre>"
 				. implode("\n", array_merge($output_lines_from_cwb,$compression_output)) 
 				. '</pre>');
 
-		$compression_output[] = $compress_rdx_command = "/$path_to_cwb/cwb-compress-rdx -r /$cwb_registry -A $CORPUS 2>&1";
+		$compression_output[] = $compress_rdx_command = "{$Config->path_to_cwb}cwb-compress-rdx -r \"$Config->dir->registry\" -A $CORPUS 2>&1";
 		exec($compress_rdx_command, $compression_output, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_general("cwb-compress-rdx reported an error! Corpus indexing aborted. <pre>"

@@ -60,9 +60,12 @@ class CQP
 	/* Boolean: used to avoid multiple "shutdown" attempts. */
 	private $has_been_disconnected;
 
+	/* this class uses gzip, so the path must be settable */
+	private $gzip_path;
 
 	/* debug */
 	private $debug_mode;
+	
 	
 	
 	/* character set handling */
@@ -184,10 +187,16 @@ class CQP
 	public function __construct($path_to_cqp, $cwb_registry)
 	{
 		/* check arguments */
-		if (! is_executable("$path_to_cqp/cqp") )
-			exit("ERROR: CQP binary ``$path_to_cqp/cqp'' does not exist or is not executable! ");
+		if (empty($path_to_cqp))
+			$call_cqp = 'cqp';
+		else
+		{
+			$call_cqp = "$path_to_cqp/cqp";
+			if (! is_executable($call_cqp) )
+				exit("ERROR: CQP binary ``$call_cqp'' does not exist or is not executable! ");
+		}
 		if (! is_readable($cwb_registry) || ! is_dir($cwb_registry) )
-			exit("ERROR: CWB registry dir ``$cwb_registry'' seems not to exist, or is not readable! "); 
+			exit("ERROR: CWB registry dir ``$cwb_registry'' seems not to exist, or is not readable! ");
 		
 		/* create handles for CQP and leave CQP running in background */
 		
@@ -200,7 +209,7 @@ class CQP
 
 		/* start the child process */
 		/* NB: currently no allowance for extra arguments */
-		$command = "$path_to_cqp/cqp -c -r $cwb_registry";
+		$command = "$call_cqp -c -r $cwb_registry";
 
 		$this->process = proc_open($command, $io_settings, $this->handle);
 
@@ -263,8 +272,8 @@ class CQP
 		$this->progress_handler = false;
 		$this->debug_mode = false;
 		$this->has_been_disconnected = false;
-		/* utf8 is the default charset, can be overridden when corpus is set. */
-		$this->corpus_charset = self::CHARSET_UTF8;
+		$this->corpus_charset = self::CHARSET_UTF8;    /* utf8 is the default charset, can be overridden when corpus is set. */
+		$this->gzip_path = '';
 
 		/* pretty-printing should be turned off for non-interactive use */
 		$this->execute("set PrettyPrint off");
@@ -282,9 +291,7 @@ class CQP
 	/**
 	 * Disconnects the child process.
 	 * 
-	 * This was originally the "fake distructor" function when this class was written for PHP 4.x;
-	 * the shutdown code has been kept here rather than in __destruct() to avoid breaking calls to 
-	 * ->disconnect() that exist in CQPweb. 
+	 * This was originally the "fake distructor" function when this class was written for PHP 4.x.
 	 */ 
 	public function disconnect()
 	{
@@ -671,7 +678,7 @@ class CQP
 
 		/* now send undump command with filename of temporary file */
 		$tempfile_name = $tempfile->get_filename();
-		$this->execute("undump $subcorpus $with < 'gzip -cd $tempfile_name |'");
+		$this->execute("undump $subcorpus $with < '{$this->gzip_path}gzip -cd $tempfile_name |'");
 		// TODO. Does this *really* need gzipping? Win32 incompatibiltiy.
 
 		/* delete temporary file */
@@ -999,6 +1006,20 @@ class CQP
 
 
 
+	/**
+	 * Set a path to find the gzip executable.
+	 * 
+	 * (This is an empty string by default; this method exists to make it possible
+	 * to set the path to scomething else.) 
+	 */
+	public function set_gzip_path($newpath)
+	{
+		if (empty($newpath))
+			$this->gzip_path = '';
+		else
+			$this->gzip_path = rtrim($newpath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+	}
+
 	/** 
 	 * Switch debug mode on or off, and return the FORMER state (whatever it was).
 	 * 
@@ -1017,7 +1038,6 @@ class CQP
 
 		return $oldstate;
 	}
-
 
 
 

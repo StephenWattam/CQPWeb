@@ -45,8 +45,7 @@
 function delete_corpus_from_cqpweb($corpus)
 {
 	global $corpus_cqp_name;
-	global $cwb_registry;
-	global $cwb_datadir;
+	global $Config;
 	$corpus = mysql_real_escape_string($corpus);
 	
 	if (empty($corpus))
@@ -72,9 +71,9 @@ function delete_corpus_from_cqpweb($corpus)
 	
 
 	/* if they exist, delete the CWB registry and data for his corpus's __freq */
-	if (file_exists("/$cwb_registry/{$corpus_cwb_lower}__freq"))
-		unlink("/$cwb_registry/{$corpus_cwb_lower}__freq");
-	recursive_delete_directory("/$cwb_datadir/{$corpus_cwb_lower}__freq");
+	if (file_exists("$Config->dir->registry/{$corpus_cwb_lower}__freq"))
+		unlink("$Config->dir->registry/{$corpus_cwb_lower}__freq");
+	recursive_delete_directory("$Config->dir->index/{$corpus_cwb_lower}__freq");
 	/* note, __freq deletion is not conditional on cwb_external -> also_delete_cwb
 	 * because __freq corpora are ALWAYS created by CQPweb itself.
 	 * 
@@ -86,9 +85,9 @@ function delete_corpus_from_cqpweb($corpus)
 	if ($also_delete_cwb)
 	{
 		/* delete the CWB registry and data */
-		if (file_exists("/$cwb_registry/$corpus_cwb_lower"))
-		unlink("/$cwb_registry/$corpus_cwb_lower");
-		recursive_delete_directory("/$cwb_datadir/$corpus_cwb_lower");
+		if (file_exists("$Config->dir->registry/$corpus_cwb_lower"))
+		unlink("$Config->dir->registry/$corpus_cwb_lower");
+		recursive_delete_directory("$Config->dir->index/$corpus_cwb_lower");
 	}
 	
 	/* CWB data now clean: on to the MySQL database. All these queries are "safe":
@@ -221,8 +220,7 @@ function add_new_user($username, $password, $email = NULL)
 	$profile = get_all_user_settings($username);
 	
 	/* then, overwrite the password as stored in the database */
-	global $password_more_security;
-	$db_password = ($password_more_security ? $apache->get_user_hashword($username) : $password);
+	$db_password = $password;
 	update_user_setting($username, 'password', $db_password);
 	
 	/* and if email has been passed into the function, likewise overwrite it */
@@ -233,7 +231,6 @@ function add_new_user($username, $password, $email = NULL)
 function add_batch_of_users($username_root, $number_in_batch, $password, $autogroup, $different_passwords = false)
 {	
 	global $create_password_function;
-	global $password_more_security;
 
 	$apache = get_apache_object('nopath');
 
@@ -275,7 +272,7 @@ function add_batch_of_users($username_root, $number_in_batch, $password, $autogr
 		$profile = get_all_user_settings("$username_root$i");
 	
 		/* then, overwrite the password as stored in the database */
-		$db_password = ($password_more_security ? $apache->get_user_hashword("$username_root$i") : $this_password);
+		$db_password =  $this_password;
 		update_user_setting("$username_root$i", 'password', $db_password);
 	}
 	// added because for small N, the resulting file could be overridden by execute()'s "Location" header.
@@ -801,12 +798,12 @@ function create_text_metadata_get_bad_ids($corpus, $field)
  */
 function create_text_metadata_for_from_xml($fields_to_show)
 {
+	global $Config;
 	global $cqp;
 	global $create_text_metadata_for_info;
-	global $cqpweb_uploaddir;
 	global $corpus_cqp_name;
 
-	$full_filename = "/$cqpweb_uploaddir/{$create_text_metadata_for_info['filename']}";
+	$full_filename = "$Config->dir->upload/{$create_text_metadata_for_info['filename']}";
 
 	/* get the $corpus_cqp_name variable by including the corpus's settings file */
 	include("../{$create_text_metadata_for_info['corpus']}/settings.inc.php");
@@ -825,8 +822,7 @@ function create_text_metadata_for()
 {
 	/* this is an ugly but efficient way to get the data that I need for this */
 	global $create_text_metadata_for_info;
-	global $cqpweb_uploaddir;
-	global $cqpweb_tempdir;
+	global $Config;
 	
 	
 	$corpus = cqpweb_handle_enforce($create_text_metadata_for_info['corpus']);
@@ -837,11 +833,11 @@ function create_text_metadata_for()
 	if (empty($create_text_metadata_for_info['filename']))
 		exiterror_general("No input file was specified!\nMetadata setup aborts.");
 				
-	$file = "/$cqpweb_uploaddir/{$create_text_metadata_for_info['filename']}";
+	$file = "$Config->dir->upload/{$create_text_metadata_for_info['filename']}";
 	if (!is_file($file))
 		exiterror_general("The metadata file you specified does not appear to exist!\nMetadata setup aborts.");
 
-	$input_file = "/$cqpweb_tempdir/___install_temp_{$create_text_metadata_for_info['filename']}";
+	$input_file = "$Config->dir->cache/___install_temp_{$create_text_metadata_for_info['filename']}";
 	
 	$source = fopen($file, 'r');
 	$dest = fopen($input_file, 'w');
@@ -1001,19 +997,17 @@ function create_text_metadata_for()
  */
 function create_text_metadata_for_minimalist()
 {
-	global $path_to_cwb;
-	global $cqpweb_tempdir;
+	global $Config;
 	global $corpus_cqp_name;
 	global $corpus_sql_name;
-	global $cwb_registry;
 	
 	
 	if (!is_dir("../$corpus_sql_name"))
 		exiterror_general("Corpus $corpus_sql_name does not seem to be installed!");	
 
-	$input_file = "/$cqpweb_tempdir/___install_temp_metadata_$corpus_sql_name";
+	$input_file = "$Config->dir->cache/___install_temp_metadata_$corpus_sql_name";
 
-	exec("/$path_to_cwb/cwb-s-decode -n -r /$cwb_registry $corpus_cqp_name -S text_id > $input_file");
+	exec("{$Config->path_to_cwb}cwb-s-decode -n -r \"/$Config->dir->registry\" $corpus_cqp_name -S text_id > $input_file");
 
 	/* note, size of text_id is 50 to allow possibility of non-decoded UTF8 - they should be shorter */
 	$create_statement = "create table `text_metadata_for_$corpus_sql_name`(
@@ -1070,10 +1064,15 @@ function dumpable_dir_basename($dump_file_path)
 		return rtrim($dump_file_path, '/');
 }
 
-/** support function for the functions that create/read from dump files. 
- *  Parameter: a directory to turn into a .tar.gz (path, WITHOUT .tar.gz at end) */
+/** 
+ * Support function for the functions that create/read from dump files. 
+ * 
+ * Parameter: a directory to turn into a .tar.gz (path, WITHOUT .tar.gz at end). 
+ */
 function cqpweb_dump_targzip($dirpath)
 {
+	global $Config;
+	
 	$dir = end(explode('/', $dirpath));
 	
 	$back_to = getcwd();
@@ -1081,8 +1080,8 @@ function cqpweb_dump_targzip($dirpath)
 	chdir($dirpath);
 	chdir('..');
 	
-	exec("tar -cf $dir.tar $dir");
-	exec("gzip $dir.tar");
+	exec("{$Config->path_to_gnu}tar -cf $dir.tar $dir");
+	exec("{$Config->path_to_gnu}gzip $dir.tar");
 	
 	recursive_delete_directory($dirpath);
 
@@ -1093,16 +1092,18 @@ function cqpweb_dump_targzip($dirpath)
  *  Parameter: a .tar.gz to turn into a directory, but does not delete the archive. */
 function cqpweb_dump_untargzip($path)
 {
+	global $Config;
+	
 	$back_to = getcwd();
 	
 	chdir(dirname($path));
 	
 	$file = basename($path, '.tar.gz');
 	
-	exec("gzip -d $file.tar.gz");
-	exec("tar -xf $file.tar");
+	exec("{$Config->path_to_gnu}gzip -d $file.tar.gz");
+	exec("{$Config->path_to_gnu}tar -xf $file.tar");
 	/* put the dump file back as it was */
-	exec("gzip $file.tar");
+	exec("{$Config->path_to_gnu}gzip $file.tar");
 	
 	chdir($back_to);
 }
@@ -1118,7 +1119,7 @@ function cqpweb_dump_untargzip($path)
  */
 function cqpweb_dump_userdata($dump_file_path)
 {
-	global $cqpweb_tempdir;
+	global $Config;
 	
 	php_execute_time_unlimit();
 	
@@ -1139,7 +1140,7 @@ function cqpweb_dump_userdata($dump_file_path)
 	while (false !== ($row = mysql_fetch_row($result)))
 	{
 		/* copy any matching files to the location */
-		foreach (glob("/$cqpweb_tempdir/*:{$row[0]}") as $f)
+		foreach (glob("$Config->dir->cache/*:{$row[0]}") as $f)
 			if (is_file($f))
 				copy($f, "$dir/".basename($f));
 				
@@ -1191,8 +1192,8 @@ function cqpweb_dump_userdata($dump_file_path)
  */
 function cqpweb_undump_userdata($dump_file_path)
 {
-	global $cqpweb_tempdir;
-
+	global $Config;
+	
 	php_execute_time_unlimit();
 
 	$dir = dumpable_dir_basename($dump_file_path);
@@ -1202,7 +1203,7 @@ function cqpweb_undump_userdata($dump_file_path)
 	/* copy cache files back where they came from */
 	foreach (glob("/$dir/*:*") as $f)
 		if (is_file($f))
-			copy($f, "$cqpweb_tempdir/" . basename($f));
+			copy($f, "$Config->dir->cache/" . basename($f));
 
 	/* load back the mysql tables */
 	foreach (explode('~~~###~~~', file_get_contents("$dir/__CREATE_TABLES_STATEMENTS")) as $create_statement)
@@ -1248,7 +1249,7 @@ function cqpweb_undump_userdata($dump_file_path)
  */
 function cqpweb_dump_snapshot($dump_file_path)
 {
-	global $cqpweb_tempdir;
+	global $Config;
 	
 	php_execute_time_unlimit();
 	
@@ -1265,9 +1266,9 @@ function cqpweb_dump_snapshot($dump_file_path)
 	mkdir("$dir/cache");
 	
 	/* copy the cache */
-	foreach(scandir("/$cqpweb_tempdir") as $f)
-		if (is_file("/$cqpweb_tempdir/$f"))
-			copy("/$cqpweb_tempdir/$f", "$dir/cache/$f");
+	foreach(scandir($Config->dir->cache) as $f)
+		if (is_file("$Config->dir->cache/$f"))
+			copy("$Config->dir->cache/$f", "$dir/cache/$f");
 	
 	/* copy corpus setting files */
 	foreach(list_corpora() as $c)
@@ -1282,8 +1283,8 @@ function cqpweb_dump_snapshot($dump_file_path)
 
 function cqpweb_undump_snapshot($dump_file_path)
 {
-	global $cqpweb_tempdir;
-
+	global $Config;
+	
 	php_execute_time_unlimit();
 
 	$dir = dumpable_dir_basename($dump_file_path);
@@ -1293,7 +1294,7 @@ function cqpweb_undump_snapshot($dump_file_path)
 	/* copy cache files back where they came from */
 	foreach(scandir("$dir/cache") as $f)
 		if (is_file("$dir/cache/$f"))
-			copy("$dir/cache/$f", "/$cqpweb_tempdir/$f");
+			copy("$dir/cache/$f", "$Config->dir->cache/$f");
 	
 	/* corpus settings: create the directory if necessary */
 	foreach (scandir("$dir") as $sf)
@@ -1740,9 +1741,9 @@ function cqpweb_mysql_recreate_tables()
 
 function cqpweb_import_css_file($filename)
 {
-	global $cqpweb_uploaddir;
+	global $Config;
 	
-	$orig = "/$cqpweb_uploaddir/$filename";
+	$orig = "$Config->dir->upload/$filename";
 	$new = "../css/$filename";
 	
 	if (is_file($orig))

@@ -49,12 +49,10 @@
  */
 function corpus_make_freqtables()
 {
-	global $path_to_cwb;
-	global $cwb_registry;
+	global $Config;
 	global $corpus_sql_name;
 	global $corpus_sql_collation;
 	global $corpus_cqp_name;
-	global $cqpweb_tempdir;
 	global $username;
 	global $cqp;
 	
@@ -89,10 +87,10 @@ function corpus_make_freqtables()
 	
 
 	/* for convenience, $filename is absolute */
-	$filename = "/$cqpweb_tempdir/____$temp_tablename.tbl";
+	$filename = "$Config->dir->cache/____$temp_tablename.tbl";
 
 	/* now, use cwb-scan-corpus to prepare the input */	
-	$cwb_command = "/$path_to_cwb/cwb-scan-corpus -r /$cwb_registry -o $filename -q $corpus_cqp_name";
+	$cwb_command = "{$Config->path_to_cwb}cwb-scan-corpus -r \"$Config->dir->registry\" -o \"$filename\" -q $corpus_cqp_name";
 	foreach ($attribute as $att)
 		$cwb_command .= " $att";
 	$status = 0;
@@ -173,13 +171,11 @@ function corpus_make_freqtables()
  */
 function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 'no_restriction')
 {
+	global $Config;
 	global $corpus_sql_name;
 	global $corpus_sql_collation;
 	global $corpus_cqp_name;
-	global $cqpweb_tempdir;
 	global $instance_name;
-	global $path_to_cwb;
-	global $cwb_registry;
 	global $username;
 	global $cqp;
 	
@@ -206,7 +202,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 
 
 	/* first step: save regions to be scanned to a temp file */
-	$regionfile = new CQPInterchangeFile("/$cqpweb_tempdir");
+	$regionfile = new CQPInterchangeFile($Config->dir->cache);
 	$region_list_array = get_freq_index_postitionlist_for_subsection($subcorpus, $restriction);
 	
 	foreach ($region_list_array as $reg)
@@ -217,7 +213,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 
 	/* second step we can get ready to build the intermediate table in MySQL */
 	$temp_table = "__freqmake_temptable_$instance_name";
-	$temp_table_loadfile = "/$cqpweb_tempdir/__infile$temp_table";
+	$temp_table_loadfile = "$Config->dir->cache/__infile$temp_table";
 	
 	/* Check cache contents. (We do this before building, in order that we don't overflow the cache
 	 * by TOO much in the intermediate step when the new freq table is being built.) */
@@ -225,7 +221,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 
 
 	/* run command to extract the frequency lines for those bits of the corpus */
-	$cmd_scancorpus = "/$path_to_cwb/cwb-scan-corpus -r /$cwb_registry -F __freq "
+	$cmd_scancorpus = "{$Config->path_to_cwb}cwb-scan-corpus -r \"$Config->dir->registry\" -F __freq "
 		. "-R " . $regionfile->get_filename()
 		. " {$corpus_cqp_name}__FREQ";
 	foreach ($attribute as $att)

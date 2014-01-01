@@ -83,8 +83,9 @@ function cqp_file_copy($oldqname, $newqname)
  */
 function cqp_file_path($qname)
 {
-	global $cqpweb_tempdir;
-	$globbed = glob("/$cqpweb_tempdir/*:$qname");
+	global $Config;
+	
+	$globbed = glob("$Config->dir->cache/*:$qname");
 	if (empty($globbed))
 		return false;
 	else
@@ -527,7 +528,7 @@ function delete_cache_overflow($protect_user_saved = true)
 /* delete the entire cache, plus any files in the temp directory */
 function clear_cache($protect_user_saved = true)
 {
-	global $cqpweb_tempdir;
+	global $Config;
 	
 	/* this function can take a long time to run, so turn off the limits */
 	php_execute_time_unlimit();
@@ -547,7 +548,7 @@ function clear_cache($protect_user_saved = true)
 
 
 	/* are there any files left in the temp directory? */
-	foreach(glob("/$cqpweb_tempdir/*") as $file)
+	foreach(glob("$Config->dir->cache/*") as $file)
 	{
 		/* was this file protected on the previous pass? if so, it will still be in the DB */
 		preg_match('/\A([^:]*:)(.*)\z/', $file, $m);

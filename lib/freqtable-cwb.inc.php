@@ -66,12 +66,9 @@ function check_cwb_freq_index($corpus_name)
 
 function make_cwb_freq_index()
 {
+	global $Config;
 	global $corpus_sql_name;
 	global $corpus_cqp_name;
-	global $cqpweb_tempdir;
-	global $cwb_datadir;
-	global $cwb_registry;
-	global $path_to_cwb;
 	global $username;
 	
 	/* only superusers are allowed to do this! */
@@ -107,12 +104,12 @@ function make_cwb_freq_index()
 	$freq_corpus_cqp_name_lc = strtolower($corpus_cqp_name) . '__freq';
 	$freq_corpus_cqp_name_uc = strtoupper($freq_corpus_cqp_name_lc);
 	
-	$datadir = "/$cwb_datadir/$freq_corpus_cqp_name_lc";
-	$regfile = "/$cwb_registry/$freq_corpus_cqp_name_lc";
+	$datadir = "$Config->dir->index/$freq_corpus_cqp_name_lc";
+	$regfile = "$Config->dir->registry/$freq_corpus_cqp_name_lc";
 
 	
 	/* character set to use when encoding the new corpus */
-	$cqp = new CQP("/$path_to_cwb", "/$cwb_registry");
+	$cqp = new CQP($Config->path_to_cwb, $Config->dir->registry);
 	$cqp->set_error_handler('exiterror_cqp');
 	$cqp->set_corpus($corpus_cqp_name);
 	$charset = $cqp->get_corpus_charset();
@@ -127,11 +124,11 @@ function make_cwb_freq_index()
 	chmod($datadir, 0777);
 
 	/* open a pipe **from** cwb-decode and another **to** cwb-encode */
-	$cmd_decode = "/$path_to_cwb/cwb-decode -r /$cwb_registry -C $corpus_cqp_name $p_att_line -S text_id";
+	$cmd_decode = "{$Config->path_to_cwb}cwb-decode -r \"$Config->dir->registry\" -C $corpus_cqp_name $p_att_line -S text_id";
 
 	$source = popen($cmd_decode, 'r');
 
-	$cmd_encode = "/$path_to_cwb/cwb-encode -d $datadir -c $charset -R $regfile $p_att_line_no_word -P __freq -S text:0+id ";
+	$cmd_encode = "{$Config->path_to_cwb}cwb-encode -d \"$datadir\" -c $charset -R \"$regfile\" $p_att_line_no_word -P __freq -S text:0+id ";
 
 	$dest = popen($cmd_encode, 'w');
 
@@ -157,8 +154,7 @@ function make_cwb_freq_index()
 			
 			if ( ! isset($current_id) )
 				exiterror_general("Unexpected </text> tag while creating corpus 
-					$freq_corpus_cqp_name_uc! -- creation aborted",
-					__FILE__, __LINE__);
+					$freq_corpus_cqp_name_uc! -- creation aborted");
 			
 			fputs($dest, "<text id=\"$current_id\">\n");
 			arsort($F);
@@ -173,8 +169,7 @@ function make_cwb_freq_index()
 			/* if we're at the point of waiting for a text_id, and we got this, then ABORT! */
 			if ( ! isset($current_id) )
 				exiterror_general("Unexpected line outside &lt;text&gt; tags while creating corpus 
-					$freq_corpus_cqp_name_uc! -- creation aborted",
-					__FILE__, __LINE__);
+					$freq_corpus_cqp_name_uc! -- creation aborted");
 			
 			/* otherwise... */
 
@@ -195,9 +190,9 @@ function make_cwb_freq_index()
 	/* system commands for everything else that needs to be done to make it a good corpus */
 
 	$mem_flag = '-M ' . get_cwb_memory_limit();
-	$cmd_makeall  = "/$path_to_cwb/cwb-makeall $mem_flag -r /$cwb_registry -V $freq_corpus_cqp_name_uc ";
-	$cmd_huffcode = "/$path_to_cwb/cwb-huffcode          -r /$cwb_registry -A $freq_corpus_cqp_name_uc ";
-	$cmd_pressrdx = "/$path_to_cwb/cwb-compress-rdx      -r /$cwb_registry -A $freq_corpus_cqp_name_uc ";
+	$cmd_makeall  = "{$Config->path_to_cwb}cwb-makeall $mem_flag -r \"$Config->dir->registry\" -V $freq_corpus_cqp_name_uc ";
+	$cmd_huffcode = "{$Config->path_to_cwb}cwb-huffcode          -r \"$Config->dir->registry\" -A $freq_corpus_cqp_name_uc ";
+	$cmd_pressrdx = "{$Config->path_to_cwb}cwb-compress-rdx      -r \"$Config->dir->registry\" -A $freq_corpus_cqp_name_uc ";
 
 
 
@@ -225,9 +220,9 @@ function make_cwb_freq_index()
 	 * 
 	 * This then goes into a mysql table which corresponds to the __freq cwb corpus.
 	 */
-	$index_filename = "/$cqpweb_tempdir/{$corpus_sql_name}_freqdb_index.tbl";
+	$index_filename = "$Config->dir->cache/{$corpus_sql_name}_freqdb_index.tbl";
 	
-	$s_decode_cmd = "/$path_to_cwb/cwb-s-decode -r /$cwb_registry $freq_corpus_cqp_name_uc -S text_id > $index_filename";
+	$s_decode_cmd = "{$Config->path_to_cwb}cwb-s-decode -r \"$Config->dir->registry\" $freq_corpus_cqp_name_uc -S text_id > $index_filename";
 	exec($s_decode_cmd);
 //	chmod($index_filename, 0777);
 	
