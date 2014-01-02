@@ -1453,6 +1453,62 @@ function cqpweb_mysql_recreate_tables()
 	list($major, $minor, $rest) = explode('.', mysql_get_server_info($mysql_link), 3);
 	$engine_if_fulltext_key_needed = ( ($major > 5 || ($major == 5 && $minor >= 6) ) ? '' : 'ENGINE=MyISAM'); 
 	
+	$create_statements['annotation_mapping_tables'] =
+		"CREATE TABLE `annotation_mapping_tables` (
+			`id` varchar(40),
+			`name` varchar(255), 
+			`mappings` text character set utf8,
+			key(`id`)
+	) CHARACTER SET utf8 COLLATE utf8_bin";
+	
+	
+	$create_statements['annotation_metadata'] =
+		"CREATE TABLE `annotation_metadata` (
+			`corpus` varchar(20) NOT NULL,
+			`handle` varchar(20) NOT NULL,
+			`description` varchar(255) default NULL,
+			`tagset` varchar(255) default NULL,
+			`external_url` varchar(255) default NULL,
+			primary key (`corpus`, `handle`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+
+	
+	$create_statements['corpus_categories'] =
+		"CREATE TABLE `corpus_categories` (
+			`idno` int NOT NULL AUTO_INCREMENT,
+			`label` varchar(255) DEFAULT '',
+			`sort_n` int NOT NULL DEFAULT 0,
+			PRIMARY KEY (`idno`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+	
+	$create_statements['corpus_metadata_fixed'] =
+		"CREATE TABLE `corpus_metadata_fixed` (
+			`corpus` varchar(20) NOT NULL,
+			`visible` tinyint(1) default 1,
+			`primary_classification_field` varchar(20) default NULL,
+			`primary_annotation` varchar(20) default NULL,
+			`secondary_annotation` varchar(20) default NULL,
+			`tertiary_annotation` varchar(20) default NULL,
+			`tertiary_annotation_tablehandle` varchar(40) default NULL,
+			`combo_annotation` varchar(20) default NULL,
+			`external_url` varchar(255) default NULL,
+			`public_freqlist_desc` varchar(150) default NULL,
+			`corpus_cat` int NOT NULL DEFAULT 1,
+			`cwb_external` tinyint(1) NOT NULL default 0,
+			primary key (corpus)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+
+	
+	$create_statements['corpus_metadata_variable'] =
+		"CREATE TABLE `corpus_metadata_variable` (
+			`corpus` varchar(20) NOT NULL,
+			`attribute` text NOT NULL,
+			`value` text,
+			key(`corpus`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+
 	$create_statements['query_history'] =
 		"create table query_history (
 			`instance_name` varchar(31) default NULL,
@@ -1471,6 +1527,55 @@ function cqpweb_mysql_recreate_tables()
 		) CHARACTER SET utf8";
 
 	
+	$create_statements['saved_catqueries'] =
+		"CREATE TABLE `saved_catqueries` (
+			`catquery_name` varchar(150) NOT NULL,
+			`user` varchar(20) default NULL,
+			`corpus` varchar(20) NOT NULL  default '',
+			`dbname` varchar(150) NOT NULL  default '',
+			`category_list` TEXT,
+			KEY `catquery_name` (`catquery_name`),
+			KEY `user` (`user`),
+			KEY `corpus` (`corpus`)
+	) CHARACTER SET utf8 COLLATE utf8_bin";
+
+
+	$create_statements['saved_dbs'] =
+		"CREATE TABLE `saved_dbs` (
+			`dbname` varchar(200) NOT NULL,
+			`user` varchar(30) default NULL,
+			`create_time` int(11) default NULL,
+			`cqp_query` text character set utf8 collate utf8_bin NOT NULL,
+			`restrictions` text character set utf8 collate utf8_bin,
+			`subcorpus` varchar(200) default NULL,
+			`postprocess` text,
+			`corpus` varchar (20) NOT NULL default '',
+			`db_type` varchar(15) default NULL,
+			`colloc_atts` varchar(200) default '',
+			`colloc_range` int default '0',
+			`sort_position` int default '0',
+			`db_size` bigint UNSIGNED default NULL,
+			`saved` tinyint(1) NOT NULL default 0,
+			primary key(`dbname`),
+			key (`user`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+
+	$create_statements['saved_freqtables'] =
+		"CREATE TABLE `saved_freqtables` (
+			`freqtable_name` varchar(150) NOT NULL,
+			`corpus` varchar(20) NOT NULL default '',
+			`user` varchar(30) default NULL,
+			`restrictions` text character set utf8 collate utf8_bin,
+			`subcorpus` varchar(200) NOT NULL default '',
+			`create_time` int(11) default NULL,
+			`ft_size` bigint UNSIGNED default NULL,
+			`public` tinyint(1) default 0,
+			primary key (`freqtable_name`),
+			key `subcorpus` (`subcorpus`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+
 	$create_statements['saved_queries'] =
 		"CREATE TABLE `saved_queries` (
 			`query_name` varchar(150) NOT NULL,
@@ -1500,18 +1605,71 @@ function cqpweb_mysql_recreate_tables()
 			FULLTEXT KEY `cqp_query` (`cqp_query`)
 	) $engine_if_fulltext_key_needed CHARACTER SET utf8 COLLATE utf8_bin";
 
-	$create_statements['saved_catqueries'] =
-		"CREATE TABLE `saved_catqueries` (
-			`catquery_name` varchar(150) NOT NULL,
-			`user` varchar(20) default NULL,
-			`corpus` varchar(20) NOT NULL  default '',
-			`dbname` varchar(150) NOT NULL  default '',
-			`category_list` TEXT,
-			KEY `catquery_name` (`catquery_name`),
-			KEY `user` (`user`),
-			KEY `corpus` (`corpus`)
-	) CHARACTER SET utf8 COLLATE utf8_bin";
 
+	$create_statements['saved_subcorpora'] =
+		"CREATE TABLE `saved_subcorpora` (
+			`subcorpus_name` varchar(200) NOT NULL default '',
+			`corpus` varchar(20) NOT NULL default '',
+			`user` varchar(30) default NULL,
+			`restrictions` text character set utf8 collate utf8_bin,
+			`text_list` text character set utf8 collate utf8_bin,
+			`numfiles` mediumint(8) unsigned default NULL,
+			`numwords` bigint(21) unsigned default NULL,
+			key(`corpus`, `user`),
+			key(`text_list`(255))
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+
+	$create_statements['system_longvalues'] =
+		"CREATE TABLE `system_longvalues` (
+			`timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+			`id` varchar(40) NOT NULL,
+			`value` text NOT NULL,
+			primary key(`id`)
+	) CHARACTER SET utf8 COLLATE utf8_bin";
+	
+	
+	$create_statements['system_messages'] =
+		"CREATE TABLE `system_messages` (
+			`message_id` varchar(150) NOT NULL,
+			`timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+			`header` varchar(150) default '',
+			`content` text character set utf8 collate utf8_bin,
+			`fromto` varchar(150) default NULL,
+			primary key (`message_id`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+	
+	$create_statements['mysql_processes'] =
+		"CREATE TABLE `mysql_processes` (
+			`dbname` varchar(200) NOT NULL,
+			`begin_time` int(11) default NULL,
+			`process_type` varchar(15) default NULL,
+			`process_id` varchar(15) default NULL,
+			primary key (`dbname`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+
+	$create_statements['text_metadata_fields'] =
+		"CREATE TABLE `text_metadata_fields` (
+			`corpus` varchar(20) NOT NULL,
+			`handle` varchar(20) NOT NULL,
+			`description` varchar(255) default NULL,
+			`is_classification` tinyint(1) default 0,
+			primary key (`corpus`, `handle`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+
+	
+	$create_statements['text_metadata_values'] =
+		"CREATE TABLE `text_metadata_values` (
+			`corpus` varchar(20) NOT NULL,
+			`field_handle` varchar(20) NOT NULL,
+			`handle` varchar(20) NOT NULL,
+			`description` varchar(255) default NULL,
+			`category_num_words` int unsigned default NULL,
+			`category_num_files` int unsigned default NULL,
+			primary key(`corpus`, `field_handle`, `handle`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 
 	
 	$create_statements['user_settings'] =
@@ -1536,155 +1694,6 @@ function cqpweb_mysql_recreate_tables()
 			primary key(`username`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 
-	
-	$create_statements['text_metadata_fields'] =
-		"CREATE TABLE `text_metadata_fields` (
-			`corpus` varchar(20) NOT NULL,
-			`handle` varchar(20) NOT NULL,
-			`description` varchar(255) default NULL,
-			`is_classification` tinyint(1) default 0,
-			primary key (`corpus`, `handle`)
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
-
-	
-	$create_statements['text_metadata_values'] =
-		"CREATE TABLE `text_metadata_values` (
-			`corpus` varchar(20) NOT NULL,
-			`field_handle` varchar(20) NOT NULL,
-			`handle` varchar(20) NOT NULL,
-			`description` varchar(255) default NULL,
-			`category_num_words` int unsigned default NULL,
-			`category_num_files` int unsigned default NULL,
-			primary key(`corpus`, `field_handle`, `handle`)
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
-
-	
-	$create_statements['annotation_metadata'] =
-		"CREATE TABLE `annotation_metadata` (
-			`corpus` varchar(20) NOT NULL,
-			`handle` varchar(20) NOT NULL,
-			`description` varchar(255) default NULL,
-			`tagset` varchar(255) default NULL,
-			`external_url` varchar(255) default NULL,
-			primary key (`corpus`, `handle`)
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
-
-	
-	$create_statements['corpus_metadata_fixed'] =
-		"CREATE TABLE `corpus_metadata_fixed` (
-			`corpus` varchar(20) NOT NULL,
-			`visible` tinyint(1) default 1,
-			`primary_classification_field` varchar(20) default NULL,
-			`primary_annotation` varchar(20) default NULL,
-			`secondary_annotation` varchar(20) default NULL,
-			`tertiary_annotation` varchar(20) default NULL,
-			`tertiary_annotation_tablehandle` varchar(40) default NULL,
-			`combo_annotation` varchar(20) default NULL,
-			`external_url` varchar(255) default NULL,
-			`public_freqlist_desc` varchar(150) default NULL,
-			`corpus_cat` int NOT NULL DEFAULT 1,
-			`cwb_external` tinyint(1) NOT NULL default 0,
-			primary key (corpus)
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
-
-	
-	$create_statements['corpus_metadata_variable'] =
-		"CREATE TABLE `corpus_metadata_variable` (
-			`corpus` varchar(20) NOT NULL,
-			`attribute` text NOT NULL,
-			`value` text,
-			primary key(`corpus`)
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
-	
-
-	$create_statements['saved_dbs'] =
-		"CREATE TABLE `saved_dbs` (
-			`dbname` varchar(200) NOT NULL,
-			`user` varchar(30) default NULL,
-			`create_time` int(11) default NULL,
-			`cqp_query` text character set utf8 collate utf8_bin NOT NULL,
-			`restrictions` text character set utf8 collate utf8_bin,
-			`subcorpus` varchar(200) default NULL,
-			`postprocess` text,
-			`corpus` varchar (20) NOT NULL default '',
-			`db_type` varchar(15) default NULL,
-			`colloc_atts` varchar(200) default '',
-			`colloc_range` int default '0',
-			`sort_position` int default '0',
-			`db_size` bigint UNSIGNED default NULL,
-			`saved` tinyint(1) NOT NULL default 0,
-			primary key(`dbname`),
-			key (`user`)
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
-	
-
-	$create_statements['saved_subcorpora'] =
-		"CREATE TABLE `saved_subcorpora` (
-			`subcorpus_name` varchar(200) NOT NULL default '',
-			`corpus` varchar(20) NOT NULL default '',
-			`user` varchar(30) default NULL,
-			`restrictions` text character set utf8 collate utf8_bin,
-			`text_list` text character set utf8 collate utf8_bin,
-			`numfiles` mediumint(8) unsigned default NULL,
-			`numwords` bigint(21) unsigned default NULL,
-			key(`corpus`, `user`),
-			key(`text_list`(255))
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
-	
-
-	$create_statements['mysql_processes'] =
-		"CREATE TABLE `mysql_processes` (
-			`dbname` varchar(200) NOT NULL,
-			`begin_time` int(11) default NULL,
-			`process_type` varchar(15) default NULL,
-			`process_id` varchar(15) default NULL,
-			primary key (`dbname`)
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
-	
-
-	$create_statements['saved_freqtables'] =
-		"CREATE TABLE `saved_freqtables` (
-			`freqtable_name` varchar(150) NOT NULL,
-			`corpus` varchar(20) NOT NULL default '',
-			`user` varchar(30) default NULL,
-			`restrictions` text character set utf8 collate utf8_bin,
-			`subcorpus` varchar(200) NOT NULL default '',
-			`create_time` int(11) default NULL,
-			`ft_size` bigint UNSIGNED default NULL,
-			`public` tinyint(1) default 0,
-			primary key (`freqtable_name`),
-			key `subcorpus` (`subcorpus`)
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
-	
-
-	$create_statements['system_messages'] =
-		"CREATE TABLE `system_messages` (
-			`message_id` varchar(150) NOT NULL,
-			`timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-			`header` varchar(150) default '',
-			`content` text character set utf8 collate utf8_bin,
-			`fromto` varchar(150) default NULL,
-			primary key (`message_id`)
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
-	
-	
-	$create_statements['system_longvalues'] =
-		"CREATE TABLE `system_longvalues` (
-			`timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-			`id` varchar(40) NOT NULL,
-			`value` text NOT NULL,
-			primary key(`id`)
-	) CHARACTER SET utf8 COLLATE utf8_bin";
-	
-	
-	$create_statements['annotation_mapping_tables'] =
-		"CREATE TABLE `annotation_mapping_tables` (
-			`id` varchar(40),
-			`name` varchar(255), 
-			`mappings` text character set utf8,
-			key(`id`)
-	) CHARACTER SET utf8 COLLATE utf8_bin";
-	
 	
 	$create_statements['user_macros'] =
 		"CREATE TABLE `user_macros` (
@@ -1716,15 +1725,6 @@ function cqpweb_mysql_recreate_tables()
 	) CHARACTER SET utf8 COLLATE utf8_bin";
 	/* note that, because the attribute/regex condition must be part of the primary key, the regex is limited to
 	 * 100 UTF8 characters (keys cannot exceed 1000 bytes = 333 utf8 chars) */ 
-	
-	
-	$create_statements['corpus_categories'] =
-		"CREATE TABLE `corpus_categories` (
-			`idno` int NOT NULL AUTO_INCREMENT,
-			`label` varchar(255) DEFAULT '',
-			`sort_n` int NOT NULL DEFAULT 0,
-			PRIMARY KEY (`idno`)
-	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 	
 	
 	return $create_statements;
