@@ -706,25 +706,7 @@ function print_sc_showsubcorpora()
 		if (mysql_num_rows($result) == 0)
 			echo '<tr><td class="concordgrey" colspan="7" align="center">
 					&nbsp;<br/>No subcorpora were found.<br/>&nbsp;
-					</td</tr>';
-		else
-		{
-			?>
-			<!-- in retrospet, this button is a very bad idea. Switched off! both here and in freqtable-compile.
-			<tr>
-				<td colspan="7" class="concordgrey" align="center">
-					&nbsp<br/>
-					<form action="freqtable-compile.php" method="get">
-						<input type="submit" value="Compile frequency lists for all subcorpora" />
-						<input type="hidden" name="compileSubcorpusAll" value="1" />
-						<input type="hidden" name="uT" value="y" />
-					</form>
-				</td>
-			</tr>
-			-->
-			<?php
-		}
-		
+					</td</tr>';	
 		?>
 	</table>
 	<?php

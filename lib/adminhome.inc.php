@@ -217,7 +217,6 @@ echo print_menurow_admin('uploadArea', 'View upload area');
 echo print_menurow_admin('userAdmin', 'Manage users');
 echo print_menurow_admin('groupAdmin', 'Manage group membership');
 echo print_menurow_admin('groupAccess', 'Manage group access');
-echo print_menurow_admin('superuserAccess', 'Manage superuser access');
 ?>
 <tr>
 	<th class="concordtable"><a class="menuHeaderItem">Database</a></th>
@@ -1793,29 +1792,6 @@ function printquery_groupaccess()
 
 	<?php
 
-}
-
-
-function printquery_superuseraccess()
-{
-	?>
-	<table class="concordtable" width="100%">
-		<tr>
-			<th class="concordtable">
-				Manage superuser access
-			</th>
-		</tr>
-		<tr>
-			<td class="concordgeneral">
-				<p>This setting cannot be changed over the web.</p>
-				<p>You must change it manually, by editing the file <em>defaults.inc.php</em>.</p>
-				<p>&nbsp;</p>
-				<p>This is for security reasons - superusers can potentially break the system.</p>
-				<p>&nbsp;</p>
-			</td>
-		</tr>
-	</table>
-	<?php
 }
 
 

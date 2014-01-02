@@ -254,7 +254,7 @@ function process_simple_query($query, $case_sensitive)
 	$cqp_query = $ceql_errors = false;
 	
 	if ( ! run_perl_script($script, $cqp_query, $ceql_errors))
-		exiterror_cqp_full(array("The CEQL parser could not be run (problem with perl)!"));
+		exiterror_general("The CEQL parser could not be run (problem with perl)!");
 
 
 	if ( empty($cqp_query) )
@@ -262,15 +262,14 @@ function process_simple_query($query, $case_sensitive)
 		/* if conversion fails, add to history & then add syntax error code */
 		/* and then call an error -- script terminates */
 
-		history_insert($instance_name, $query, $restrictions, $subcorpus, $query,
-			($case_sensitive ? 'sq_case' : 'sq_nocase'));
+		history_insert($instance_name, $query, $restrictions, $subcorpus, $query, ($case_sensitive ? 'sq_case' : 'sq_nocase'));
 		history_update_hits($instance_name, -1);
 
-		array_unshift($ceql_errors, "<u>Syntax error</u>", "Sorry, your simple query [[[ $query ]]] contains a syntax error.");
+		array_unshift($ceql_errors, "Syntax error", "Sorry, your simple query [[[ $query ]]] contains a syntax error.");
 	        
 		print_debug_message("Error in perl script for CEQL: this was the script\n\n$script\n\n");
 		
-		exiterror_cqp_full($ceql_errors);
+		exiterror_general($ceql_errors);
 	}
 	return $cqp_query;
 }

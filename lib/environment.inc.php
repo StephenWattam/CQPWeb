@@ -117,7 +117,7 @@ class CQPwebConfig
 	/* we don't declare any members - the constructor function creates them dynamically */
 	
 	public function __construct()
-	{
+	{	
 		/* import config variables from the global state of the config file */
 		if (file_exists("settings.inc.php"))
 			require( '' . "settings.inc.php");
@@ -167,10 +167,12 @@ class CQPwebConfig
  */ 
 class CQPwebUser 
 {
+	/** Is there a logged in user? (bool) */
+	public $logged_in = false;
+	/* we start by assuming no one is logged in, then see if someone is */
+	
 	public function __construct()
 	{
-		/* start by assuming no one is logged in, then see if someone is */
-		$this->logged_in = false;
 
 // temp code. Delete as soon as we're off Apache.
 global $username;
@@ -181,13 +183,54 @@ if (!isset($username))
 		/* import database fields as object members. */
 		$result = do_mysql_query("select * from user_settings where username = '$username'");
 		foreach (mysql_fetch_row($result) as $k => $v)
-			if (!isset($this->k))
+			if (!isset($this->$k))
 				$this->$k = $v;
 		/* the "if" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
 	}
 }
 
 
+
+/**
+ * Class of which each run of CQPweb should only ever have ONE - it represents the current corpus.
+ * 
+ * The instantiation should always be the global $Corpus object.
+ * 
+ * Has only one function, its constructor, which loads all the info. * 
+ */ 
+class CQPwebCorpus 
+{
+	/** are we running within a particular corpus ? */
+	public $specified = false;
+	
+	/** is this a corpus created by and belonging to an individual user? */
+	public $is_user_corpus = false;
+	 
+	public function __construct()
+	{
+		global $Config;
+		global $corpus_sql_name;
+		
+		/* first: try to identify the corpus. */
+		// note that eventually all the corpus settings will end up here, rather than using the following hack:
+		$this->name = $corpus_sql_name;
+		if (!empty($this->name))
+			$this->specified = true;
+
+
+		
+		
+		/* import database fields as object members. */
+		if ($this->specified)
+		{
+			$result = do_mysql_query("select * from corpus_metadata_fixed where corpus = '$this->name'");
+			foreach (mysql_fetch_row($result) as $k => $v)
+				if (!isset($this->$k))
+					$this->$k = $v;
+			/* the "if" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
+		}
+	}
+}
 
 
 /* ============================== *
@@ -304,7 +347,7 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 
 	$User   = new CQPwebUser();
 	
-	$Corpus = new stdClass();
+	$Corpus = new CQPwebCorpus();
 
 	
 	// TODO make this dependent on debug status
@@ -333,14 +376,13 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 		}
 	}
 
-	/* We do the following after starting up the global objects, because without it, we don't have the CSS path. */
-	if ($flags & CQPWEB_STARTUP_DONT_CHECK_URLTEST)
+	/* We do the following after starting up the global objects, because without it, 
+	 * we don't have the CSS path for exiterror. */
+	if (($flags & CQPWEB_STARTUP_DONT_CHECK_URLTEST) || PHP_SAPI=='cli')
 		;
 	else
-	{
 		if (!url_string_is_valid())
 			exiterror_bad_url();
-	}
 }
 
 /**

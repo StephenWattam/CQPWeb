@@ -59,6 +59,10 @@ $cqpweb_reserved_subdirs = array('adm', 'bin', 'css', 'doc', 'lib', 'rss', 'usr'
 if (!isset($cqpweb_running_on_windows))
 	$cqpweb_running_on_windows = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');
 
+/* Is this copy of CQPweb available for access via the internet? */
+if (!isset($cqpweb_no_internet))
+	$cqpweb_no_internet = false;
+
 
 /* Does mysqld have file-write/read ability? If set to true, CQPweb uses LOAD DATA
  * INFILE and SELECT INTO OUTFILE. If set to false, file write/read into/out of
@@ -150,6 +154,9 @@ if (!isset($css_path_for_homepage))
 if (!isset($css_path_for_adminpage))
 	$css_path_for_adminpage = "../css/CQPweb-red.css";
 
+if (!isset($css_path_for_userpage))
+	$css_path_for_userpage = "../css/CQPweb-green.css";
+
 if (!isset($homepage_welcome_message))
 	$homepage_welcome_message = "Welcome to CQPweb!";
 
@@ -214,6 +221,7 @@ if (!isset($context_scope))
 	$context_scope = ( $context_scope_is_based_on_s ? 1 : 12 );
 
 //TODO. next 2 variable names are confusing, cos they are not defaults: they can be set per-corpus.
+// why are these even per-page things?
 
 if (!isset($default_per_page))
 	$default_per_page = 50;

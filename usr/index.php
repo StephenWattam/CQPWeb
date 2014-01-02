@@ -1,3 +1,5 @@
-<?php  /* nothing here yet */ ?>
+<?php  
 
-Just a stub.
+require('../lib/userhome.inc.php');
+
+?>

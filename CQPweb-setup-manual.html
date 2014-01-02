@@ -7,11 +7,12 @@
 	<META NAME="AUTHOR" CONTENT="Andrew Hardie">
 	<META NAME="CREATED" CONTENT="20090607;11102800">
 	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
-	<META NAME="CHANGED" CONTENT="20130321;1275500">
+	<META NAME="CHANGED" CONTENT="20131226;11492100">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Andrew Hardie">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1 LANG="en-GB">Some notes on how to set up CQPweb (v 3.0.0 or
@@ -52,9 +53,9 @@ have installed:
 		<LI><P LANG="en-GB"><SPAN STYLE="font-weight: normal">Either the
 		</SPAN><B>mysql</B> <SPAN STYLE="font-weight: normal">or the </SPAN><B>mysqli</B>
 		<SPAN STYLE="font-weight: normal">extension is required</SPAN></P>
-		<LI><P LANG="en-GB"><SPAN STYLE="font-weight: normal">The </SPAN><B>posix</B><SPAN STYLE="font-weight: normal">
-		extension is useful for the installation process (see below) but
-		not absolutely necessary.</SPAN></P>
+		<LI><P LANG="en-GB"><SPAN STYLE="font-weight: normal">The </SPAN><B>posix</B>
+		<SPAN STYLE="font-weight: normal">extension is useful for the
+		installation process (see below) but not absolutely necessary.</SPAN></P>
 	</UL>
 </UL>
 <UL TYPE=DISC>
@@ -66,9 +67,8 @@ have installed:
 	you want UTF8-compliant regular expression matching, otherwise at
 	least 3.0.0)</P>
 	<UL>
-		<LI><P LANG="en-GB"><SPAN LANG="en-GB">You need the base CWB
-		distribution </SPAN><SPAN LANG="en-GB"><I>and</I></SPAN><SPAN LANG="en-GB">
-		the CWB-Perl modules – see below for more details.</SPAN></P>
+		<LI><P LANG="en-GB">You need the base CWB distribution <I>and</I>
+		the CWB-Perl modules – see below for more details.</P>
 		<LI><P LANG="en-GB"><SPAN LANG="en-GB">See
 		<A HREF="http://cwb.sourceforge.net/">http://cwb.sourceforge.net</A></SPAN></P>
 	</UL>
@@ -143,8 +143,8 @@ use the </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-G
 you may have recompile PHP to make the </SPAN></SPAN></SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal"><B>mysql</B></SPAN></SPAN></SPAN><SPAN LANG="en-GB">
 </SPAN><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">extension
 available.</SPAN></SPAN></SPAN></P>
-<P LANG="en-GB"><SPAN STYLE="font-variant: normal"><SPAN LANG="en-GB"><SPAN STYLE="font-style: normal">It
-is useful, but notessential [TODO: complete]</SPAN></SPAN></SPAN></P>
+<P LANG="en-GB" STYLE="font-variant: normal; font-style: normal">It
+is useful, but notessential [TODO: complete]</P>
 <P LANG="en-GB"><SPAN LANG="en-GB">Certain aspects of the behaviour
 of PHP are controlled by its </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">php.ini</SPAN></FONT><SPAN LANG="en-GB">
 file (see <A HREF="http://www.php.net/manual/en/ini.php">here</A>).
@@ -169,9 +169,10 @@ question are as follows:</SPAN></P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">memory_limit</SPAN></FONT>
 	should be moderately generous as some CQPweb operations are
 	RAM-intensive (e.g. loading entire files into memory); we suggest
-	<FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">25M</SPAN></FONT> (but if the default in your system 
-	is higher than that, keep the higher value!)
-		</P>
+	<FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">25M</SPAN></FONT>
+	(but if the default in your system is higher than that, keep the
+	higher value!) 
+	</P>
 	<LI><P LANG="en-GB"><FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">max_execution_time</SPAN></FONT>
 	should be generous as well; we suggest <FONT FACE="Courier New, monospace"><SPAN STYLE="font-weight: normal">60</SPAN></FONT>
 		</P>
@@ -419,9 +420,9 @@ CQPweb configuration variable </SPAN><FONT FACE="Courier New, monospace"><SPAN L
 to </SPAN><SPAN LANG="en-GB"><B>true</B></SPAN><SPAN LANG="en-GB"><SPAN STYLE="font-weight: normal">,
 because when you do this, the LOAD DATA LOCAL INFILE command is never
 used.</SPAN></SPAN><SPAN LANG="en-GB"> But there are requirements
-that must be satisfied to use this option – see below. If you
-can't meet these requirements, then you can set the configuration
-variable </SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$mysql_local_infile_disabled</SPAN></FONT><SPAN LANG="en-GB">
+that must be satisfied to use this option – see below. If you can't
+meet these requirements, then you can set the configuration variable
+</SPAN><FONT FACE="Courier New, monospace"><SPAN LANG="en-GB">$mysql_local_infile_disabled</SPAN></FONT><SPAN LANG="en-GB">
 to </SPAN><SPAN LANG="en-GB"><B>true</B></SPAN><SPAN LANG="en-GB">.
 This makes CQPweb avoid the LOAD DATA LOCAL INFILE command
 unconditionally. Be warned – doing this should fix things, but it
@@ -1319,6 +1320,12 @@ the list that follows is cumulative).</SPAN></SPAN></P>
 <P LANG="en-GB" STYLE="font-variant: normal; font-style: normal">Sometimes,
 other steps are needed to bring CQPweb up to date. These are listed
 alongside the MySQL commands where applicable.</P>
+<P LANG="en-GB" STYLE="font-variant: normal; font-style: normal">From
+version 3.1.0 onwards, the database template can be updated
+automatically by running the admin script <I>upgrade-database.php</I>.
+However, before you do this, you must manually apply all the relevant
+updates from the table below if you are moving from a version earlier
+than 3.0.16.</P>
 <P LANG="en-GB"><BR><BR>
 </P>
 <TABLE WIDTH=882 CELLPADDING=0 CELLSPACING=0>
@@ -1477,7 +1484,7 @@ alongside the MySQL commands where applicable.</P>
 	<TR VALIGN=TOP>
 		<TD WIDTH=167 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">3.0.3
-			through to 3.0.7</P>
+			through to 3.0.16</P>
 		</TD>
 		<TD WIDTH=528 STYLE="border: none; padding: 0cm">
 			<P LANG="en-GB" ALIGN=LEFT STYLE="border: none; padding: 0cm">&lt;nothing&gt;</P>

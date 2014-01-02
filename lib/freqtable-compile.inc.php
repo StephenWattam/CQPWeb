@@ -54,62 +54,19 @@ require ("../lib/cqp.inc.php");
 
 
 
-if (!url_string_is_valid())
-	exiterror_bad_url();
-
-
-
-
-
 cqpweb_startup_environment();
 
-
-
-/* get "get" settings */
-
-/* subcorpus for which to create frequency lists */
 if (isset($_GET['compileSubcorpus']))
-{
 	subsection_make_freqtables($_GET['compileSubcorpus']);
-}
 else
-{
-	/* are we to compile all subcorpora? */
-	/* deactivate compile all (dangerous!)
-	if (isset($_GET['compileSubcorpusAll']) && $_GET['compileSubcorpusAll'] == '1')
-	{
-		$freqtabled_subcorpora = list_freqtabled_subcorpora();
-		foreach(get_list_of_subcorpora() as $sc)
-			if ( ! in_array($sc, $freqtabled_subcorpora) )
-				subsection_make_freqtables($sc);
-	}
-	else
-	*/
-	exiterror_parameter('Critical parameter "compileSubcorpus" was not defined!', __FILE__, __LINE__);
-}
-
-
-
+	exiterror_general('No subcorpus was specified - frequency tables cannot be compiled!!');
 
 
 cqpweb_shutdown_environment();
 
-
+set_next_absolute_location('index.php?thisQ=subcorpus&uT=y');
 /* redirect to the right page */
 
-if (!isset($_GET['compileAfter']))
-	$_GET['compileAfter'] = 'index_sc';
 
-switch($_GET['compileAfter'])
-{
-/* other cases here, if seen as necessary */
-
-/* defaults to subcorpus index page */
-default:
-	set_next_absolute_location('index.php?thisQ=subcorpus&uT=y');
-	break;
-}
-
-/* END OF SCRIPT */
 
 ?>

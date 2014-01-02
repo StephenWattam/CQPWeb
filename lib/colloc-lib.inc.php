@@ -149,8 +149,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 {
 	global $corpus_sql_name;
 	
-	/* should these be parameters instead of globals? */
-	// probably YES.
+	/* TODO these should be parameters instead of globals. */
 	global $dbname;
 	global $att_for_calc;
 	global $calc_range_begin;
@@ -170,7 +169,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 	/* table-field-cluase shorthand combos */
 	
 	/* the column in the db that is being collocated on */
-	$item = "$dbname.$att_for_calc";
+	$item = "$dbname.`$att_for_calc`";
 	
 	$tag_clause = colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotation, $tag_filter);
 
@@ -632,9 +631,9 @@ function run_script_for_solo_collocation()
 
 		$tag_clause = colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotation, $tag_filter);
 
-		$sql_query = "SELECT count($att_for_calc), count(distinct(text_id)) 
+		$sql_query = "SELECT count(`$att_for_calc`), count(distinct(text_id)) 
 			FROM $dbname 
-			WHERE $att_for_calc = '$soloform' 
+			WHERE `$att_for_calc` = '$soloform' 
 			$tag_clause
 			AND dist = $i
 			";

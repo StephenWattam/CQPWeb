@@ -95,12 +95,11 @@ function exiterror_printlines($lines)
 	$before = ($debug_messages_textonly ? '' : '<p class="errormessage">');
 	$after  = ($debug_messages_textonly ? "\n\n" : "</p>\n\n");
 
-//	if ($debug_messages_textonly)
-//		foreach($lines as &$l)
-//			$l = wordwrap($l, 72);
-	
+	if (!$debug_messages_textonly)
+		$lines = array_map('cqpweb_htmlspecialchars', $lines);
+
 	foreach($lines as &$l)
-		echo $before . cqpweb_htmlspecialchars($l) . $after;
+		echo $before , $l , $after;
 }
 
 /**
@@ -169,12 +168,6 @@ function exiterror_msg_location(&$array, $script=NULL, $line=NULL)
 
 
 
-///** Obsolete function now that exiterror_general does the same thing. */
-//function exiterror_fullpage($errormessage, $script=NULL, $line=NULL)
-//{
-//	exiterror_general($errormessage, $script, $line);
-//}
-
 /**
  * Primary function to be called by other modules.
  * 
@@ -185,7 +178,7 @@ function exiterror_msg_location(&$array, $script=NULL, $line=NULL)
  */
 function exiterror_general($errormessage, $script=NULL, $line=NULL)
 {
-	$msg[] = "CQPweb encountered an error and could not continue.";
+	$msg = array("CQPweb encountered an error and could not continue.");
 	if (is_array($errormessage))
 		$msg = array_merge($msg, $errormessage);
 	else
@@ -251,6 +244,7 @@ function exiterror_toomanydbprocesses($process_type)
 
 function exiterror_mysqlquery($errornumber, $errormessage, $script=NULL, $line=NULL)
 {
+	$msg = array();
 	$msg[] = "A mySQL query did not run successfully!";
 	$msg[] = "Error # $errornumber: $errormessage ";
 	exiterror_msg_location($msg, $script, $line);
@@ -262,6 +256,7 @@ function exiterror_mysqlquery($errornumber, $errormessage, $script=NULL, $line=N
 
 function exiterror_mysqlquery_show($errornumber, $errormessage, $origquery, $script=NULL, $line=NULL)
 {
+	$msg = array();
 	$msg[] = "A mySQL query did not run successfully!";
 	$msg[] = "Error # $errornumber: $errormessage ";
 	$msg[] = "Original query: \n\n$origquery\n\n";
@@ -274,6 +269,7 @@ function exiterror_mysqlquery_show($errornumber, $errormessage, $origquery, $scr
 
 function exiterror_parameter($errormessage, $script=NULL, $line=NULL)
 {
+	$msg = array();
 	$msg[] = "A script was passed a badly-formed parameter set!";
 	$msg[] = $errormessage;
 	exiterror_msg_location($msg, $script, $line);
@@ -290,6 +286,7 @@ function exiterror_arguments($argument, $errormessage, $script=NULL, $line=NULL)
 	/* in case of XSS attack via invalid argument: */
 	$argument = cqpweb_htmlspecialchars($argument);
 	
+	$msg = array();
 	$msg[] = "A function was passed an invalid argument type!";
 	$msg[] = "Argument value was $argument. Problem:";
 	$msg[] = $errormessage;
@@ -315,11 +312,5 @@ function exiterror_cqp($error_array)
 }
 
 
-
-/** Obsolete now that adding a page header is automatic. */
-function exiterror_cqp_full($error_array)
-{
-	exiterror_cqp($error_array);
-}
 
 ?>

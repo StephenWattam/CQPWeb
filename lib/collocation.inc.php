@@ -345,10 +345,7 @@ else
 /* this dbname & its db_record can be globalled by print functions in the script */
 
 /* for now just find out how many distinct items it has in it */
-$sql_query = "select distinct($att_for_calc) from $dbname";
-$result = do_mysql_query($sql_query);
-$db_types_total = mysql_num_rows($result);
-unset($result);
+$db_types_total = mysql_num_rows(do_mysql_query("select distinct(`$att_for_calc`) from $dbname"));
 
 
 

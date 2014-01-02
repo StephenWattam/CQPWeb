@@ -162,11 +162,11 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 		/* so now, either way, we need to work further on $tabfile. */
 	}
 
-	do_mysql_query("Alter table $dbname disable keys");
+	do_mysql_query("alter table $dbname disable keys");
 
 	do_mysql_infile_query($dbname, $tabfile, true);
 	
-	do_mysql_query("Alter table $dbname enable keys");
+	do_mysql_query("alter table $dbname enable keys");
 
 
 	/* and delete the file from which the table was created, plus the awk-script if there was one */
@@ -323,7 +323,7 @@ function db_commands($dbname, $db_type, $qname)
 		if ($att_array !== NULL)
 			foreach ($att_array as $att)
 				$create_statement .= ",
-					$att varchar(40) NOT NULL";
+					`$att` varchar(40) NOT NULL";
 		$create_statement .= "
 			) CHARACTER SET utf8 COLLATE $corpus_sql_collation";
 		

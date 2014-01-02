@@ -49,7 +49,7 @@ function delete_corpus_from_cqpweb($corpus)
 	$corpus = mysql_real_escape_string($corpus);
 	
 	if (empty($corpus))
-		exiterror_general('No corpus specified. Cannot delete. Aborting.', __FILE__, __LINE__);	
+		exiterror_general('No corpus specified. Cannot delete. Aborting.');	
 
 	/* get the cwb name of the corpus, etc.: use require() so script dies if settings not found. */
 	require("../$corpus/settings.inc.php");
@@ -1458,7 +1458,7 @@ function cqpweb_mysql_recreate_tables()
 			`instance_name` varchar(31) default NULL,
 			`user` varchar(20) NOT NULL default '',
 			`corpus` varchar(20) NOT NULL default '',
-			`cqp_query` text  NOT NULL  default '',
+			`cqp_query` text  NOT NULL,
 			`restrictions` text character set utf8 collate utf8_bin default NULL,
 			`subcorpus` varchar(200) default NULL,
 			`date_of_query` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
@@ -1477,12 +1477,12 @@ function cqpweb_mysql_recreate_tables()
 			`user` varchar(20) default NULL,
 			`corpus` varchar(20) NOT NULL default '',
 			`query_mode` varchar(12) default NULL,
-			`simple_query` text default NULL,
-			`cqp_query` text NOT NULL default '',
-			`restrictions` text default NULL,
+			`simple_query` text,
+			`cqp_query` text NOT NULL,
+			`restrictions` text,
 			`subcorpus` varchar(200) default NULL,
-			`postprocess` text default NULL,
-			`hits_left` text default NULL,
+			`postprocess` text,
+			`hits_left` text,
 			`time_of_query` int(11) default NULL,
 			`hits` int(11) default NULL,
 			`hit_texts` int(11) default NULL,
@@ -1591,8 +1591,8 @@ function cqpweb_mysql_recreate_tables()
 	$create_statements['corpus_metadata_variable'] =
 		"CREATE TABLE `corpus_metadata_variable` (
 			`corpus` varchar(20) NOT NULL,
-			`attribute` text NOT NULL default '',
-			`value` text default NULL,
+			`attribute` text NOT NULL,
+			`value` text,
 			primary key(`corpus`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 	
@@ -1602,10 +1602,10 @@ function cqpweb_mysql_recreate_tables()
 			`dbname` varchar(200) NOT NULL,
 			`user` varchar(30) default NULL,
 			`create_time` int(11) default NULL,
-			`cqp_query` text character set utf8 collate utf8_bin NOT NULL default '',
-			`restrictions` text character set utf8 collate utf8_bin default NULL,
+			`cqp_query` text character set utf8 collate utf8_bin NOT NULL,
+			`restrictions` text character set utf8 collate utf8_bin,
 			`subcorpus` varchar(200) default NULL,
-			`postprocess` text default NULL,
+			`postprocess` text,
 			`corpus` varchar (20) NOT NULL default '',
 			`db_type` varchar(15) default NULL,
 			`colloc_atts` varchar(200) default '',
@@ -1661,9 +1661,9 @@ function cqpweb_mysql_recreate_tables()
 		"CREATE TABLE `system_messages` (
 			`message_id` varchar(150) NOT NULL,
 			`timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-			`header` varchar(150) NOT NULL default '',
-			`content` text character set utf8 collate utf8_bin NOT NULL default '',
-			`fromto` varchar(150) NOT NULL default '',
+			`header` varchar(150) default '',
+			`content` text character set utf8 collate utf8_bin,
+			`fromto` varchar(150) default NULL,
 			primary key (`message_id`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 	
@@ -1672,7 +1672,7 @@ function cqpweb_mysql_recreate_tables()
 		"CREATE TABLE `system_longvalues` (
 			`timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
 			`id` varchar(40) NOT NULL,
-			`value` text NOT NULL default '',
+			`value` text NOT NULL,
 			primary key(`id`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
 	
@@ -1688,16 +1688,19 @@ function cqpweb_mysql_recreate_tables()
 	
 	$create_statements['user_macros'] =
 		"CREATE TABLE `user_macros` (
-			`username` varchar(20) NOT NULL,
+			`id` int NOT NULL AUTO_INCREMENT,
+			`username` varchar(20) NOT NULL default '',
 			`macro_name` varchar(50) NOT NULL default '',
 			`macro_num_args` int,
-			`macro_body` text NOT NULL default '',
-			key(`username`)
+			`macro_body` text,
+			key(`username`),
+			primary key(`id`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
 
 
 	$create_statements['xml_visualisations'] =
 		"CREATE TABLE `xml_visualisations` (
+			`id` int NOT NULL AUTO_INCREMENT,
 			`corpus` varchar(20) NOT NULL default '',
 			`element` varchar(50) NOT NULL default '',
 			`cond_attribute` varchar(50) NOT NULL default '',
@@ -1708,9 +1711,10 @@ function cqpweb_mysql_recreate_tables()
 			`in_context` tinyint(1) NOT NULL default 1,
 			`bb_code` text,
 			`html_code` text,
-			primary key(`corpus`, `element`, `cond_attribute`, `cond_regex`)
+			primary key (`id`),
+			unique key(`corpus`, `element`, `cond_attribute`, `cond_regex`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
-	/* note that, becuase the attribute/regex condition must be part of the primary key, the regex is limited to
+	/* note that, because the attribute/regex condition must be part of the primary key, the regex is limited to
 	 * 100 UTF8 characters (keys cannot exceed 1000 bytes = 333 utf8 chars) */ 
 	
 	
