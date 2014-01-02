@@ -207,13 +207,13 @@ function printquery_usersettings()
 		<tr>
 			<td class="concordgeneral">Real name</td>
 			<td class="concordgeneral">
-				<input name="newSetting_realname" type="text" width="64" value="<?php echo $settings->realname; ?>"/>
+				<input name="newSetting_realname" type="text" width="64" value="<?php echo cqpweb_htmlspecialchars($settings->realname); ?>"/>
 			</td>
 		</tr>
 		<tr>
 			<td class="concordgeneral">Email address (system admin may use this if s/he needs to contact you!)</td>
 			<td class="concordgeneral">
-				<input name="newSetting_email" type="text" width="64" value="<?php echo $settings->email; ?>"/>
+				<input name="newSetting_email" type="text" width="64" value="<?php echo cqpweb_htmlspecialchars($settings->email); ?>"/>
 			</td>
 		</tr>
 		<tr>
@@ -239,6 +239,8 @@ function printquery_usersettings()
 function printquery_usermacros()
 {
 	global $username;
+	
+	// TODO - prob better to have these actions in user_admin instead.
 	
 	/* add a macro? */
 	if (!empty($_GET['macroNewName']))
@@ -720,6 +722,8 @@ function printquery_latest()
 		Added a script to automatically upgrade an existing CQPweb MySQL database to match a more recent version of the code.
 		<br/>&nbsp;<br/>
 		Fixed bug affecting use of XML tags in CEQL queries.
+		<br/>&nbsp;<br/>
+		Rewrote configuration file format and added documentation to system administrator's manual.
 		<br/>&nbsp;</li>
 
 		<li>

@@ -59,6 +59,7 @@ require("../lib/defaults.inc.php");
 
 
 
+
 /* ------------------------------- */
 /* Constant definitions for CQPweb */
 /* ------------------------------- */
@@ -157,6 +158,34 @@ class CQPwebConfig
 }
 
 
+/**
+ * Class of which each run of CQPweb should only ever have ONE - it represents the logged in user.
+ * 
+ * The instantiation should always be the global $User object.
+ * 
+ * Has only one function, its constructor, which loads all the info. * 
+ */ 
+class CQPwebUser 
+{
+	public function __construct()
+	{
+		/* start by assuming no one is logged in, then see if someone is */
+		$this->logged_in = false;
+
+// temp code. Delete as soon as we're off Apache.
+global $username;
+if (!isset($username))
+	$username = ( isset($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] :  '__unknown_user' );
+		
+		
+		/* import database fields as object members. */
+		$result = do_mysql_query("select * from user_settings where username = '$username'");
+		foreach (mysql_fetch_row($result) as $k => $v)
+			if (!isset($this->k))
+				$this->$k = $v;
+		/* the "if" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
+	}
+}
 
 
 
@@ -247,10 +276,8 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 	
 	// TODO likewise have an implicit policy on ob_*_flush() usage in different scirpts.
 
-	/* create global settings options (these may have their own classes later on ) */
+	/* create global settings options */
 	$Config = new CQPwebConfig();
-	$User   = new stdClass();
-	$Corpus = new stdClass();
 	
 	
 //var_dump($Config);
@@ -272,6 +299,12 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 		;
 	else
 		connect_global_mysql();
+
+	/* now the DB is connected, we can do the next two. */
+
+	$User   = new CQPwebUser();
+	
+	$Corpus = new stdClass();
 
 	
 	// TODO make this dependent on debug status

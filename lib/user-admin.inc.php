@@ -43,4 +43,63 @@ cqpweb_shutdown_environment();
 header('Location: ' . url_absolutify('index.php?thisQ=userSettings&uT=y'));
 exit(0);
 
+
+/* ------------- *
+ * END OF SCRIPT *
+ * ------------- */
+
+
+/** Gets all "newSetting" parameters from $_GET and sanitises for correct type of input. */
+function parse_get_user_settings()
+{
+	$settings = array();
+	foreach($_GET as $k => $v)
+	{
+		if (preg_match('/^newSetting_(\w+)$/', $k, $m) > 0)
+		{
+			switch($m[1])
+			{
+			/* boolean settings */
+			case 'conc_kwicview':
+			case 'conc_corpus_order':
+			case 'cqp_syntax':
+			case 'context_with_tags':
+			case 'use_tooltips':
+			case 'thin_default_reproducible':
+				$settings[$m[1]] = (bool)$v;
+				break;
+			
+			/* string settings */
+			case 'realname':
+			case 'email':
+				/* This will be sanitised at the DB interface level. */
+				 $settings[$m[1]] = $v;
+				break;
+			
+			/* integer settings */
+			case 'coll_statistic':
+			case 'coll_freqtogether':
+			case 'coll_freqalone':
+			case 'coll_from':
+			case 'coll_to':
+			case 'max_dbsize':
+				$settings[$m[1]] = (int)$v;
+				break;
+				
+			/* patterned settings */
+			case 'linefeed':
+				if (preg_match('/^(da|d|a|au)$/', $v) > 0)
+					$settings[$m[1]] = $v;
+				break;
+			case 'username':
+				$settings[$m[1]] = preg_replace('/\W/', '', $m[1]);
+				break;
+			}
+		} 
+	}
+	return $settings;
+}
+
+
+
 ?>

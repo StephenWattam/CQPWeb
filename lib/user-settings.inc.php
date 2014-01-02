@@ -28,9 +28,15 @@
 
 
 
-
+/**
+ * Retrieves a given setting for a particular user.
+ * 
+ * Note that it's not necessary for the user to be the same person
+ * as the user logged-on in the environment (global $User).
+ */
 function get_user_setting($username, $field)
 {
+	/*OLD CODE
 	static $cache;
 
 	if (isset($cache[$username]))
@@ -50,6 +56,8 @@ function get_user_setting($username, $field)
 		$cache[$username] = mysql_fetch_assoc($result);
 		return $cache[$username][$field];
 	}
+	*/
+	return get_all_user_settings($username)->$field;
 }
 
 /** 
@@ -61,6 +69,9 @@ function get_user_setting($username, $field)
  * false in case of a nonexistent user. If it is set to true
  * (the default value) then an empty user record will be created
  * for that user. 
+ * 
+ * Note that it's not necessary for the user to be the same person
+ * as the user logged-on in the environment (global $User).
  */  
 function get_all_user_settings($username, $autocreate = true)
 {	
@@ -71,9 +82,9 @@ function get_all_user_settings($username, $autocreate = true)
 	if (isset($cache[$username]))
 		return $cache[$username];
 	
-	$sql_query = "SELECT * from user_settings WHERE username = '$username'";
+	$username = mysql_real_escape_string($username);
 	
-	$result = do_mysql_query($sql_query);
+	$result = do_mysql_query("SELECT * from user_settings WHERE username = '$username'");
 	
 	if (mysql_num_rows($result) == 0)
 	{
@@ -93,33 +104,37 @@ function get_all_user_settings($username, $autocreate = true)
 }
 
 
-// TODO next two functions prob should do sanitisation as elsewhere in
-// cqpweb that is done at the lowest possible level, ie at poitn where the SQL queries are composed.
-// (at the moment, sanitisation is done in parse_get_user_settings)
 /** 
- * note: neither of the following functions sanitises input 
- * this MUST be done beforehand, e.g. using parse_get_user_settings() 
+ * TODO add phpdoc
  */
 function update_user_setting($username, $field, $setting)
 {
-	$sql_query = "UPDATE user_settings SET $field = '$setting' WHERE username = '$username'";
+	$field = mysql_real_escape_string($field);
+	$setting = mysql_real_escape_string($field);
+	$username = mysql_real_escape_string($username);
 	
-	do_mysql_query($sql_query);
+	/* nb. This treats all values as stirng, which they aren't, but it seems to work... */
+	do_mysql_query("UPDATE user_settings SET $field = '$setting' WHERE username = '$username'");
 }
 
-/** does not sanitise the parameters... */
+/** 
+ * TODO add phpdoc
+ * 
+ * @param $settings 
+ */
 function update_multiple_user_settings($username, $settings)
 {	
 	$sql_query = "UPDATE user_settings SET ";
 	
+	/* nb. This treats all values as stirng, which they aren't, but it seems to work... */
 	foreach ($settings as $field => $value)
-		$sql_query .= "$field = '$value', ";
+		$sql_query .= mysql_real_escape_string($field) . ' = \'' . mysql_real_escape_string($value) . '\', ';
 	
 	$sql_query = substr($sql_query, 0, strlen($sql_query)-2);
 	
 	$sql_query .= " WHERE username = '$username'";
 	
-	$result = do_mysql_query($sql_query);
+	do_mysql_query($sql_query);
 }
 
 function create_user_record($username)
@@ -215,56 +230,6 @@ function guess_user_linefeed($user_to_guess)
 		return 'a';
 }
 
-
-/** Gets all "newSetting" parameters from $_GET and sanitises for mySQL */
-function parse_get_user_settings()
-{
-	$settings = array();
-	foreach($_GET as $k => $v)
-	{
-		if (preg_match('/^newSetting_(\w+)$/', $k, $m) > 0)
-		{
-			switch($m[1])
-			{
-			/* boolean settings */
-			case 'conc_kwicview':
-			case 'conc_corpus_order':
-			case 'cqp_syntax':
-			case 'context_with_tags':
-			case 'use_tooltips':
-			case 'thin_default_reproducible':
-				$settings[$m[1]] = (bool)$v;
-				break;
-			
-			/* string settings */
-			case 'realname':
-			case 'email':
-				$settings[$m[1]] = mysql_real_escape_string($v);
-				break;
-			
-			/* integer settings */
-			case 'coll_statistic':
-			case 'coll_freqtogether':
-			case 'coll_freqalone':
-			case 'coll_from':
-			case 'coll_to':
-			case 'max_dbsize':
-				$settings[$m[1]] = (int)$v;
-				break;
-				
-			/* patterned settings */
-			case 'linefeed':
-				if (preg_match('/^(da|d|a|au)$/', $v) > 0)
-					$settings[$m[1]] = $v;
-				break;
-			case 'username':
-				$settings[$m[1]] = preg_replace('/\W/', '', $m[1]);
-				break;
-			}
-		} 
-	}
-	return $settings;
-}
 
 
 function user_macro_create($username, $macro_name, $macro_body)
