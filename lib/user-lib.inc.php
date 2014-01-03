@@ -42,7 +42,7 @@ function get_user_setting($username, $field)
 	if (isset($cache[$username]))
 		return $cache[$username][$field];
 
-	$sql_query = "SELECT * from user_settings WHERE username = '$username'";
+	$sql_query = "SELECT * from user_info WHERE username = '$username'";
 	
 	$result = do_mysql_query($sql_query);
 		
@@ -62,7 +62,7 @@ function get_user_setting($username, $field)
 
 /** 
  * Returns an object (stdClass with members corresponding to the
- * fields of the user_settings table in the database) containing
+ * fields of the user_info table in the database) containing
  * the specified user's data.
  * 
  * If $autocreate is set to false, then the function will return
@@ -84,7 +84,7 @@ function get_all_user_settings($username, $autocreate = true)
 	
 	$username = mysql_real_escape_string($username);
 	
-	$result = do_mysql_query("SELECT * from user_settings WHERE username = '$username'");
+	$result = do_mysql_query("SELECT * from user_info WHERE username = '$username'");
 	
 	if (mysql_num_rows($result) == 0)
 	{
@@ -114,7 +114,7 @@ function update_user_setting($username, $field, $setting)
 	$username = mysql_real_escape_string($username);
 	
 	/* nb. This treats all values as stirng, which they aren't, but it seems to work... */
-	do_mysql_query("UPDATE user_settings SET $field = '$setting' WHERE username = '$username'");
+	do_mysql_query("UPDATE user_info SET $field = '$setting' WHERE username = '$username'");
 }
 
 /** 
@@ -124,7 +124,7 @@ function update_user_setting($username, $field, $setting)
  */
 function update_multiple_user_settings($username, $settings)
 {	
-	$sql_query = "UPDATE user_settings SET ";
+	$sql_query = "UPDATE user_info SET ";
 	
 	/* nb. This treats all values as stirng, which they aren't, but it seems to work... */
 	foreach ($settings as $field => $value)
@@ -144,7 +144,7 @@ function create_user_record($username)
 	global $default_calc_stat;
 	global $default_colloc_minfreq;
 	
-	$sql_query = "INSERT INTO user_settings (
+	$sql_query = "INSERT INTO user_info (
 		username,
 		realname,
 		conc_kwicview,
@@ -186,7 +186,7 @@ function create_user_record($username)
 function delete_user_record($username)
 {
 	$username = mysql_real_escape_string($username);
-	do_mysql_query("DELETE FROM user_settings where username = '$username'");
+	do_mysql_query("DELETE FROM user_info where username = '$username'");
 }
 
 

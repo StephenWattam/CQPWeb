@@ -35,7 +35,7 @@ require('../lib/cache.inc.php');
 require('../lib/subcorpus.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/metadata.inc.php');
-require('../lib/user-settings.inc.php');
+require('../lib/user-lib.inc.php');
 require ('../lib/cwb.inc.php');
 require('../lib/cqp.inc.php');
 
@@ -478,15 +478,12 @@ else
 	/* --------------------------------------- */
 	/* write an HTML page with all the options */
 	/* --------------------------------------- */
-	
-	
-	$user_settings = get_all_user_settings($username);
 
 	/* enable the user setting to be auto-selected for linebreak type */
 	$da_selected = array('d' => '', 'a' => '', 'da' => '');
-	if ($user_settings->linefeed == 'au')
-		$user_settings->linefeed = guess_user_linefeed($username);
-	$da_selected[$user_settings->linefeed] = ' selected="selected" ';
+	if ($User->linefeed == 'au')
+		$User->linefeed = guess_user_linefeed($username);
+	$da_selected[$User->linefeed] = ' selected="selected" ';
 	
 	/* before anything else */
 	header('Content-Type: text/html; charset=utf-8');

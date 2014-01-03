@@ -96,7 +96,7 @@ function get_xml_annotations()
 	
 	if (is_null($return_list))
 	{
-		$cmd = "{$Config->path_to_cwb}cwb-describe-corpus -r \"$Config->dir->registry\" -s $corpus_cqp_name";
+		$cmd = "{$Config->path_to_cwb}cwb-describe-corpus -r \"{$Config->dir->registry}\" -s $corpus_cqp_name";
 		
 		$results = array();;
 		exec($cmd, $results);

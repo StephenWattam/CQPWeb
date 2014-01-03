@@ -41,7 +41,7 @@ require('../lib/html-lib.inc.php');
 include('../lib/cache.inc.php');
 include('../lib/concordance-lib.inc.php');
 include('../lib/library.inc.php');
-include('../lib/user-settings.inc.php');
+include('../lib/user-lib.inc.php');
 include ("../lib/exiterror.inc.php");
 
 

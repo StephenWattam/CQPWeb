@@ -811,7 +811,7 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 	$cache_record['time_of_query'] = time();
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "$Config->dir->cache/temp_coll_$new_qname.tbl";
+	$tempfile  = "{$Config->dir->cache}/temp_coll_$new_qname.tbl";
 
 	$sql_query = $descriptor->colloc_sql_for_queryfile();
 
@@ -871,7 +871,7 @@ function run_postprocess_sort($cache_record, &$descriptor)
 	$cache_record['time_of_query'] = time();
 	
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "$Config->dir->cache/temp_sort_$new_qname.tbl";
+	$tempfile  = "{$Config->dir->cache}/temp_sort_$new_qname.tbl";
 
 	$sql_query = $descriptor->sort_sql_for_queryfile($orig_cache_record);
 
@@ -1077,7 +1077,7 @@ function run_postprocess_item($cache_record, &$descriptor)
 	/* actually do it ! */
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "$Config->dir->cache/temp_item_$new_qname.tbl";
+	$tempfile  = "{$Config->dir->cache}/temp_item_$new_qname.tbl";
 
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->item_sql_for_queryfile($orig_cache_record);
@@ -1146,7 +1146,7 @@ function run_postprocess_dist($cache_record, &$descriptor)
 	/* actually do it ! */
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "$Config->dir->cache/temp_dist_$new_qname.tbl";
+	$tempfile  = "{$Config->dir->cache}/temp_dist_$new_qname.tbl";
 
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->dist_sql_for_queryfile($orig_cache_record);
@@ -1213,7 +1213,7 @@ function run_postprocess_text($cache_record, &$descriptor)
 	/* actually do it ! */
 
 	/* first, write a "dumpfile" to temporary storage */
-	$tempfile  = "$Config->dir->cache/temp_text_$new_qname.tbl";
+	$tempfile  = "{$Config->dir->cache}/temp_text_$new_qname.tbl";
 
 	/* this method call creates the DB if it doesn't already exist */
 	$sql_query = $descriptor->text_sql_for_queryfile($orig_cache_record);
@@ -1595,7 +1595,7 @@ function pphelper_cpos_get_attribute($cpos, $attribute)
 		exiterror_general("pphelper_cpos_within_structure: invalid corpus index [$cpos]");
 
 	/* work out whether cpos is within an instance of the structure */
-	$cmd = "{$Config->path_to_cwb}cwb-decode -C -s $num_of_token -e $num_of_token -r \"$Config->dir->registry\"  $corpus_cqp_name -P $attribute";
+	$cmd = "{$Config->path_to_cwb}cwb-decode -C -s $num_of_token -e $num_of_token -r \"{$Config->dir->registry}\"  $corpus_cqp_name -P $attribute";
 	$proc = popen($cmd, 'r');
 	$value = fgets($proc);
 	pclose($proc);
@@ -1710,7 +1710,7 @@ function pphelper_cpos_within_structure($cpos, $struc_attribute)
 		exiterror_general("pphelper_cpos_within_structure: invalid s-attribute index [$struc_attribute]");
 	
 	/* work out whether cpos is within an instance of the structure */
-	$cmd = "{$Config->path_to_cwb}cwb-s-decode -r \"$Config->dir->registry\" $corpus_cqp_name -S $struc_attribute";
+	$cmd = "{$Config->path_to_cwb}cwb-s-decode -r \"{$Config->dir->registry}\" $corpus_cqp_name -S $struc_attribute";
 	$proc = popen($cmd, 'r');
 	$within = false;
 	while ( false !== ($line = fgets($proc)) )

@@ -58,7 +58,7 @@ function delete_corpus_from_cqpweb($corpus)
 	$corpus_cwb_lower = strtolower($corpus_cqp_name);
 	
 	/* check the corpus entry in MySQL is still there, and look for whether CWB data is external */
-	$result = do_mysql_query("select corpus, cwb_external from corpus_metadata_fixed where corpus = '$corpus'");
+	$result = do_mysql_query("select corpus, cwb_external from corpus_info where corpus = '$corpus'");
 	if (mysql_num_rows($result) < 1)
 		exiterror_general('Master database entry for this corpus is not present - '
 			. 'accessibility of the CWB data files could not be determined.' . "\n"
@@ -71,9 +71,9 @@ function delete_corpus_from_cqpweb($corpus)
 	
 
 	/* if they exist, delete the CWB registry and data for his corpus's __freq */
-	if (file_exists("$Config->dir->registry/{$corpus_cwb_lower}__freq"))
-		unlink("$Config->dir->registry/{$corpus_cwb_lower}__freq");
-	recursive_delete_directory("$Config->dir->index/{$corpus_cwb_lower}__freq");
+	if (file_exists("{$Config->dir->registry}/{$corpus_cwb_lower}__freq"))
+		unlink("{$Config->dir->registry}/{$corpus_cwb_lower}__freq");
+	recursive_delete_directory("{$Config->dir->index}/{$corpus_cwb_lower}__freq");
 	/* note, __freq deletion is not conditional on cwb_external -> also_delete_cwb
 	 * because __freq corpora are ALWAYS created by CQPweb itself.
 	 * 
@@ -85,9 +85,9 @@ function delete_corpus_from_cqpweb($corpus)
 	if ($also_delete_cwb)
 	{
 		/* delete the CWB registry and data */
-		if (file_exists("$Config->dir->registry/$corpus_cwb_lower"))
-		unlink("$Config->dir->registry/$corpus_cwb_lower");
-		recursive_delete_directory("$Config->dir->index/$corpus_cwb_lower");
+		if (file_exists("{$Config->dir->registry}/$corpus_cwb_lower"))
+		unlink("{$Config->dir->registry}/$corpus_cwb_lower");
+		recursive_delete_directory("{$Config->dir->index}/$corpus_cwb_lower");
 	}
 	
 	/* CWB data now clean: on to the MySQL database. All these queries are "safe":
@@ -127,8 +127,8 @@ function delete_corpus_from_cqpweb($corpus)
 	/* delete the variuable metadata */
 	do_mysql_query("delete from corpus_metadata_variable where corpus = '$corpus'");
 
-	/* corpus_metadata_fixed is the master entry, so we have left it till last. */
-	do_mysql_query("delete from corpus_metadata_fixed where corpus = '$corpus'");
+	/* corpus_info is the master entry, so we have left it till last. */
+	do_mysql_query("delete from corpus_info where corpus = '$corpus'");
 	
 	/* mysql cleanup is now complete */
 
@@ -540,11 +540,11 @@ function update_text_metadata_values_descriptions()
 
 /* NB there's a function in metadata.inc.php that does something very similar to this */
 /* but this one takes its input from a global variable so that it can be called by admin-execute */
-function update_corpus_metadata_fixed()
+function update_corpus_info()
 {
 	global $update_corpus_metadata_info;
 	
-	$sql_query = "update corpus_metadata_fixed set ";
+	$sql_query = "update corpus_info set ";
 	$first = true;
 	
 	foreach ($update_corpus_metadata_info as $key => &$val)
@@ -803,7 +803,7 @@ function create_text_metadata_for_from_xml($fields_to_show)
 	global $create_text_metadata_for_info;
 	global $corpus_cqp_name;
 
-	$full_filename = "$Config->dir->upload/{$create_text_metadata_for_info['filename']}";
+	$full_filename = "{$Config->dir->upload}/{$create_text_metadata_for_info['filename']}";
 
 	/* get the $corpus_cqp_name variable by including the corpus's settings file */
 	include("../{$create_text_metadata_for_info['corpus']}/settings.inc.php");
@@ -833,11 +833,11 @@ function create_text_metadata_for()
 	if (empty($create_text_metadata_for_info['filename']))
 		exiterror_general("No input file was specified!\nMetadata setup aborts.");
 				
-	$file = "$Config->dir->upload/{$create_text_metadata_for_info['filename']}";
+	$file = "{$Config->dir->upload}/{$create_text_metadata_for_info['filename']}";
 	if (!is_file($file))
 		exiterror_general("The metadata file you specified does not appear to exist!\nMetadata setup aborts.");
 
-	$input_file = "$Config->dir->cache/___install_temp_{$create_text_metadata_for_info['filename']}";
+	$input_file = "{$Config->dir->cache}/___install_temp_{$create_text_metadata_for_info['filename']}";
 	
 	$source = fopen($file, 'r');
 	$dest = fopen($input_file, 'w');
@@ -917,7 +917,7 @@ function create_text_metadata_for()
 		$px = (int)$create_text_metadata_for_info['primary_classification'];
 		$pa = $create_text_metadata_for_info['fields'][$px]['handle'];
 		if ($pa !== '')
-			$update_statement = "update corpus_metadata_fixed set primary_classification_field = '$pa' 
+			$update_statement = "update corpus_info set primary_classification_field = '$pa' 
 				where corpus = '$corpus'";
 	}
 
@@ -1005,9 +1005,9 @@ function create_text_metadata_for_minimalist()
 	if (!is_dir("../$corpus_sql_name"))
 		exiterror_general("Corpus $corpus_sql_name does not seem to be installed!");	
 
-	$input_file = "$Config->dir->cache/___install_temp_metadata_$corpus_sql_name";
+	$input_file = "{$Config->dir->cache}/___install_temp_metadata_$corpus_sql_name";
 
-	exec("{$Config->path_to_cwb}cwb-s-decode -n -r \"/$Config->dir->registry\" $corpus_cqp_name -S text_id > $input_file");
+	exec("{$Config->path_to_cwb}cwb-s-decode -n -r \"/{$Config->dir->registry}\" $corpus_cqp_name -S text_id > $input_file");
 
 	/* note, size of text_id is 50 to allow possibility of non-decoded UTF8 - they should be shorter */
 	$create_statement = "create table `text_metadata_for_$corpus_sql_name`(
@@ -1140,7 +1140,7 @@ function cqpweb_dump_userdata($dump_file_path)
 	while (false !== ($row = mysql_fetch_row($result)))
 	{
 		/* copy any matching files to the location */
-		foreach (glob("$Config->dir->cache/*:{$row[0]}") as $f)
+		foreach (glob("{$Config->dir->cache}/*:{$row[0]}") as $f)
 			if (is_file($f))
 				copy($f, "$dir/".basename($f));
 				
@@ -1203,7 +1203,7 @@ function cqpweb_undump_userdata($dump_file_path)
 	/* copy cache files back where they came from */
 	foreach (glob("/$dir/*:*") as $f)
 		if (is_file($f))
-			copy($f, "$Config->dir->cache/" . basename($f));
+			copy($f, $Config->dir->cache . '/' . basename($f));
 
 	/* load back the mysql tables */
 	foreach (explode('~~~###~~~', file_get_contents("$dir/__CREATE_TABLES_STATEMENTS")) as $create_statement)
@@ -1267,8 +1267,8 @@ function cqpweb_dump_snapshot($dump_file_path)
 	
 	/* copy the cache */
 	foreach(scandir($Config->dir->cache) as $f)
-		if (is_file("$Config->dir->cache/$f"))
-			copy("$Config->dir->cache/$f", "$dir/cache/$f");
+		if (is_file("{$Config->dir->cache}/$f"))
+			copy("{$Config->dir->cache}/$f", "$dir/cache/$f");
 	
 	/* copy corpus setting files */
 	foreach(list_corpora() as $c)
@@ -1294,7 +1294,7 @@ function cqpweb_undump_snapshot($dump_file_path)
 	/* copy cache files back where they came from */
 	foreach(scandir("$dir/cache") as $f)
 		if (is_file("$dir/cache/$f"))
-			copy("$dir/cache/$f", "$Config->dir->cache/$f");
+			copy("$dir/cache/$f", "{$Config->dir->cache}/$f");
 	
 	/* corpus settings: create the directory if necessary */
 	foreach (scandir("$dir") as $sf)
@@ -1453,6 +1453,18 @@ function cqpweb_mysql_recreate_tables()
 	list($major, $minor, $rest) = explode('.', mysql_get_server_info($mysql_link), 3);
 	$engine_if_fulltext_key_needed = ( ($major > 5 || ($major == 5 && $minor >= 6) ) ? '' : 'ENGINE=MyISAM'); 
 	
+	/*
+	 * STRING FIELD LENGTHS TO USE
+	 * 
+	 * Handle string - varchar 20
+	 * 
+	 * EXCEPTION: dbname is 200 because historically it was built from many components. 
+	 * However,now its maxlength is shorter CHECK TODO  
+	 * 
+	 * Long string (for names, short descs, etc - varchar 255 
+	 *  
+	 */
+	
 	$create_statements['annotation_mapping_tables'] =
 		"CREATE TABLE `annotation_mapping_tables` (
 			`id` varchar(40),
@@ -1475,17 +1487,19 @@ function cqpweb_mysql_recreate_tables()
 	
 	$create_statements['corpus_categories'] =
 		"CREATE TABLE `corpus_categories` (
-			`idno` int NOT NULL AUTO_INCREMENT,
+			`id` int NOT NULL AUTO_INCREMENT,
 			`label` varchar(255) DEFAULT '',
 			`sort_n` int NOT NULL DEFAULT 0,
-			PRIMARY KEY (`idno`)
+			PRIMARY KEY (`id`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 	
 	
-	$create_statements['corpus_metadata_fixed'] =
-		"CREATE TABLE `corpus_metadata_fixed` (
+	$create_statements['corpus_info'] =
+		"CREATE TABLE `corpus_info` (
+			`id` int NOT NULL AUTO_INCREMENT,
 			`corpus` varchar(20) NOT NULL,
 			`visible` tinyint(1) default 1,
+			`date_of_indexing` timestamp NOT NULL default CURRENT_TIMESTAMP,
 			`primary_classification_field` varchar(20) default NULL,
 			`primary_annotation` varchar(20) default NULL,
 			`secondary_annotation` varchar(20) default NULL,
@@ -1496,7 +1510,9 @@ function cqpweb_mysql_recreate_tables()
 			`public_freqlist_desc` varchar(150) default NULL,
 			`corpus_cat` int NOT NULL DEFAULT 1,
 			`cwb_external` tinyint(1) NOT NULL default 0,
-			primary key (corpus)
+			`is_user_corpus` tinyint(1) NOT NULL default 0,
+			unique key (`corpus`),
+			primary key (`id`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 
 	
@@ -1640,8 +1656,8 @@ function cqpweb_mysql_recreate_tables()
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 	
 	
-	$create_statements['mysql_processes'] =
-		"CREATE TABLE `mysql_processes` (
+	$create_statements['system_processes'] =
+		"CREATE TABLE `system_processes` (
 			`dbname` varchar(200) NOT NULL,
 			`begin_time` int(11) default NULL,
 			`process_type` varchar(15) default NULL,
@@ -1672,8 +1688,9 @@ function cqpweb_mysql_recreate_tables()
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 
 	
-	$create_statements['user_settings'] =
-		"CREATE TABLE `user_settings` (
+	$create_statements['user_info'] =
+		"CREATE TABLE `user_info` (
+			`id` int NOT NULL AUTO_INCREMENT,
 			`username` varchar(20) NOT NULL,
 			`password` varchar(20) default NULL,
 			`realname` varchar(50) default NULL,
@@ -1691,7 +1708,8 @@ function cqpweb_mysql_recreate_tables()
 			`coll_to` tinyint,
 			`max_dbsize` int(10) unsigned default NULL,
 			`linefeed` char(2) default NULL,
-			primary key(`username`)
+			unique key(`username`),
+			primary key (`id`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 
 	
@@ -1747,7 +1765,7 @@ function cqpweb_import_css_file($filename)
 {
 	global $Config;
 	
-	$orig = "$Config->dir->upload/$filename";
+	$orig = "{$Config->dir->upload}/$filename";
 	$new = "../css/$filename";
 	
 	if (is_file($orig))

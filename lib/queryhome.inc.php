@@ -57,7 +57,7 @@ require('../lib/environment.inc.php');
 /* include function library files */
 require('../lib/library.inc.php');
 require('../lib/html-lib.inc.php');
-require('../lib/user-settings.inc.php');
+require('../lib/user-lib.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/cache.inc.php');
 require('../lib/subcorpus.inc.php');
@@ -140,11 +140,8 @@ echo print_html_header('CQPweb', array('cqpweb-clientside'));
 
 <table class="concordtable" width="100%">
 
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">Corpus queries</a></th>
-</tr>
-
 <?php
+echo print_menurow_heading('Corpus queries');
 echo print_menurow_index('search', 'Standard query');
 echo print_menurow_index('restrict', 'Restricted query');
 /* TODO
@@ -159,26 +156,17 @@ echo print_menurow_index('restrict', 'Restricted query');
 echo print_menurow_index('lookup', 'Word lookup');
 echo print_menurow_index('freqList', 'Frequency lists');
 echo print_menurow_index('keywords', 'Keywords');
-?>
 
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">User controls</a></th>
-</tr>
-
-<?php
+echo print_menurow_heading('User controls');
 echo print_menurow_index('userSettings', 'User settings');
 echo print_menurow_index('history', 'Query history');
 echo print_menurow_index('savedQs', 'Saved queries');
 echo print_menurow_index('categorisedQs', 'Categorised queries');
 echo print_menurow_index('uploadQ', 'Upload a query');
 echo print_menurow_index('subcorpus', 'Create/edit subcorpora');
-?>
 
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">Corpus info</a></th>
-</tr>
+echo print_menurow_heading('Corpus info');
 
-<?php
 /* note that most of this section is links-out, so we can't use the print-row function */
 
 /* SHOW CORPUS METADATA */
@@ -193,7 +181,7 @@ echo "View corpus metadata</a>\n\t</td>\n</tr>";
 
 
 /* print a link to a corpus manual, if there is one */
-$sql_query = "select external_url from corpus_metadata_fixed "
+$sql_query = "select external_url from corpus_info "
 	. "where corpus = '$corpus_sql_name' and external_url IS NOT NULL";
 $result = do_mysql_query($sql_query);
 if (mysql_num_rows($result) < 1)
@@ -230,13 +218,9 @@ unset($row);
 /* these are the super-user options */
 if (user_is_superuser($username))
 {
+	echo print_menurow_heading('Admin tools');
 	?>
-	
-	<tr>
-		<th class="concordtable">
-			<a class="menuHeaderItem">Admin tools</a>
-		</th>
-	</tr>
+
 	<tr>
 		<td class="concordgeneral">
 			<a class="menuItem" href="../adm">Admin control panel</a>
@@ -256,10 +240,9 @@ if (user_is_superuser($username))
 	
 } /* end of "if user is a superuser" */
 
+
+echo print_menurow_heading('About CQPweb');
 ?>
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">About CQPweb</a></th>
-</tr>
 
 <tr>
 	<td class="concordgeneral">
@@ -278,6 +261,7 @@ if (user_is_superuser($username))
 	</td>
 </tr>
 <?php
+// TODO change manual link above. Is not good,. REplace with link to "Open Help Ssytem"
 echo print_menurow_index('who_the_hell', 'Who did it?');
 echo print_menurow_index('latest', 'Latest news');
 echo print_menurow_index('bugs', 'Report bugs');

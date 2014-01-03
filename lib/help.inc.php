@@ -46,7 +46,7 @@ require('../lib/environment.inc.php');
 /* include function library files */
 require('../lib/library.inc.php');
 require('../lib/html-lib.inc.php');
-//require ("../lib/user-settings.inc.php");
+//require ("../lib/user-lib.inc.php");
 //require ("../lib/exiterror.inc.php");
 //require ("../lib/cache.inc.php");
 //require ("../lib/subcorpus.inc.php");
@@ -111,7 +111,7 @@ echo "concordgeneral\"><a class=\"menuItem\"
 
 
 /* print a link to a corpus manual, if there is one */
-$sql_query = "select external_url from corpus_metadata_fixed where corpus = '"
+$sql_query = "select external_url from corpus_info where corpus = '"
 	. $corpus_sql_name . "' and external_url IS NOT NULL";
 $result = do_mysql_query($sql_query);
 if (mysql_num_rows($result) < 1)

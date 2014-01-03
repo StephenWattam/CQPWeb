@@ -87,10 +87,10 @@ function corpus_make_freqtables()
 	
 
 	/* for convenience, $filename is absolute */
-	$filename = "$Config->dir->cache/____$temp_tablename.tbl";
+	$filename = "{$Config->dir->cache}/____$temp_tablename.tbl";
 
 	/* now, use cwb-scan-corpus to prepare the input */	
-	$cwb_command = "{$Config->path_to_cwb}cwb-scan-corpus -r \"$Config->dir->registry\" -o \"$filename\" -q $corpus_cqp_name";
+	$cwb_command = "{$Config->path_to_cwb}cwb-scan-corpus -r \"{$Config->dir->registry}\" -o \"$filename\" -q $corpus_cqp_name";
 	foreach ($attribute as $att)
 		$cwb_command .= " $att";
 	$status = 0;
@@ -213,7 +213,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 
 	/* second step we can get ready to build the intermediate table in MySQL */
 	$temp_table = "__freqmake_temptable_$instance_name";
-	$temp_table_loadfile = "$Config->dir->cache/__infile$temp_table";
+	$temp_table_loadfile = "{$Config->dir->cache}/__infile$temp_table";
 	
 	/* Check cache contents. (We do this before building, in order that we don't overflow the cache
 	 * by TOO much in the intermediate step when the new freq table is being built.) */
@@ -221,7 +221,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 
 
 	/* run command to extract the frequency lines for those bits of the corpus */
-	$cmd_scancorpus = "{$Config->path_to_cwb}cwb-scan-corpus -r \"$Config->dir->registry\" -F __freq "
+	$cmd_scancorpus = "{$Config->path_to_cwb}cwb-scan-corpus -r \"{$Config->dir->registry}\" -F __freq "
 		. "-R " . $regionfile->get_filename()
 		. " {$corpus_cqp_name}__FREQ";
 	foreach ($attribute as $att)
@@ -599,7 +599,7 @@ function publicise_this_corpus_freqtable($description)
 
 	$description = mysql_real_escape_string($description);
 	
-	$sql_query = "update corpus_metadata_fixed set public_freqlist_desc = '$description'
+	$sql_query = "update corpus_info set public_freqlist_desc = '$description'
 		where corpus = '$corpus_sql_name'";
 		
 	do_mysql_query($sql_query);
@@ -612,7 +612,7 @@ function unpublicise_this_corpus_freqtable()
 {
 	global $corpus_sql_name;
 	
-	$sql_query = "update corpus_metadata_fixed set public_freqlist_desc = NULL
+	$sql_query = "update corpus_info set public_freqlist_desc = NULL
 		where corpus = '$corpus_sql_name'";
 		
 	do_mysql_query($sql_query);
@@ -673,7 +673,7 @@ function list_public_freqtables()
 /** Returns an assoc array of corpus handles with public descriptions; works across the system */
 function list_public_whole_corpus_freqtables()
 {
-	$sql_query = "select corpus, public_freqlist_desc from corpus_metadata_fixed 
+	$sql_query = "select corpus, public_freqlist_desc from corpus_info 
 		where public_freqlist_desc IS NOT NULL";
 		
 	$result = do_mysql_query($sql_query);

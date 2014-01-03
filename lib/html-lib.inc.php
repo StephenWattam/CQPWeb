@@ -71,6 +71,14 @@ function print_menurow_admin($link_handle, $link_text)
 	return print_menurow_backend($link_handle, $link_text, $thisF, 'thisF');
 }
 
+/**
+ * Creates a table row for the index-page left-hand-side menu, which is a section heading
+ * containing the label as provided.
+ */
+function print_menurow_heading($label)
+{
+	return "\n<tr><th class=\"concordtable\"><a class=\"menuHeaderItem\">$label</a></th></tr>\n\n";
+}
 
 
 // TODO make this RETURN rather than ECHO

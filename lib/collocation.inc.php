@@ -53,7 +53,7 @@ require("../lib/concordance-lib.inc.php");
 require("../lib/concordance-post.inc.php");
 require("../lib/colloc-lib.inc.php");
 require("../lib/exiterror.inc.php");
-require("../lib/user-settings.inc.php");
+require("../lib/user-lib.inc.php");
 require("../lib/metadata.inc.php");
 require("../lib/freqtable.inc.php");
 require("../lib/freqtable-cwb.inc.php");
@@ -73,10 +73,10 @@ ob_implicit_flush(true);
 
 cqpweb_startup_environment();
 
-
-/* download all user settings */
-
-$user_settings = get_all_user_settings($username);
+//not needed as we now have $User!
+///* download all user settings */
+//
+//$user_settings = get_all_user_settings($username);
 
 
 
@@ -143,16 +143,16 @@ if (isset($_GET['collocCalcAtt']))
 
 if (isset($_GET['collocCalcBegin']) && abs($_GET['collocCalcBegin']) <= $colloc_range )
 	$calc_range_begin = (int)$_GET['collocCalcBegin'];
-else if (isset($user_settings->coll_from))
-	$calc_range_begin = (int)$user_settings->coll_from;
+else if (isset($User->coll_from))
+	$calc_range_begin = (int)$User->coll_from;
 else
 	/* defaults to 2-left of node, or 2-right of max, whichever is wider */
 	$calc_range_begin = ($colloc_range > 2 ? -($colloc_range - 2) : $colloc_range);
 
 if (isset($_GET['collocCalcEnd']) && abs($_GET['collocCalcEnd']) <= $colloc_range )
 	$calc_range_end = (int)$_GET['collocCalcEnd'];
-else if (isset($user_settings->coll_to))
-	$calc_range_end = (int)$user_settings->coll_to;
+else if (isset($User->coll_to))
+	$calc_range_end = (int)$User->coll_to;
 else
 	/* defaults to mirror of the begin value */
 	$calc_range_end = -($calc_range_begin);
@@ -178,15 +178,15 @@ if ( ( ! ($calc_range_end >= $calc_range_begin)) || $calc_range_end == 0 || $cal
 /* only positive integers allowed */
 if (isset($_GET['collocMinfreqTogether']) )
 	$calc_minfreq_together = abs((int) $_GET['collocMinfreqTogether']);
-else if (isset($user_settings->coll_freqtogether))
-	$calc_minfreq_together = (int)$user_settings->coll_freqtogether;
+else if (isset($USer->coll_freqtogether))
+	$calc_minfreq_together = (int)$User->coll_freqtogether;
 else
 	$calc_minfreq_together = $default_colloc_minfreq;
 
 if (isset($_GET['collocMinfreqColloc']) )
 	$calc_minfreq_collocalone = abs((int) $_GET['collocMinfreqColloc']);
-else if (isset($user_settings->coll_freqalone))
-	$calc_minfreq_collocalone = (int)$user_settings->coll_freqalone;
+else if (isset($User->coll_freqalone))
+	$calc_minfreq_collocalone = (int)$User->coll_freqalone;
 else
 	$calc_minfreq_collocalone = $default_colloc_minfreq;
 
@@ -237,8 +237,8 @@ $statistic = load_statistic_info();
    to be used as an index into the array created above */
 if ( isset($_GET['collocCalcStat']) )
 	$calc_stat = (int) $_GET['collocCalcStat'];
-else if ( isset($user_settings->coll_statistic) )
-	$calc_stat = (int)$user_settings->coll_statistic;
+else if ( isset($User->coll_statistic) )
+	$calc_stat = (int)$User->coll_statistic;
 else
 	$calc_stat = $default_calc_stat;		/* see defaults.inc.php */
 

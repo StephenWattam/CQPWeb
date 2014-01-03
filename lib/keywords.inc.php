@@ -45,7 +45,7 @@ require("../lib/library.inc.php");
 require('../lib/html-lib.inc.php');
 require("../lib/exiterror.inc.php");
 require("../lib/metadata.inc.php");
-require("../lib/user-settings.inc.php");
+require("../lib/user-lib.inc.php");
 require("../lib/freqtable.inc.php");
 require("../lib/cwb.inc.php");         // needed?
 require("../lib/cqp.inc.php");
@@ -645,7 +645,7 @@ function parse_keyword_table_parameter($par)
 			$subcorpus = "__entire_corpus";
 			$base = "freq_corpus_{$m[1]}";
 			
-			$sql_query = "select public_freqlist_desc from corpus_metadata_fixed
+			$sql_query = "select public_freqlist_desc from corpus_info
 				where corpus = '{$m[1]}'";
 			$result = do_mysql_query($sql_query);
 

@@ -50,7 +50,7 @@ class corpus_install_info
 	
 	public $script_is_r2l;
 
-	public $corpus_metadata_fixed_mysql_insert;
+	public $corpus_info_mysql_insert;
 	
 	public $css_url;
 	public $description;
@@ -105,7 +105,7 @@ class corpus_install_info
 			 * in the process, getting the "override" directories, if they exist */
 			
 			$use_normal_regdir = (bool)$_GET['corpus_useDefaultRegistry'];
-			$registry_file = "$Config->dir->registry/{$this->corpus_cwb_name}";
+			$registry_file = "{$Config->dir->registry}/{$this->corpus_cwb_name}";
 			
 			if ( ! $use_normal_regdir)
 			{
@@ -156,7 +156,7 @@ class corpus_install_info
 			
 			foreach($m[1] as $file)
 			{
-				$path = "$Config->dir->upload/$file";
+				$path = "{$Config->dir->upload}/$file";
 				if (is_file($path))
 					$this->file_list[] = $path;
 				else
@@ -187,8 +187,8 @@ class corpus_install_info
 				 * note also that cwb_external applies EVEN IF the indexed corpus was already in this directory
 				 * (its sole use is to prevent deletion of data that CQPweb did not create)
 				 */
-				$this->corpus_metadata_fixed_mysql_insert =
-					"insert into corpus_metadata_fixed (corpus, primary_annotation, cwb_external) 
+				$this->corpus_info_mysql_insert =
+					"insert into corpus_info (corpus, primary_annotation, cwb_external) 
 					values ('{$this->corpus_mysql_name}', NULL, 1)";
 			}
 		}
@@ -291,8 +291,8 @@ class corpus_install_info
 			
 			$this->primary_p_attribute = 'pos';
 			
-			$this->corpus_metadata_fixed_mysql_insert =
-				"insert into corpus_metadata_fixed 
+			$this->corpus_info_mysql_insert =
+				"insert into corpus_info 
 				(corpus, primary_annotation, secondary_annotation, tertiary_annotation, 
 				tertiary_annotation_tablehandle, combo_annotation) 
 				values 
@@ -326,12 +326,12 @@ class corpus_install_info
 			
 			
 			if (isset ($this->primary_p_attribute))
-				$this->corpus_metadata_fixed_mysql_insert =
-					"insert into corpus_metadata_fixed (corpus, primary_annotation) 
+				$this->corpus_info_mysql_insert =
+					"insert into corpus_info (corpus, primary_annotation) 
 					values ('{$this->corpus_mysql_name}', '{$this->primary_p_attribute}')";
 			else
-				$this->corpus_metadata_fixed_mysql_insert =
-					"insert into corpus_metadata_fixed (corpus, primary_annotation) 
+				$this->corpus_info_mysql_insert =
+					"insert into corpus_info (corpus, primary_annotation) 
 					values ('{$this->corpus_mysql_name}', NULL)";
 		}
 	
@@ -411,7 +411,7 @@ function install_new_corpus()
 		foreach ($info->p_attributes_mysql_insert as &$s)
 			do_mysql_query($s);
 	}
-	do_mysql_query($info->corpus_metadata_fixed_mysql_insert);
+	do_mysql_query($info->corpus_info_mysql_insert);
 
 
 	/* cwb setup comes last; if it fails, deletion should still work */
@@ -420,7 +420,7 @@ function install_new_corpus()
 	else
 	{
 		/* cwb-create the file */
-		$datadir = "$Config->dir->index/$corpus";	
+		$datadir = "{$Config->dir->index}/$corpus";	
 		if (is_dir($datadir))
 			recursive_delete_directory($datadir);
 		mkdir($datadir, 0775);
@@ -429,7 +429,7 @@ function install_new_corpus()
 		
 		$encode_command =  "{$Config->path_to_cwb}cwb-encode -xsB -c {$info->encode_charset} -d $datadir -f "
 			. implode(' -f ', $info->file_list)
-			. " -R \"$Config->dir->registry/$corpus\" "
+			. " -R \"{$Config->dir->registry}/$corpus\" "
 			. ( empty($info->p_attributes) ? '' : (' -P ' . implode(' -P ', $info->p_attributes)) )
 			. ' -S ' . implode(' -S ', $info->s_attributes)
 			. ' 2>&1';
@@ -446,9 +446,9 @@ function install_new_corpus()
 				. implode("\n", $output_lines_from_cwb) 
 				. '</pre>');
 
-		chmod("$Config->dir->registry/$corpus", 0664);
+		chmod("{$Config->dir->registry}/$corpus", 0664);
 
-		$output_lines_from_cwb[] = $makeall_command = "{$Config->path_to_cwb}cwb-makeall -r \"$Config->dir->registry\" -V $CORPUS 2>&1";
+		$output_lines_from_cwb[] = $makeall_command = "{$Config->path_to_cwb}cwb-makeall -r \"{$Config->dir->registry}\" -V $CORPUS 2>&1";
 		exec($makeall_command, $output_lines_from_cwb, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_general("cwb-makeall reported an error! Corpus indexing aborted. <pre>"
@@ -457,14 +457,14 @@ function install_new_corpus()
 
 		/* use a separate array for the compression utilities (merged into main output block later) */
 		$compression_output = array();
-		$compression_output[] = $huffcode_command = "{$Config->path_to_cwb}cwb-huffcode -r \"$Config->dir->registry\" -A $CORPUS 2>&1";
+		$compression_output[] = $huffcode_command = "{$Config->path_to_cwb}cwb-huffcode -r \"{$Config->dir->registry}\" -A $CORPUS 2>&1";
 		exec($huffcode_command, $compression_output, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_general("cwb-huffcode reported an error! Corpus indexing aborted. <pre>"
 				. implode("\n", array_merge($output_lines_from_cwb,$compression_output)) 
 				. '</pre>');
 
-		$compression_output[] = $compress_rdx_command = "{$Config->path_to_cwb}cwb-compress-rdx -r \"$Config->dir->registry\" -A $CORPUS 2>&1";
+		$compression_output[] = $compress_rdx_command = "{$Config->path_to_cwb}cwb-compress-rdx -r \"{$Config->dir->registry}\" -A $CORPUS 2>&1";
 		exec($compress_rdx_command, $compression_output, $exit_status_from_cwb);
 		if ($exit_status_from_cwb != 0)
 			exiterror_general("cwb-compress-rdx reported an error! Corpus indexing aborted. <pre>"
@@ -481,7 +481,7 @@ function install_new_corpus()
 
 		
 		/*
-		 TODO save the entire output blob in a mysql table that preserves its contents (as a field of corpus_metadata_fixed?).
+		 TODO save the entire output blob in a mysql table that preserves its contents (as a field of corpus_info?).
 		 Then, the "finished" screen can have an extra link:Javascript function to display the
 		 output from CWB.
 		 This will allow you to see, f'rinstance, any dodgy messages about XML elements that were droppped

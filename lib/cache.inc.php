@@ -85,7 +85,7 @@ function cqp_file_path($qname)
 {
 	global $Config;
 	
-	$globbed = glob("$Config->dir->cache/*:$qname");
+	$globbed = glob("{$Config->dir->cache}/*:$qname");
 	if (empty($globbed))
 		return false;
 	else
@@ -548,7 +548,7 @@ function clear_cache($protect_user_saved = true)
 
 
 	/* are there any files left in the temp directory? */
-	foreach(glob("$Config->dir->cache/*") as $file)
+	foreach(glob("{$Config->dir->cache}/*") as $file)
 	{
 		/* was this file protected on the previous pass? if so, it will still be in the DB */
 		preg_match('/\A([^:]*:)(.*)\z/', $file, $m);

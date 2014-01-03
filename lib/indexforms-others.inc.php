@@ -31,16 +31,9 @@
 
 function printquery_usersettings()
 {
-	global $username;
-
-// the majority of user settings should be boolean, in mysql they should be tinyint(1)
-// and their column names should reflect this
-// parameters of this form should be of the format newSetting_$mysql_column_name
-
-	$settings = get_all_user_settings($username);
+	global $User;
 	
-	list ($optionsfrom, $optionsto) 
-		= print_fromto_form_options(10, $settings->coll_from, $settings->coll_to);
+	list ($optionsfrom, $optionsto) = print_fromto_form_options(10, $User->coll_from, $User->coll_to);
 	
 	?>
 <table class="concordtable" width="100%">
@@ -69,8 +62,8 @@ function printquery_usersettings()
 			<td class="concordgeneral">Default view</td>
 			<td class="concordgeneral">
 				<select name="newSetting_conc_kwicview">
-					<option value="1"<?php echo ($settings->conc_kwicview == '0' ? ' selected="selected"' : '');?>>KWIC view</option>
-					<option value="0"<?php echo ($settings->conc_kwicview == '0' ? ' selected="selected"' : '');?>>Sentence view</option>
+					<option value="1"<?php echo ($User->conc_kwicview == '0' ? ' selected="selected"' : '');?>>KWIC view</option>
+					<option value="0"<?php echo ($User->conc_kwicview == '0' ? ' selected="selected"' : '');?>>Sentence view</option>
 				</select>
 			</td>
 		</tr>
@@ -80,8 +73,8 @@ function printquery_usersettings()
 			<td class="concordgeneral">Default display order of concordances</td>
 			<td class="concordgeneral">
 				<select name="newSetting_conc_corpus_order">
-					<option value="1"<?php echo ($settings->conc_corpus_order == '1' ? ' selected="selected"' : '');?>>Corpus order</option>
-					<option value="0"<?php echo ($settings->conc_corpus_order == '0' ? ' selected="selected"' : '');?>>Random order</option>
+					<option value="1"<?php echo ($User->conc_corpus_order == '1' ? ' selected="selected"' : '');?>>Corpus order</option>
+					<option value="0"<?php echo ($User->conc_corpus_order == '0' ? ' selected="selected"' : '');?>>Random order</option>
 				</select>
 			</td>
 		</tr>
@@ -92,8 +85,8 @@ function printquery_usersettings()
 			</td>
 			<td class="concordgeneral">
 				<select name="newSetting_cqp_syntax">
-					<option value="1"<?php echo ($settings->cqp_syntax == '1' ? ' selected="selected"' : '');?>>Yes</option>
-					<option value="0"<?php echo ($settings->cqp_syntax == '0' ? ' selected="selected"' : '');?>>No</option>
+					<option value="1"<?php echo ($User->cqp_syntax == '1' ? ' selected="selected"' : '');?>>Yes</option>
+					<option value="0"<?php echo ($User->cqp_syntax == '0' ? ' selected="selected"' : '');?>>No</option>
 				</select>
 			</td>
 		</tr>
@@ -102,8 +95,8 @@ function printquery_usersettings()
 			<td class="concordgeneral">Context display</td>
 			<td class="concordgeneral">
 				<select name="newSetting_context_with_tags">
-					<option value="0"<?php echo ($settings->context_with_tags == '0' ? ' selected="selected"' : '');?>>Without tags</option>
-					<option value="1"<?php echo ($settings->context_with_tags == '1' ? ' selected="selected"' : '');?>>With tags</option>
+					<option value="0"<?php echo ($User->context_with_tags == '0' ? ' selected="selected"' : '');?>>Without tags</option>
+					<option value="1"<?php echo ($User->context_with_tags == '1' ? ' selected="selected"' : '');?>>With tags</option>
 				</select>
 			</td>
 		</tr>
@@ -117,8 +110,8 @@ function printquery_usersettings()
 			</td>
 			<td class="concordgeneral">
 				<select name="newSetting_use_tooltips">
-					<option value="1"<?php echo ($settings->use_tooltips == '1' ? ' selected="selected"' : '');?>>Yes</option>
-					<option value="0"<?php echo ($settings->use_tooltips == '0' ? ' selected="selected"' : '');?>>No</option>
+					<option value="1"<?php echo ($User->use_tooltips == '1' ? ' selected="selected"' : '');?>>Yes</option>
+					<option value="0"<?php echo ($User->use_tooltips == '0' ? ' selected="selected"' : '');?>>No</option>
 				</select>
 			</td>
 		</tr>
@@ -127,8 +120,8 @@ function printquery_usersettings()
 			<td class="concordgeneral">Default setting for thinning queries</td>
 			<td class="concordgeneral">
 				<select name="newSetting_thin_default_reproducible">
-					<option value="0"<?php echo ($settings->thin_default_reproducible == '0' ? ' selected="selected"' : '');?>>Random: selection is not reproducible</option>
-					<option value="1"<?php echo ($settings->thin_default_reproducible == '1' ? ' selected="selected"' : '');?>>Random: selection is reproducible</option>
+					<option value="0"<?php echo ($User->thin_default_reproducible == '0' ? ' selected="selected"' : '');?>>Random: selection is not reproducible</option>
+					<option value="1"<?php echo ($User->thin_default_reproducible == '1' ? ' selected="selected"' : '');?>>Random: selection is reproducible</option>
 				</select>
 			</td>
 		</tr>
@@ -141,7 +134,7 @@ function printquery_usersettings()
 			<td class="concordgeneral">Default statistic to use when calculating collocations</td>
 			<td class="concordgeneral">
 				<select name="newSetting_coll_statistic">
-					<?php echo print_statistic_form_options($settings->coll_statistic); ?>
+					<?php echo print_statistic_form_options($User->coll_statistic); ?>
 				</select>
 			</td>
 		</tr>
@@ -152,7 +145,7 @@ function printquery_usersettings()
 			</td>
 			<td class="concordgeneral">
 				<select name="newSetting_coll_freqtogether">
-					<?php echo print_freqtogether_form_options($settings->coll_freqtogether); ?>
+					<?php echo print_freqtogether_form_options($User->coll_freqtogether); ?>
 				</select>
 			</td>
 		</tr>
@@ -163,7 +156,7 @@ function printquery_usersettings()
 				</td>
 			<td class="concordgeneral">    
 				<select name="newSetting_coll_freqalone">
-					<?php echo print_freqalone_form_options($settings->coll_freqalone); ?>
+					<?php echo print_freqalone_form_options($User->coll_freqalone); ?>
 				</select>
 			</td>
 		</tr>
@@ -192,10 +185,10 @@ function printquery_usersettings()
 			<td class="concordgeneral">File format to use in text-only downloads</td>
 			<td class="concordgeneral">
 				<select name="newSetting_linefeed">
-					<option value="au"<?php echo ($settings->linefeed == 'au' ? ' selected="selected"' : '');?>>Automatically detect my computer</option>
-					<option value="da"<?php echo ($settings->linefeed == 'da' ? ' selected="selected"' : '');?>>Windows</option>
-					<option value="a"<?php  echo ($settings->linefeed == 'a'  ? ' selected="selected"' : '');?>>Unix / Linux (inc. Mac OS X)</option>
-					<option value="d"<?php  echo ($settings->linefeed == 'd'  ? ' selected="selected"' : '');?>>Macintosh (OS 9 and below)</option>
+					<option value="au"<?php echo ($User->linefeed == 'au' ? ' selected="selected"' : '');?>>Automatically detect my computer</option>
+					<option value="da"<?php echo ($User->linefeed == 'da' ? ' selected="selected"' : '');?>>Windows</option>
+					<option value="a"<?php  echo ($User->linefeed == 'a'  ? ' selected="selected"' : '');?>>Unix / Linux (inc. Mac OS X)</option>
+					<option value="d"<?php  echo ($User->linefeed == 'd'  ? ' selected="selected"' : '');?>>Macintosh (OS 9 and below)</option>
 				</select>
 			</td>
 		</tr>
@@ -207,13 +200,13 @@ function printquery_usersettings()
 		<tr>
 			<td class="concordgeneral">Real name</td>
 			<td class="concordgeneral">
-				<input name="newSetting_realname" type="text" width="64" value="<?php echo cqpweb_htmlspecialchars($settings->realname); ?>"/>
+				<input name="newSetting_realname" type="text" width="64" value="<?php echo cqpweb_htmlspecialchars($User->realname); ?>"/>
 			</td>
 		</tr>
 		<tr>
 			<td class="concordgeneral">Email address (system admin may use this if s/he needs to contact you!)</td>
 			<td class="concordgeneral">
-				<input name="newSetting_email" type="text" width="64" value="<?php echo cqpweb_htmlspecialchars($settings->email); ?>"/>
+				<input name="newSetting_email" type="text" width="64" value="<?php echo cqpweb_htmlspecialchars($User->email); ?>"/>
 			</td>
 		</tr>
 		<tr>
@@ -369,7 +362,7 @@ function printquery_corpusmetadata()
 	
 	/* load metadata into two result arrays */
 
-	$sql_query = "select * from corpus_metadata_fixed where corpus = '$corpus_sql_name'";
+	$sql_query = "select * from corpus_info where corpus = '$corpus_sql_name'";
 	$result_fixed = do_mysql_query($sql_query);
 	/* this will only contain a single row */
 	$metadata_fixed = mysql_fetch_assoc($result_fixed);

@@ -69,10 +69,10 @@ function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $t
 	/* check the directory exists for user-uploaded files */
 	if ($user_upload)
 	{	
-		if (!is_dir("$Config->dir->upload/usr"))
-			mkdir("$Config->dir->upload/usr", 0775);
-		if (!is_dir("$Config->dir->upload/usr/$username"))
-			mkdir("$Config->dir->upload/usr/$username", 0775);
+		if (!is_dir("{$Config->dir->upload}/usr"))
+			mkdir("{$Config->dir->upload}/usr", 0775);
+		if (!is_dir("{$Config->dir->upload}/usr/$username"))
+			mkdir("{$Config->dir->upload}/usr/$username", 0775);
 	}
 	
 	/* find a new name - a file that does not exist */
@@ -100,12 +100,12 @@ function uploaded_file_fix_linebreaks($filename)
 {
 	global $Config;
 
-	$path = "$Config->dir->upload/$filename";
+	$path = "{$Config->dir->upload}/$filename";
 	
 	if (!file_exists($path))
 		exiterror_general('Your request could not be completed - that file does not exist.');
 	
-	$intermed_path = "$Config->dir->upload/__________uploaded_file_fix_linebreaks________temp_________datoa__________.___";
+	$intermed_path = "{$Config->dir->upload}/__________uploaded_file_fix_linebreaks________temp_________datoa__________.___";
 	
 	$source = fopen($path, 'r');
 	$dest = fopen($intermed_path, 'w');
@@ -125,7 +125,7 @@ function uploaded_file_delete($filename)
 {	
 	global $Config;
 
-	$path = "$Config->dir->upload/$filename";
+	$path = "{$Config->dir->upload}/$filename";
 	
 	if (!file_exists($path))
 		exiterror_general('Your request could not be completed - that file does not exist.');
@@ -138,7 +138,7 @@ function uploaded_file_gzip($filename)
 {
 	global $Config;
 
-	$path = "$Config->dir->upload/$filename";
+	$path = "{$Config->dir->upload}/$filename";
 	
 	if (!file_exists($path))
 		exiterror_general('Your request could not be completed - that file does not exist.');
@@ -172,7 +172,7 @@ function uploaded_file_gunzip($filename)
 {
 	global $Config;
 
-	$path = "$Config->dir->upload/$filename";
+	$path = "{$Config->dir->upload}/$filename";
 	
 	if (!file_exists($path))
 		exiterror_general('Your request could not be completed - that file does not exist.');
@@ -180,7 +180,7 @@ function uploaded_file_gunzip($filename)
 	if (preg_match('/(.*)\.gz$/', $filename, $m) < 1)
 		exiterror_general('Your request could not be completed - that file does not appear to be compressed.');
 
-	$unzip_path = "$Config->dir->upload/{$m[1]}";
+	$unzip_path = "{$Config->dir->upload}/{$m[1]}";
 	
 	$in_file = gzopen($path, "rb");
 	$out_file = fopen($unzip_path, "wb");
@@ -206,7 +206,7 @@ function uploaded_file_view($filename)
 {
 	global $Config;
 	
-	$path = "$Config->dir->upload/$filename";
+	$path = "{$Config->dir->upload}/$filename";
 
 	if (!file_exists($path))
 		exiterror_general('Your request could not be completed - that file does not exist.');

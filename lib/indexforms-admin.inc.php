@@ -666,7 +666,7 @@ function printquery_managemeta()
 	
 			foreach ($file_list as &$f)
 			{
-				$file = "$Config->dir->upload/$f";
+				$file = "{$Config->dir->upload}/$f";
 				
 				if (!is_file($file)) continue;
 				
@@ -1079,7 +1079,7 @@ function printquery_managemeta()
 			global $corpus_cqp_name;
 			$corpus_cqp_name_lower = strtolower($corpus_cqp_name);
 			
-			if (file_exists("$Config->dir->registry/{$corpus_cqp_name_lower}__freq"))
+			if (file_exists("{$Config->dir->registry}/{$corpus_cqp_name_lower}__freq"))
 			{
 				$message = 'The text-by-text list for this corpus <strong>has already been created</strong>. Use
 								the button below to delete and recreate it.';
@@ -1299,7 +1299,7 @@ function printquery_manageannotation()
 			$new_maptable = mysql_real_escape_string($_GET['setMaptable']);
 			$new_maptable = ($new_maptable == '__UNSET__' ? 'NULL' : "'$new_maptable'");
 			
-			$sql_query = "update corpus_metadata_fixed set
+			$sql_query = "update corpus_info set
 				primary_annotation = $new_primary,
 				secondary_annotation = $new_secondary,
 				tertiary_annotation = $new_tertiary,
@@ -1331,7 +1331,7 @@ function printquery_manageannotation()
 	}
 
 
-	$sql_query = "select * from corpus_metadata_fixed where corpus='$corpus_sql_name'";
+	$sql_query = "select * from corpus_info where corpus='$corpus_sql_name'";
 	$result = do_mysql_query($sql_query);
 	$data = mysql_fetch_object($result);
 	

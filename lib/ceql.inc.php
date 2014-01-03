@@ -128,7 +128,7 @@ function get_ceql_script_for_perl($query, $case_sensitive)
 	
 	$sql_query = "select primary_annotation, secondary_annotation, tertiary_annotation, 
 		tertiary_annotation_tablehandle, combo_annotation 
-		from corpus_metadata_fixed 
+		from corpus_info 
 		where corpus = '$corpus_sql_name'";
 		
 	$result = do_mysql_query($sql_query);

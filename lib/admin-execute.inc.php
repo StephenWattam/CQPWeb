@@ -287,7 +287,7 @@ switch($_GET['admFunction'])
 		//$update_corpus_metadata_info['primary_classification_field'] = $_GET['updatePrimaryClassification'];
 		//$update_corpus_metadata_info['primary_annotation'] = $_GET['updatePrimaryAnnotation'];
 		//$update_corpus_metadata_info['external_url'] = $_GET['updateURL'];
-		$_GET['function'] = 'update_corpus_metadata_fixed';
+		$_GET['function'] = 'update_corpus_info';
 		$_GET['locationAfter'] = 'index.php?thisF=showCorpora&uT=y';
 		require('../lib/execute.inc.php');
 		exit();

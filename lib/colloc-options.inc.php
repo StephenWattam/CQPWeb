@@ -105,7 +105,7 @@ if ($query_record === false)
 			
 			$num_annotation_rows = mysql_num_rows($result_annotations);
 			
-			$sql_query = "select primary_annotation from corpus_metadata_fixed 
+			$sql_query = "select primary_annotation from corpus_info 
 				where corpus = '$corpus_sql_name'";
 			$result_fixed = do_mysql_query($sql_query);
 			/* this will only contain a single row */
@@ -227,7 +227,7 @@ if (false)
 			
 			$num_annotation_rows = mysql_num_rows($result_annotations);
 			
-			$sql_query = "select primary_annotation from corpus_metadata_fixed 
+			$sql_query = "select primary_annotation from corpus_info 
 				where corpus = '$corpus_sql_name'";
 			$result_fixed = do_mysql_query($sql_query);
 			/* this will only contain a single row */

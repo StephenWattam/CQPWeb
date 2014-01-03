@@ -30,7 +30,7 @@ require('../lib/environment.inc.php');
 
 
 /* library files */
-require('../lib/user-settings.inc.php');
+require('../lib/user-lib.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/library.inc.php');
 

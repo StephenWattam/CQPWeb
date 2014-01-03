@@ -107,7 +107,7 @@ function cwb_corpus_exists($corpus_name)
 	
 	// TODO this does not work because it does not allow for cwb_external.
 	
-	if  ( is_file("$Config->dir->registry/$corpus_name") && is_dir("$Config->dir->index/$corpus_name") )
+	if  ( is_file("{$Config->dir->registry}/$corpus_name") && is_dir("$Config->dir->index/$corpus_name") )
 		return true;
 	else
 		return false;	
@@ -119,7 +119,7 @@ function cwb_corpus_exists($corpus_name)
  * Removes a CWB corpus from the system.
  * 
  * The function also deletes any frequency-text-index in the MySQL system.
- * It doesn't touch the record of the corpus in corpus_metadata_fixed and other tables.
+ * It doesn't touch the record of the corpus in corpus_info and other tables.
  * TODO surely it should nto touch the mysql at all?
  * 
  * The argument must be the *lowercase* version of the registry name (ie *with* the __freq 

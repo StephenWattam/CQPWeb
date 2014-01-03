@@ -48,7 +48,7 @@ require('../lib/exiterror.inc.php');
 require('../lib/cache.inc.php');
 require('../lib/subcorpus.inc.php');
 require('../lib/db.inc.php');
-require('../lib/user-settings.inc.php');
+require('../lib/user-lib.inc.php');
 require('../lib/cwb.inc.php');
 require('../lib/cqp.inc.php');
 

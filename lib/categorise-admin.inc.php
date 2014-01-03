@@ -42,7 +42,7 @@ require('../lib/html-lib.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/cache.inc.php');
 require('../lib/db.inc.php');
-require('../lib/user-settings.inc.php');
+require('../lib/user-lib.inc.php');
 
 require("../lib/cwb.inc.php");
 require("../lib/cqp.inc.php");
@@ -311,7 +311,7 @@ function categorise_separate()
 	$newqname_root = $qname . '_';
 	$newsavename_root = $query_record['save_name'] . '_';
 
-	$outfile_path = "$Config->dir->cache/temp_cat_$newqname_root.tbl";
+	$outfile_path = "{$Config->dir->cache}/temp_cat_$newqname_root.tbl";
 	if (is_file($outfile_path))
 		unlink($outfile_path);
 

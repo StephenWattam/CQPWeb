@@ -194,51 +194,37 @@ function add_p_attribute_row()
 
 <table class="concordtable" width="100%">
 
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">Corpora</a></th>
-</tr>
 <?php
+echo print_menurow_heading('Corpora');
 echo print_menurow_admin('showCorpora', 'Show corpora');
 echo print_menurow_admin('installCorpus', 'Install new corpus');
 echo print_menurow_admin('manageCorpusCategories', 'Manage corpus categories');
 echo print_menurow_admin('publicTables', 'Public frequency lists');
-?>
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">Uploads</a></th>
-</tr>
-<?php
+
+echo print_menurow_heading('Uploads');
 echo print_menurow_admin('newUpload', 'Upload a file');
 echo print_menurow_admin('uploadArea', 'View upload area');
-?>
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">Users</a></th>
-</tr>
-<?php
+
+echo print_menurow_heading('Users');
 echo print_menurow_admin('userAdmin', 'Manage users');
 echo print_menurow_admin('groupAdmin', 'Manage group membership');
 echo print_menurow_admin('groupAccess', 'Manage group access');
-?>
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">Database</a></th>
-</tr>
-<?php
+
+echo print_menurow_heading('Database');
 echo print_menurow_admin('manageProcesses', 'Manage MySQL processes');
 echo print_menurow_admin('tableView', 'View a MySQL table');
 echo print_menurow_admin('mysqlRestore', 'Reset MySQL database');
-?>
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">System</a></th>
-</tr>
-<?php
+
+echo print_menurow_heading('System');
 echo print_menurow_admin('systemSettings', 'System settings');
 echo print_menurow_admin('systemMessages', 'System messages');
 echo print_menurow_admin('systemSecurity', 'System security');
 echo print_menurow_admin('systemSnapshots', 'System snapshots');
 echo print_menurow_admin('systemDiagnostics', 'System diagnostics');
+
+echo print_menurow_heading('Misc');
 ?>
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">Misc</a></th>
-</tr>
+
 <tr>
 	<td class="concordgeneral">
 		<a class="menuItem" href="../"
@@ -252,11 +238,8 @@ echo print_menurow_admin('skins', 'Skins and colours');
 echo print_menurow_admin('mappingTables', 'Mapping tables');
 echo print_menurow_admin('cacheControl', 'Cache control');
 echo print_menurow_admin('phpConfig', 'PHP configuration');
-?>
-<tr>
-	<th class="concordtable"><a class="menuHeaderItem">Usage Statistics</a></th>
-</tr>
-<?php
+
+echo print_menurow_heading('Usage Statistics');
 echo print_menurow_admin('corpusStatistics', 'Corpus statistics');
 echo print_menurow_admin('userStatistics', 'User statistics');
 echo print_menurow_admin('queryStatistics', 'Query statistics');
@@ -386,7 +369,7 @@ case 'tableView':
 	break;
 	
 case 'manageProcesses':
-	printquery_mysqlprocesses();
+	printquery_systemprocesses();
 	break;
 	
 case 'corpusStatistics':
@@ -453,7 +436,7 @@ function printquery_showcorpora()
 {
 	global $corpus_sql_name;	/* this is not brought from global scope but inserted into it */
 
-	$result = do_mysql_query("select * from corpus_metadata_fixed order by corpus asc");
+	$result = do_mysql_query("select * from corpus_info order by corpus asc");
 	
 	?>
 	<table class="concordtable" width="100%">
@@ -747,7 +730,7 @@ function printquery_installcorpus_unindexed()
 	
 			foreach ($file_list as &$f)
 			{
-				$file = "$Config->dir->upload/$f";
+				$file = "{$Config->dir->upload}/$f";
 				
 				if (!is_file($file)) continue;
 				
@@ -1046,28 +1029,28 @@ function printquery_corpuscategories()
 		/* this function call is a bit wasteful, but it makes sure "Uncategorised" exists... */
 		list_corpus_categories();
 		
-		$result = do_mysql_query("select idno, label, sort_n from corpus_categories order by sort_n asc, label asc");
+		$result = do_mysql_query("select id, label, sort_n from corpus_categories order by sort_n asc, label asc");
 		$sort_key_max = 0;
 		$sort_key_min = 0; 
 		while (false !== ($r = mysql_fetch_object($result)))
 		{
-			list($n) = mysql_fetch_row(do_mysql_query("select count(*) from corpus_metadata_fixed where corpus_cat={$r->idno}"));
+			list($n) = mysql_fetch_row(do_mysql_query("select count(*) from corpus_info where corpus_cat={$r->id}"));
 			echo '<tr><td class="concordgeneral">', $r->label, '</td>',
 				'<td class="concordgeneral" align="center">', $n, '</td>',
 				'<td class="concordgeneral" align="center">', $r->sort_n, '</td>',
 				'<td class="concordgeneral" align="center">',
 					'<a class="menuItem" href="index.php?admFunction=execute&function=update_corpus_category_sort&args=',
-					$r->idno, urlencode('#'), $r->sort_n - 1, 
+					$r->id, urlencode('#'), $r->sort_n - 1, 
 					'&locationAfter=', urlencode('index.php?thisF=manageCorpusCategories&uT=y'), '&uT=y">',
 					'[Move up]</a></td>',
 				'<td class="concordgeneral" align="center">',
 					'<a class="menuItem" href="index.php?admFunction=execute&function=update_corpus_category_sort&args=',
-					$r->idno, urlencode('#'), $r->sort_n + 1, 
+					$r->id, urlencode('#'), $r->sort_n + 1, 
 					'&locationAfter=', urlencode('index.php?thisF=manageCorpusCategories&uT=y'), '&uT=y">',
 					'[Move down]</a></td>',
 				'<td class="concordgeneral" align="center">',
 					'<a class="menuItem" href="index.php?admFunction=execute&function=delete_corpus_category&args=',
-					$r->idno, '&locationAfter=', urlencode('index.php?thisF=manageCorpusCategories&uT=y'), '&uT=y">',
+					$r->id, '&locationAfter=', urlencode('index.php?thisF=manageCorpusCategories&uT=y'), '&uT=y">',
 					'[Delete]</a></td>',
 				"</tr>\n";
 			if ($sort_key_max < $r->sort_n)
@@ -1197,7 +1180,7 @@ function printquery_uploadarea()
 
 		foreach ($file_list as &$f)
 		{
-			$file = "$Config->dir->upload/$f";
+			$file = "{$Config->dir->upload}/$f";
 			
 			if (!is_file($file)) continue;
 			
@@ -1457,7 +1440,7 @@ function printquery_useradmin()
 		</tr>
 		
 		<?php
-		$result = do_mysql_query("SELECT username, max_dbsize from user_settings");
+		$result = do_mysql_query("SELECT username, max_dbsize from user_info");
 		
 		while (($r = mysql_fetch_assoc($result)) !== false)
 		{
@@ -1840,7 +1823,7 @@ function printquery_skins()
 			
 			foreach ($file_list as &$f)
 			{
-				$file = "$Config->dir->upload/$f";
+				$file = "{$Config->dir->upload}/$f";
 				$target = "../css/$f";
 				
 				if (!is_file($file)) continue;	
@@ -2099,17 +2082,17 @@ function printquery_systemsnapshots()
 	global $Config;
 	
 	/* this dir needs to exist for us to scan it... */
-	if (!is_dir("$Config->dir->upload/dump"))
-		mkdir("$Config->dir->upload/dump");
+	if (!is_dir($d = "{$Config->dir->upload}/dump"))
+		mkdir($d);
 	
 	if (isset($_GET['snapshotFunction']))
 		switch($_GET['snapshotFunction'])
 		{
 		case 'createSystemSnapshot':
-			cqpweb_dump_snapshot("$Config->dir->upload/dump/CQPwebFullDump-" . time());
+			cqpweb_dump_snapshot("$d/CQPwebFullDump-" . time());
 			break;
 		case 'createUserdataBackup':
-			cqpweb_dump_userdata("$Config->dir->upload/dump/CQPwebUserDataDump-" . time());
+			cqpweb_dump_userdata("$d/dump/CQPwebUserDataDump-" . time());
 			break;
 		case 'undumpSystemSnapshot':
 			/* check that the argument is an approrpiate-format undump file that exists */
@@ -2118,7 +2101,7 @@ function printquery_systemsnapshots()
 					is_file($_GET['undumpFile'])
 				)
 				/* call the function */
-				cqpweb_undump_snapshot("$Config->dir->upload/dump/".$_GET['undumpFile']);
+				cqpweb_undump_snapshot("$d/".$_GET['undumpFile']);
 			else
 				exiterror_parameter("Invalid filename, or file does not exist!");
 			break;
@@ -2129,7 +2112,7 @@ function printquery_systemsnapshots()
 					is_file($_GET['undumpFile'])
 				)
 				/* call the function */
-				cqpweb_undump_userdata("$Config->dir->upload/dump/".$_GET['undumpFile']);
+				cqpweb_undump_userdata("$d/{$_GET['undumpFile']}");
 			else
 				exiterror_parameter("Invalid filename, or file does not exist!");
 			break;
@@ -2208,10 +2191,10 @@ function printquery_systemsnapshots()
 		<?php
 		$num_files = 0;
 		$file_options = "\n";
-		$file_list = scandir("$Config->dir->upload/dump");
+		$file_list = scandir($d);
 		foreach ($file_list as &$f)
 		{
-			$file = "$Config->dir->upload/dump/$f";
+			$file = "$d/$f";
 			
 			if (!is_file($file))
 				continue;
@@ -2678,9 +2661,9 @@ function printquery_tableview()
 // and ideally delete any associated temp files if their names can be worked out.
 // also would be good to get information on how many connections from cqpweb to mysql there are
 // TODO : this, properly!
-function printquery_mysqlprocesses()
+function printquery_systemprocesses()
 {
-	$result = do_mysql_query('SELECT * from mysql_processes');
+	$result = do_mysql_query('SELECT * from system_processes');
 	?>
 	<table class="concordtable" width="100%">
 		<tr>

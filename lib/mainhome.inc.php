@@ -106,12 +106,12 @@ header('Content-Type: text/html; charset=utf-8');
 <?php
 
 
-foreach ($categories as $idno => $cat)
+foreach ($categories as $id => $cat)
 {
 	/* get a list of corpora */
 	
-	$sql_query = "select corpus, visible from corpus_metadata_fixed where visible = 1 "
-		. ($use_corpus_categories_on_homepage ? "and corpus_cat = '$idno'" : '') 
+	$sql_query = "select corpus, visible from corpus_info where visible = 1 "
+		. ($use_corpus_categories_on_homepage ? "and corpus_cat = $id" : '') 
 		. " order by corpus asc";
 
 	$result = do_mysql_query($sql_query);

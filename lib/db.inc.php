@@ -50,9 +50,14 @@ function dbname_unique($dbname)
 
 
 
-/** creates a db in mysql for the named query of the specified type & returns its name*/
+/** 
+ * Creates a db in mysql for the named query of the specified type & returns its name.
+ */
 function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $postprocess)
 {
+	// TODO why the hell are there all those different arguments instead of just passing a query record?
+	// would be better to have 3 params: db_type, query_record, and extra_info = NULL. 
+	
 	global $Config;
 	global $cqp;
 	global $corpus_sql_name;
@@ -65,6 +70,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 	/* db_type-specific variables that the calling script must set if the db is of the relevent type */
 	global $colloc_atts;
 	global $colloc_range;
+	// TODO fuck me that's a fucking dirty hack!
 	
 	/* check the connection to CQP */
 	if (isset($cqp))
@@ -115,9 +121,9 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 
 	/* name for a file containing table with result of tabulation command*/
-	$tabfile = "$Config->dir->cache/tab_{$db_type}_$qname";
+	$tabfile = "{$Config->dir->cache}/tab_{$db_type}_$qname";
 	/* name for a file containing the awk script */
-	$awkfile = "$Config->dir->cache/awk_{$db_type}_$qname";
+	$awkfile = "{$Config->dir->cache}/awk_{$db_type}_$qname";
 
 	if (is_file($tabfile))
 		unlink($tabfile);
@@ -620,7 +626,7 @@ function check_db_max_processes($process_type)
 {
 	global $mysql_process_limit;
 	
-	$sql_query = "select process_id from mysql_processes where process_type = '"
+	$sql_query = "select process_id from system_processes where process_type = '"
 		. mysql_real_escape_string($process_type) . "'";
 	$result = do_mysql_query($sql_query);
 	
@@ -628,7 +634,7 @@ function check_db_max_processes($process_type)
 	
 	if ($current_processes >= $mysql_process_limit[$process_type])
 	{
-		/* check whether there are dead entries in the mysql_processes table */
+		/* check whether there are dead entries in the system_processes table */
 		$dead_processes = 0 ;
 		
 		$os_pids = shell_exec( 'ps -e' );
@@ -668,7 +674,7 @@ function register_db_process($dbname, $process_type, $process_id = '___THIS_SCRI
 	else
 		$process_id = mysql_real_escape_string($process_id);
 	$begin_time = time();
-	$sql_query = "insert into mysql_processes (dbname, begin_time, process_type, process_id)
+	$sql_query = "insert into system_processes (dbname, begin_time, process_type, process_id)
 		values ('$dbname', $begin_time, '$process_type', '$process_id' )";
 	do_mysql_query($sql_query);
 	//TODO maybe also record the instance name, and the MySQL connection-id?
@@ -683,7 +689,7 @@ function unregister_db_process($process_id = '___THIS_SCRIPT')
 		$process_id = getmypid();
 	else
 		$process_id = (int)$process_id;
-	do_mysql_query("delete from mysql_processes where process_id = '$process_id'");
+	do_mysql_query("delete from system_processes where process_id = '$process_id'");
 }
 
 

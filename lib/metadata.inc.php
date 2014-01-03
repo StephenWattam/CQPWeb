@@ -42,11 +42,11 @@
  */
 function list_corpus_categories()
 {
-	$result = do_mysql_query("select idno, label from corpus_categories order by sort_n asc");
+	$result = do_mysql_query("select id, label from corpus_categories order by sort_n asc");
 	if (mysql_num_rows($result) < 1)
 	{
 		do_mysql_query("ALTER TABLE corpus_categories AUTO_INCREMENT=1");
-		do_mysql_query("insert into corpus_categories (idno, label, sort_n) values (1, 'Uncategorised', 0)");
+		do_mysql_query("insert into corpus_categories (id, label, sort_n) values (1, 'Uncategorised', 0)");
 		return array(0=>'Uncategorised');
 	}	
 	$list_of_cats = array();
@@ -56,17 +56,17 @@ function list_corpus_categories()
 }
 
 
-function update_corpus_category_sort($category_idno, $new_sort_n)
+function update_corpus_category_sort($category_id, $new_sort_n)
 {
-	$category_idno = (int)$category_idno;
+	$category_id = (int)$category_id;
 	$new_sort_n = (int)$new_sort_n;
-	do_mysql_query("update corpus_categories set sort_n = $new_sort_n where idno = $category_idno");
+	do_mysql_query("update corpus_categories set sort_n = $new_sort_n where id = $category_id");
 }
 
-function delete_corpus_category($category_idno)
+function delete_corpus_category($category_id)
 {
-	$category_idno = (int)$category_idno;
-	do_mysql_query("delete from corpus_categories where idno = $category_idno");	
+	$category_id = (int)$category_id;
+	do_mysql_query("delete from corpus_categories where id = $category_id");	
 }
 
 function add_corpus_category($label, $initial_sort_n = 0)
@@ -83,7 +83,7 @@ function add_corpus_category($label, $initial_sort_n = 0)
 function list_corpora()
 {
 	$list_of_corpora = array();
-	$result = do_mysql_query("select corpus from corpus_metadata_fixed");
+	$result = do_mysql_query("select corpus from corpus_info");
 	while ( ($r=mysql_fetch_row($result)) !== false )
 		$list_of_corpora[] = $r[0];
 	return $list_of_corpora;
@@ -145,7 +145,7 @@ function get_corpus_metadata($field)
 	case 'public_freqlist_desc':
 	case 'corpus_cat':
 	case 'cwb_external':
-		$query = "select $field from corpus_metadata_fixed where corpus = '$corpus_sql_name'";
+		$query = "select $field from corpus_info where corpus = '$corpus_sql_name'";
 		break;
 	default:
 		$query = "select value from corpus_metadata_variable where corpus = '"
@@ -171,7 +171,7 @@ function update_corpus_category($newcat)
 {
 	global $corpus_sql_name;
 	$newcat = (int)$newcat;
-	do_mysql_query("update corpus_metadata_fixed set corpus_cat = $newcat where corpus = '$corpus_sql_name'");
+	do_mysql_query("update corpus_info set corpus_cat = $newcat where corpus = '$corpus_sql_name'");
 }
 
 function update_corpus_title($newtitle)
@@ -287,7 +287,7 @@ function update_corpus_metadata($field, $value)
 	case 'external_url':
 	case 'public_freqlist_desc':
 	case 'corpus_cat':
-		$query = "update corpus_metadata_fixed set $field = '$value' where corpus = '$corpus_sql_name'";
+		$query = "update corpus_info set $field = '$value' where corpus = '$corpus_sql_name'";
 		break;
 	default:
 		$query = "update corpus_metadata_variable set value = '$value' "

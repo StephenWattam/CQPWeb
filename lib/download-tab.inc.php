@@ -31,7 +31,7 @@ require('../lib/library.inc.php');
 require('../lib/html-lib.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/metadata.inc.php');
-require('../lib/user-settings.inc.php');
+require('../lib/user-lib.inc.php');
 require('../lib/cqp.inc.php');
 
 
@@ -224,13 +224,11 @@ else
 	 * First, set up variables for use in the HTML.
 	 * -------------------------------------------- */	
 	
-	$user_settings = get_all_user_settings($username);
-
 	/* enable the user setting to be auto-selected for linebreak type */
 	$da_selected = array('d' => '', 'a' => '', 'da' => '');
-	if ($user_settings->linefeed == 'au')
-		$user_settings->linefeed = guess_user_linefeed($username);
-	$da_selected[$user_settings->linefeed] = ' selected="selected" ';
+	if ($User->linefeed == 'au')
+		$User->linefeed = guess_user_linefeed($username);
+	$da_selected[$User->linefeed] = ' selected="selected" ';
 	
 	
 	if (isset($_GET['columnCount']))

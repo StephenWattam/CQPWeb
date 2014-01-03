@@ -100,8 +100,8 @@ function upgrade_db_version_from($oldv)
 
 function upgrade_3_0_16()
 {
-	/* minor tweaks made in the code in late 3.0.16 */
 	$sql = array(
+		/* minor tweaks made in the code in late 3.0.16 */
 		'alter table user_settings    alter column username set default ""',
 		'alter table saved_catqueries alter column corpus set default ""',
 		'alter table saved_catqueries alter column dbname set default ""',
@@ -120,16 +120,31 @@ function upgrade_3_0_16()
 		'alter table system_messages alter column fromto set default NULL',
 		'alter table user_macros alter column username set default ""',
 		'alter table user_macros alter column macro_name set default ""',
-		'alter table user_macros add column `id` int NOT NULL AUTO_INCREMENT, add primary key (`id`)',
+		'alter table user_macros add column `id` int NOT NULL AUTO_INCREMENT FIRST, add primary key (`id`)',
 		'alter table xml_visualisations alter column corpus set default ""',
 		'alter table xml_visualisations alter column element set default ""',
 		'alter table xml_visualisations drop primary key',
-		'alter table xml_visualisations add column `id` int NOT NULL AUTO_INCREMENT, add primary key (`id`)',
-		'alter table xml_visualisations add unique key(`corpus`, `element`, `cond_attribute`, `cond_regex`)'
+		'alter table xml_visualisations add column `id` int NOT NULL AUTO_INCREMENT FIRST, add primary key (`id`)',
+		'alter table xml_visualisations add unique key(`corpus`, `element`, `cond_attribute`, `cond_regex`)',
+		/* The GREAT RENAMING  and rearrangement of main corpus/user tables */
+		'rename table mysql_processes to system_processes',
+		'rename table user_settings to user_info',
+		'rename table corpus_metadata_fixed to corpus_info',
+		'alter table user_info drop primary key',
+		'alter table user_info add column `id` int NOT NULL AUTO_INCREMENT FIRST, add primary key (`id`)',
+		'alter table user_info add unique key (`username`)',		
+		'alter table corpus_info drop primary key',
+		'alter table corpus_info add column `id` int NOT NULL AUTO_INCREMENT FIRST, add primary key (`id`)',
+		'alter table corpus_info add unique key (`corpus`)',
+		'alter table corpus_categories drop column idno',
+		'alter table corpus_categories add column `id` int NOT NULL AUTO_INCREMENT FIRST, add primary key (`id`)',
+		/* some new info fields for the corpus table... for use later. */
+		'alter table corpus_info add column `is_user_corpus` tinyint(1) NOT NULL default 0',
+		'alter table corpus_info add column `date_of_indexing` timestamp NOT NULL default CURRENT_TIMESTAMP'
 	);
 	foreach ($sql as $q)
 		do_mysql_query($q);
-		
+	
 	$sql = array(
 		"insert into system_info (setting_name, value) VALUES ('db_version',  '3.0.16')",	# bit pointless, but establishes the last-SQL template
 		"update system_info set value = '3.1.0' where setting_name = 'db_version'"

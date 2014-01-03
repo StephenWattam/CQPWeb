@@ -89,7 +89,7 @@ function connect_global_cqp()
 	/* select an error handling function */
 	$cqp->set_error_handler("exiterror_cqp");
 	/* set CQP's temporary directory */
-	$cqp->execute("set DataDirectory '$Config->dir->cache'");
+	$cqp->execute("set DataDirectory '{$Config->dir->cache}'");
 	/* select corpus */
 	$cqp->set_corpus($corpus_cqp_name);
 	/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
@@ -128,7 +128,7 @@ function refresh_directory_global_cqp()
 	{
 		$switchdir = getcwd();
 		$cqp->execute("set DataDirectory '$switchdir'");
-		$cqp->execute("set DataDirectory '$Config->dir->cache'");
+		$cqp->execute("set DataDirectory '{$Config->dir->cache}'");
 		$cqp->set_corpus($corpus_cqp_name);
 		// TODO Question: is this still necessary?
 	}

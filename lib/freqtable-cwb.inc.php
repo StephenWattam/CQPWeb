@@ -104,8 +104,8 @@ function make_cwb_freq_index()
 	$freq_corpus_cqp_name_lc = strtolower($corpus_cqp_name) . '__freq';
 	$freq_corpus_cqp_name_uc = strtoupper($freq_corpus_cqp_name_lc);
 	
-	$datadir = "$Config->dir->index/$freq_corpus_cqp_name_lc";
-	$regfile = "$Config->dir->registry/$freq_corpus_cqp_name_lc";
+	$datadir = "{$Config->dir->index}/$freq_corpus_cqp_name_lc";
+	$regfile = "{$Config->dir->registry}/$freq_corpus_cqp_name_lc";
 
 	
 	/* character set to use when encoding the new corpus */
@@ -124,7 +124,7 @@ function make_cwb_freq_index()
 	chmod($datadir, 0777);
 
 	/* open a pipe **from** cwb-decode and another **to** cwb-encode */
-	$cmd_decode = "{$Config->path_to_cwb}cwb-decode -r \"$Config->dir->registry\" -C $corpus_cqp_name $p_att_line -S text_id";
+	$cmd_decode = "{$Config->path_to_cwb}cwb-decode -r \"{$Config->dir->registry}\" -C $corpus_cqp_name $p_att_line -S text_id";
 
 	$source = popen($cmd_decode, 'r');
 
@@ -190,9 +190,9 @@ function make_cwb_freq_index()
 	/* system commands for everything else that needs to be done to make it a good corpus */
 
 	$mem_flag = '-M ' . get_cwb_memory_limit();
-	$cmd_makeall  = "{$Config->path_to_cwb}cwb-makeall $mem_flag -r \"$Config->dir->registry\" -V $freq_corpus_cqp_name_uc ";
-	$cmd_huffcode = "{$Config->path_to_cwb}cwb-huffcode          -r \"$Config->dir->registry\" -A $freq_corpus_cqp_name_uc ";
-	$cmd_pressrdx = "{$Config->path_to_cwb}cwb-compress-rdx      -r \"$Config->dir->registry\" -A $freq_corpus_cqp_name_uc ";
+	$cmd_makeall  = "{$Config->path_to_cwb}cwb-makeall $mem_flag -r \"{$Config->dir->registry}\" -V $freq_corpus_cqp_name_uc ";
+	$cmd_huffcode = "{$Config->path_to_cwb}cwb-huffcode          -r \"{$Config->dir->registry}\" -A $freq_corpus_cqp_name_uc ";
+	$cmd_pressrdx = "{$Config->path_to_cwb}cwb-compress-rdx      -r \"{$Config->dir->registry}\" -A $freq_corpus_cqp_name_uc ";
 
 
 
@@ -220,9 +220,9 @@ function make_cwb_freq_index()
 	 * 
 	 * This then goes into a mysql table which corresponds to the __freq cwb corpus.
 	 */
-	$index_filename = "$Config->dir->cache/{$corpus_sql_name}_freqdb_index.tbl";
+	$index_filename = "{$Config->dir->cache}/{$corpus_sql_name}_freqdb_index.tbl";
 	
-	$s_decode_cmd = "{$Config->path_to_cwb}cwb-s-decode -r \"$Config->dir->registry\" $freq_corpus_cqp_name_uc -S text_id > $index_filename";
+	$s_decode_cmd = "{$Config->path_to_cwb}cwb-s-decode -r \"{$Config->dir->registry}\" $freq_corpus_cqp_name_uc -S text_id > $index_filename";
 	exec($s_decode_cmd);
 //	chmod($index_filename, 0777);
 	

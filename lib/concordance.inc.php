@@ -48,7 +48,7 @@ require('../lib/exiterror.inc.php');
 require('../lib/cache.inc.php');
 require('../lib/subcorpus.inc.php');
 require('../lib/db.inc.php');
-require('../lib/user-settings.inc.php');
+require('../lib/user-lib.inc.php');
 require('../lib/plugins.inc.php');
 require('../lib/xml.inc.php');
 require("../lib/cwb.inc.php");
@@ -59,9 +59,9 @@ cqpweb_startup_environment();
 /* Load user macros! */
 user_macro_loadall($username);
 
-
-/* download all user settings */
-$user_settings = get_all_user_settings($username);
+//not needed - we have $User
+///* download all user settings */
+//$user_settings = get_all_user_settings($username);
 
 
 
@@ -243,7 +243,7 @@ else
 if (isset($_GET['viewMode']))
 	$viewMode = $_GET['viewMode'];
 else
-	$viewMode = ( (bool) $user_settings->conc_kwicview ? 'kwic' : 'line' ) ;
+	$viewMode = ( (bool) $User->conc_kwicview ? 'kwic' : 'line' ) ;
 	
 /* there is an override... when translation is showing, only line mode is possible */
 if ($visualise_translate_in_concordance)
@@ -464,7 +464,7 @@ if ( ! $incoming_qname_specified )
 
 /* we now know if it's a new query, and can check whether to apply the user's auto-randomise function;
  * but this is only applied if no other postprocess has been asked for. */
-if ($run_new_query && ! $new_postprocess && ! $user_settings->conc_corpus_order)
+if ($run_new_query && ! $new_postprocess && ! $User->conc_corpus_order)
 {
 	$_GET['newPostP'] = 'rand';
 	$new_postprocess = new POSTPROCESS();

@@ -134,7 +134,7 @@ function printquery_search()
 								. '>None (search whole corpus)</option>'; 
 							
 							/* create options for the Primary Classification */
-							$sql_query = "select primary_classification_field from corpus_metadata_fixed
+							$sql_query = "select primary_classification_field from corpus_info
 								where corpus = '$corpus_sql_name'";
 							$result = do_mysql_query($sql_query);
 							$row = mysql_fetch_row($result);

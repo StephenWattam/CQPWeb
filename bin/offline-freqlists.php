@@ -71,7 +71,7 @@ include('../lib/indexforms-saved.inc.php');
 include('../lib/indexforms-others.inc.php');
 include('../lib/indexforms-subcorpus.inc.php');
 include('../lib/exiterror.inc.php');
-include('../lib/user-settings.inc.php');
+include('../lib/user-lib.inc.php');
 include('../lib/rface.inc.php');
 include('../lib/corpus-settings.inc.php');
 include('../lib/xml.inc.php');

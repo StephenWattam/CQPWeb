@@ -176,16 +176,19 @@ class CQPwebUser
 
 // temp code. Delete as soon as we're off Apache.
 global $username;
-if (!isset($username))
-	$username = ( isset($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] :  '__unknown_user' );
+$username = ( isset($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] :  '__unknown_user' );
+if ($username != '__unknown_user') $this->logged_in = true;
 		
 		
 		/* import database fields as object members. */
-		$result = do_mysql_query("select * from user_settings where username = '$username'");
-		foreach (mysql_fetch_row($result) as $k => $v)
-			if (!isset($this->$k))
-				$this->$k = $v;
-		/* the "if" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
+		if ($this->logged_in)
+		{
+			$result = do_mysql_query("select * from user_info where username = '$username'");
+			foreach (mysql_fetch_row($result) as $k => $v)
+				if (!isset($this->$k))
+					$this->$k = $v;
+			/* the "if" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
+		}
 	}
 }
 
@@ -223,7 +226,7 @@ class CQPwebCorpus
 		/* import database fields as object members. */
 		if ($this->specified)
 		{
-			$result = do_mysql_query("select * from corpus_metadata_fixed where corpus = '$this->name'");
+			$result = do_mysql_query("select * from corpus_info where corpus = '$this->name'");
 			foreach (mysql_fetch_row($result) as $k => $v)
 				if (!isset($this->$k))
 					$this->$k = $v;

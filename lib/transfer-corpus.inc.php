@@ -73,7 +73,7 @@ function export_cqpweb_corpus($corpus, $filepath)
 		return false;
 	
 	/* create a directory in the temp space to build the structure of the .cqpwebdata file. */
-	mkdir($d = "$Config->dir->cache/export.$corpus");
+	mkdir($d = "{$Config->dir->cache}/export.$corpus");
 	mkdir("$d/mysql");
 	mkdir("$d/reg");
 	mkdir("$d/data");
@@ -84,8 +84,8 @@ function export_cqpweb_corpus($corpus, $filepath)
 	$recreate_commands = array();
 	
 		/* fixed metadata */
-		$fixed = mysql_fetch_assoc(do_mysql_query("select * from corpus_metadata_fixed where corpus='$corpus'"));
-		$recreate_commands[] = "insert into corpus_metadata_fixed (corpus) values ('$corpus')";
+		$fixed = mysql_fetch_assoc(do_mysql_query("select * from corpus_info where corpus='$corpus'"));
+		$recreate_commands[] = "insert into corpus_info (corpus) values ('$corpus')";
 		foreach($fixed as $k => $v)
 		{
 			switch ($k)
@@ -110,7 +110,7 @@ function export_cqpweb_corpus($corpus, $filepath)
 					$v = "'" . mysql_real_escape_string($v) . "'";
 				break;
 			}
-			$recreate_commands[] = "update corpus_metadata_fixed set $k = $v where corpus = '$corpus'";
+			$recreate_commands[] = "update corpus_info set $k = $v where corpus = '$corpus'";
 		}
 
 		/* variable metadata */
@@ -142,11 +142,11 @@ function export_cqpweb_corpus($corpus, $filepath)
 	/* CWB data: */
 	
 		/* registry file */
-		copy("$Config->dir->registry/$corpus", "$d/reg/$corpus");
+		copy("{$Config->dir->registry}/$corpus", "$d/reg/$corpus");
 		
 		/* index folder */
 		if (! get_corpus_metadata("cwb_external"))
-			recursive_copy_directory("$Config->dir->index/$corpus", "$d/data/index");
+			recursive_copy_directory("{$Config->dir->index}/$corpus", "$d/data/index");
 		else
 		{
 // temp code
@@ -154,7 +154,7 @@ function export_cqpweb_corpus($corpus, $filepath)
 			exiterror_general("You called export_cqpweb_corpus() on a corpus with an external index!!!!!");
 // end temp code
 			// TODO find the path from the registry file (would be useful to have an interface to the registry)
-			$reg_content = file_get_contents("$Config->dir->registry/$corpus");
+			$reg_content = file_get_contents("{$Config->dir->registry}/$corpus");
 			
 			$src = "TODO";
 			recursive_copy_directory($src, "$d/data/index");

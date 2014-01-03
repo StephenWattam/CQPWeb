@@ -48,7 +48,7 @@ require('../lib/html-lib.inc.php');
 require("../lib/concordance-lib.inc.php");
 require("../lib/concordance-post.inc.php");
 require("../lib/exiterror.inc.php");
-require("../lib/user-settings.inc.php");
+require("../lib/user-lib.inc.php");
 require("../lib/metadata.inc.php");
 require("../lib/subcorpus.inc.php");
 require("../lib/cache.inc.php");
