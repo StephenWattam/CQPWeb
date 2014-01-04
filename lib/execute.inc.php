@@ -61,30 +61,29 @@ require('../lib/environment.inc.php');
 /* include all function files */
 include('../lib/admin-lib.inc.php');
 include("../lib/admin-install.inc.php");
-include('../lib/apache.inc.php');
 include('../lib/cache.inc.php');
 include('../lib/ceql.inc.php');
 include('../lib/db.inc.php');
 include('../lib/colloc-lib.inc.php');
 include('../lib/concordance-lib.inc.php');
+include('../lib/corpus-settings.inc.php');
+include('../lib/cqp.inc.php');
+include('../lib/cwb.inc.php');
+include('../lib/exiterror.inc.php');
 include('../lib/freqtable.inc.php');
 include('../lib/freqtable-cwb.inc.php');
-include('../lib/library.inc.php');
-include('../lib/metadata.inc.php');
-include('../lib/subcorpus.inc.php');
+include('../lib/html-lib.inc.php');
 include('../lib/indexforms-admin.inc.php');
 include('../lib/indexforms-queries.inc.php');
 include('../lib/indexforms-saved.inc.php');
 include('../lib/indexforms-others.inc.php');
 include('../lib/indexforms-subcorpus.inc.php');
-include('../lib/exiterror.inc.php');
-include('../lib/user-lib.inc.php');
-//include('../lib/rface.inc.php');
-include('../lib/corpus-settings.inc.php');
-include('../lib/xml.inc.php');
+include('../lib/library.inc.php');
+include('../lib/metadata.inc.php');
+include('../lib/subcorpus.inc.php');
 include('../lib/uploads.inc.php');
-include('../lib/cwb.inc.php');
-include('../lib/cqp.inc.php');
+include('../lib/user-lib.inc.php');
+include('../lib/xml.inc.php');
 
 
 
@@ -96,11 +95,6 @@ if (!user_is_superuser($username))
 	execute_print_and_exit('Unauthorised access to execute.php', 
 		'Your username does not have permission to run execute.php.');
 
-
-
-
-if (!url_string_is_valid())
-	execute_print_and_exit('Bad URL', 'Your URL was badly formed (didn\'t end in the uT=y flag).');
 
 
 

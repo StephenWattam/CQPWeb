@@ -166,8 +166,7 @@ if ( abs($calc_range_end) > $colloc_range )
 
 
 if ( ( ! ($calc_range_end >= $calc_range_begin)) || $calc_range_end == 0 || $calc_range_begin == 0 )
-	exiterror_parameter("Your position range does not make sense; go 'back' and change it!", 
-		__FILE__, __LINE__);
+	exiterror_parameter("Your position range does not make sense; go 'back' and change it!");
 	/* !! this is a stop-gap -- there should be a properly printed report page here, like in BW.  (TODO) */
 	// perhaps called as a function?? which could be hived off to a separate file colloc-lib.
 
@@ -316,7 +315,7 @@ $startTime = microtime(true);
 
 $query_record = check_cache_qname($qname);
 if ($query_record === false)
-	exiterror_general("The specified query $qname was not found in cache!", __FILE__, __LINE__);
+	exiterror_general("The specified query $qname was not found in cache!");
 
 
 /* now, search the db list for a db whose parameters match those of the query  */
@@ -361,7 +360,7 @@ if ($query_record['subcorpus'] != 'no_subcorpus')
 	{
 		/* if not, and if the subseciton is not too big, create it */
 		list($words_in_subsection, $junk) = amount_of_text_searched($query_record['subcorpus'], $query_record['restrictions']);
-		$freq_table_override = ( $_________words_in_subsection < $collocation_disallow_cutoff ? $freq_table_override : false );
+		$freq_table_override = ( $words_in_subsection < $collocation_disallow_cutoff ? $freq_table_override : false );
 		if ( ! $freq_table_override )
 			$freqtable_record = subsection_make_freqtables($query_record['subcorpus']);
 	}

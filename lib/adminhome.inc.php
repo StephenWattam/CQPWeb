@@ -30,6 +30,8 @@
 
 /* first, process the various "actions" that this script may be asked to perform */
 require('../lib/admin-execute.inc.php');
+/* note that the execute actions are zero-environment: they call either execute.inc.php 
+ * or admin-do.inc.php, both of which build an environment, then redirect somewhere */
 
 require('../lib/environment.inc.php');
 
@@ -37,17 +39,16 @@ require('../lib/environment.inc.php');
 /* include function library files */
 require("../lib/library.inc.php");
 require('../lib/html-lib.inc.php');
-require("../lib/apache.inc.php");
 require("../lib/admin-lib.inc.php");
 require("../lib/exiterror.inc.php");
 require("../lib/metadata.inc.php");
 require("../lib/ceql.inc.php");
 require("../lib/cqp.inc.php");
+require("../lib/user-lib.inc.php");
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST);
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST | CQPWEB_STARTUP_CHECK_ADMIN_USER);
 
-if (!user_is_superuser($username))
-	exiterror_general("You do not have permission to use this program.");
+
 
 
 
@@ -67,7 +68,7 @@ header('Content-Type: text/html; charset=utf-8');
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>CQPweb Sysadmin Control Panel</title>
+<title>CQPweb Admin Control Panel</title>
 <link rel="stylesheet" type="text/css" href="<?php echo $css_path_for_adminpage;?>" />
 <script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script>
 
@@ -254,7 +255,7 @@ echo print_menurow_admin('advancedStatistics', 'Advanced statistics');
 <table class="concordtable" width="100%">
 	<tr>
 		<th class="concordtable">
-			CQPweb Sysadmin Control Panel
+			CQPweb Admin Control Panel
 		</th>
 	</tr>
 </table>
@@ -386,6 +387,11 @@ case 'queryStatistics':
 	
 case 'advancedStatistics':
 	printquery_advancedstats();
+	break;
+
+/* special option for printing a message shown via GET */
+case 'showMessage':
+	printquery_message();
 	break;
 
 default:
@@ -1263,9 +1269,7 @@ function printquery_uploadarea()
 
 function printquery_useradmin()
 {
-	$apache = get_apache_object('nopath');
-	
-	$array_of_users = $apache->list_users();
+	$array_of_users = get_list_of_users();
 	
 	$user_list_as_options = '';
 	foreach ($array_of_users as $a)
@@ -1309,7 +1313,7 @@ function printquery_useradmin()
 			</tr>
 			<tr>
 				<td class="concordgeneral">
-					Enter the user's email address (optional):
+					Enter the user's email address:
 				</td>
 				<td class="concordgeneral">
 					<input type="text" name="newEmail" tabindex="4" width="30" />
@@ -1320,7 +1324,7 @@ function printquery_useradmin()
 		</form>
 		
 		
-		
+		<!--
 		<tr>
 			<th colspan="3" class="concordtable">
 				Create a batch of user accounts
@@ -1375,7 +1379,7 @@ function printquery_useradmin()
 			<input type="hidden" name="admFunction" value="newBatchOfUsers"/>
 			<input type="hidden" name="uT" value="y" />
 		</form>
-		
+		-->
 		
 		
 		<tr>
@@ -1390,7 +1394,7 @@ function printquery_useradmin()
 				</td>
 				<td class="concordgeneral">
 					<select name="userToDelete">
-						<option></option>
+						<option>Select user ....</option>
 						<?php echo $user_list_as_options; ?>
 					</select>
 				</td>
@@ -1400,21 +1404,9 @@ function printquery_useradmin()
 			</tr>
 			<input type="hidden" name="admFunction" value="deleteUser"/>
 			<input type="hidden" name="uT" value="y" />
-		</form>
-		<form action="index.php" method="GET">
-			<tr>
-				<td class="concordgeneral">
-					Delete a batch of users - all usernames consisting of this string plus a number:
-				</td>
-				<td class="concordgeneral">
-					<input type="text" name="userBatchToDelete" onKeyUp="check_c_word(this)" />
-				</td>
-				<td class="concordgeneral">
-					<input type="submit" value="Delete all matching users' accounts" />
-				</td>
-			</tr>
-			<input type="hidden" name="admFunction" value="deleteUserBatch"/>
-			<input type="hidden" name="uT" value="y" />
+			<?php
+			// TODO add JavaScript Are You Sure? Pop up to the submission button of this form 
+			?>
 		</form>
 	</table>
 	
@@ -1921,7 +1913,7 @@ function printquery_mappingtables()
 				</th>
 			</tr>
 			<tr>
-				<th class="concordtable">Name</th>
+				<th class="concordtable">Name (and <em>handle</em>)</th>
 				<th class="concordtable">Mapping table</th>
 				<th class="concordtable">Actions</th>
 			</tr>
@@ -1930,13 +1922,13 @@ function printquery_mappingtables()
 			foreach(get_all_tertiary_mapping_tables() as $table)
 			{
 				echo '<tr>'
-					. '<td class="concordgeneral">' . $table->name . ' <br/>&nbsp;<br/>(<em>' . $table->id . '</em>)</td>'
+					. '<td class="concordgeneral">' . $table->name . ' <br/>&nbsp;<br/>(<em>' . $table->handle . '</em>)</td>'
 					. '<td class="concordgeneral"><font size="-2" face="courier new, monospace">' 
 					. strtr($table->mappings, array("\n"=>'<br/>', "\t"=>'&nbsp;&nbsp;&nbsp;') )
 					. '</font></td>'
 					. '<td class="concordgeneral" align="center">'
 					. '<a class="menuItem" href="index.php?admFunction=execute&function=drop_tertiary_mapping_table&args=' 
-					. $table->id . '&locationAfter=' . urlencode('index.php?thisF=mappingTables&showExisting=1&uT=y') 
+					. $table->handle . '&locationAfter=' . urlencode('index.php?thisF=mappingTables&showExisting=1&uT=y') 
 					. '&uT=y">[Delete]</a></td>'
 					. "</tr>\n\n";	
 			}
@@ -1944,7 +1936,7 @@ function printquery_mappingtables()
 		}
 		else
 		{
-			/* main page for adding new mapping tables */
+			/* add new mapping table */
 			?>
 			<tr>
 				<th class="concordtable" colspan="3">
@@ -2981,8 +2973,30 @@ function printquery_phpconfig()
 function printquery_advancedstats()
 {
 
+	// TODO
+
+}
 
 
+function printquery_message()
+{
+	
+	$msg = cqpweb_htmlspecialchars($_GET['message']);
+	
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th colspan="2" class="concordtable">
+				CQPweb says:
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				<?php echo $msg; ?>
+			</td>
+		</tr>
+	</table>
+	<?php
 }
 
 

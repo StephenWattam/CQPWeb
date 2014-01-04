@@ -42,6 +42,12 @@ $_GET['admFunction'] = (isset($_GET['admFunction']) ? $_GET['admFunction'] : fal
 
 switch($_GET['admFunction'])
 {
+	/* 
+	 * NB. cases that are more complicated and therefore have to go to a full environment in admin-do
+	 * simply have "require admin-do"! 
+	 */
+	
+	
 	case 'execute':
 		/* general case for when it's all already set up */
 		require('../lib/execute.inc.php');
@@ -191,25 +197,9 @@ switch($_GET['admFunction'])
 		require('../lib/execute.inc.php');
 		exit();
 		
-	case 'newBatchOfUsers':
-		$_GET['function'] = 'add_batch_of_users';
-		$_GET['args'] = trim($_GET['newUsername']) .'#'. $_GET['sizeOfBatch'] . '#' . trim($_GET['newPassword']) 
-			. '#' . trim($_GET['batchAutogroup']);
-		$_GET['args'] .= ($_GET['newPasswordUseRandom'] == '1' ? '#true' : '');
-		$_GET['locationAfter'] = 'index.php?thisF=userAdmin&uT=y';
-		require('../lib/execute.inc.php');
-		exit();
-		
 	case 'deleteUser':
 		$_GET['function'] = 'delete_user';
 		$_GET['args'] = $_GET['userToDelete'] ;
-		$_GET['locationAfter'] = 'index.php?thisF=userAdmin&uT=y';
-		require('../lib/execute.inc.php');
-		exit();
-		
-	case 'deleteUserBatch':
-		$_GET['function'] = 'delete_user_batch';
-		$_GET['args'] = $_GET['userBatchToDelete'] ;
 		$_GET['locationAfter'] = 'index.php?thisF=userAdmin&uT=y';
 		require('../lib/execute.inc.php');
 		exit();

@@ -265,7 +265,6 @@ else
 
 
 
-
 /* the $program variable: filtered by a switch to admit only OK values;
  * note this is only used for the RENDERING of the query */
 if(empty($_GET['program']))

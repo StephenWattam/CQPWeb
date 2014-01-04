@@ -21,18 +21,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-/*
- * This file contains the main script for the CQPweb API-via-HTTP.
- * 
- * It processes incoming requests and calls other bits of CQPweb in
- * such a way as to send back the results of each function in
- * accordance with the API documentation.
- * 
- * This is generally as plain text (easily explode()-able or otherwise
- * manipulable within Perl or PHP).
- */
-
 /**
  * @file
  * 
@@ -78,6 +66,7 @@ define('CQPWEB_STARTUP_NO_FLAGS',              0);
 define('CQPWEB_STARTUP_DONT_CONNECT_CQP',      1);
 define('CQPWEB_STARTUP_DONT_CONNECT_MYSQL',    2);
 define('CQPWEB_STARTUP_DONT_CHECK_URLTEST',    4);
+define('CQPWEB_STARTUP_CHECK_ADMIN_USER',      8);
 
 /* 
  * plugin type constants 
@@ -91,6 +80,13 @@ define('PLUGIN_TYPE_POSTPROCESSOR',            8);
 define('PLUGIN_TYPE_ANY',                      1|2|4|8);
 
 
+/*
+ * user account state constants
+ */
+
+define('USER_STATUS_UNVERIFIED',               0);
+define('USER_STATUS_ACTIVE',                   1);
+define('USER_STATUS_SUSPENDED',                2);
 
 
 
@@ -112,7 +108,7 @@ define('PLUGIN_TYPE_ANY',                      1|2|4|8);
  * 
  * 
  */ 
-class CQPwebConfig
+class CQPwebEnvConfig
 {
 	/* we don't declare any members - the constructor function creates them dynamically */
 	
@@ -165,7 +161,7 @@ class CQPwebConfig
  * 
  * Has only one function, its constructor, which loads all the info. * 
  */ 
-class CQPwebUser 
+class CQPwebEnvUser 
 {
 	/** Is there a logged in user? (bool) */
 	public $logged_in = false;
@@ -184,10 +180,10 @@ if ($username != '__unknown_user') $this->logged_in = true;
 		if ($this->logged_in)
 		{
 			$result = do_mysql_query("select * from user_info where username = '$username'");
-			foreach (mysql_fetch_row($result) as $k => $v)
+			foreach (mysql_fetch_assoc($result) as $k => $v)
 				if (!isset($this->$k))
 					$this->$k = $v;
-			/* the "if" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
+			/* the "if isset" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
 		}
 	}
 }
@@ -201,7 +197,7 @@ if ($username != '__unknown_user') $this->logged_in = true;
  * 
  * Has only one function, its constructor, which loads all the info. * 
  */ 
-class CQPwebCorpus 
+class CQPwebEnvCorpus 
 {
 	/** are we running within a particular corpus ? */
 	public $specified = false;
@@ -215,7 +211,7 @@ class CQPwebCorpus
 		global $corpus_sql_name;
 		
 		/* first: try to identify the corpus. */
-		// note that eventually all the corpus settings will end up here, rather than using the following hack:
+// note that eventually all the corpus settings will end up in the DB or coming via http, rather than using the following hack:
 		$this->name = $corpus_sql_name;
 		if (!empty($this->name))
 			$this->specified = true;
@@ -227,7 +223,7 @@ class CQPwebCorpus
 		if ($this->specified)
 		{
 			$result = do_mysql_query("select * from corpus_info where corpus = '$this->name'");
-			foreach (mysql_fetch_row($result) as $k => $v)
+			foreach (mysql_fetch_assoc($result) as $k => $v)
 				if (!isset($this->$k))
 					$this->$k = $v;
 			/* the "if" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
@@ -308,9 +304,6 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 	/** Global object containing information on the current corpus. */
 	global $Corpus;
 	
-	// TODO ,move into here the getting of the username
-	// TODO, a call to session_start() -- and other cookie/login stuff -
-	// prob belongs here.
 	
 	// TODO, move into here the setup of plugins
 	// (so this is done AFTER all functions are imported, not
@@ -320,10 +313,8 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 	// (make dependent on whether we are writing plaintext or an HTML response?
 	// (do we want a flag CQPWEB_STARTUP_NONINTERACTIVE for when HTML response is NTO wanted?
 	
-	// TODO likewise have an implicit policy on ob_*_flush() usage in different scirpts.
-
 	/* create global settings options */
-	$Config = new CQPwebConfig();
+	$Config = new CQPwebEnvConfig();
 	
 	
 //var_dump($Config);
@@ -348,9 +339,9 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 
 	/* now the DB is connected, we can do the next two. */
 
-	$User   = new CQPwebUser();
+	$User   = new CQPwebEnvUser();
 	
-	$Corpus = new CQPwebCorpus();
+	$Corpus = new CQPwebEnvCorpus();
 
 	
 	// TODO make this dependent on debug status
@@ -386,6 +377,11 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 	else
 		if (!url_string_is_valid())
 			exiterror_bad_url();
+	if ($flags & CQPWEB_STARTUP_CHECK_ADMIN_USER)
+		if (!user_is_superuser($User->username))
+			exiterror_general("You do not have permission to use this part of CQPweb.");
+	
+
 }
 
 /**

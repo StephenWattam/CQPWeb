@@ -707,20 +707,20 @@ function history_update_hits($instance_name, $hits)
 
 
 
-/**
- * This function clears the query history of old queries.
- * 
- * Any entry whose date_of_query is older than the time given (integer, unix time) will be deleted
- * from the table.
- * 
- * Access to this would normally be superuser only. It operates across usernames and across corpora.
- */
-function history_purge_old_queries($date)
-{
-	$stopdate = date('Ymd', (int)$date);
-
-	do_mysql_query("delete from query_history where date_of_query < $stopdate");
-}
+///**
+// * This function clears the query history of old queries.
+// * 
+// * Any entry whose date_of_query is older than the time given (integer, unix time) will be deleted
+// * from the table.
+// * 
+// * Access to this would normally be superuser only. It operates across usernames and across corpora.
+// */
+//function history_purge_old_queries($date)
+//{
+//	$stopdate = date('Ymd', (int)$date);
+//
+//	do_mysql_query("delete from query_history where date_of_query < $stopdate");
+//}
 
 
 ?>

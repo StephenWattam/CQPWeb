@@ -342,11 +342,11 @@ function run_perl_script($script, &$output, &$errors)
  * 
  * Return value is false if the mapping table was not found.
  */
-function lookup_tertiary_mappings($mapping_table_id)
+function lookup_tertiary_mappings($mapping_table_handle)
 {
-	$mapping_table_id = mysql_real_escape_string($mapping_table_id);
+	$mapping_table_handle = mysql_real_escape_string($mapping_table_handle);
 	
-	$result = do_mysql_query("select mappings from annotation_mapping_tables where id = '$mapping_table_id'");
+	$result = do_mysql_query("select mappings from annotation_mapping_tables where handle = '$mapping_table_handle'");
 	
 	$r = mysql_fetch_row($result);
 	
@@ -363,17 +363,17 @@ function lookup_tertiary_mappings($mapping_table_id)
  */
 function get_list_of_tertiary_mapping_tables()
 {
-	$result = do_mysql_query('select id, name from annotation_mapping_tables');
+	$result = do_mysql_query('select handle, name from annotation_mapping_tables');
 	$list = array();
 	while ( ($r = mysql_fetch_object($result)) !== false)
-		$list[$r->id] = $r->name;
+		$list[$r->handle] = $r->name;
 	return $list;
 }
 
 /**
  * Returns an array of mapping tables as objects with the following
  * public members:
- *   ->id
+ *   ->handle
  *   ->name
  *   ->mappings
  * 
@@ -382,7 +382,7 @@ function get_list_of_tertiary_mapping_tables()
  */
 function get_all_tertiary_mapping_tables()
 {
-	$result = do_mysql_query('select * from annotation_mapping_tables');
+	$result = do_mysql_query('select * from annotation_mapping_tables order by handle asc');
 	$list = array();
 	while ( ($r = mysql_fetch_object($result)) !== false)
 		$list[] = $r;
@@ -394,22 +394,22 @@ function get_all_tertiary_mapping_tables()
 /**
  * Adds a CEQL mapping table to the database.
  */
-function add_tertiary_mapping_table($id, $name, $mappings)
+function add_tertiary_mapping_table($handle, $name, $mappings)
 {
-	$id = mysql_real_escape_string($id);
+	$handle = mysql_real_escape_string($handle);
 	$name = mysql_real_escape_string($name);
 	/* NB hopefully this will take care of multiple-escaping! */
 	$mappings = mysql_real_escape_string($mappings);
-	do_mysql_query("insert into annotation_mapping_tables (id, name, mappings) values ('$id', '$name', '$mappings')");
+	do_mysql_query("insert into annotation_mapping_tables (handle, name, mappings) values ('$handle', '$name', '$mappings')");
 }
 
 /**
  * Drops a CEQL mapping table from the database.
  */
-function drop_tertiary_mapping_table($id)
+function drop_tertiary_mapping_table($handle)
 {
-	$id = mysql_real_escape_string($id);
-	do_mysql_query("delete from annotation_mapping_tables where id = '$id'");
+	$handle = mysql_real_escape_string($handle);
+	do_mysql_query("delete from annotation_mapping_tables where handle = '$handle'");
 }
 
 
@@ -419,14 +419,14 @@ function drop_tertiary_mapping_table($id)
  */ 
 function regenerate_builtin_mapping_tables()
 {
-	/* default ids and names are contained here */
-	$id_and_name = get_builtin_mapping_table_names();
-	foreach($id_and_name as $id => $name)
+	/* default handless and names are contained here */
+	$handle_and_name = get_builtin_mapping_table_names();
+	foreach($handle_and_name as $handle => $name)
 	{
 		/* this should handle multiple escaping... I think! */
-		$code = get_builtin_mapping_table($id);
-		drop_tertiary_mapping_table($id);
-		add_tertiary_mapping_table($id, $name, $code);
+		$code = get_builtin_mapping_table($handle);
+		drop_tertiary_mapping_table($handle);
+		add_tertiary_mapping_table($handle, $name, $code);
 	}
 }
 
@@ -444,22 +444,22 @@ function regenerate_builtin_mapping_tables()
 
 /**
  * Gets an assoc array of names of builtin mapping tables: the keys are
- * the IDs fo the mapping tables.
+ * the handles fo the mapping tables.
  */
 function get_builtin_mapping_table_names()
 {
 	return array(
-		'oxford_simplified_tags' => 'Oxford Simplified Tagset (English)',
-		'russian_mystem_wordclasses' => 'MyStem Wordclasses',
+		'oxford_simple_tags'  => 'Oxford Simplified Tagset (English)',
+		'rus_mystem_classes' => 'MyStem Wordclasses',
 		'german_tiger_tags' => 'TIGER tagset for German',
-		'simplified_nepali_tags' => 'Oxford Simplified Tagset (Nepali)'
+		'nepali_simple_tags' => 'Oxford Simplified Tagset (Nepali)'
 		);
 }
 
 
 /**
  * Gets an assoc array of the actual code for the builtin mapping tables:
- * the keys are the IDs of the mapping tables.
+ * the keys are the handles of the mapping tables.
  * 
  * NB. as per the rules for mapping tables, each code blob has to be a perl
  * hash table, exactly as it would be written into the code in each case.
@@ -470,15 +470,15 @@ function get_builtin_mapping_table_names()
  * the string will be embedded into a perl script so escapes within perl
  * strings need to be double-escaped.
  */
-function get_builtin_mapping_table($mapping_table_id)
+function get_builtin_mapping_table($mapping_table_handle)
 {
 	/* this function is effectively a collection of the tertiary mappings
 	 * (ie simple-tag or tag-lemma aliases) that CQPweb allows */
-	switch ($mapping_table_id)
+	switch ($mapping_table_handle)
 	{
 	/* note, these should be perl code exactly as it would be written into the perl script */
 	/* a perl hash table in each case; aliases keyed to regexes; slash escape single quotes, natch */
-	case 'oxford_simplified_tags':
+	case 'oxford_simple_tags':
 		return '{ 
 			"A" => "ADJ",
 			"ADJ" => "ADJ",
@@ -497,7 +497,7 @@ function get_builtin_mapping_table($mapping_table_id)
 			"STOP" => "STOP",
 			"UNC" => "UNC"
 			}';
-	case 'russian_mystem_wordclasses':
+	case 'rus_mystem_classes':
 		/* note, first come the NORMAL russian classes, then the "aliases" */
 		return '{ 
 			"S" => "S",
@@ -531,7 +531,7 @@ function get_builtin_mapping_table($mapping_table_id)
 			\'$\' => "(PUNCT|SENT)",
 			"STOP" => "(PUNCT|SENT)"
 			}';
-	case 'simplified_nepali_tags':
+	case 'nepali_simple_tags':
 		/* no particular order */
 		return '{ 
 			"A" => "ADJ",

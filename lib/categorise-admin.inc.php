@@ -132,6 +132,7 @@ cqpweb_shutdown_environment();
 
 function categorise_create_query()
 {
+	global $Config;
 	global $username;
 	global $corpus_sql_name;
 
@@ -165,8 +166,7 @@ function categorise_create_query()
 	}
 	
 	/* make sure no catquery of that name already exists */
-	$sql_query = "select query_name from saved_queries where user = '$username' and save_name = '$savename'";
-	$result = do_mysql_query($sql_query);
+	$result = do_mysql_query("select query_name from saved_queries where user = '$username' and save_name = '$savename'");
 	if (mysql_num_rows($result) > 0)
 	{
 		categorise_enter_categories('name_exists');
@@ -214,8 +214,8 @@ function categorise_create_query()
 
 
 
-	/* save the current query using the name that was set for categorised query */
-	$newqname = qname_unique($username. '_' . $savename);
+	/* save the current query using a nwe qname name that was set for categorised query */
+	$newqname = qname_unique($Config->instance_name);
 	copy_cached_query($qname, $newqname);
 	
 	/* get the query record for the newly-saved query */

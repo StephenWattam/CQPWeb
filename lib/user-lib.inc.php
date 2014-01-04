@@ -24,129 +24,70 @@
 
 
 
+/*
+ * ==============
+ * USER FUNCTIONS
+ * ==============
+ */
 
 
+function user_name_to_id($user)
+{
+	$user = mysql_real_escape_string($user);
+	$result = do_mysql_query("select id from user_info where group_name = '$user'");
+	if (mysql_num_rows($result) < 1)
+		exiterror_general("Invalid user name specified at database level: $user");
+	list($id) = mysql_fetch_row($result);
+	return $id;
+}
 
+function user_id_to_name($id)
+{
+	$id = (int)$id;
+	$result = do_mysql_query("select username from user_info where id = $id");
+	if (mysql_num_rows($result) < 1)
+		exiterror_general("Invalid user ID specified at database level: $id");
+	list($name) = mysql_fetch_row($result);
+	return $name;
+}
 
 /**
- * Retrieves a given setting for a particular user.
- * 
- * Note that it's not necessary for the user to be the same person
- * as the user logged-on in the environment (global $User).
+ * returns flat array of usernames
  */
-function get_user_setting($username, $field)
+function get_list_of_users()
 {
-	/*OLD CODE
-	static $cache;
-
-	if (isset($cache[$username]))
-		return $cache[$username][$field];
-
-	$sql_query = "SELECT * from user_info WHERE username = '$username'";
-	
-	$result = do_mysql_query($sql_query);
-		
-	if (mysql_num_rows($result) == 0)
-	{
-		create_user_record($username);
-		return get_user_setting($username, $field);
-	}
-	else
-	{
-		$cache[$username] = mysql_fetch_assoc($result);
-		return $cache[$username][$field];
-	}
-	*/
-	return get_all_user_settings($username)->$field;
+	$result = do_mysql_query("select username from user_info");
+	$u = array();
+	while (false !== ($r = mysql_fetch_row($result)))
+		$u[] = $r[0];	
+	return $u;
 }
 
-/** 
- * Returns an object (stdClass with members corresponding to the
- * fields of the user_info table in the database) containing
- * the specified user's data.
+/**
+ * Adds a new user with the specified username, password and email.
  * 
- * If $autocreate is set to false, then the function will return
- * false in case of a nonexistent user. If it is set to true
- * (the default value) then an empty user record will be created
- * for that user. 
- * 
- * Note that it's not necessary for the user to be the same person
- * as the user logged-on in the environment (global $User).
- */  
-function get_all_user_settings($username, $autocreate = true)
-{	
-	static $cache;
+ */
+function add_new_user($username, $password, $email, $initial_status = USER_STATUS_UNVERIFIED, $expiry_time = 0)
+{
+	global $Config;
 	
-	$autocreate = (bool) $autocreate;
-	
-	if (isset($cache[$username]))
-		return $cache[$username];
-	
+	/* checks, e.g. on usernames containing non-word characters, must be performed at a higher level. 
+	 * Here, we only check for database safety. */
 	$username = mysql_real_escape_string($username);
+	$email = mysql_real_escape_string($email);	
 	
-	$result = do_mysql_query("SELECT * from user_info WHERE username = '$username'");
 	
-	if (mysql_num_rows($result) == 0)
-	{
-		if ($autocreate)
-		{
-			create_user_record($username);
-			return get_all_user_settings($username);
-		}
-		else
-			return false;
-	}
-	else
-	{
-		$cache[$username] = mysql_fetch_object($result);
-		return $cache[$username];
-	}
-}
+	/* then, create a passhash from the password provided */
+	$passhash = generate_new_hash_from_password($password);
 
 
-/** 
- * TODO add phpdoc
- */
-function update_user_setting($username, $field, $setting)
-{
-	$field = mysql_real_escape_string($field);
-	$setting = mysql_real_escape_string($field);
-	$username = mysql_real_escape_string($username);
-	
-	/* nb. This treats all values as stirng, which they aren't, but it seems to work... */
-	do_mysql_query("UPDATE user_info SET $field = '$setting' WHERE username = '$username'");
-}
-
-/** 
- * TODO add phpdoc
- * 
- * @param $settings 
- */
-function update_multiple_user_settings($username, $settings)
-{	
-	$sql_query = "UPDATE user_info SET ";
-	
-	/* nb. This treats all values as stirng, which they aren't, but it seems to work... */
-	foreach ($settings as $field => $value)
-		$sql_query .= mysql_real_escape_string($field) . ' = \'' . mysql_real_escape_string($value) . '\', ';
-	
-	$sql_query = substr($sql_query, 0, strlen($sql_query)-2);
-	
-	$sql_query .= " WHERE username = '$username'";
-	
-	do_mysql_query($sql_query);
-}
-
-function create_user_record($username)
-{
-	global $default_max_dbsize;
-	global $default_colloc_range;
-	global $default_calc_stat;
-	global $default_colloc_minfreq;
-	
 	$sql_query = "INSERT INTO user_info (
 		username,
 		realname,
+		email,
+		passhash,
+		acct_status,
+		expiry_time,
 		conc_kwicview,
 		conc_corpus_order,
 		cqp_syntax,
@@ -159,35 +100,213 @@ function create_user_record($username)
 		coll_from,
 		coll_to,
 		max_dbsize,
-		linefeed
+		linefeed,
 		)
 		VALUES
 		(
 		'$username',
 		'unknown person',
+		'$email',
+		'$passhash',
+		$initial_status,
+		0,
 		1,
 		1,
 		0,
 		0,
 		1,
 		1,
-		$default_calc_stat,
-		$default_colloc_minfreq,
-		$default_colloc_minfreq,
-		" . (-1 * ($default_colloc_range-2)) . ",
-		" . ($default_colloc_range-2) . ",
-		$default_max_dbsize,
-		'au')";
+		{$Config->default_calc_stat},
+		{$Config->default_colloc_minfreq},
+		{$Config->default_colloc_minfreq},
+		" . (-1 * ($Config->default_colloc_range-2)) . ",
+		" . ($Config->default_colloc_range-2) . ",
+		{$Config->default_max_dbsize},
+		'au'
+		)"
+		;
 		
 	do_mysql_query($sql_query);
+	
+	/* check for automatic group ownership */
+	
+	foreach (list_group_regexen() as $group => $regex)
+		if (0 < preg_match("/$regex/", $email))
+			add_user_to_group($username, $group);
 }
 
-
-function delete_user_record($username)
+function update_user_password($user, $new_password)
 {
-	$username = mysql_real_escape_string($username);
-	do_mysql_query("DELETE FROM user_info where username = '$username'");
+	$user = mysql_real_escape_string($user);
+
+	if (empty($new_password))
+		exiterror_general("Cannot set password to empty string!");
+	$new_passhash = generate_new_hash_from_password($new_password);
+	
+	do_mysql_query("update user_info set passhash = '$new_passhash' where username = '$user'");
 }
+
+
+/**
+ * Add a whole number of users.
+ * 
+ * The argument is a matrix (array of arrays).
+ * 
+ * Each inner array has:
+ *    0 => username
+ *    1 => password
+ *    2 => email
+ * 
+ */
+function add_multiple_users($data_matrix)
+{
+	// TODO : not sure how much use this function will actually be.
+	foreach($data_matrix as $arr)
+		add_new_user($arr[0], $arr[1], $arr[2]);
+}
+
+
+
+/**
+ * Deletes a specified user account (and all its saved and categorised queries)
+ * 
+ * If the username passed in is an empty string,
+ * it will return without doing anything; all non-word
+ * characters are removed for database safety.
+ */
+function delete_user($user)
+{
+	global $Config;
+	
+	/* db sanitise */
+	$user = preg_replace('/\W/', '', $user);
+	if (empty($user))
+		return;
+	
+	$id = user_name_to_id($user);
+	
+	/* unjoin all groups */
+	do_mysql_query("delete from user_memberships where user_id = $id");
+
+	/* when we have user privileges, we'll need to delete them as well... */
+	// TODO
+	
+	/* delete uploaded files (and directory) */
+	$d = $Config->dir->upload . '/' . $user;
+	if (is_dir($d))
+		recursive_delete_directory($d);
+	
+	/* delete user saved queries and categorised queries */
+	$result = do_mysql_query("select query_name, saved from saved_queries where saved > 0 and user = $user");
+	while (false !== ($q = mysql_fetch_object($result)))
+	{
+		if ($q->saved == 2)
+		{
+			/* catquery */
+			$inner_result = do_mysql_query("select dbname from saved_catqueries where catquery_name='{$q->query_name}'");
+			list($dbname) = mysql_fetch_row($inner_result);			
+			do_mysql_query("drop table if exists $dbname");
+			do_mysql_query("delete from saved_catqueries where catquery_name='{$q->query_name}'");
+		}
+		/* for both catquery and saved query */
+		delete_cached_query($q->query_name);
+	}
+
+	/* delete user itself */
+	do_mysql_query("delete from user_info where id = $id");
+}
+
+
+
+
+/**
+ * Retrieves a given setting for a particular user.
+ * 
+ * Note that it's not necessary for the user to be the same person
+ * as the user logged-on in the environment (global $User).
+ */
+function get_user_setting($username, $field)
+{
+	return get_all_user_settings($username)->$field;
+}
+
+/** 
+ * Returns an object (stdClass with members corresponding to the
+ * fields of the user_info table in the database) containing
+ * the specified user's data.
+ * 
+ * Returns false in case of a nonexistent user.
+ * 
+ * Note that it's not necessary for the user to be the same person
+ * as the user logged-on in the environment (global $User).
+ */  
+function get_all_user_settings($username)
+{	
+	static $cache;
+		
+	if (isset($cache[$username]))
+		return $cache[$username];
+	
+	$username = mysql_real_escape_string($username);
+	
+	$result = do_mysql_query("SELECT * from user_info WHERE username = '$username'");
+	
+	if (mysql_num_rows($result) == 0)
+			return false;
+	else
+	{
+		$cache[$username] = mysql_fetch_object($result);
+		return $cache[$username];
+	}
+}
+
+
+/** 
+ * Updfate a user setting relating to the user interface tweaks.
+ * TODO change name?
+ */
+function update_user_setting($username, $field, $setting)
+{
+	$field = mysql_real_escape_string($field);
+	$setting = mysql_real_escape_string($field);
+	$username = mysql_real_escape_string($username);
+	
+	/* only certain fields are allowed to be changed via this function. */
+	$fields_allowed = array(
+		'conc_kwicview',
+		'conc_corpus_order',
+		'cqp_syntax',
+		'context_with_tags',
+		'use_tooltips',
+		'coll_statistic',
+		'coll_freqtogether',
+		'coll_freqalone',
+		'coll_from',
+		'coll_to',
+		'max_dbsize',
+		'linefeed',
+		'thin_default_reproducible',
+	);
+	
+	/* nb. This treats all values as string, although most are ints, but it seems to work... */
+	do_mysql_query("UPDATE user_info SET $field = '$setting' WHERE username = '$username'");
+}
+
+/** 
+ * Update many user-interface settings all at once.
+ * TODO change name?
+ * 
+ * @param $settings 
+ */
+function update_multiple_user_settings($username, $settings)
+{	
+	foreach ($settings as $field => $value)
+		update_user_setting($username, $field, $value);
+}
+
+
+
+
 
 
 function get_user_linefeed($username)
@@ -232,6 +351,296 @@ function guess_user_linefeed($user_to_guess)
 
 
 
+/*
+ * =======================
+ * LOGON-RELATED FUNCTIONS
+ * =======================
+ */
+
+
+
+
+
+
+/**
+ * For creating new passwords. Returns the hash to store in the database.
+ */
+function generate_new_hash_from_password($password)
+{
+	/* we are using BLOWFISH with 2^10 iterations, so start of salt always same: */
+	$salt = '$2a$10$';
+	/* get 22 (pseudo-)random bytes */
+	$salt_language = './ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	for ($i = 0; $i < 22 ; $i++)
+		$salt .= $salt_language[rand(0,63)];
+
+	return crypt($password, $salt);
+}
+
+
+
+
+
+/*
+ * ====================
+ * USER GROUP FUNCTIONS
+ * ====================
+ */
+
+
+
+
+function group_name_to_id($group)
+{
+	assert_not_reserved_group($group);
+	$group = mysql_real_escape_string($group);
+	$result = do_mysql_query("select id from user_groups where group_name = '$group'");
+	if (mysql_num_rows($result) < 1)
+		exiterror_general("Invalid group name specified at database level: $group");
+	list($id) = mysql_fetch_row($result);
+	return $id;
+}
+
+function group_id_to_name($id)
+{
+	$id = (int)$id;
+	$result = do_mysql_query("select group_name from user_groups where id = $id");
+	if (mysql_num_rows($result) < 1)
+		exiterror_general("Invalid group ID specified at database level: $id");
+	list($name) = mysql_fetch_row($result);
+	return $name;
+}
+
+/**
+ * Assertion: causes an error abort if this group is one of the "reserved" 
+ * group names (i.e. magic, can't be deleted from the database etc.)
+ */
+function assert_not_reserved_group($group)
+{
+	if ($group == 'superusers' || $group == 'everybody')
+		exiterror("An illegal operation was attempted on one of the system-reserved groups, namely $group.");
+}
+
+/**
+ * returns flat array of group names
+ */
+function get_list_of_groups()
+{
+	$result = do_mysql_query("select group_name from user_groups");
+	$g = array();
+	while (false !== ($r = mysql_fetch_row($result)))
+		$g[] = $r[0];	
+	return $g;
+}
+
+
+
+/**
+ * Returns flat array of usernames
+ */
+function list_users_in_group($group)
+{
+	global $Config;
+	
+	/* specials: user membership not recorded in user_memberships table */
+	if ($group == 'superusers')
+		return explode('|', $Config->superuser_username);
+	else if ($group == 'everybody')
+		$sql = "select username from user_info";
+	else
+	{
+		$g = group_name_to_id($group);
+		$sql = "select user_info.username from user_memberships 
+				inner join user_info on user_info.id = user_memberships.user_id where group_id = $g";
+	}
+	
+	$result = do_mysql_query($sql);
+
+	$users = array();
+	
+	while (false !== ($r = mysql_fetch_row($result)))
+		$users[] = $r[0];
+	
+	return $users;
+}
+
+function get_group_info($group)
+{
+	$group = mysql_real_escape_string($group);
+	$result = do_mysql_query("select * from user_groups where group_name = $group");
+	if (1 > mysql_num_rows($result))
+		exiterror_general("Info requested for non-existent group $group!");
+	return mysql_fetch_object($result);
+}
+
+function get_all_groups_info()
+{
+	$result = do_mysql_query("select * from user_groups");
+	$all = array();
+	while (false !== ($o = mysql_fetch_object($result)))
+		$all[] = $o;
+	return $all;
+}		
+
+function add_user_to_group($user, $group, $expiry_time = 0)
+{
+	assert_not_reserved_group($group);
+	$g = group_name_to_id($group);
+	$u = user_name_to_id($user);
+	$expiry_time = (int) $expiry_time;
+	do_mysql_query("insert into user_memberships (user_id,group_id,expiry_time)values($u,$g,$expiry_time)");
+}
+
+
+function remove_user_from_group($user, $group)
+{
+	assert_not_reserved_group($group);
+	$g = group_name_to_id($group);
+	$u = user_name_to_id($user);
+	do_mysql_query("delete from user_memberships where group_id = $g and user_id = $u");
+}
+
+
+/**
+ * Returns associative array of groupname => group_autojoin_regex
+ *  
+ */
+function list_group_regexen()
+{
+	$result = do_mysql_query("select group_name, autojoin_regex from user_groups");
+	$list = array();
+	while (false !== ($o = mysql_fetch_object($result)))
+	{
+		if (empty($o->autojoin_regex))
+			continue;
+		else
+			$list[$o->group_name] = $o->autojoin_regex;
+	}
+	return $list;
+}
+
+
+
+//TODO
+function add_new_group($group)
+{
+
+}
+
+
+
+
+function delete_group($group)
+{
+	assert_not_reserved_group($group);
+	
+	$g = group_name_to_id($group);
+	
+	/* delete all memberships */
+	do_mysql_query("delete from user_memberships where group_id = $g");
+	
+	/* delete group */
+	do_mysql_query("delete from user_groups where id = $g");
+}
+
+
+
+function deny_group_access_to_corpus($corpus, $group)
+{
+//	$group = preg_replace('/\W/', '', $group);
+//	
+//	if ($corpus == '' || $group == '')
+//		return;
+//	if (! file_exists("../$corpus/.htaccess"))
+//		return;
+//	/* having got here, we know the $corpus variable is OK */
+//	
+//	/* don't check group in the same way -- we want to be  */
+//	/* able to disallow access to nonexistent groups       */
+//
+//	$apache = get_apache_object(realpath("../$corpus"));
+//	$apache->load();
+//	$apache->disallow_group($group);
+//	$apache->save();
+}
+
+function give_group_access_to_corpus($corpus, $group)
+{
+//	if ($corpus == '' || $group == '')
+//		return;
+//	if (! file_exists("../$corpus/.htaccess"))
+//		return;
+//	/* having got here, we know the $corpus variable is OK */
+//
+//	$apache = get_apache_object(realpath("../$corpus"));
+//	$group_list = $apache->list_groups();
+//	if (!in_array($group, $group_list))
+//		return;
+//	/* and having survived that, we know group is OK too */
+//	
+//	$apache->load();
+//	$apache->allow_group($group);
+//	$apache->save();
+}
+
+/**
+ * Function wrapping multiple calls to give_group_access_to_corpus()
+ * and deny_group_access_to_corpus().
+ * 
+ * $corpora_to_grant is a string of individual corpora, 
+ * delimited by |
+ * 
+ * Any corpus not in that list -- access is denied.
+ * 
+ */ 
+function update_group_access_rights($group, $corpora_to_grant)
+{
+	$to_grant = explode('|', $corpora_to_grant);
+	
+	foreach($to_grant as $c)
+		give_group_access_to_corpus($c, $group);
+	
+	unset($c);
+	
+	foreach(list_corpora() as $c)
+		if (!in_array($c, $to_grant))
+			deny_group_access_to_corpus($c, $group);
+}
+
+function clone_group_access_rights($from_group, $to_group)
+{
+	/* checks for group validity */
+	if ($from_group == $to_group)
+		return;
+	$apache = get_apache_object('nopath');
+	$group_list = $apache->list_groups();
+	if (!in_array($from_group, $group_list))
+		return;
+	if (!in_array($to_group, $group_list))
+		return;
+	
+	$list_of_corpora = list_corpora();
+	foreach ($list_of_corpora as $c)
+	{
+		$apache->set_path_to_web_directory("../$c");
+		$apache->load();
+		if ( in_array($from_group, $apache->get_allowed_groups()) )
+			/* allow */
+			$apache->allow_group($to_group);
+		else
+			/* deny */
+			$apache->disallow_group($to_group);
+		$apache->save();
+	}
+}
+
+
+
+
+
+
+
+
 function user_macro_create($username, $macro_name, $macro_body)
 {
 	$username = mysql_real_escape_string($username);
@@ -258,7 +667,7 @@ function user_macro_create($username, $macro_name, $macro_body)
 	user_macro_delete($username, $macro_name, $macro_num_args);
 	
 	$sql_query = "INSERT INTO user_macros
-		(username, macro_name, macro_num_args, macro_body)
+		(user, macro_name, macro_num_args, macro_body)
 		values
 		('$username', '$macro_name', $macro_num_args, '$macro_body')";
 	
@@ -272,7 +681,7 @@ function user_macro_delete($username, $macro_name, $macro_num_args)
 	$macro_num_args = (int)$macro_num_args;
 	
 	do_mysql_query("delete from user_macros 
-						where username='$username' 
+						where user='$username' 
 						and macro_name='$macro_name'
 						and macro_num_args = $macro_num_args");
 }
@@ -287,7 +696,7 @@ function user_macro_loadall($username)
 	
 	$username = mysql_real_escape_string($username);
 
-	$result = do_mysql_query("select * from user_macros where username='$username'");
+	$result = do_mysql_query("select * from user_macros where user='$username'");
 
 	while (false !== ($r = mysql_fetch_object($result)))
 	{

@@ -147,47 +147,46 @@ function delete_corpus_from_cqpweb($corpus)
 
 
 /**
- * Adds default htaccess files to the builtin subdirectories; removes
- * the autoconfig script if it exists.
+ * Removes the autoconfig script if it exists.
  */
 function restore_system_security()
 {
 	/* folders: adm, css, doc, lib; plus root folder */
 	
 	/* four of those are easy */
-	if (file_exists('../.htaccess'))
-		unlink('../.htaccess');
-	if (file_exists('../doc/.htaccess'))
-		unlink('../doc/.htaccess');
-	if (file_exists('../css/.htaccess'))
-		unlink('../css/.htaccess');
-	if (file_exists('../rss/.htaccess'))
-		unlink('../rss/.htaccess');
+//	if (file_exists('../.htaccess'))
+//		unlink('../.htaccess');
+//	if (file_exists('../doc/.htaccess'))
+//		unlink('../doc/.htaccess');
+//	if (file_exists('../css/.htaccess'))
+//		unlink('../css/.htaccess');
+//	if (file_exists('../rss/.htaccess'))
+//		unlink('../rss/.htaccess');
 	
 	/* adm needs a standard .htaccess which just allows superusers */
-	if (file_exists('../adm/.htaccess'))
-		unlink('../adm/.htaccess');
-	$adm = get_apache_object(realpath('../adm'));
-	$adm->allow_group('superusers');
-	$adm->save();
-	chmod("../adm/.htaccess", 0664);
-	unset($adm);
+//	if (file_exists('../adm/.htaccess'))
+//		unlink('../adm/.htaccess');
+//	$adm = get_apache_object(realpath('../adm'));
+//	$adm->allow_group('superusers');
+//	$adm->save();
+//	chmod("../adm/.htaccess", 0664);
+//	unset($adm);
 	
 	/* lib needs the same, but easier cos NO ONE allowed */
-	if (file_exists('../lib/.htaccess'))
-		unlink('../lib/.htaccess');
-	file_put_contents('../lib/.htaccess', "deny from all");
-	chmod("../lib/.htaccess", 0664);
-	/* but javascript within lib needs to be allowed */
-	if (file_exists('../lib/javascript/.htaccess'))
-		unlink('../lib/javascript/.htaccess');
-	file_put_contents('../lib/javascript/.htaccess', "allow from all");
-	chmod("../lib/javascript/.htaccess", 0664);
+//	if (file_exists('../lib/.htaccess'))
+//		unlink('../lib/.htaccess');
+//	file_put_contents('../lib/.htaccess', "deny from all");
+//	chmod("../lib/.htaccess", 0664);
+//	/* but javascript within lib needs to be allowed */
+//	if (file_exists('../lib/javascript/.htaccess'))
+//		unlink('../lib/javascript/.htaccess');
+//	file_put_contents('../lib/javascript/.htaccess', "allow from all");
+//	chmod("../lib/javascript/.htaccess", 0664);
 
 	/* bin needs a total block also */
-	if (file_exists('../bin/.htaccess'))
-		unlink('../bin/.htaccess');
-	file_put_contents('../bin/.htaccess', "deny from all");
+//	if (file_exists('../bin/.htaccess'))
+//		unlink('../bin/.htaccess');
+//	file_put_contents('../bin/.htaccess', "deny from all");
 
 	
 	/* check that the autoconfig script in the root folder is GONE */
@@ -197,288 +196,6 @@ function restore_system_security()
 		unlink('../cqpweb-autoconfig.php.gz');
 }
 
-/**
- * Adds a new user.
- * 
- * Note the function can also be used to update the password. If the user already exists,
- * default values will not be reinserted into the user database.
- */
-function add_new_user($username, $password, $email = NULL)
-{
-	$apache = get_apache_object('nopath');
-	
-	$username = preg_replace('/\W/', '', $username);
-	$password = preg_replace('/\W/', '', $password);
-	
-	if ($username === '' || $password === '')
-		exiterror_general("Usernames and passwords can only contain letters, numbers and underscores.",
-			__FILE__, __LINE__);
-	
-	$apache->new_user($username, $password);
-
-	/* start by creating a blank entry for the user (or, retrieving an existing entry) */
-	$profile = get_all_user_settings($username);
-	
-	/* then, overwrite the password as stored in the database */
-	$db_password = $password;
-	update_user_setting($username, 'password', $db_password);
-	
-	/* and if email has been passed into the function, likewise overwrite it */
-	if (isset($email))
-		update_user_setting($username, 'email', mysql_real_escape_string($email));
-}
-
-function add_batch_of_users($username_root, $number_in_batch, $password, $autogroup, $different_passwords = false)
-{	
-	global $create_password_function;
-
-	$apache = get_apache_object('nopath');
-
-	$autogroup = preg_replace('/\W/', '', $autogroup);
-	$password = preg_replace('/\W/', '', $password);
-	if ($autogroup !== '')
-	{
-		$group_list = $apache->list_groups();
-		if (!in_array($autogroup, $group_list))
-			$apache->new_group($autogroup);
-	}
-	
-	$number_in_batch = (int)$number_in_batch;
-	$different_passwords = (bool)$different_passwords;
-
-	/* get passwords and begin the text-file write */
-	if ($different_passwords)
-	{
-		$password_list = $create_password_function($number_in_batch+2);
-		header("Content-Type: text/plain; charset=utf-8");
-		header("Content-disposition: attachment; filename=passwords_for_{$username_root}_batch.txt");
-		echo "The following user accounts have been created.\n\nUsername\tPassword\n\n";
-	}
-	
-	for ($i = 1 ; $i <= $number_in_batch; $i++)
-	{
-		if ($different_passwords)
-		{
-			$this_password = $password_list[$i];
-			echo "$username_root$i\t$this_password\n";
-		}
-		else
-			$this_password = $password;
-		
-		$apache->new_user("$username_root$i", $this_password);
-		if ($autogroup !== '')
-			$apache->add_user_to_group("$username_root$i", $autogroup);
-
-		$profile = get_all_user_settings("$username_root$i");
-	
-		/* then, overwrite the password as stored in the database */
-		$db_password =  $this_password;
-		update_user_setting("$username_root$i", 'password', $db_password);
-	}
-	// added because for small N, the resulting file could be overridden by execute()'s "Location" header.
-	if ($different_passwords)
-		flush();
-	// TODO: maybe better for execute to flush before checking headers_sent?
-}
-
-/**
- * Deletes a specified user account.
- * 
- * If the username passed in is an empty string,
- * it will return without doing anything; all non-word
- * characters are removed for database safety.
- */
-function delete_user($user)
-{
-	$user = preg_replace('/\W/', '', $user);
-	if (empty($user))
-		return;
-	$apache = get_apache_object('nopath');
-	$apache->delete_user($user);
-	delete_user_record($user);
-}
-
-
-/**
- * Deletes accounts of all usernames consisting of $prefix plus a string of one or more digits. 
- * 
- * @param $prefix  The prefix of the accounts to be deleted. Normally, these will be a bundle
- *                 of accounts created with batch.
- */
-function delete_user_batch($prefix)
-{
-	$apache = get_apache_object('nopath');
-	$prefix = preg_replace('/\W/', '', $prefix);
-	if ($prefix === '')
-		return;
-	foreach ($apache->list_users() as $user)
-	{
-		if (preg_match("/^$prefix\d+$/", $user) > 0)
-		{
-			$apache->delete_user($user);
-			delete_user_record($user);
-		}
-	}	
-}
-
-
-function add_user_to_group($user, $group)
-{
-	$apache = get_apache_object('nopath');
-
-	
-	$user = preg_replace('/\W/', '', $user);
-	$group = preg_replace('/\W/', '', $group);
-	
-	if ($user === '' || $group === '')
-		exiterror_general("Invalid username or group name!",
-			__FILE__, __LINE__);
-
-	$apache->add_user_to_group($user, $group);
-}
-
-function remove_user_from_group($user, $group, $superuseroverride = false)
-{
-	/* block the removal of users from "superusers" unless specific override given */
-	if ($group == 'superusers' && $superuseroverride !== true)
-		return;
-	
-	if (empty($user))
-		exiterror_general("Unspecified username - cannot continue.");
-	if (empty($group))
-		exiterror_general("Unspecified user group - cannot continue.");
-	
-	$apache = get_apache_object('nopath');
-	$apache->delete_user_from_group($user, $group);
-}
-
-function delete_group($group)
-{
-	/* block the removal of "superusers" */
-	if ($group == 'superusers')
-		return;
-	$apache = get_apache_object('nopath');
-	$apache->delete_group($group);
-}
-
-function create_group($group)
-{
-	$apache = get_apache_object('nopath');
-	$apache->new_group($group);
-	/* note the apache object does input sanitation so no need to bother here */
-}
-
-
-function deny_group_access_to_corpus($corpus, $group)
-{
-	$group = preg_replace('/\W/', '', $group);
-	
-	if ($corpus == '' || $group == '')
-		return;
-	if (! file_exists("../$corpus/.htaccess"))
-		return;
-	/* having got here, we know the $corpus variable is OK */
-	
-	/* don't check group in the same way -- we want to be  */
-	/* able to disallow access to nonexistent groups       */
-
-	$apache = get_apache_object(realpath("../$corpus"));
-	$apache->load();
-	$apache->disallow_group($group);
-	$apache->save();
-}
-
-function give_group_access_to_corpus($corpus, $group)
-{
-	if ($corpus == '' || $group == '')
-		return;
-	if (! file_exists("../$corpus/.htaccess"))
-		return;
-	/* having got here, we know the $corpus variable is OK */
-
-	$apache = get_apache_object(realpath("../$corpus"));
-	$group_list = $apache->list_groups();
-	if (!in_array($group, $group_list))
-		return;
-	/* and having survived that, we know group is OK too */
-	
-	$apache->load();
-	$apache->allow_group($group);
-	$apache->save();
-}
-
-/**
- * Function wrapping multiple calls to give_group_access_to_corpus()
- * and deny_group_access_to_corpus().
- * 
- * $corpora_to_grant is a string of individual corpora, 
- * delimited by |
- * 
- * Any corpus not in that list -- access is denied.
- * 
- */ 
-function update_group_access_rights($group, $corpora_to_grant)
-{
-	$to_grant = explode('|', $corpora_to_grant);
-	
-	foreach($to_grant as $c)
-		give_group_access_to_corpus($c, $group);
-	
-	unset($c);
-	
-	foreach(list_corpora() as $c)
-		if (!in_array($c, $to_grant))
-			deny_group_access_to_corpus($c, $group);
-}
-
-function clone_group_access_rights($from_group, $to_group)
-{
-	/* checks for group validity */
-	if ($from_group == $to_group)
-		return;
-	$apache = get_apache_object('nopath');
-	$group_list = $apache->list_groups();
-	if (!in_array($from_group, $group_list))
-		return;
-	if (!in_array($to_group, $group_list))
-		return;
-	
-	$list_of_corpora = list_corpora();
-	foreach ($list_of_corpora as $c)
-	{
-		$apache->set_path_to_web_directory("../$c");
-		$apache->load();
-		if ( in_array($from_group, $apache->get_allowed_groups()) )
-			/* allow */
-			$apache->allow_group($to_group);
-		else
-			/* deny */
-			$apache->disallow_group($to_group);
-		$apache->save();
-	}
-}
-
-/**
- * Creates an Apache interface-object (that deals with htaccess, htpasswd, and htgroup
- * files) with the right settings for use in CQPweb.
- */
-function get_apache_object($path_to_web_directory)
-{
-	global $path_to_apache_utils;
-	global $cqpweb_accessdir;
-	
-	$obj = new apache_htaccess();
-		
-	$obj->set_AuthName('CQPweb');
-	
-	$obj->set_path_to_apache_password_utility_directory("/$path_to_apache_utils");
-	$obj->set_path_to_groups_file("/$cqpweb_accessdir/.htgroup");
-	$obj->set_path_to_password_file("/$cqpweb_accessdir/.htpasswd");
-	
-	$obj->set_path_to_web_directory($path_to_web_directory);
-
-	return $obj;
-}
 
 /**
  * This function, for admin use only, updates the text metadata of the corpus with begin and end 
@@ -917,8 +634,7 @@ function create_text_metadata_for()
 		$px = (int)$create_text_metadata_for_info['primary_classification'];
 		$pa = $create_text_metadata_for_info['fields'][$px]['handle'];
 		if ($pa !== '')
-			$update_statement = "update corpus_info set primary_classification_field = '$pa' 
-				where corpus = '$corpus'";
+			$update_statement = "update corpus_info set primary_classification_field = '$pa' where corpus = '$corpus'";
 	}
 
 	if (isset($inserts_for_metadata_fields))
@@ -941,7 +657,7 @@ function create_text_metadata_for()
 			create_text_metadata_check_field_words($corpus, $cur);
 	
 	
-	if ($update_statement !== '')
+	if (!empty($update_statement))
 		do_mysql_query($update_statement);
 
 	foreach($scan_statements as &$current)
@@ -1423,10 +1139,17 @@ function cqpweb_mysql_total_reset()
 	
 	$array_of_create_statements = cqpweb_mysql_recreate_tables();
 
-	foreach ($array_of_create_statements as $name => &$statement)
+	foreach ($array_of_create_statements as $name => $statement)
 	{
 		do_mysql_query("drop table if exists $name");
 		do_mysql_query($statement);
+	}
+	
+	$array_of_extra_statements = cqpweb_mysql_recreate_extras();
+	
+	foreach ($array_of_extra_statements as $statement)
+	{
+		do_mysql_query($statement);		
 	}
 }
 
@@ -1459,18 +1182,24 @@ function cqpweb_mysql_recreate_tables()
 	 * Handle string - varchar 20
 	 * 
 	 * EXCEPTION: dbname is 200 because historically it was built from many components. 
-	 * However,now its maxlength is shorter CHECK TODO  
+	 * However,now its maxlength = 'db_catquery_' (12) plus the length of an instance name (which is 10).
+	 * So it still won't fit in 20. But we are keeping it at 200 for now because old data could be lost otherwise.
+	 * (The equiv field in saved_catqueries is 150 for some reason, no idea what; if 200 is lowered, then this can be lowered too.)
 	 * 
-	 * Long string (for names, short descs, etc - varchar 255 
+	 * Username - varchar 30
+	 * (was previously 20, but some tables allowed 30, so have increased all to 30)
+	 * 
+	 * Long string (for names, descriptions, etc) - varchar 255 
 	 *  
 	 */
 	
+	/* nb it is somewhat inconsistent that here "name" = long desc rather than short handle. never mind.... */
 	$create_statements['annotation_mapping_tables'] =
 		"CREATE TABLE `annotation_mapping_tables` (
-			`id` varchar(40),
+			`handle` varchar(20) NOT NULL,
 			`name` varchar(255), 
 			`mappings` text character set utf8,
-			key(`id`)
+			primary key(`handle`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
 	
 	
@@ -1528,7 +1257,7 @@ function cqpweb_mysql_recreate_tables()
 	$create_statements['query_history'] =
 		"create table query_history (
 			`instance_name` varchar(31) default NULL,
-			`user` varchar(20) NOT NULL default '',
+			`user` varchar(20) default NULL,
 			`corpus` varchar(20) NOT NULL default '',
 			`cqp_query` text  NOT NULL,
 			`restrictions` text character set utf8 collate utf8_bin default NULL,
@@ -1546,7 +1275,7 @@ function cqpweb_mysql_recreate_tables()
 	$create_statements['saved_catqueries'] =
 		"CREATE TABLE `saved_catqueries` (
 			`catquery_name` varchar(150) NOT NULL,
-			`user` varchar(20) default NULL,
+			`user` varchar(30) default NULL,
 			`corpus` varchar(20) NOT NULL  default '',
 			`dbname` varchar(150) NOT NULL  default '',
 			`category_list` TEXT,
@@ -1595,7 +1324,7 @@ function cqpweb_mysql_recreate_tables()
 	$create_statements['saved_queries'] =
 		"CREATE TABLE `saved_queries` (
 			`query_name` varchar(150) NOT NULL,
-			`user` varchar(20) default NULL,
+			`user` varchar(30) default NULL,
 			`corpus` varchar(20) NOT NULL default '',
 			`query_mode` varchar(12) default NULL,
 			`simple_query` text,
@@ -1635,6 +1364,14 @@ function cqpweb_mysql_recreate_tables()
 			key(`text_list`(255))
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 	
+
+	$create_statements['system_info'] =
+		"CREATE TABLE `system_info` (
+			setting_name varchar(20) NOT NULL collate utf8_bin,
+			value varchar(255),
+			primary key(`setting_name`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+
 
 	$create_statements['system_longvalues'] =
 		"CREATE TABLE `system_longvalues` (
@@ -1687,7 +1424,17 @@ function cqpweb_mysql_recreate_tables()
 			primary key(`corpus`, `field_handle`, `handle`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 
-	
+
+	$create_statements['user_groups'] =
+		"CREATE TABLE `user_groups` (
+			`id` int NOT NULL AUTO_INCREMENT,
+			`group_name` varchar(20) NOT NULL UNIQUE COLLATE utf8_bin,
+			`description` varchar(255) NOT NULL default '',
+			`autojoin_regex` text,
+			primary key (`id`)
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+
+
 	$create_statements['user_info'] =
 		"CREATE TABLE `user_info` (
 			`id` int NOT NULL AUTO_INCREMENT,
@@ -1695,6 +1442,11 @@ function cqpweb_mysql_recreate_tables()
 			`password` varchar(20) default NULL,
 			`realname` varchar(50) default NULL,
 			`email` varchar(50) default NULL,
+			`passhash` char(61),
+			`acct_status` tinyint(1),
+			`expiry_time` int UNSIGNED NOT NULL default 0,
+			`password_expiry_time` int UNSIGNED NOT NULL default 0,
+			`last_seen_time` timestamp NOT NULL default CURRENT_TIMESTAMP,
 			`conc_kwicview` tinyint(1),
 			`conc_corpus_order` tinyint(1),
 			`cqp_syntax` tinyint(1),
@@ -1716,15 +1468,23 @@ function cqpweb_mysql_recreate_tables()
 	$create_statements['user_macros'] =
 		"CREATE TABLE `user_macros` (
 			`id` int NOT NULL AUTO_INCREMENT,
-			`username` varchar(20) NOT NULL default '',
-			`macro_name` varchar(50) NOT NULL default '',
+			`user` varchar(30) NOT NULL,
+			`macro_name` varchar(20) NOT NULL default '',
 			`macro_num_args` int,
 			`macro_body` text,
-			key(`username`),
+			unique key(`user`, `macro_name`),
 			primary key(`id`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
 
 
+	$create_statements['user_memberships'] = 
+		"CREATE TABLE `user_memberships` (
+			`user_id` int NOT NULL,
+			`group_id` int NOT NULL,
+			`expiry_time` int UNSIGNED NOT NULL default 0
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+	
 	$create_statements['xml_visualisations'] =
 		"CREATE TABLE `xml_visualisations` (
 			`id` int NOT NULL AUTO_INCREMENT,
@@ -1749,7 +1509,18 @@ function cqpweb_mysql_recreate_tables()
 }
 
 
-
+/**
+ * Returns a numeric array of statements that should be run
+ * to put the system into initial state, AFTER creation of the tables.
+ */ 
+function cqpweb_mysql_recreate_extras()
+{
+	$statements = array(
+		'insert into user_groups (group_name,description)values("superusers","Users with admin power")',
+		'insert into user_groups (group_name,description)values("everybody","Group to which all users automatically belong")'
+		);
+	return $statements;
+}
 
 
 

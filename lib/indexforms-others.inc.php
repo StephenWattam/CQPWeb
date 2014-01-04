@@ -241,7 +241,8 @@ function printquery_usermacros()
 	
 	/* delete a macro? */
 	if (!empty($_GET['macroDelete']))
-		user_macro_delete($_GET['macroUsername'], $_GET['macroDelete'],$_GET['macroDeleteNArgs']); 
+		user_macro_delete($_GET['macroUsername'], $_GET['macroDelete'],$_GET['macroDeleteNArgs']);
+	// TODO use ID field instead
 	
 	?>
 <table class="concordtable" width="100%">
@@ -251,7 +252,7 @@ function printquery_usermacros()
 	
 	<?php
 	
-	$result = do_mysql_query("select * from user_macros where username='$username'");
+	$result = do_mysql_query("select * from user_macros where user='$username'");
 	if (mysql_num_rows($result) == 0)
 	{
 		?>

@@ -84,7 +84,6 @@ cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT
 /* this is probably _too_ paranoid. but hey */
 if (user_is_superuser($username))
 {
-	require('../lib/apache.inc.php');
 	require('../lib/admin-lib.inc.php');
 	require('../lib/corpus-settings.inc.php');
 	require('../lib/indexforms-admin.inc.php');
