@@ -923,6 +923,235 @@ function printquery_freqlist()
 
 }
 
+/* not really a "query", but closer to belonging in this file than any other. */
+function printquery_corpusmetadata()
+{
+	global $corpus_title;
+	global $corpus_sql_name;
+	global $corpus_cqp_name;
+
+	?>
+	<table class="concordtable" width="100%">
+	
+		<tr>
+			<th colspan="2" class="concordtable">Metadata for <?php echo $corpus_title; ?> 
+			</th>
+		</tr>
+
+	<?php
+	
+	/* set up the data we need */
+	
+	/* load metadata into two result arrays */
+
+	$sql_query = "select * from corpus_info where corpus = '$corpus_sql_name'";
+	$result_fixed = do_mysql_query($sql_query);
+	/* this will only contain a single row */
+	$metadata_fixed = mysql_fetch_assoc($result_fixed);
+	
+	$sql_query = "select * from corpus_metadata_variable where corpus = '$corpus_sql_name'";
+	$result_variable = do_mysql_query($sql_query);	
+	
+	/* number of files in corpus */
+	$result_textlist = do_mysql_query("select count(text_id) from text_metadata_for_$corpus_sql_name");
+	list($num_texts) = mysql_fetch_row($result_textlist);
+	$num_texts = number_format((float)$num_texts);
+	
+	/* now get total word length of all files */
+	$words_in_all_texts = number_format((float)$tokens = get_corpus_wordcount());
+	
+	/* work out number of types and type token ratio */
+	$result_temp = do_mysql_query("show tables like 'freq_corpus_{$corpus_sql_name}_word'");
+	if (mysql_num_rows($result_temp) > 0)
+	{
+		$result_types = do_mysql_query("select count(distinct(item)) from freq_corpus_{$corpus_sql_name}_word");
+		list($types) = mysql_fetch_row($result_types);
+		$types_in_corpus = number_format((float)$types);
+		$type_token_ratio = round( ($types / $tokens) , 2) . ' types per token';
+	}
+	else
+	{
+		$types_in_corpus = 'Cannot be calculated (frequency tables not set up)';
+		$type_token_ratio = 'Cannot be calculated (frequency tables not set up)';	
+	}
+	
+	/* get a list of metadata_fields */
+	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus_sql_name'";
+	$result_textfields = do_mysql_query($sql_query);
+
+	/* get a list of annotations */
+	$sql_query = "select * from annotation_metadata where corpus = '$corpus_sql_name'";
+	$result_annotations = do_mysql_query($sql_query);
+	
+	/* create a placeholder for the primary annotation's description */
+	$primary_annotation_string = $metadata_fixed['primary_annotation'];
+	/* the description itself will be grabbed when we scroll through the full list of annotations */
+		
+	
+	
+	?>
+		<tr>
+			<td width="50%" class="concordgrey">Corpus name</td>
+			<td width="50%" class="concordgeneral"><?php echo $corpus_title; ?></td>
+		</tr>
+		<tr>
+			<td class="concordgrey">CQPweb's short handles for this corpus</td>
+			<td class="concordgeneral"><?php echo "$corpus_sql_name / $corpus_cqp_name"; ?></td>
+		</tr>
+		<tr>
+			<td class="concordgrey">Total number of corpus texts</td>
+			<td class="concordgeneral"><?php echo $num_texts; ?></td>
+		</tr>
+		<tr>
+			<td class="concordgrey">Total words in all corpus texts</td>
+			<td class="concordgeneral"><?php echo $words_in_all_texts; ?></td>
+		</tr>
+		<tr>
+			<td class="concordgrey">Word types in the corpus</td>
+			<td class="concordgeneral"><?php echo $types_in_corpus; ?></td>
+		</tr>
+		<tr>
+			<td class="concordgrey">Type:token ratio</td>
+			<td class="concordgeneral"><?php echo $type_token_ratio; ?></td>
+		</tr>
+
+	<?php
+	
+	
+	/* VARIABLE METADATA */
+	while (($metadata = mysql_fetch_assoc($result_variable)) != false)
+	{
+		/* if it looks like a URL, linkify it */
+		if (0 < preg_match('|^https?://\S+$|', $metadata['value']))
+			$metadata['value'] = "<a href=\"{$metadata['value']}\" target=\"_blank\">{$metadata['value']}</a>";
+		/* TODO: make the above work the same as in the text metadata display? */
+		?>
+		<tr>
+			<td class="concordgrey"><?php echo htmlspecialchars($metadata['attribute']); ?></td>
+			<td class="concordgeneral"><?php echo htmlspecialchars($metadata['value']); ?></td>
+		</tr>
+		<?php
+	}
+	
+	?>
+		<tr>
+			<th class="concordtable" colspan="2">Text metadata and word-level annotation</td>
+		</tr>
+	<?php
+	
+	
+	/* TEXT CLASSIFICATIONS */
+	$num_rows = mysql_num_rows($result_textfields);
+	?>
+		<tr>
+			<td rowspan="<?php echo $num_rows; ?>" class="concordgrey">
+				The database stores the following information for each text in the corpus:
+			</td>
+	<?php
+	$i = 1;
+	while (($metadata = mysql_fetch_row($result_textfields)) != false)
+	{
+		echo '<td class="concordgeneral">';
+		echo metadata_expand_field($metadata[0]);
+		echo '</td></tr>';
+		if (($i) < $num_rows)
+			echo '<tr>';
+		$i++;
+	}
+	if ($i == 1)
+		echo '<td class="concordgeneral">There is no text-level metadata for this corpus.</td></tr>';
+	?>
+		<tr>
+			<td class="concordgrey">The <b>primary</b> classification of texts is based on:</td>
+			<td class="concordgeneral">
+				<?php 
+				echo (empty($metadata_fixed['primary_classification_field'])
+					? 'A primary classification scheme for texts has not been set.'
+					: metadata_expand_field($metadata_fixed['primary_classification_field'])); 
+				?>
+			</td>
+		</tr>
+	<?php	
+	
+	
+	/* ANNOTATIONS */
+	$num_rows = mysql_num_rows($result_annotations);
+	?>
+		<tr>
+			<td rowspan="<?php echo $num_rows; ?>" class="concordgrey">
+				Words in this corpus are annotated with:
+			</td>
+	<?php
+	$i = 1;
+	while (($annotation = mysql_fetch_assoc($result_annotations)) != false)
+	{
+		echo '<td class="concordgeneral">';
+		if ($annotation['description'] != "")
+		{
+			echo $annotation['description'];
+			
+			/* while we're looking at the description, save it for later if this
+			 * is the primary annotation */
+			if ($primary_annotation_string == $annotation['handle'])
+				$primary_annotation_string  = $annotation['description'];
+		}
+		else
+			echo $annotation['handle'];
+		if ($annotation['tagset'] != "")
+		{
+			echo ' (';
+			if ($annotation['external_url'] != "")
+				echo '<a target="_blank" href="' . $annotation['external_url'] 
+					. '">' . $annotation['tagset'] . '</a>';
+			else
+				echo $annotation['tagset'];
+			echo ')';
+		}	
+			
+		echo '</td></tr>';
+		if (($i) < $num_rows)
+			echo '<tr>';
+		$i++;
+	}
+	/* if there were no annotations.... */
+	if ($i == 1)
+		echo '<td class="concordgeneral">There is no word-level annotation in this corpus.</td></tr>';
+	?>
+		<tr>
+			<td class="concordgrey">The <b>primary</b> tagging scheme is:</td>
+			<td class="concordgeneral">
+				<?php 
+				echo empty($primary_annotation_string) 
+					? 'A primary tagging scheme has not been set' 
+					: $primary_annotation_string; 
+				?>
+			</td>
+		</tr>
+	<?php		
+	
+	
+	/* EXTERNAL URL */
+	if ( $metadata_fixed['external_url'] != "" )
+	{
+		?>
+		<tr>
+			<td class="concordgrey">
+				Further information about this corpus is available on the web at:
+			</td>
+			<td class="concordgeneral">
+				<a target="_blank" href="<?php echo $metadata_fixed['external_url']; ?>">
+					<?php echo $metadata_fixed['external_url']; ?>
+				</a>
+			</td>
+		</tr>
+		<?php
+	}
+		
+	?>	
+	</table>
+	<?php
+}
+
 
 
 ?>

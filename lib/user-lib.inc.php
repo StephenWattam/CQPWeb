@@ -76,8 +76,7 @@ function add_new_user($username, $password, $email, $initial_status = USER_STATU
 	$username = mysql_real_escape_string($username);
 	$email = mysql_real_escape_string($email);	
 	
-	
-	/* then, create a passhash from the password provided */
+	/* no need to check password, since we create a passhash from the password & don't store it */
 	$passhash = generate_new_hash_from_password($password);
 
 
@@ -135,16 +134,7 @@ function add_new_user($username, $password, $email, $initial_status = USER_STATU
 			add_user_to_group($username, $group);
 }
 
-function update_user_password($user, $new_password)
-{
-	$user = mysql_real_escape_string($user);
 
-	if (empty($new_password))
-		exiterror_general("Cannot set password to empty string!");
-	$new_passhash = generate_new_hash_from_password($new_password);
-	
-	do_mysql_query("update user_info set passhash = '$new_passhash' where username = '$user'");
-}
 
 
 /**
@@ -214,6 +204,121 @@ function delete_user($user)
 
 	/* delete user itself */
 	do_mysql_query("delete from user_info where id = $id");
+}
+
+
+
+function update_user_password($user, $new_password)
+{
+	$user = mysql_real_escape_string($user);
+
+	if (empty($new_password))
+		exiterror_general("Cannot set password to empty string!");
+	$new_passhash = generate_new_hash_from_password($new_password);
+	
+	do_mysql_query("update user_info set passhash = '$new_passhash' where username = '$user'");
+}
+
+
+/**
+ * Sends out an account verification email,
+ * with a freshly-generated verification key.
+ * 
+ * The verification key goes into the db.
+ */
+function send_user_verification_email($user)
+{
+	/* create key and set in database */
+	$verify_key = set_user_verification_key($user);
+	
+	list($email,$realname) = mysql_fetch_row(do_mysql_query("select email, realname from user_info where username='$user'"));
+	
+	if (empty($realname) || $realname == 'unknown person')
+	{
+		$realname = 'User';
+		$user_address = $email;
+	}
+	else
+		$user_address = "$realname <$email>";
+	
+	$verify_url = url_absolutify();
+	
+	$body = <<<HERE
+Dear $realname,
+
+A new user account has been created on our CQPweb server in
+association with your email address.
+
+To validate this new account, and confirm as yours the address to
+which this email was sent, please visit the following link:
+
+$verify_url
+
+If your email client disables external links, copy and paste 
+the address above into a web browser.
+
+If CQPweb cannot read your verification code successfully
+from the link, it will ask you for a verification key. 
+In that case, copy-and-paste the following 32-letter code:
+
+$verify_key 
+
+If you DID NOT create this account, or request it to be created
+on your behalf, then all you need to do is ignore this email; 
+the account will then never be activated.
+
+Yours sincerely,
+
+The CQPweb User Administration System
+
+
+HERE;
+	
+	
+	send_cqpweb_email($user_address, 'CQPweb: please verify user account creation!', $body);
+}
+
+/**
+ * Sets a key to verify either an account or a password reset.
+ * 
+ * Creates and returns a 32-byte key, which is also stored in the DB for the 
+ * specified user.
+ * 
+ * Note this function does not check for the reality of the user -
+ * if a nonexistent user is specified, then the result will be no change
+ * to the DB, and the key returned will be useless.
+ */
+function set_user_verification_key($user)
+{
+	$user = mysql_real_escape_string($user);
+	
+	$key = md5(uniqid($user,true));
+
+	do_mysql_query("update user_info set verify_key = '$key' where username = '$user'");
+	
+	return $key;
+}
+
+/**
+ * Resets the user account status: 2nd arg must be one of the USER_STATUS_* constants.
+ */
+function change_user_status($user, $new_status)
+{
+	$new_status = (int) $new_status;
+	$user = mysql_real_escape_string($user);
+	
+	/* do nothing if mew status not a valid status constant */
+	switch ($new_status)
+	{
+	case USER_STATUS_UNVERIFIED:
+	case USER_STATUS_ACTIVE:
+	case USER_STATUS_SUSPENDED:
+		do_mysql_query("update user_info set acct_status = $new_status where username = '$user'");
+		break;
+	default:
+		/* do nothing */
+		break;
+	}
 }
 
 

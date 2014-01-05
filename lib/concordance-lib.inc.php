@@ -1111,9 +1111,9 @@ function say_sorry($instance_name, $sorry_input = "no_solutions")
 		// TODO logically, the above DOES NOT BELONG IN THIS FUNCTION. move out & do alongside, not within
 	
 	
-	echo print_html_header();
+	echo print_html_header('Query error!', $Corpus->css_path);
 
-	// TODO proper formatting below (as in exiterror)
+	// TODO proper formatting below (as in exiterror) (or use exiterror?)
 	?>
 		<table width="100%">
 			<tr>

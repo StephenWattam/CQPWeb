@@ -1444,6 +1444,7 @@ function cqpweb_mysql_recreate_tables()
 			`email` varchar(50) default NULL,
 			`passhash` char(61),
 			`acct_status` tinyint(1),
+			`verify_key` varchar(32) default NULL,
 			`expiry_time` int UNSIGNED NOT NULL default 0,
 			`password_expiry_time` int UNSIGNED NOT NULL default 0,
 			`last_seen_time` timestamp NOT NULL default CURRENT_TIMESTAMP,

@@ -650,13 +650,22 @@ function url_absolutify($u, $special_subdir = NULL)
 {
 	global $cqpweb_root_url;
 	global $corpus_sql_name;
+	
+	/* outside a corpus, extract the immeidate containing directory
+	 * from REQUEST_URI (e.g. 'adm') */
+	if (empty($special_subdir) && empty($corpus_sql_name))
+	{
+		preg_match('|\A.*/(\w+)/[^/]*\z|', $_SERVER['REQUEST_URI'], $m);
+		$special_subdir = $m[1];
+	}
 
 	if (preg_match('/\Ahttps?:/', $u))
 		/* address is already absolute */
 		return $u;
 	else
 	{
-		/* make address absolute by adding server of this script plus folder path of this URI;
+		/* 
+		 * make address absolute by adding server of this script plus folder path of this URI;
 		 * this may not be foolproof, because it assumes that the path will always lead to the 
 		 * folder in which the current php script is located -- but should work for most cases 
 		 */
@@ -672,13 +681,10 @@ function url_absolutify($u, $special_subdir = NULL)
 			return $cqpweb_root_url 
 				. ( (!empty($corpus_sql_name)) 
 					/* within a corpus, use the root + the corpus sql name */
-					? $corpus_sql_name . '/' 
-					/* outside a corpus, extract the immeidate containing directory
-					 * from REQUEST_URI (e.g. 'adm') */
-					: preg_replace('/\A.*\/([^\/]+)\/[^\/]*\z/',
-									'/$1/', $_SERVER['REQUEST_URI']) 
-				) 
-				. $u; 
+					? $corpus_sql_name  
+					: $special_subdir
+				)
+				. '/' . $u; 
 	}
 }
 
@@ -1097,26 +1103,36 @@ function delete_system_message($message_id)
  */
 function display_system_messages()
 {
+	global $User;
+	global $Config;
 	global $instance_name;
-	global $username;
 	global $this_script;
 	global $corpus_sql_name;
 	global $rss_feed_available;
 	
-	if (!isset($corpus_sql_name))
+	switch ($Config->run_location)
 	{
-		/* we are in /adm */
+	case 'adm':
 		$execute_path = 'index.php?admFunction=execute&function=delete_system_message';
 		$after_path = urlencode("index.php?thisF=systemMessages&uT=y");
-	}
-	else
-	{
+		$rel_add = '';
+		break;
+	case 'usr':
+		$execute_path = '../adm/index.php?admFunction=execute&function=delete_system_message';
+		$after_path = urlencode("../usr/");
+		$rel_add = '';
+		break;
+	case 'mainhome':
+		$execute_path = 'adm/index.php?admFunction=execute&function=delete_system_message';
+		$after_path = urlencode("../");		
+	case 'CORPUS':
 		/* we are in a corpus */
 		$execute_path = 'execute.php?function=delete_system_message';
-		$after_path = urlencode("$this_script");
+		$after_path = urlencode($this_script);
+		break;
 	}
 	
-	$su = user_is_superuser($username);
+	$su = $User->is_admin();
 
 	$result = do_mysql_query("select * from system_messages order by timestamp desc");
 	
@@ -1131,8 +1147,7 @@ function display_system_messages()
 				<?php
 				if ($rss_feed_available)
 				{
-					/* dirty hack: in mainhome there is no username & img/link URL is different */ 
-					$rel_add = (($username != '__unknown_user') ?  '../' : '');
+					$rel_add = (($Config->run_location == 'mainhome') ? ''  : '../');
 						
 					?>
 					<a href="<?php echo $rel_add;?>rss">
@@ -1155,7 +1170,7 @@ function display_system_messages()
 			</td>
 			<td class="concordgeneral">
 				<strong>
-					<?php echo htmlentities(stripslashes($r->header)); ?>
+					<?php echo cqpweb_htmlspecialchars(stripslashes($r->header)); ?>
 				</strong>
 			</td>
 		<?php
@@ -1179,8 +1194,7 @@ function display_system_messages()
 				/* Sanitise, then add br's, then restore whitelisted links ... */
 				echo preg_replace(	'|&lt;a\s+href=&quot;(.*?)&quot;\s*&gt;(.*?)&lt;/a&gt;|', 
 									'<a href="$1">$2</a>', 
-									str_replace("\n", '<br/>', 
-												htmlentities(stripslashes($r->content))));
+									str_replace("\n", '<br/>', cqpweb_htmlspecialchars(stripslashes($r->content))));
 				?>
 
 			</td>
@@ -1287,6 +1301,47 @@ function longvalue_retrieve($id)
 	return $r[0];
 }
 
+
+/**
+ * Send an email with appropriate CQPweb boilerp[late, plus error checking. 
+ * 
+ * @param address_to    The "send" email address. Can be a raw address or a name plus address in < ... >.
+ * @param mail_subject  Subject line.
+ * @param mail_content  The email body.
+ * @param extra_header  Array of extra header lines (one per entry, no line breaks). If these DO NOT
+ *                      include From: / Reply To:, then (if available) the system's email address
+ *                      (Specified in config file) will be used instead.
+ * @return              Boolean: true if email sent, otherwise false.
+ */
+function send_cqpweb_email($address_to, $mail_subject, $mail_content, $extra_headers = NULL)
+{
+	global $Config;
+	
+	if ($Config->cqpweb_no_internet)
+		return false;
+	
+	if (!empty($Config->cqpweb_email_from_address))
+	{
+		$add_from = true;
+		$add_reply_to = true;
+		
+		foreach($extra_headers as $h)
+		{
+			$lch = strtolower($h);
+			if (substr($lch,0,5) == 'from:')
+				$add_from = false;
+			if (substr($lch,0,9) == 'reply-to:')
+				$add_reply_to = false;
+		}
+		
+		if ($add_from)
+			$extra_headers[] = "From: {$Config->cqpweb_email_from_address}";
+		if ($add_reply_to)
+			$extra_headers[] = "Reply-To: {$Config->cqpweb_email_from_address}";
+	}
+
+	return (bool)mail($address_to, $mail_subject, $mail_content, implode("\r\n", $extra_headers));	
+}
 
 
 // TODO move these to plugins.inc.php?

@@ -36,7 +36,9 @@ require('../lib/exiterror.inc.php');
 
 cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST);
 
-
+/* extra adjustment.... */
+$Config->run_location = 'mainhome';
+$Config->css_path = $css_path_for_homepage;
 
 if ($use_corpus_categories_on_homepage)
 {

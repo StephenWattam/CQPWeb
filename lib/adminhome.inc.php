@@ -62,14 +62,16 @@ $thisF = ( isset($_GET["thisF"]) ? $_GET["thisF"] : 'showCorpora' );
 /* before anything else... */
 header('Content-Type: text/html; charset=utf-8');
 
+$Config->run_location = 'adm';
+$Config->css_path = $css_path_for_adminpage;
 
-// TODO move the raw .js out of here.
+// TODO move the raw .js out of here. And use the html function.
 ?>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>CQPweb Admin Control Panel</title>
-<link rel="stylesheet" type="text/css" href="<?php echo $css_path_for_adminpage;?>" />
+<link rel="stylesheet" type="text/css" href="<?php echo $Config->css_path ;?>" />
 <script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script>
 
 <!-- nonstandard header includes javascript for doodads specific to the admin-interface -->
@@ -1269,6 +1271,8 @@ function printquery_uploadarea()
 
 function printquery_useradmin()
 {
+	global $Config;
+	
 	$array_of_users = get_list_of_users();
 	
 	$user_list_as_options = '';
@@ -1276,25 +1280,25 @@ function printquery_useradmin()
 		$user_list_as_options .= "<option>$a</option>\n";
 	
 	
-	/* before we start, add the javascript function that inserts password cxandidates */
+	/* before we start, add the javascript function that inserts password candidates */
 	
 	echo print_javascript_for_password_insert();
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
 			<th colspan="3" class="concordtable">
-				Create new user (or reset user password)
+				Create new user
 			</th>
 		</tr>
 		<form action="index.php" method="GET">
 			<tr>
 				<td class="concordgeneral">
-					Enter the username you wish to create/reset:
+					Enter the username you wish to create:
 				</td>
 				<td class="concordgeneral">
 					<input type="text" name="newUsername" tabindex="1" width="30" onKeyUp="check_c_word(this)" />
 				</td>
-				<td class="concordgeneral" rowspan="3">
+				<td class="concordgeneral" rowspan="4">
 					<input type="submit" value="Create user account" tabindex="5" />
 				</td>
 			</tr>
@@ -1303,8 +1307,7 @@ function printquery_useradmin()
 					Enter a new password for the specified user:
 				</td>
 				<td class="concordgeneral">
-					<input type="text" id="passwordField" name="newPassword" tabindex="2" width="30" 
-						onKeyUp="check_c_word(this)" />
+					<input type="text" id="passwordField" name="newPassword" tabindex="2" width="50" />
 					<a class="menuItem" tabindex="3"
 						onmouseover="return escape('Suggest a password')" onclick="insertPassword()">
 						[+]
@@ -1319,11 +1322,61 @@ function printquery_useradmin()
 					<input type="text" name="newEmail" tabindex="4" width="30" />
 				</td>
 			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Send verification email?
+				</td>
+				<td class="concordgeneral">
+					<select name="verifyType">
+						<?php echo ($Config->cqpweb_no_internet ? '' : '<option value="yes">Yes, send a verification email</option>'); ?>
+						 
+						<option value="no:Verify" selected="selected">No, auto-verify the account</option>
+						<option value="no:DontVerify">No, and leave the account unverified</option>
+					</select>
+				</td>
+			</tr>
 			<input type="hidden" name="admFunction" value="newUser"/>
+			<input type="hidden" name="newUserType" value="byAdmin"/>
 			<input type="hidden" name="uT" value="y" />
 		</form>
 		
 		
+		<tr>
+			<th colspan="3" class="concordtable">
+				Reset a user's password
+			</th>
+		</tr>
+
+		<form action="index.php" method="GET">
+			<tr>
+				<td class="concordgeneral">
+					Select the user for password reset:
+				</td>
+				<td class="concordgeneral">
+					<select name="userForPasswordReset">
+						<option>Select user ....</option>
+						<?php echo $user_list_as_options; ?>
+					</select>
+				</td>
+				<td class="concordgeneral" rowspan="2">
+					<input type="submit" value="Reset this user's password" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Enter new password:
+				</td>
+				<td class="concordgeneral">
+					<input type="text" name="newPassword" width="50" />
+				</td>
+			</tr>
+			<input type="hidden" name="admFunction" value="resetUserPassword"/>
+			<input type="hidden" name="uT" value="y" />
+			<?php
+			// TODO add JavaScript Are You Sure? Pop up to the submission button of this form 
+			?>
+		</form>
+
 		<!--
 		<tr>
 			<th colspan="3" class="concordtable">

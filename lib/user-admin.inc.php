@@ -34,13 +34,135 @@ require('../lib/user-lib.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/library.inc.php');
 
-// TODO this should prob not be a file....
+/**
+ * @file
+ * 
+ * Receiver script for a whole bunch of actions relating to users.
+ * 
+ * Some come via redirect from various forms; others come via admin action.
+ * 
+ * The actions are controlled via switcyh and mostly work by sorting through
+ * the "_GET" parameters, and then calling the underlying functions
+ * (mostly in user-lib).
+ */
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
-update_multiple_user_settings($username, parse_get_user_settings());
+
+$script_called_from_admin = (isset ($_GET['userFunctionFromAdmin']) && $_GET['userFunctionFromAdmin'] == 1); 
+
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | ($script_called_from_admin ? CQPWEB_STARTUP_CHECK_ADMIN_USER : 0));
+
+
+
+$script_mode = isset($_GET['userAction']) ? $_GET['userAction'] : false; 
+
+switch ($script_mode)
+{
+case 'newUser':
+
+	/* CREATE NEW USER ACCOUNT */
+	
+	// TODO this will need extending when the "user accessible" variant form is plugged in.
+
+	if (!isset($_GET['newUsername'],$_GET['newPassword'],$_GET['newEmail']))
+		exiterror_general("Missing information: you must specify a username, password and email address to create an account!");
+	
+	$new_username = trim($_GET['newUsername']);
+
+	if (0 < preg_match('/\W/', $new_username))
+		exiterror_general("The username you specified contains an illegal character: only letters, numbers and underscore are allowed.");
+	
+	if (0 < mysql_num_rows(do_mysql_query("select id from user_info where username = '$new_username'")))
+		exiterror_general("The username you specified is not available: please go back and specify another!");
+
+	/* allow anything in password except empty string */
+	$password = $_GET['newPassword'];
+	if (empty($password))
+		exiterror_general("The password cannot be an empty string!");		
+	if (! $script_called_from_admin)
+	{
+		// TODO: check for the standard password-typed-twice thing.
+	}
+	
+	$email = trim($_GET['newEmail']);
+	if (empty($email))
+		exiterror_general("The email address for a new account cannot be an empty string!");
+	
+	/* OK, all 3 things now collected, so we can call the sharp-end function... */
+	
+	add_new_user($new_username, $password, $email);
+	
+	/* verification status: do we email? do we change it? */
+	if ($script_called_from_admin)
+	{
+		/* look for extra _GET parameter.... */
+		if (!isset($_GET['verifyType']))
+			/* it SHOULDN'T be absent! but let's just guess. */
+			$verify_type = ($Config->cqpweb_no_internet ? 'no:DontVerify' : 'yes');
+		else
+			$verify_type = $_GET['verifyType'];
+	}
+	else
+		/* with a user-self-create, we always request verification via email */
+		$verify_type = 'yes';
+
+	switch($verify_type)
+	{
+	case 'yes':
+		send_user_verification_email($new_username);
+		break;
+	case 'no:Verify':
+		change_user_status($new_username, USER_STATUS_ACTIVE);
+		break;
+	case 'no:DontVerify':
+	default:
+		/* do nowt. */
+		break;
+	}
+	
+	/* and redirect out */
+	
+	if ($script_called_from_admin)
+		$next_location = "index.php?thisF=showMessage&message=" . urlencode("User account '$new_username' has been created.") . "&uT=y";
+	else
+		$next_location = "index.php";
+		// TODO choose a proper "next_location" for non-admin acct creation. 
+
+	break;
+
+
+
+case 'resetUserPassword':
+
+	/* change a user's password to the new value specified. */
+
+	break;
+
+
+case 'revisedUserSettings':
+
+	/* change user's interface parameters */
+
+	update_multiple_user_settings($username, parse_get_user_settings());
+	$next_location = 'iindex.php?thisQ=userSettings&uT=y';
+	break;
+
+	
+default:
+
+	/* dodgy parameter: do nothing and redirect to index */
+
+	$next_location = 'index.php';
+	break;
+}
+
+
 
 cqpweb_shutdown_environment();
-header('Location: ' . url_absolutify('index.php?thisQ=userSettings&uT=y'));
+
+
+
+if (isset($next_location))
+	set_next_absolute_location($next_location);
 exit(0);
 
 

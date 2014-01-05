@@ -49,16 +49,15 @@
  */
 function exiterror_beginpage($page_title = NULL)
 {
-	global $debug_messages_textonly;
-	global $css_path;
-	
-	if (! isset($page_title))
-		$page_title = "CQPweb has encountered an error!";
+	global $Config;
 	
 	if (headers_sent())
 		return;
 	
-	if ($debug_messages_textonly)
+	if (! isset($page_title))
+		$page_title = "CQPweb has encountered an error!";
+	
+	if ($Config->debug_messages_textonly)
 	{
 		header("Content-Type: text/plain; charset=utf-8");
 		echo "$page_title\n";
@@ -70,14 +69,7 @@ function exiterror_beginpage($page_title = NULL)
 	{
 		header('Content-Type: text/html; charset=utf-8');
 		
-		?><html>
-		<head>
-			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-			<title><?php echo $page_title; ?></title>
-			<link rel="stylesheet" type="text/css" href="<?php echo $css_path; ?>" />
-		</head>
-		<body>
-		<?php
+		echo print_html_header($page_title, $Config->css_path);
 	}
 }
 

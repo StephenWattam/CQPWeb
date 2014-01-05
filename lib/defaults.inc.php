@@ -63,6 +63,11 @@ if (!isset($cqpweb_running_on_windows))
 if (!isset($cqpweb_no_internet))
 	$cqpweb_no_internet = false;
 
+/* supply default email address */
+if (!isset($cqpweb_email_from_address))
+	$cqpweb_email_from_address = '';
+
+
 
 /* Does mysqld have file-write/read ability? If set to true, CQPweb uses LOAD DATA
  * INFILE and SELECT INTO OUTFILE. If set to false, file write/read into/out of

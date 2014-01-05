@@ -81,6 +81,42 @@ function print_menurow_heading($label)
 }
 
 
+/**
+ * Print the "about CQPweb" block that appears at the bottom of the menu for both queryhome and userhome.
+ * 
+ * Returns string (does not echo automatically!) 
+ */
+function print_menu_aboutblock()
+{
+	return  print_menurow_heading('About CQPweb') . 
+		<<<HERE
+
+<tr>
+	<td class="concordgeneral">
+		<a class="menuItem" href="../"
+			onmouseover="return escape('Go to the main homepage for this CQPweb server')">
+			CQPweb main menu
+		</a>
+	</td>
+</tr>
+<tr>
+	<td class="concordgeneral">
+		<a class="menuItem" target="_blank" href="../doc/CQPweb-man.pdf"
+			onmouseover="return escape('CQPweb manual')">
+			CQPweb manual
+		</a>
+	</td>
+</tr>
+HERE
+
+		// TODO change manual link above. Is not good,. REplace with link to "Open Help Ssytem"
+		. print_menurow_index('who_the_hell', 'Who did it?')
+		. print_menurow_index('latest', 'Latest news')
+		. print_menurow_index('bugs', 'Report bugs');
+}
+
+
+
 // TODO make this RETURN rather than ECHO
 /**
  * Creates a page footer for CQPweb.
@@ -90,7 +126,7 @@ function print_menurow_heading($label)
  */ 
 function print_html_footer($link = 'help')
 {
-	global $username;
+	global $User;
 	
 	/* javascript location diverter */
 	$diverter = '../';
@@ -127,10 +163,10 @@ function print_html_footer($link = 'help')
 			<?php echo $help_cell; ?>  
 			<td align="right" class="cqpweb_copynote" width="33%">
 				<?php
-				if ($username == '__unknown_user')
+				if (!$User->logged_in)
 					echo 'You are not logged in';
 				else
-					echo "You are logged in as user [$username]";
+					echo "You are logged in as user [{$User->username}]";
 				?>
 			</td>
 		</tr>
@@ -144,19 +180,19 @@ function print_html_footer($link = 'help')
 
 
 
-
-function print_html_header($title_label = false, $js_scripts = false)
+/**
+ * Create an HTML header (everything from <html> to <body>,
+ * which specified the title as provided, embeds a CSS link,
+ * and finally imports the specified JavaScript files.
+ */
+function print_html_header($title, $css_url, $js_scripts = false)
 {
 	$s = "<html>\n<head>\n\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" >\n";
-	
-	global $corpus_title;
-	global $css_path;
-	
-	if (empty($title_label))
-		$title_label = 'CQPweb';
-	
-	$s .= "\t<title>$corpus_title -- $title_label</title>\n";
-	$s .= "\t<link rel=\"stylesheet\" type=\"text/css\" href=\"$css_path\" >\n";
+
+	$s .= "\t<title>$title</title>\n";
+
+	if (!empty($css_url))
+		$s .= "\t<link rel=\"stylesheet\" type=\"text/css\" href=\"$css_url\" >\n";
 
 	if (! empty($js_scripts))
 		foreach ($js_scripts as $js)
@@ -166,6 +202,12 @@ function print_html_header($title_label = false, $js_scripts = false)
 	
 	return $s;
 }
+
+/**
+ * The login form is used in more than one place, so this function 
+ * puts the code in just one place.
+ */
+print_login_form()
 
 
 ?>

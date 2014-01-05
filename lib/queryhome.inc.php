@@ -22,10 +22,6 @@
  */
 
 
-
-
-
-
 /** 
  * @file
  * 
@@ -82,7 +78,7 @@ cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT
 
 
 /* this is probably _too_ paranoid. but hey */
-if (user_is_superuser($username))
+if ($User->is_admin())
 {
 	require('../lib/admin-lib.inc.php');
 	require('../lib/corpus-settings.inc.php');
@@ -111,7 +107,8 @@ $thisQ = ( isset($_GET["thisQ"]) ? $_GET["thisQ"] : 'search' );
 /* before anything else */
 header('Content-Type: text/html; charset=utf-8');
 
-echo print_html_header('CQPweb', array('cqpweb-clientside'));
+/* strip tags of the header, cos HTML is allowed here... */
+echo print_html_header(strip_tags($Corpus->corpus_title . $Config->searchpage_corpus_name_suffix), $Config->css_path, array('cqpweb-clientside'));
 
 
 
@@ -126,9 +123,9 @@ echo print_html_header('CQPweb', array('cqpweb-clientside'));
 
 
 
-/* ******************* */
-/* PRINT SIDE BAR MENU */
-/* ******************* */
+/* ******************* *
+ * PRINT SIDE BAR MENU *
+ * ******************* */
 
 ?>
 <table class="concordtable" width="100%">
@@ -157,7 +154,7 @@ echo print_menurow_index('freqList', 'Frequency lists');
 echo print_menurow_index('keywords', 'Keywords');
 
 echo print_menurow_heading('User controls');
-echo print_menurow_index('userSettings', 'User settings');
+//echo print_menurow_index('userSettings', 'User settings');
 echo print_menurow_index('history', 'Query history');
 echo print_menurow_index('savedQs', 'Saved queries');
 echo print_menurow_index('categorisedQs', 'Categorised queries');
@@ -239,31 +236,8 @@ if (user_is_superuser($username))
 	
 } /* end of "if user is a superuser" */
 
-
-echo print_menurow_heading('About CQPweb');
-?>
-
-<tr>
-	<td class="concordgeneral">
-		<a class="menuItem" href="../"
-			onmouseover="return escape('Go to a list of all corpora on the CQPweb system')">
-			CQPweb main menu
-		</a>
-	</td>
-</tr>
-<tr>
-	<td class="concordgeneral">
-		<a class="menuItem" target="_blank" href="../doc/CQPweb-man.pdf"
-			onmouseover="return escape('CQPweb manual')">
-			CQPweb manual
-		</a>
-	</td>
-</tr>
-<?php
-// TODO change manual link above. Is not good,. REplace with link to "Open Help Ssytem"
-echo print_menurow_index('who_the_hell', 'Who did it?');
-echo print_menurow_index('latest', 'Latest news');
-echo print_menurow_index('bugs', 'Report bugs');
+/* all the rest is encapsulated */
+echo print_menu_aboutblock();
 
 
 ?>
@@ -275,7 +249,7 @@ echo print_menurow_index('bugs', 'Report bugs');
 <table class="concordtable" width="100%">
 	<tr>
 		<th class="concordtable"><a class="menuHeaderItem">
-		<?php echo $corpus_title . $searchpage_corpus_name_suffix; ?>
+		<?php echo $Corpus->corpus_title . $Config->searchpage_corpus_name_suffix; ?>
 		</a></th>
 	</tr>
 </table>
@@ -314,11 +288,6 @@ case 'freqList':
 
 case 'keywords':
 	printquery_keywords();
-	break;
-
-case 'userSettings':
-	printquery_usersettings();
-	printquery_usermacros();
 	break;
 
 case 'history':

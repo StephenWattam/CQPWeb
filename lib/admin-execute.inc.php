@@ -43,8 +43,11 @@ $_GET['admFunction'] = (isset($_GET['admFunction']) ? $_GET['admFunction'] : fal
 switch($_GET['admFunction'])
 {
 	/* 
-	 * NB. cases that are more complicated and therefore have to go to a full environment in admin-do
-	 * simply have "require admin-do"! 
+	 * NB. some cases go the same "action" places as various other scripts
+	 * and therefore include "redirect" instead of "execute".
+	 * 
+	 * Actions that are too complex to go via "execute" can instead be sent
+	 * via "admin-do".
 	 */
 	
 	
@@ -188,14 +191,18 @@ switch($_GET['admFunction'])
 		
 		
 	case 'newUser':
-		$_GET['function'] = 'add_new_user';
-		if (!isset($_GET['newEmail']))
-			$_GET['args'] = trim($_GET['newUsername']) .'#'. trim($_GET['newPassword']);
-		else
-			$_GET['args'] = trim($_GET['newUsername']) .'#'. trim($_GET['newPassword']) .'#'. trim($_GET['newEmail']) ;
-		$_GET['locationAfter'] = 'index.php?thisF=userAdmin&uT=y';
-		require('../lib/execute.inc.php');
+		$_GET['redirect'] = 'newUser';
+		$_GET['newUserFromAdmin'] = 1;
+		unset($_GET['admFunction']);
+		require('../lib/redirect.inc.php');
 		exit();
+	
+	case 'resetUserPassword':
+		$_GET['redirect'] = 'resetUserPassword';
+		$_GET['userFunctionFromAdmin'] = 1;
+		unset($_GET['admFunction']);
+		require('../lib/redirect.inc.php');
+		exit();	
 		
 	case 'deleteUser':
 		$_GET['function'] = 'delete_user';

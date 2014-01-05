@@ -36,7 +36,7 @@
 // and use include include urlfailure to distinguish the two types of problem
 
 
-if (isset($_GET['redirect']) && isset($_GET['uT']))
+if (isset($_GET['redirect']))
 {	
 	$redirect_script_redirector = $_GET['redirect'];
 	unset ($_GET['redirect']);
@@ -138,12 +138,19 @@ if (isset($_GET['redirect']) && isset($_GET['uT']))
 		break;
 
 
-	/* from the form with new user settings */
+	/* from the form with new (revised) user settings */
 	
-	// TODO this is probably not even needed, that form coulds go straight to user-admin....
 	case 'newUserSettings':
+		$_GET['userAction'] = 'revisedUserSettings';
 		require("../lib/user-admin.inc.php");
 		break;
+
+	/* from forms that create a new user account */
+	
+	case 'newUser':
+		$_GET['userAction'] = 'revisedUserSettings';
+		require("../lib/user-admin.inc.php");
+		break;		
 
 
 

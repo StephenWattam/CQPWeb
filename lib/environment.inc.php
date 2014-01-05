@@ -120,9 +120,13 @@ class CQPwebEnvConfig
 		require('../lib/config.inc.php');
 		require('../lib/defaults.inc.php');
 		
+		/* transfer imported variables to object members */
 		$variables = get_defined_vars();
+		unset($variables['GLOBALS'],$variables['_SERVER'],$variables['_GET'],$variables['_POST'],$variables['_FILES'],
+				$variables['_COOKIE'],$variables['_SESSION'],$variables['_REQUEST'],$variables['_ENV']  );
 		foreach ($variables as $k => $v)
 			$this->$k = $v;
+		// TODO: some of the "settings" should be on the $Corpus object and not here. For now they are on both. */
 			
 		/* check compulsory config variables */
 		$compulsory_config_variables = array(
@@ -150,6 +154,9 @@ class CQPwebEnvConfig
 		unset($this->cwb_datadir);
 		$this->dir->registry = $this->cwb_registry;
 		unset($this->cwb_registry);
+		
+		/* set the run location to CORPUS; if it's not, that will be changed later... */
+		$this->run_location = 'CORPUS';
 	}
 }
 
@@ -159,7 +166,6 @@ class CQPwebEnvConfig
  * 
  * The instantiation should always be the global $User object.
  * 
- * Has only one function, its constructor, which loads all the info. * 
  */ 
 class CQPwebEnvUser 
 {
@@ -186,6 +192,11 @@ if ($username != '__unknown_user') $this->logged_in = true;
 			/* the "if isset" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
 		}
 	}
+	
+	public function is_admin()
+	{
+		return $this->logged_in && user_is_superuser($this->username);
+	}
 }
 
 
@@ -207,21 +218,40 @@ class CQPwebEnvCorpus
 	 
 	public function __construct()
 	{
-		global $Config;
-		global $corpus_sql_name;
-		
 		/* first: try to identify the corpus. */
-// note that eventually all the corpus settings will end up in the DB or coming via http, rather than using the following hack:
+		global $corpus_sql_name;
 		$this->name = $corpus_sql_name;
 		if (!empty($this->name))
 			$this->specified = true;
+		else
+		{
+			/* are we in either adm or usr? or mainhome? */
+		// TODO instead, try to get it from the URL.
+		}
 
 
-		
-		
-		/* import database fields as object members. */
+		/* only go hunting for more info on the $Corpus if one is actually specified...... */
 		if ($this->specified)
 		{
+// the corpus settings are already in global space, but let's get them into the object too
+// eventually, they will go into corpus_info....			
+			require( '' . "settings.inc.php");	/* concatenate to avoid annoying bug warning */
+			$variables = get_defined_vars();
+			unset($variables['GLOBALS'],$variables['_SERVER'],$variables['_GET'],$variables['_POST'],$variables['_FILES'],
+					$variables['_COOKIE'],$variables['_SESSION'],$variables['_REQUEST'],$variables['_ENV']  );
+			foreach ($variables as $k => $v)
+				$this->$k = $v;
+			
+	
+			/* some settings then transfer to $Config */
+			global $Config;
+			if (isset($this->css_path))
+			{
+				$Config->css_path = $this->css_path;
+				unset($this->css_path);
+			}
+		
+			/* import database fields as object members. */
 			$result = do_mysql_query("select * from corpus_info where corpus = '$this->name'");
 			foreach (mysql_fetch_assoc($result) as $k => $v)
 				if (!isset($this->$k))
@@ -378,7 +408,7 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 		if (!url_string_is_valid())
 			exiterror_bad_url();
 	if ($flags & CQPWEB_STARTUP_CHECK_ADMIN_USER)
-		if (!user_is_superuser($User->username))
+		if (!$User->is_admin())
 			exiterror_general("You do not have permission to use this part of CQPweb.");
 	
 

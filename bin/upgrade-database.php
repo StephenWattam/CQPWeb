@@ -297,6 +297,7 @@ function upgrade_3_0_16()
 	
 	$sql = array(
 		"alter table user_info drop column password",
+		"alter table user_info add column `verify_key` varchar(32) default NULL AFTER acct_status",
 	
 	
 		"update system_info set value = '3.1.0' where setting_name = 'db_version'"

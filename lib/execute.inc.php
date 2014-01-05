@@ -87,14 +87,8 @@ include('../lib/xml.inc.php');
 
 
 
-cqpweb_startup_environment();
-
-
-/* only superusers get to use this script */
-if (!user_is_superuser($username))
-	execute_print_and_exit('Unauthorised access to execute.php', 
-		'Your username does not have permission to run execute.php.');
-
+cqpweb_startup_environment(CQPWEB_STARTUP_CHECK_ADMIN_USER);
+/* note above - only superusers get to use this script! */
 
 
 
