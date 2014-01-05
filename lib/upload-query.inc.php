@@ -41,18 +41,10 @@ cqpweb_startup_environment();
 
 
 
-
-
-
 /* ----------------------------------------- */
 /* check that we have the parameters we need */ 
 /* ----------------------------------------- */
 
-/* sort out our incoming variables.... */
-foreach($_POST as $k=>$v)
-	$_GET[$k] = $v;
-unset($k,$v);
-/* now, we can be sure that any bits of the system that rely on $_GET being there will work. */
 
 
 /* do we have the save name? */
@@ -209,11 +201,8 @@ $cache_record = array(
 update_cached_query($cache_record);
 
 
-cqpweb_shutdown_environment();
-
-
-
 /* and let's finish, assuming all succeeded, by redirecting ... */
-header('Location: index.php?thisQ=savedQs&uT=y');
+set_next_absolute_location('index.php?thisQ=savedQs&uT=y');
 
+cqpweb_shutdown_environment();
 ?>

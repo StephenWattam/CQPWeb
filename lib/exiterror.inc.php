@@ -34,9 +34,6 @@
  */
  
 
-//////////// TODO reformat these functions and associated CSS to produce a nice page like BNCweb's
-//////////// ideally based on tables rather than errormessage paras
-
 /**
  * Function internal to the exiterror module.
  * 
@@ -53,7 +50,7 @@ function exiterror_beginpage($page_title = NULL)
 	
 	if (headers_sent())
 		return;
-	
+
 	if (! isset($page_title))
 		$page_title = "CQPweb has encountered an error!";
 	
@@ -71,6 +68,12 @@ function exiterror_beginpage($page_title = NULL)
 		
 		echo print_html_header($page_title, $Config->css_path);
 	}
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">CQPweb encountered an error and could not continue.</th>
+		</tr>
+	<?php
 }
 
 /**
@@ -82,15 +85,15 @@ function exiterror_beginpage($page_title = NULL)
  */
 function exiterror_printlines($lines)
 {
-	global $debug_messages_textonly;
+	global $Config;
 	
-	$before = ($debug_messages_textonly ? '' : '<p class="errormessage">');
-	$after  = ($debug_messages_textonly ? "\n\n" : "</p>\n\n");
+	$before = ($Config->debug_messages_textonly ? '' : '<tr><td class="concorderror"><p>&nbsp;</p><p class="errormessage">');
+	$after  = ($Config->debug_messages_textonly ? "\n\n" : "</p><p>&nbsp;</p></td></tr>\n\n");
 
-	if (!$debug_messages_textonly)
+	if (!$Config->debug_messages_textonly)
 		$lines = array_map('cqpweb_htmlspecialchars', $lines);
 
-	foreach($lines as &$l)
+	foreach($lines as $l)
 		echo $before , $l , $after;
 }
 
@@ -108,8 +111,8 @@ function exiterror_endpage($backlink = false)
 	global $debug_messages_textonly;
 	
 	/* print the PHP back trace */
-	global $username;
-	if (user_is_superuser($username))
+	global $User;
+	if ($User->is_admin())
 	{
 		if ($debug_messages_textonly)
 		{
@@ -119,9 +122,14 @@ function exiterror_endpage($backlink = false)
 		else
 		{
 			?>
-			<hr/>
-			<h3>PHP debugging backtrace</h3>
-			<pre><?php var_dump(debug_backtrace()); ?></pre>			
+			<tr>
+				<th class="concordtable">PHP debugging backtrace</th>
+			</tr>
+			<tr>
+				<td class="concorderror">
+					<pre><?php var_dump(debug_backtrace()); ?></pre>
+				</td>
+			</tr>			
 			<?php
 		}
 	}
@@ -131,10 +139,20 @@ function exiterror_endpage($backlink = false)
 		if ($backlink)
 		{
 			?>
-			<hr/>
-			<p class="errormessage"><a href="index.php">Back to corpus home page.</a></p>
+			<tr>
+				<td class="concordgeneral">
+					<p>&nbsp;</p>
+					<p class="errormessage">
+						<a href="index.php">Back to main page.</a>
+					</p>
+					<p>&nbsp;</p>
+				</td>
+			</tr>
 			<?php
 		}
+		?>
+		</table>
+		<?php
 		echo print_html_footer();
 	}
 	
@@ -170,7 +188,7 @@ function exiterror_msg_location(&$array, $script=NULL, $line=NULL)
  */
 function exiterror_general($errormessage, $script=NULL, $line=NULL)
 {
-	$msg = array("CQPweb encountered an error and could not continue.");
+	$msg = array();
 	if (is_array($errormessage))
 		$msg = array_merge($msg, $errormessage);
 	else

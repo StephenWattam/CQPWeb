@@ -99,7 +99,7 @@ function add_new_user($username, $password, $email, $initial_status = USER_STATU
 		coll_from,
 		coll_to,
 		max_dbsize,
-		linefeed,
+		linefeed
 		)
 		VALUES
 		(
@@ -241,7 +241,7 @@ function send_user_verification_email($user)
 	else
 		$user_address = "$realname <$email>";
 	
-	$verify_url = url_absolutify();
+	$verify_url = url_absolutify('../usr/redirect.php?redirect=verifyUser&v=' . urlencode($verify_key) . '&uT=y');
 	
 	$body = <<<HERE
 Dear $realname,
@@ -274,6 +274,8 @@ The CQPweb User Administration System
 
 HERE;
 	
+	if (!empty($Config->cqpweb_root_url))
+		$body .= $Config->cqpweb_root_url . "\n"; 
 	
 	send_cqpweb_email($user_address, 'CQPweb: please verify user account creation!', $body);
 }
@@ -297,6 +299,34 @@ function set_user_verification_key($user)
 	do_mysql_query("update user_info set verify_key = '$key' where username = '$user'");
 	
 	return $key;
+}
+
+/**
+ * Removes a user verification key for the given user, setting the entry in the DB to NULL.
+ */
+function unset_user_verification_key($user)
+{
+	$user = mysql_real_escape_string($user);
+	
+	do_mysql_query("update user_info set verify_key = NULL where username = '$user'");
+}
+
+/**
+ * Gets the username associated with a given verification key, if one exists. 
+ * 
+ * If the key does not exist, returns false.
+ */
+function resolve_user_verification_key($key)
+{
+	$key = mysql_real_escape_string($key);
+	$result = do_mysql_query("select username from user_info where verify_key = '$key'");
+	if (1 > mysql_num_rows($result))
+		return false;
+	else
+	{
+		list($u) = mysql_fetch_row($result);
+		return $u;
+	}
 }
 
 /**
@@ -481,6 +511,93 @@ function generate_new_hash_from_password($password)
 
 	return crypt($password, $salt);
 }
+
+
+
+/**
+ * Checks whether a given cookie token is for a valid login.
+ * 
+ * Returns the username if it is, and returns false if it isn't.
+ */
+function check_user_cookie_token($token)
+{
+	$token = mysql_real_escape_string($token);
+
+	$result = do_mysql_query("select user_id from user_cookie_tokens where token = '$token'");
+
+	if (mysql_num_rows($result) < 1)
+		return false;
+	else
+	{
+		list($u_id) = mysql_fetch_row($result);
+		return user_id_to_name($u_id);
+	}
+}
+
+/**
+ * Creates a new pseudorandom string of letters and numbers (32 chars in length).
+ */
+function generate_new_cookie_token()
+{
+	/* NB. this might be crackable... */
+	$token_language = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~|';
+	
+	while (1)
+	{
+		$token = '';
+		for ($i = 0; $i < 32 ; $i++)
+			$token .= $token_language[rand(0,64)];
+		if (false === check_user_cookie_token($token))
+			break;
+	}
+	
+	return $token;
+}
+
+/**
+ * Resets the expiry time of a cookie token to the maximum 
+ * logon persist time in the future.
+ */
+function touch_cookie_token($token)
+{
+	global $Config;
+	$expiry = time() + $Config->cqpweb_cookie_max_persist;
+	$token = mysql_real_escape_string($token);
+	do_mysql_query("update user_cookie_tokens set expiry = $expiry where token = '$token'");
+}
+
+/**
+ * Creates a DB entry for the specified cookie token,
+ * signifiying a login of the username given.
+ */
+function register_new_cookie_token($username, $token)
+{
+	$u_id = user_id_from_name($username);
+
+	global $Config;
+	$expiry = time() + $Config->cqpweb_cookie_max_persist;
+	
+	$token = mysql_real_escape_string($token);
+	do_mysql_query("insert into user_cookie_tokens (token, user_id, expiry) values ('$token', $u_id, $expiry)");
+}
+
+/**
+ * Deletes all cookie tokens whose expiry time is in the past.
+ */
+function cleanup_expired_cookie_tokens()
+{
+	do_mysql_query("delete from user_cookie_tokens where expiry < " . time() );
+}
+
+/**
+ * Deletes a specified cookie token.
+ */
+function delete_cookie_token($token)
+{
+	$token = mysql_real_escape_string($token);
+	do_mysql_query("delete from user_cookie_tokens where token = '$token'");
+}
+
 
 
 

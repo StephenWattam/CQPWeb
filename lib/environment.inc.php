@@ -67,6 +67,19 @@ define('CQPWEB_STARTUP_DONT_CONNECT_CQP',      1);
 define('CQPWEB_STARTUP_DONT_CONNECT_MYSQL',    2);
 define('CQPWEB_STARTUP_DONT_CHECK_URLTEST',    4);
 define('CQPWEB_STARTUP_CHECK_ADMIN_USER',      8);
+define('CQPWEB_STARTUP_ALLOW_ANONYMOUS_ACCESS',16);
+
+
+/*
+ * Run location constants 
+ */
+
+define('RUN_LOCATION_CORPUS',                  0);
+define('RUN_LOCATION_MAINHOME',                1);
+define('RUN_LOCATION_ADM',                     2);
+define('RUN_LOCATION_USR',                     3);
+
+
 
 /* 
  * plugin type constants 
@@ -87,6 +100,11 @@ define('PLUGIN_TYPE_ANY',                      1|2|4|8);
 define('USER_STATUS_UNVERIFIED',               0);
 define('USER_STATUS_ACTIVE',                   1);
 define('USER_STATUS_SUSPENDED',                2);
+define('USER_STATUS_PASSWORD_EXPIRED',         3);
+
+
+
+
 
 
 
@@ -170,16 +188,49 @@ class CQPwebEnvConfig
 class CQPwebEnvUser 
 {
 	/** Is there a logged in user? (bool) */
-	public $logged_in = false;
-	/* we start by assuming no one is logged in, then see if someone is */
+	public $logged_in;
 	
 	public function __construct()
 	{
+		global $Config;
+		
 
 // temp code. Delete as soon as we're off Apache.
 global $username;
-$username = ( isset($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] :  '__unknown_user' );
-if ($username != '__unknown_user') $this->logged_in = true;
+//$username = ( isset($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] :  '__unknown_user' );
+//if ($username != '__unknown_user') $this->logged_in = true;
+
+		/* look for logged on user */
+		if (isset($_COOKIE[$Config->cqpweb_cookie_name]))
+		{
+			if (false === ($username = check_user_cookie_token($_COOKIE[$Config->cqpweb_cookie_name])))
+			{
+				/* no one is logged in */
+				$username = '__unknown_user';
+				// TODO maybe change the above?
+				$this->logged_in = false;
+				
+			}
+			else
+			{
+				$this->logged_in = true;
+				/* we don't need to re-send the cookie. But we do need to touch it in cache. */
+				touch_cookie_token($_COOKIE[$Config->cqpweb_cookie_name]);
+				/* cookie tokens which don't get touched will eventually get old enough to be deleted */
+			}	
+
+
+
+
+		}
+
+
+//		
+
+//		
+//		/* When the browser forgets it according to the original "persist", then it will
+//		 * gradually get old enough to be deleted. */ 
+//	}
 		
 		
 		/* import database fields as object members. */
@@ -327,6 +378,45 @@ function declare_plugin($class, $type, $path_to_config_file = NULL)
  */
 function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 {
+	/* -------------- *
+	 * TRANSFROM HTTP *
+	 * -------------- */
+
+	/* the very first thing we do is set up _GET, _POST etc. .... */
+
+	/* MAGIC QUOTES, BEGONE! */
+	
+	/* In PHP > 5.4 magic quotes don't exist, but that's OK, because the function in the test will always
+	 * return false. We also don't worry about multidimensional arrays, since CQPweb doesn't use them. 
+	 * The test function also returns false if we are working in the CLI environment. */
+	
+	if (get_magic_quotes_gpc()) 
+	{
+		foreach ($_POST as $k => $v) 
+		{
+			unset($_POST[$k]);
+			$_POST[stripslashes($k)] = stripslashes($v);
+		}
+		foreach ($_GET as $k => $v) 
+		{
+			unset($_GET[$k]);
+			$_GET[stripslashes($k)] = stripslashes($v);
+		}
+	}
+	
+	/* WE ALWAYS USE GET! */
+	
+	/* sort out our incoming variables.... */
+	foreach($_POST as $k=>$v)
+		$_GET[$k] = $v;
+	/* now, we can be sure that any bits of the system that rely on $_GET being there will work. */	
+	
+	
+	/* -------------- *
+	 * GLOBAL OBJECTS *
+	 * -------------- */
+	
+	
 	/** Global object containing information on system configuration. */
 	global $Config;
 	/** Global object containing information on the current user account. */
@@ -367,7 +457,8 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 	else
 		connect_global_mysql();
 
-	/* now the DB is connected, we can do the next two. */
+
+	/* now the DB is connected, we can do the other two global objects. */
 
 	$User   = new CQPwebEnvUser();
 	
@@ -378,29 +469,11 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 	ob_implicit_flush(true);
 
 
-	/* --------------------- */
-	/* MAGIC QUOTES, BEGONE! */
-	/* --------------------- */	
-	
-	/* In PHP > 5.4 magic quotes don't exist, but that's OK, because the function in the test will always
-	 * return false. We also don't worry about multidimensional arrays, since CQPweb doesn't use them. 
-	 * The test function also returns false if we are working in the CLI environment. */
-	
-	if (get_magic_quotes_gpc()) 
-	{
-		foreach ($_POST as $k => $v) 
-		{
-			unset($_POST[$k]);
-			$_POST[stripslashes($k)] = stripslashes($v);
-		}
-		foreach ($_GET as $k => $v) 
-		{
-			unset($_GET[$k]);
-			$_GET[stripslashes($k)] = stripslashes($v);
-		}
-	}
 
-	/* We do the following after starting up the global objects, because without it, 
+		
+	
+
+	/* We do the following AFTER starting up the global objects, because without it, 
 	 * we don't have the CSS path for exiterror. */
 	if (($flags & CQPWEB_STARTUP_DONT_CHECK_URLTEST) || PHP_SAPI=='cli')
 		;
@@ -411,7 +484,7 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 		if (!$User->is_admin())
 			exiterror_general("You do not have permission to use this part of CQPweb.");
 	
-
+	/* end of function cqpweb_startup_environment */
 }
 
 /**
@@ -428,7 +501,7 @@ function cqpweb_shutdown_environment()
 	disconnect_global_cqp();
 	disconnect_global_mysql();
 	
-	/* delete the global objects - in case they need to be rebuilt. */
+	/* delete the global objects - in case they need to be rebuilt. (should probably never happen, but just in case) */
 	global $Config;
 	global $User;
 	global $Corpus;

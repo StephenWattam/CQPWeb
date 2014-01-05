@@ -187,6 +187,11 @@ function print_html_footer($link = 'help')
  */
 function print_html_header($title, $css_url, $js_scripts = false)
 {
+	global $Config;
+	
+	/* also set the generic header (will only be sent when the header is echo'd, though */
+	header('Content-Type: text/html; charset=utf-8');
+	
 	$s = "<html>\n<head>\n\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" >\n";
 
 	$s .= "\t<title>$title</title>\n";
@@ -194,9 +199,11 @@ function print_html_header($title, $css_url, $js_scripts = false)
 	if (!empty($css_url))
 		$s .= "\t<link rel=\"stylesheet\" type=\"text/css\" href=\"$css_url\" >\n";
 
+	$js_path = ($Config->run_location == 'mainhome' ? 'lib/javascript' : '../lib/javascript');
+
 	if (! empty($js_scripts))
 		foreach ($js_scripts as $js)
-			$s .= "\t<script type=\"text/javascript\" src=\"../lib/javascript/$js.js\"></script>\n";
+			$s .= "\t<script type=\"text/javascript\" src=\"$js_path/$js.js\"></script>\n";
 	
 	$s .= "</head>\n<body>\n";
 	
@@ -207,7 +214,62 @@ function print_html_header($title, $css_url, $js_scripts = false)
  * The login form is used in more than one place, so this function 
  * puts the code in just one place.
  */
-print_login_form()
+function print_login_form($location_after = false)
+{
+	global $Config;
+	
+	if ($Config->run_location == 'usr')
+		$pathbegin = '';	
+	else if ($Config->run_location == 'mainhome')
+		$pathbegin = 'usr/';
+	else
+		$pathbegin = '../usr/';
+	
+	/* pass through a location after, if one was given */
+	$input_location_after = (empty($location_after) 
+								? '' 
+								: '<input type="hidden" name="locationAfter" value="'.cqpweb_htmlspecialchars($location_after).'" />'
+								);
+		
+	return <<<HERE
+
+				<form action="{$pathbegin}redirect.php" method="POST">
+					<table class="basicbox" style="margin:auto">
+						<tr>
+							<td class="basicbox">Enter your username:</td>
+							<td class="basicbox">
+								<input type="text" name="username" width="30" onKeyUp="check_c_word(this)" />
+							</td>
+						</tr>
+						<tr>
+							<td class="basicbox">Enter your password:</t6d>
+							<td class="basicbox">
+								<input type="password" name="password" width="100"  />
+							</td>
+						</tr>
+						<tr>
+							<td class="basicbox">Tick here to stay logged in on this computer:</t6d>
+							<td class="basicbox">
+								<input type="checkbox" name="persist" value="1"  />
+							</td>
+						</tr>
+						<tr>
+							<td class="basicbox" align="right">
+								<input type="submit" value="Click here to log in"  />
+							</td>
+							<td class="basicbox" align="left">
+								<input type="reset" value="Clear form"  />
+							</td>
+						</tr>
+						$input_location_after
+						<input type="hidden" name="redirect" value="userLogin" />
+						<input type="hidden" name="uT" value="y" />
+					</table>
+				</form>
+
+HERE;
+
+}
 
 
 ?>

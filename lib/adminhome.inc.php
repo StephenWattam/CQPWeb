@@ -63,7 +63,7 @@ $thisF = ( isset($_GET["thisF"]) ? $_GET["thisF"] : 'showCorpora' );
 header('Content-Type: text/html; charset=utf-8');
 
 $Config->run_location = 'adm';
-$Config->css_path = $css_path_for_adminpage;
+$Config->css_path = $Config->css_path_for_adminpage;
 
 // TODO move the raw .js out of here. And use the html function.
 ?>
@@ -1290,7 +1290,7 @@ function printquery_useradmin()
 				Create new user
 			</th>
 		</tr>
-		<form action="index.php" method="GET">
+		<form action="index.php" method="POST">
 			<tr>
 				<td class="concordgeneral">
 					Enter the username you wish to create:
@@ -1347,7 +1347,7 @@ function printquery_useradmin()
 			</th>
 		</tr>
 
-		<form action="index.php" method="GET">
+		<form action="index.php" method="POST">
 			<tr>
 				<td class="concordgeneral">
 					Select the user for password reset:
@@ -3045,7 +3045,11 @@ function printquery_message()
 		</tr>
 		<tr>
 			<td class="concordgeneral">
-				<?php echo $msg; ?>
+				<p>&nbsp;</p>
+				<p align="center">
+					<?php echo $msg; ?>
+				</p>
+				<p>&nbsp;</p>
 			</td>
 		</tr>
 	</table>

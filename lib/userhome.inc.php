@@ -106,6 +106,7 @@ else
 	echo print_menurow_heading('Account actions');
 	echo print_menurow_index('login', 'Log in to CQPweb');
 	echo print_menurow_index('create', 'Create new user account');
+	echo print_menurow_index('verify', 'Activate new acount');
 	echo print_menurow_index('resend', 'Resend account activation');
 	echo print_menurow_index('lost', 'Reset lost password');
 	
@@ -202,7 +203,14 @@ else
 	
 //		echo print_menurow_index('login', 'Log in to CQPweb');
 //	echo print_menurow_index('create', 'Create new user account');
-//	echo print_menurow_index('resend', 'Resend account activation');
+
+	case 'verify':
+		printscreen_verify();
+		break;
+
+	case 'resend':
+		printscreen_resend();
+		break;
 //	echo print_menurow_index('lost', 'Reset lost password');
 	
 	

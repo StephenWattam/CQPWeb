@@ -67,6 +67,15 @@ if (!isset($cqpweb_no_internet))
 if (!isset($cqpweb_email_from_address))
 	$cqpweb_email_from_address = '';
 
+/* name for cookies stored in users' browsers */
+if (!isset($cqpweb_cookie_name))
+	$cqpweb_cookie_name = "CQPwebLogonToken";
+
+/* how long can someone stay logged in without visiting the site? */
+if (!isset($cqpweb_cookie_max_persist))
+	$cqpweb_cookie_max_persist = 5184000;
+
+
 
 
 /* Does mysqld have file-write/read ability? If set to true, CQPweb uses LOAD DATA
@@ -154,7 +163,7 @@ if (!isset($use_corpus_categories_on_homepage))
 	$use_corpus_categories_on_homepage = false;
 
 if (!isset($css_path_for_homepage))
-	$css_path_for_homepage = "../css/CQPweb.css";
+	$css_path_for_homepage = "css/CQPweb.css";
 
 if (!isset($css_path_for_adminpage))
 	$css_path_for_adminpage = "../css/CQPweb-red.css";

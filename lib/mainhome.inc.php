@@ -81,31 +81,76 @@ foreach ( array('left', 'right') as $side)
 
 
 
-header('Content-Type: text/html; charset=utf-8');
+
+echo print_html_header('CQPweb Main Page', $Config->css_path, array('cqpweb-clientside'));
+
+//<html>
+//<head>
+//
+//<title>CQPweb Main Page</title>
+//
+//<link rel="stylesheet" type="text/css" href="css/<?php echo $css_path_for_homepage;? >" />
+//
+//<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+//
+//</head>
+//<body>
 ?>
-<html>
-<head>
 
-<title>CQPweb Main Page</title>
-
-<link rel="stylesheet" type="text/css" href="css/<?php echo $css_path_for_homepage;?>" />
-
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-</head>
-<body>
 
 <table class="concordtable" width="100%">
 
 	<tr>
 		<th colspan="3" class="concordtable">
 			<?php echo $logo_divs, $homepage_welcome_message; ?>
-			<br/>
-			<em>Please select a corpus from the list below to enter.</em>
 		</th>
 	</tr>
-
+	<tr>
+	<?php
+	if ($User->logged_in)
+	{
+		// TODO
+		
+		//6 recently used corpora?
+		/*
+		 * NOT LOGGED ON
+		 * 
+		 * - log on form & links
+		 * - Corpora available
+		 * - system messages
+		 * 
+		 * LOGGED ON
+		 * 
+		 * Welcome back, NAME OF PERSON! (quick links to user pages and LOG OFF LINK)
+		 * 
+		 * - recently used corpora
+		 * - recent queries
+		 * - system messages
+		 * - Corpora available
+		 * 
+		 * 
+		 * 
+		 */
+	}
+	else
+	{
+		echo "\t<tr>\n\t\t<td colspan=\"3\" class=\"concordgeneral\">\n";
+		echo print_login_form();
+		echo "\t\t\t<p align=\"center\"><a href=\"usr/?thisQ=create&uT=y\">Create account</a>";
+		echo " | <a href=\"usr/\">Other account options</a>\n";
+		echo "\t\t\t<p>&nbsp;</p>\n"; 
+		echo "\t\t</td>\n\t</tr>\n";
+	}
+	?>
+	<tr>
+		<th colspan="3" class="concordtable">
+			Corpora available on this server:
+		</th>
+	</tr>
 <?php
+
+if ($User->logged_in)
+	display_system_messages();
 
 
 foreach ($categories as $id => $cat)
@@ -187,7 +232,8 @@ foreach ($categories as $id => $cat)
 
 <?php
 
-display_system_messages();
+if (!$User->logged_in)
+	display_system_messages();
 
 echo print_html_footer('admin');
 

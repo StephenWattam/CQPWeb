@@ -65,26 +65,34 @@
 
 function printscreen_welcome()
 {
+	global $User;
+	
+	if (empty($User->realname) || $User->realname == 'unknown person')
+		$personalise = ',' . cqpweb_htmlspecialchars($User->realname);
+	else
+		$personalise = '';
+	
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
 			<th class="concordtable">
-				Put the title here!!
+				You are logged on to CQPweb
 			</th>
 		</tr>
 		<tr>
 			<td class="concordgeneral">
-				<p>You can now:</p>
-				<ul>
-					<li>
-						Design and insert a text-metadata table for the corpus
-					</li>
-					<li>
-						<a href="index.php?thisQ=installCorpus&uT=y">
-							Install another corpus
-						</a>
-					</li>
-				</ul>
+				
+				<p>&nbsp;</p>
+			
+				<p>Welcome back to the CQPweb server<?php echo $personalise; ?>. You are logged in to the system.</p>
+
+				<p>&nbsp;</p>
+
+				<p>
+					This is your user page; select an option from the menu on the right, or
+					<a href="../">click here to return to the main homepage</a>.
+				</p>
+
 				<p>&nbsp;</p>
 			</td>
 		</tr>
@@ -104,23 +112,14 @@ function printscreen_login()
 		<tr>
 			<td class="concordgeneral">
 				
-				<form action="redirect.php" method="get">
-					<table class="basicbox" style="margin:auto">
-						<tr>
-							<td class="basicbox">Enter your username:</td>
-							<td class="basicbox">
-								<input type="text" name="username" width="30" onKeyUp="check_c_word(this)" />
-							</td>
-						</tr>
-						<tr>
-							<td class="basicbox">Enter your password:</t6d>
-							<td class="basicbox">
-								<input type="password" name="password" width="100"  />
-							</td>
-						</tr>
-					</table>
-				</form>
+				<?php
 				
+				echo print_login_form( isset($_GET['locationAfter']) ? $_GET['locationAfter'] : false );
+				
+				?>
+			
+				<p>To log in to CQPweb, you must have cookies turned on in your browser.</p> 
+			
 				<ul>
 					<li>
 						<p>
@@ -331,7 +330,7 @@ function printscreen_usersettings()
 				<input type="reset" value="Clear changes" />
 			</td>
 		</tr>
-		<input type="hidden" name="redirect" value="newUserSettings" />
+		<input type="hidden" name="redirect" value="revisedUserSettings" />
 		<input type="hidden" name="uT" value="y" />
 
 	</form>
@@ -453,7 +452,167 @@ function printscreen_usermacros()
 
 
 
+function printscreen_verify()
+{
+	$screentype = (isset($_GET['verifyScreenType']) ? $_GET['verifyScreenType'] : 'newform');
+	
+	if ($screentype == 'newform' || $screentype == 'badlink')
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					Enter activation key
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					<p>&nbsp;</p>
+					<?php
+					if ($screentype=='badlink')
+						echo "\t\t\t\t\t<p>CQPweb could not read a verification key from the link you clicked.</p>\n"
+							,"\t\t\t\t\t<p>Enter your 32-letter key code manually instead?</p>\n";
+					else
+						echo "\t\t\t\t\t<p>You should have received an email with a 32-letter code.</p>\n"
+							,"\t\t\t\t\t<p>Enter this code into the form below to activate the account.</p>\n";						
+					?>
 
+					<form action="redirect.php" method="get">
+					
+						<table class="basicbox" style="margin:auto">
+							<tr>
+								<td class="basicbox" >
+									Enter code here:
+								</td>
+								<td class="basicbox" >
+									<input type="text" name="v" size="32" maxlength="32" />
+								</td>
+							</tr>
+
+							<tr>
+								<td class="basicbox" colspan="2" align="center">
+									<input type="submit" value="Click here to verify account" /> 
+								</td>
+							</tr>						
+						</table>
+						<input type="hidden" name="redirect" value="verifyUser" />
+						<input type="hidden" name="uT" value="y" />
+					</form>
+					<p>
+						If you have not received an email with an activation code,
+						<a href="index.php?thisQ=resend&uT=y">click here</a>
+						to ask for one to be sent to your account's designated email address.
+					</p>
+					<p>&nbsp;</p>
+				</td>
+			</tr>
+		</table>
+		<?php	}
+	else if ($screentype == 'success')
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					New account verification has succeeded!
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					<p>&nbsp;</p>
+					<p align="center">
+						Your new user account has been successfully activated. 
+					</p>
+					<p align="center">
+						Welcome to our CQPweb server!
+					</p>
+					<p align="center">
+						<a href="index.php">Click here to log in.</a>
+					</p>
+					<p>&nbsp;</p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+	else if ($screentype == 'failure')
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					Account verification failed!
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					<p>&nbsp;</p>
+					<p>
+						Your account could not be verified. The activation key you supplied could not be found in our database. 
+					</p>
+					<p>
+						We recommend you request <a href="index.php?thisQ=resend">a new activation email</a>.
+					</p>
+					<p>
+						If a new email does not solve the problem, we suggest 
+						<a href="create">restarting the account-creation process from scratch</a>.
+					</p>
+					<p>&nbsp;</p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+}
+
+
+function printscreen_resend()
+{
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">
+				Re-send account activation email
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				<p>&nbsp;</p>
+				<p>
+					If you have created an account on CQPweb but have not received an email to activate it,
+					you can use this control to request another activation email.
+				</p>
+
+				<p>&nbsp;</p>
+				<p>
+					All accounts must be verified by the owner of the associated email address by clicking
+					on the activation link in the email message.
+				</p>
+
+				<table class="basicbox" style="margin:auto">
+					<form action="redirect.php" method="GET">
+						<tr>
+							<td class="basicbox">Enter your email address:</td>
+							<td class="basicbox">
+								<input type="text" name="email" width="50" />
+							</td>
+						</tr>
+						<tr>
+							<td class="basicbox" colspan="2">
+								<input type="submit" value="Request a new activation email" />
+							</td>
+						</tr>
+						<input type="hidden" name="redirect" value="resendVerifyEmail" />
+						<input type="hidden" name="uT" value="y" />
+					</form>
+				</table>
+
+				<p>&nbsp;</p>
+			</td>
+		</tr>
+	</table>
+	<?php
+}
 
 
 ?>

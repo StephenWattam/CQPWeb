@@ -192,7 +192,7 @@ switch($_GET['admFunction'])
 		
 	case 'newUser':
 		$_GET['redirect'] = 'newUser';
-		$_GET['newUserFromAdmin'] = 1;
+		$_GET['userFunctionFromAdmin'] = 1;
 		unset($_GET['admFunction']);
 		require('../lib/redirect.inc.php');
 		exit();

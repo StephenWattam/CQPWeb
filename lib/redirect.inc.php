@@ -31,10 +31,11 @@
 
 
 
-// consider using header(Location :) in some cases for a cleaner URL
+// TODO consider using header(Location :) in some cases for a cleaner URL
 
-// and use include include urlfailure to distinguish the two types of problem
 
+if (isset($_POST['redirect']) && empty($_GET['redirect']))
+	$_GET['redirect'] = $_POST['redirect'];
 
 if (isset($_GET['redirect']))
 {	
@@ -136,21 +137,6 @@ if (isset($_GET['redirect']))
 	case 'backFromContext':
 		require("../lib/concordance.inc.php");
 		break;
-
-
-	/* from the form with new (revised) user settings */
-	
-	case 'newUserSettings':
-		$_GET['userAction'] = 'revisedUserSettings';
-		require("../lib/user-admin.inc.php");
-		break;
-
-	/* from forms that create a new user account */
-	
-	case 'newUser':
-		$_GET['userAction'] = 'revisedUserSettings';
-		require("../lib/user-admin.inc.php");
-		break;		
 
 
 
@@ -299,6 +285,28 @@ if (isset($_GET['redirect']))
 		$_GET['args'] = $_GET['arg1'] . $_GET['arg2'];
 		require('../lib/execute.inc.php');
 		break;
+
+
+
+
+
+	/* from various forms & controls in the user account system... */
+	
+	case 'userLogin':
+	case 'userLogout':
+	case 'newUser':
+	case 'resetUserPassword':
+	case 'resendVerifyEmail':
+	case 'verifyUser':
+	case 'revisedUserSettings':
+		$_GET['userAction'] = $redirect_script_redirector;
+		require("../lib/user-admin.inc.php");
+		break;
+	
+
+
+
+
 
 
 	/* special case */

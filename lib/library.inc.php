@@ -648,7 +648,7 @@ function set_next_absolute_location($relative_url)
  */
 function url_absolutify($u, $special_subdir = NULL)
 {
-	global $cqpweb_root_url;
+	global $Config;
 	global $corpus_sql_name;
 	
 	/* outside a corpus, extract the immeidate containing directory
@@ -669,22 +669,28 @@ function url_absolutify($u, $special_subdir = NULL)
 		 * this may not be foolproof, because it assumes that the path will always lead to the 
 		 * folder in which the current php script is located -- but should work for most cases 
 		 */
-		if (empty($cqpweb_root_url))
-			return (isset ($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 'https://' : 'http://')
+		if (empty($Config->cqpweb_root_url))
+			$url = (isset ($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 'https://' : 'http://')
 				  /* host name */
 				. $_SERVER['HTTP_HOST']
 				  /* path from request URI excluding filename */ 
-				. preg_replace('/\/[^\/]*\z/', '/', $_SERVER['REQUEST_URI'])
+				. preg_replace('|/[^/]*\z|', '/', $_SERVER['REQUEST_URI'])
 				  /* target path relative to current folder */ 
 				. $u;
 		else
-			return $cqpweb_root_url 
-				. ( (!empty($corpus_sql_name)) 
+			$url = $Config->cqpweb_root_url 
+				. ( 
+					(!empty($corpus_sql_name)) 
 					/* within a corpus, use the root + the corpus sql name */
 					? $corpus_sql_name  
 					: $special_subdir
 				)
-				. '/' . $u; 
+				. '/' . $u;
+		
+		/* attempt to resolve ../ if present */
+		$url = preg_replace('|/[^\./]+/\.\./|', '/', $url);
+		
+		return $url; 
 	}
 }
 
@@ -980,7 +986,8 @@ function dump_mysql_result($result)
 
 function coming_soon_page()
 {
-	echo print_html_header('unfinished function!');
+	global $Config;
+	echo print_html_header('unfinished function!', $Config->css_path);
 	coming_soon_finish_page();
 }
 

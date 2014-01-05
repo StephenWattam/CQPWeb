@@ -31,6 +31,7 @@ require('../lib/environment.inc.php');
 
 /* library files */
 require('../lib/user-lib.inc.php');
+require('../lib/html-lib.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/library.inc.php');
 
@@ -49,19 +50,63 @@ require('../lib/library.inc.php');
 
 $script_called_from_admin = (isset ($_GET['userFunctionFromAdmin']) && $_GET['userFunctionFromAdmin'] == 1); 
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | ($script_called_from_admin ? CQPWEB_STARTUP_CHECK_ADMIN_USER : 0));
 
+/* a slightly tricky one: either admin did it, in which case we need admin login; or new user did it, 
+ * in which case we do not need any login at all ........... */
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP 
+						| ($script_called_from_admin ? CQPWEB_STARTUP_CHECK_ADMIN_USER : CQPWEB_STARTUP_ALLOW_ANONYMOUS_ACCESS));
+/* BUT NOTE, some of the script below will re-impose the user-test. */
 
+if ($script_called_from_admin)
+{
+	$Config->css_path = $Config->css_path_for_adminpage;
+	$Config->run_location = 'adm';
+}
+else
+{
+	$Config->css_path = $Config->css_path_for_userpage;
+	$Config->run_location = 'usr';
+}
 
 $script_mode = isset($_GET['userAction']) ? $_GET['userAction'] : false; 
 
 switch ($script_mode)
 {
+	/*
+	 * Cases in this switch are grouped according to the TYPE OF USER ACCESS.
+	 * 
+	 * First, come the ones where NO LOGIN IS REQUIRED.
+	 * 
+	 * So no additional check is required other than the one done at environment startup.
+	 * 
+	 */
+	
+case 'userLogin':
+
+	//TODO
+
+	if (isset($_GET['locationAfter']))
+		$next_location = $_GET['locationAfter'];
+	else
+		$next_location = '../usr/index.php?thisQ=welcome';
+	break;
+
+
+case 'userLogout':
+
+	// TODO
+	
+	/* redirect to mainhome */
+	$next_location = '../usr/index.php?thisQ=logoutDone';
+	break;
+
+
+
+
+	
 case 'newUser':
 
 	/* CREATE NEW USER ACCOUNT */
-	
-	// TODO this will need extending when the "user accessible" variant form is plugged in.
 
 	if (!isset($_GET['newUsername'],$_GET['newPassword'],$_GET['newEmail']))
 		exiterror_general("Missing information: you must specify a username, password and email address to create an account!");
@@ -119,50 +164,103 @@ case 'newUser':
 		break;
 	}
 	
+	// tODO auto group assign using regexen
+	
 	/* and redirect out */
 	
 	if ($script_called_from_admin)
 		$next_location = "index.php?thisF=showMessage&message=" . urlencode("User account '$new_username' has been created.") . "&uT=y";
 	else
-		$next_location = "index.php";
-		// TODO choose a proper "next_location" for non-admin acct creation. 
-
+		$next_location = ""; /* i.e. {BASE}/usr */
 	break;
 
 
+case 'verifyUser':
+
+	/* incoming check for user verification link; DOES NOT originate from admin interface. */
+	
+	$key = trim($_GET['v']);
+
+	if (0 < preg_match('/^[abcdef1234567890]{32}$/',$key))
+	{
+		$next_location = 'index.php?thisQ=verify&verifyScreenType=badlink&uT=y';
+		break;
+	}
+	
+	if (false === ($the_username = resolve_user_verification_key($key)))
+		exiterror_general("That activation code was not recognised. Go back and try again, or request a new verification email.");
+	else
+	{
+		change_user_status($the_username, USER_STATUS_ACTIVE);
+		unset_user_verification_key($the_username);
+	}
+
+	$next_location = 'index.php?thisQ=verify&verifyScreenType=success&uT=y';
+	break;
+
+
+case 'resendVerifyEmail':
+
+	/* re-send a verification email, w/ a new activation code */
+	
+	break;
 
 case 'resetUserPassword':
 
 	/* change a user's password to the new value specified. */
+	
+	/* nb dos nto count as requiring a loing, since that is only one of THREE ways this function can be accessed */
+	
+	
+	/* if the user is logged in, they must supply the old password */
+	//TODO;
+	
+	/* if the user is not logged in, they must provide a suitable verification key */
+	// TODO
+	
+	// finally, if the user is admin, they can do what they damn well please
+	//TODO
 
 	break;
+
+
+	/*
+	 * 
+	 * now come the cases where A USER LOGIN IS REQUIRED and WE ERROR-MESSAGE IF IT WAS NOT THERE 
+	 * 
+	 */
+
 
 
 case 'revisedUserSettings':
 
-	/* change user's interface parameters */
+	/* change user's interface preferences */
+
 
 	update_multiple_user_settings($username, parse_get_user_settings());
-	$next_location = 'iindex.php?thisQ=userSettings&uT=y';
+	$next_location = 'index.php?thisQ=userSettings&uT=y';
 	break;
 
 	
+	/*
+	 * 
+	 * Finally, defualt is an unconditional abort, so it really doesn't matter whether or not one is logged in.
+	 * 
+	 */
+	
 default:
 
-	/* dodgy parameter: do nothing and redirect to index */
-
-	$next_location = 'index.php';
+	/* dodgy parameter: ERROR out. */
+	exiterror_general("A badly-formed user administration operation was requested!"); 
 	break;
 }
 
 
+if (isset($next_location))
+	set_next_absolute_location($next_location);
 
 cqpweb_shutdown_environment();
 
-
-
-if (isset($next_location))
-	set_next_absolute_location($next_location);
 exit(0);
 
 

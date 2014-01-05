@@ -298,7 +298,11 @@ function upgrade_3_0_16()
 	$sql = array(
 		"alter table user_info drop column password",
 		"alter table user_info add column `verify_key` varchar(32) default NULL AFTER acct_status",
-	
+		"CREATE TABLE `user_cookie_tokens` (
+			`token` char(33) NOT NULL default '__token' UNIQUE,
+			`user_id` int NOT NULL,
+			`expiry`  int UNSIGNED NOT NULL default 0
+			) CHARACTER SET utf8 COLLATE utf8_bin",
 	
 		"update system_info set value = '3.1.0' where setting_name = 'db_version'"
 	);

@@ -1425,6 +1425,15 @@ function cqpweb_mysql_recreate_tables()
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 
 
+	
+	$create_statements['user_cookie_tokens'] =
+		"CREATE TABLE `user_cookie_tokens` (
+			`token` char(33) NOT NULL default '__token' UNIQUE,
+			`user_id` int NOT NULL,
+			`expiry`  int UNSIGNED NOT NULL default 0
+	) CHARACTER SET utf8 COLLATE utf8_bin";
+
+
 	$create_statements['user_groups'] =
 		"CREATE TABLE `user_groups` (
 			`id` int NOT NULL AUTO_INCREMENT,
@@ -1671,7 +1680,7 @@ h1 {
 /* different paragraph styles */
 
 p.errormessage {
-	font-family: courier new;
+	font-family: verdana;
 	font-size: large
 }
 
