@@ -46,7 +46,7 @@ require("../lib/ceql.inc.php");
 require("../lib/cqp.inc.php");
 require("../lib/user-lib.inc.php");
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST | CQPWEB_STARTUP_CHECK_ADMIN_USER);
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST | CQPWEB_STARTUP_CHECK_ADMIN_USER, RUN_LOCATION_ADM);
 
 
 
@@ -62,10 +62,8 @@ $thisF = ( isset($_GET["thisF"]) ? $_GET["thisF"] : 'showCorpora' );
 /* before anything else... */
 header('Content-Type: text/html; charset=utf-8');
 
-$Config->run_location = 'adm';
-$Config->css_path = $Config->css_path_for_adminpage;
 
-// TODO move the raw .js out of here. And use the html function.
+// TODO move the raw .js out of here into a file. And use the html function.
 ?>
 <html>
 <head>

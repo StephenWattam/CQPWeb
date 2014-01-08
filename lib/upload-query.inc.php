@@ -31,6 +31,7 @@ require('../lib/environment.inc.php');
 
 
 /* include function files */
+require('../lib/user-lib.inc.php');
 require('../lib/cqp.inc.php');
 require('../lib/cache.inc.php');
 require('../lib/library.inc.php');

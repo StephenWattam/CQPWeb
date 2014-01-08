@@ -34,7 +34,7 @@
 function user_name_to_id($user)
 {
 	$user = mysql_real_escape_string($user);
-	$result = do_mysql_query("select id from user_info where group_name = '$user'");
+	$result = do_mysql_query("select id from user_info where username = '$user'");
 	if (mysql_num_rows($result) < 1)
 		exiterror_general("Invalid user name specified at database level: $user");
 	list($id) = mysql_fetch_row($result);
@@ -206,6 +206,14 @@ function delete_user($user)
 	do_mysql_query("delete from user_info where id = $id");
 }
 
+/**
+ * Touch the specified user's last_seen_time....
+ */
+function touch_user($username)
+{
+	$username = mysql_real_escape_string($username);
+	do_mysql_query("update user_info set last_seen_time = CURRENT_TIMESTAMP where username='$username'");
+}
 
 
 function update_user_password($user, $new_password)
@@ -362,7 +370,11 @@ function change_user_status($user, $new_status)
  */
 function get_user_setting($username, $field)
 {
-	return get_all_user_settings($username)->$field;
+	$o = get_all_user_settings($username);
+	if (empty($o))
+		return false;
+	else
+		return $o->$field;
 }
 
 /** 
@@ -397,13 +409,13 @@ function get_all_user_settings($username)
 
 
 /** 
- * Updfate a user setting relating to the user interface tweaks.
+ * Update a user setting relating to the user interface tweaks.
  * TODO change name?
  */
 function update_user_setting($username, $field, $setting)
 {
 	$field = mysql_real_escape_string($field);
-	$setting = mysql_real_escape_string($field);
+	$setting = mysql_real_escape_string($setting);
 	$username = mysql_real_escape_string($username);
 	
 	/* only certain fields are allowed to be changed via this function. */
@@ -464,7 +476,9 @@ function get_user_linefeed($username)
 
 function guess_user_linefeed($user_to_guess)
 {
-	if ($user_to_guess != $_SERVER['REMOTE_USER'])
+	global $User;
+	
+	if ($user_to_guess != $User->username)
 		return 'da';
 	/* da is the default guess when no guess can be made, because Windows dominates the OS market.
 	 * and *nix people are more likely to be computer literate enough to fix it ;-P */
@@ -512,6 +526,30 @@ function generate_new_hash_from_password($password)
 	return crypt($password, $salt);
 }
 
+/**
+ * Check a username / password combo against the passhash held in the database.
+ * 
+ * Returns a database record for the user (as an object),  
+ * if the user account exists and the password matches its hash.
+ *  
+ * Otherwise returns false.
+ */
+function check_user_password($username, $password)
+{
+	$username = mysql_real_escape_string($username);
+	
+	$result = do_mysql_query("select * from user_info where username = '$username'");
+	
+	if (1 != mysql_num_rows($result))
+		return false;
+	
+	$obj = mysql_fetch_object($result);
+	
+	if ($obj->passhash == crypt($password, $obj->passhash))
+		return $obj;
+	return false;
+}
+
 
 
 /**
@@ -547,12 +585,15 @@ function generate_new_cookie_token()
 		$token = '';
 		for ($i = 0; $i < 32 ; $i++)
 			$token .= $token_language[rand(0,64)];
+		/* enforce uniqueness */
 		if (false === check_user_cookie_token($token))
 			break;
 	}
 	
 	return $token;
 }
+
+
 
 /**
  * Resets the expiry time of a cookie token to the maximum 
@@ -572,7 +613,7 @@ function touch_cookie_token($token)
  */
 function register_new_cookie_token($username, $token)
 {
-	$u_id = user_id_from_name($username);
+	$u_id = user_name_to_id($username);
 
 	global $Config;
 	$expiry = time() + $Config->cqpweb_cookie_max_persist;

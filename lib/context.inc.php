@@ -41,6 +41,7 @@ require('../lib/environment.inc.php');
 /* include function library files */
 require('../lib/library.inc.php');
 require('../lib/html-lib.inc.php');
+require('../lib/user-lib.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/concordance-lib.inc.php');
 require('../lib/metadata.inc.php');

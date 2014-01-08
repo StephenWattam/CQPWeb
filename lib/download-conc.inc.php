@@ -36,7 +36,7 @@ require('../lib/subcorpus.inc.php');
 require('../lib/exiterror.inc.php');
 require('../lib/metadata.inc.php');
 require('../lib/user-lib.inc.php');
-require ('../lib/cwb.inc.php');
+require('../lib/cwb.inc.php');
 require('../lib/cqp.inc.php');
 
 

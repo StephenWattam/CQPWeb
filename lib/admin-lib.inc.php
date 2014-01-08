@@ -1452,7 +1452,7 @@ function cqpweb_mysql_recreate_tables()
 			`realname` varchar(50) default NULL,
 			`email` varchar(50) default NULL,
 			`passhash` char(61),
-			`acct_status` tinyint(1),
+			`acct_status` tinyint(1) NOT NULL default 0,
 			`verify_key` varchar(32) default NULL,
 			`expiry_time` int UNSIGNED NOT NULL default 0,
 			`password_expiry_time` int UNSIGNED NOT NULL default 0,

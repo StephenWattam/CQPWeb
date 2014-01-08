@@ -43,7 +43,7 @@
 if (file_exists("settings.inc.php"))
 	require( '' . "settings.inc.php");	/* concatenate to avoid annoying bug warning */
 require('../lib/config.inc.php');
-require("../lib/defaults.inc.php");
+require('../lib/defaults.inc.php');
 
 
 
@@ -125,27 +125,29 @@ define('USER_STATUS_PASSWORD_EXPIRED',         3);
  * Config settings in the database are NOT loaded by the constructor.
  * 
  * 
- */ 
+ */
 class CQPwebEnvConfig
 {
 	/* we don't declare any members - the constructor function creates them dynamically */
 	
-	public function __construct()
+	public function __construct($run_location)
 	{	
 		/* import config variables from the global state of the config file */
 		if (file_exists("settings.inc.php"))
 			require( '' . "settings.inc.php");
 		require('../lib/config.inc.php');
 		require('../lib/defaults.inc.php');
+		// TODO: some of the "settings" should be on the $Corpus object and not here. For now they are on both. */
 		
 		/* transfer imported variables to object members */
 		$variables = get_defined_vars();
-		unset($variables['GLOBALS'],$variables['_SERVER'],$variables['_GET'],$variables['_POST'],$variables['_FILES'],
-				$variables['_COOKIE'],$variables['_SESSION'],$variables['_REQUEST'],$variables['_ENV']  );
+		unset(	$variables['GLOBALS'], $variables['_SERVER'], $variables['_GET'],
+				$variables['_POST'],   $variables['_FILES'],  $variables['_COOKIE'],
+				$variables['_SESSION'],$variables['_REQUEST'],$variables['_ENV'] 
+				);
 		foreach ($variables as $k => $v)
 			$this->$k = $v;
-		// TODO: some of the "settings" should be on the $Corpus object and not here. For now they are on both. */
-			
+
 		/* check compulsory config variables */
 		$compulsory_config_variables = array(
 				'superuser_username',
@@ -173,8 +175,15 @@ class CQPwebEnvConfig
 		$this->dir->registry = $this->cwb_registry;
 		unset($this->cwb_registry);
 		
-		/* set the run location to CORPUS; if it's not, that will be changed later... */
-		$this->run_location = 'CORPUS';
+		/* CSS action based on run_location */
+		switch ($this->run_location)
+		{
+		case RUN_LOCATION_MAINHOME:     $this->css_path = $this->css_path_for_homepage;     break;
+		case RUN_LOCATION_ADM:          $this->css_path = $this->css_path_for_adminpage;    break;
+		case RUN_LOCATION_USR:          $this->css_path = $this->css_path_for_userpage;     break;
+		/* tacit default: RUN_LOCATION_CORPUS, where the $Corpus object takes responsibility for
+		 * setting the global $Config css_path appropriately. */
+		}
 	}
 }
 
@@ -194,11 +203,8 @@ class CQPwebEnvUser
 	{
 		global $Config;
 		
-
-// temp code. Delete as soon as we're off Apache.
+// TODO temp code. Delete when global username no longer needed.
 global $username;
-//$username = ( isset($_SERVER['REMOTE_USER']) ? $_SERVER['REMOTE_USER'] :  '__unknown_user' );
-//if ($username != '__unknown_user') $this->logged_in = true;
 
 		/* look for logged on user */
 		if (isset($_COOKIE[$Config->cqpweb_cookie_name]))
@@ -209,7 +215,6 @@ global $username;
 				$username = '__unknown_user';
 				// TODO maybe change the above?
 				$this->logged_in = false;
-				
 			}
 			else
 			{
@@ -217,25 +222,14 @@ global $username;
 				/* we don't need to re-send the cookie. But we do need to touch it in cache. */
 				touch_cookie_token($_COOKIE[$Config->cqpweb_cookie_name]);
 				/* cookie tokens which don't get touched will eventually get old enough to be deleted */
-			}	
-
-
-
-
+			}
 		}
 
-
-//		
-
-//		
-//		/* When the browser forgets it according to the original "persist", then it will
-//		 * gradually get old enough to be deleted. */ 
-//	}
-		
 		
 		/* import database fields as object members. */
 		if ($this->logged_in)
 		{
+			touch_user($username);
 			$result = do_mysql_query("select * from user_info where username = '$username'");
 			foreach (mysql_fetch_assoc($result) as $k => $v)
 				if (!isset($this->$k))
@@ -246,7 +240,7 @@ global $username;
 	
 	public function is_admin()
 	{
-		return $this->logged_in && user_is_superuser($this->username);
+		return ( PHP_SAPI=='cli' || ($this->logged_in && user_is_superuser($this->username)) );
 	}
 }
 
@@ -264,9 +258,7 @@ class CQPwebEnvCorpus
 	/** are we running within a particular corpus ? */
 	public $specified = false;
 	
-	/** is this a corpus created by and belonging to an individual user? */
-	public $is_user_corpus = false;
-	 
+ 
 	public function __construct()
 	{
 		/* first: try to identify the corpus. */
@@ -288,8 +280,10 @@ class CQPwebEnvCorpus
 // eventually, they will go into corpus_info....			
 			require( '' . "settings.inc.php");	/* concatenate to avoid annoying bug warning */
 			$variables = get_defined_vars();
-			unset($variables['GLOBALS'],$variables['_SERVER'],$variables['_GET'],$variables['_POST'],$variables['_FILES'],
-					$variables['_COOKIE'],$variables['_SESSION'],$variables['_REQUEST'],$variables['_ENV']  );
+			unset(	$variables['GLOBALS'], $variables['_SERVER'], $variables['_GET'],
+					$variables['_POST'],   $variables['_FILES'],  $variables['_COOKIE'],
+					$variables['_SESSION'],$variables['_REQUEST'],$variables['_ENV'] 
+					);
 			foreach ($variables as $k => $v)
 				$this->$k = $v;
 			
@@ -307,7 +301,7 @@ class CQPwebEnvCorpus
 			foreach (mysql_fetch_assoc($result) as $k => $v)
 				if (!isset($this->$k))
 					$this->$k = $v;
-			/* the "if" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
+			/* the "if" above is a bit paranoid. Can probably dispose of it later..... TODO */
 		}
 	}
 }
@@ -376,7 +370,7 @@ function declare_plugin($class, $type, $path_to_config_file = NULL)
  * function, into a file of its own. (startup.inc.php) together with
  * depedencies like session setup functions, the control flag constants, etc.
  */
-function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
+function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS, $run_location = RUN_LOCATION_CORPUS)
 {
 	/* -------------- *
 	 * TRANSFROM HTTP *
@@ -434,10 +428,9 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS)
 	// (do we want a flag CQPWEB_STARTUP_NONINTERACTIVE for when HTML response is NTO wanted?
 	
 	/* create global settings options */
-	$Config = new CQPwebEnvConfig();
+	$Config = new CQPwebEnvConfig($run_location);
 	
 	
-//var_dump($Config);
 	
 	/*
 	 * The flags are for "dont" because we assume the default behaviour

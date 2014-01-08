@@ -220,7 +220,7 @@ function do_mysql_query($sql_query)
 	$result = mysql_query($sql_query, $mysql_link);
 	
 	if (false === $result) 
-		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
+		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), $sql_query);
 	
 	$last_query_time = time();
 			
@@ -262,13 +262,13 @@ function do_mysql_outfile_query($query, $filename)
 		
 		if ($replaced != 1)
 			exiterror_mysqlquery('no_number',
-				'A query was prepared which does not contain FROM, or contains multiple instances of FROM: ' 
-				. $query , __FILE__, __LINE__);
+				'A query was prepared which does not contain FROM, or contains multiple instances of FROM.' 
+				, $query);
 		
 		print_debug_message("About to run the following MySQL query:\n\n$query\n");
 		$result = mysql_query($query);
 		if ($result == false)
-			exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
+			exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), $query);
 		else
 		{
 			print_debug_message("The query ran successfully.\n");
@@ -281,7 +281,7 @@ function do_mysql_outfile_query($query, $filename)
 		print_debug_message("About to run the following MySQL query:\n\n$query\n");
 		$result = mysql_unbuffered_query($query, $mysql_link); /* avoid memory overhead for large result sets */
 		if ($result == false)
-			exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link));
+			exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), $query);
 		print_debug_message("The query ran successfully.\n");
 	
 		if (!($fh = fopen($filename, 'w'))) 
@@ -1117,25 +1117,29 @@ function display_system_messages()
 	global $corpus_sql_name;
 	global $rss_feed_available;
 	
+	/* weeeeeelll, this is unfortunately complex! */
 	switch ($Config->run_location)
 	{
-	case 'adm':
+	case RUN_LOCATION_ADM:
 		$execute_path = 'index.php?admFunction=execute&function=delete_system_message';
 		$after_path = urlencode("index.php?thisF=systemMessages&uT=y");
-		$rel_add = '';
+		$rel_add = '../';
 		break;
-	case 'usr':
+	case RUN_LOCATION_USR:
 		$execute_path = '../adm/index.php?admFunction=execute&function=delete_system_message';
 		$after_path = urlencode("../usr/");
+		$rel_add = '../';
+		break;
+	case RUN_LOCATION_MAINHOME:
+		$execute_path = 'adm/index.php?admFunction=execute&function=delete_system_message';
+		$after_path = urlencode("../");
 		$rel_add = '';
 		break;
-	case 'mainhome':
-		$execute_path = 'adm/index.php?admFunction=execute&function=delete_system_message';
-		$after_path = urlencode("../");		
-	case 'CORPUS':
+	case RUN_LOCATION_CORPUS:
 		/* we are in a corpus */
 		$execute_path = 'execute.php?function=delete_system_message';
 		$after_path = urlencode($this_script);
+		$rel_add = '../';
 		break;
 	}
 	
@@ -1154,8 +1158,6 @@ function display_system_messages()
 				<?php
 				if ($rss_feed_available)
 				{
-					$rel_add = (($Config->run_location == 'mainhome') ? ''  : '../');
-						
 					?>
 					<a href="<?php echo $rel_add;?>rss">
 						<img src="<?php echo $rel_add;?>css/img/feed-icon-14x14.png" />
@@ -1184,7 +1186,7 @@ function display_system_messages()
 		if ($su)
 		{
 			echo '
-			<td rowspan="2" class="concordgeneral" nowrap="nowrap">
+			<td rowspan="2" class="concordgeneral" nowrap="nowrap" align="center">
 				<a class="menuItem" onmouseover="return escape(\'Delete this system message\')"
 				href="'. $execute_path . '&args='
 				, $r->message_id ,

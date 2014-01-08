@@ -299,6 +299,7 @@ if (isset($_GET['redirect']))
 	case 'resendVerifyEmail':
 	case 'verifyUser':
 	case 'revisedUserSettings':
+	case 'updateUserAccountDetails':
 		$_GET['userAction'] = $redirect_script_redirector;
 		require("../lib/user-admin.inc.php");
 		break;

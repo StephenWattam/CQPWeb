@@ -217,51 +217,18 @@ function upgrade_3_0_16()
 	foreach ($sql as $q)
 		do_mysql_query($q);
 	
-	/* load groups */
-	echo "User groups are managed in the database now, not in the Apache htgroup file. However, if you want, I can restore your old groups.\n";
-	if (ask_boolean_question("Do you want to do this?"))
-	{
-		while (1)
-		{
-			echo "OK! Since I don't know where your groups used to be kept, I will look for a [.htgroup] file in whatever folder you specify.\n";
-			$accessdir = get_variable_path("the folder that was \$cqpweb_accessdir in your old config file");
-			if (!is_file($f = "$accessdir/.htgroup"))
-			{
-				echo "I can't find a [.htgroup] in folder [$accessdir].\n";
-				if (ask_boolean_question("Do you want to try re-entering the folder?"))
-					continue;
-			}
-			else
-			{
-				foreach(file($f) as $line)
-				{
-					if (empty($line)) continue;
-					if (1 > preg_match('/^(\w+):(.*)$/', trim($line), $m))
-						echo "Skipping indecipherable group line: $line\n";
-					else
-					{
-						$group = $m[1];
-						if ($group == 'superusers') continue; # superusers live in the config file, not the DB.
-						do_mysql_query("insert into user_groups (group_name, description) values ('$group','(re-imported group)')");
-						list($g_id) = mysql_fetch_row(do_mysql_query("select id from user_groups where group_name = '$group'"));
-						foreach (explode(' ', trim($m[2])) as $a_user)
-						{
-							list($u_id) = mysql_fetch_row(do_mysql_query("select id from user_info where username='$a_user'")); 
-							do_mysql_query("insert into user_memberships (user_id, group_id, expiry_time) values ($u_id, $g_id, 0)");
-						}
-						echo "reinserted $group successfully!";
-					}
-				}
-			}
-			break;
-		}
-	}
+	echo "User groups are managed in the database now, not in the Apache htgroup file.\n";
+	echo "If you want to re-enable your old groups, please use load-pre-3.1-groups.php.\n";
+	echo "(Please acknowledge.)\n";
+	get_enter_to_continue();
 	
 	/* back to DB changes again */
 	
 	$sql = array(
 		'alter table user_info add column `passhash` char(61) AFTER email',
-		'alter table user_info add column `acct_status` tinyint(1) AFTER passhash',
+		'alter table user_info add column `acct_status` tinyint(1) NOT NULL default 0 AFTER passhash',
+		/* all existing users count as validated. */
+		'update user_info set acct_status = ' . USER_STATUS_ACTIVE,
 		'alter table user_info add column `expiry_time` int UNSIGNED NOT NULL default 0 AFTER acct_status',
 		'alter table user_info add column `last_seen_time` timestamp NOT NULL default CURRENT_TIMESTAMP AFTER expiry_time',
 		'alter table user_info add column `password_expiry_time` int UNSIGNED NOT NULL default 0 AFTER expiry_time',
@@ -303,7 +270,12 @@ function upgrade_3_0_16()
 			`user_id` int NOT NULL,
 			`expiry`  int UNSIGNED NOT NULL default 0
 			) CHARACTER SET utf8 COLLATE utf8_bin",
-	
+		"alter table user_info add column 
+
+
+
+
+
 		"update system_info set value = '3.1.0' where setting_name = 'db_version'"
 	);
 	foreach ($sql as $q)

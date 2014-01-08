@@ -46,8 +46,8 @@ require('../lib/environment.inc.php');
 /* include function library files */
 require('../lib/library.inc.php');
 require('../lib/html-lib.inc.php');
-//require ("../lib/user-lib.inc.php");
-//require ("../lib/exiterror.inc.php");
+require ("../lib/user-lib.inc.php");
+require ("../lib/exiterror.inc.php");
 //require ("../lib/cache.inc.php");
 //require ("../lib/subcorpus.inc.php");
 //require ("../lib/db.inc.php");

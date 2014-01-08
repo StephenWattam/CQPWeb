@@ -131,6 +131,9 @@ function print_html_footer($link = 'help')
 	/* javascript location diverter */
 	$diverter = '../';
 	
+	// TODO there must be much better uses for the central link now...
+	// since the adm link was only needed when mainhome could not be logged in.
+	
 	if ($link == 'help')
 	{
 		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
@@ -199,7 +202,7 @@ function print_html_header($title, $css_url, $js_scripts = false)
 	if (!empty($css_url))
 		$s .= "\t<link rel=\"stylesheet\" type=\"text/css\" href=\"$css_url\" >\n";
 
-	$js_path = ($Config->run_location == 'mainhome' ? 'lib/javascript' : '../lib/javascript');
+	$js_path = ($Config->run_location == RUN_LOCATION_MAINHOME ? 'lib/javascript' : '../lib/javascript');
 
 	if (! empty($js_scripts))
 		foreach ($js_scripts as $js)
@@ -218,11 +221,12 @@ function print_login_form($location_after = false)
 {
 	global $Config;
 	
-	if ($Config->run_location == 'usr')
+	if ($Config->run_location == RUN_LOCATION_USR)
 		$pathbegin = '';	
-	else if ($Config->run_location == 'mainhome')
+	else if ($Config->run_location == RUN_LOCATION_MAINHOME)
 		$pathbegin = 'usr/';
 	else
+		/* in a corpus, or in adm */
 		$pathbegin = '../usr/';
 	
 	/* pass through a location after, if one was given */

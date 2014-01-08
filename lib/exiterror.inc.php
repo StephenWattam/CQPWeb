@@ -44,7 +44,7 @@
  * 
  * Used by other exiterror functions (can be called unconditionally).
  */
-function exiterror_beginpage($page_title = NULL)
+function exiterror_beginpage($page_title = NULL, $page_heading_message = NULL)
 {
 	global $Config;
 	
@@ -53,6 +53,8 @@ function exiterror_beginpage($page_title = NULL)
 
 	if (! isset($page_title))
 		$page_title = "CQPweb has encountered an error!";
+	if (! isset($page_heading_message))
+		$page_heading_message = 'CQPweb encountered an error and could not continue.';
 	
 	if ($Config->debug_messages_textonly)
 	{
@@ -71,7 +73,7 @@ function exiterror_beginpage($page_title = NULL)
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable">CQPweb encountered an error and could not continue.</th>
+			<th class="concordtable"><?php echo cqpweb_htmlspecialchars($page_heading_message); ?></th>
 		</tr>
 	<?php
 }
@@ -167,12 +169,11 @@ function exiterror_endpage($backlink = false)
  */
 function exiterror_msg_location(&$array, $script=NULL, $line=NULL)
 {
-	global $debug_messages_textonly; 		
-	if (isset($script, $line))
-		$array[] = ($debug_messages_textonly ? 
-					"... in file $script line $line." : 
-					"... in file <b>$script</b> line <b>$line</b>."
-					);
+	if (!empty($script))
+		$array[]
+			= "... in file $script"
+			. ( empty($line) ? '' : " line $line")
+			. '.'; 
 }
 
 
@@ -196,6 +197,27 @@ function exiterror_general($errormessage, $script=NULL, $line=NULL)
 	exiterror_msg_location($msg, $script, $line);
 	
 	exiterror_beginpage();
+	exiterror_printlines($msg);
+	exiterror_endpage();
+}
+
+
+/**
+ * Variation on general error function specifically for failed login.
+ * 
+ * Unlike other exiterrors, it does not admit of script / line errors
+ * (because this "error" is not a bug: it's a user error but not a
+ * software error).
+ */
+function exiterror_login($errormessage) 
+{
+	$msg = array();
+	if (is_array($errormessage))
+		$msg = array_merge($msg, $errormessage);
+	else
+		$msg[] = $errormessage;
+	
+	exiterror_beginpage("Unsuccessful login!", "Your login was not successful.");
 	exiterror_printlines($msg);
 	exiterror_endpage();
 }
@@ -252,24 +274,14 @@ function exiterror_toomanydbprocesses($process_type)
 
 
 
-function exiterror_mysqlquery($errornumber, $errormessage, $script=NULL, $line=NULL)
+function exiterror_mysqlquery($errornumber, $errormessage, $origquery=NULL, $script=NULL, $line=NULL)
 {
+	global $User;
 	$msg = array();
 	$msg[] = "A mySQL query did not run successfully!";
+	if (!empty($origquery) && $User->is_admin())
+		$msg[] = "Original query: \n\n$origquery\n\n";
 	$msg[] = "Error # $errornumber: $errormessage ";
-	exiterror_msg_location($msg, $script, $line);
-	
-	exiterror_beginpage();
-	exiterror_printlines($msg);
-	exiterror_endpage();
-}
-
-function exiterror_mysqlquery_show($errornumber, $errormessage, $origquery, $script=NULL, $line=NULL)
-{
-	$msg = array();
-	$msg[] = "A mySQL query did not run successfully!";
-	$msg[] = "Error # $errornumber: $errormessage ";
-	$msg[] = "Original query: \n\n$origquery\n\n";
 	exiterror_msg_location($msg, $script, $line);
 
 	exiterror_beginpage();

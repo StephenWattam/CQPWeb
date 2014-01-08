@@ -51,22 +51,20 @@ require('../lib/library.inc.php');
 $script_called_from_admin = (isset ($_GET['userFunctionFromAdmin']) && $_GET['userFunctionFromAdmin'] == 1); 
 
 
-/* a slightly tricky one: either admin did it, in which case we need admin login; or new user did it, 
- * in which case we do not need any login at all ........... */
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP 
-						| ($script_called_from_admin ? CQPWEB_STARTUP_CHECK_ADMIN_USER : CQPWEB_STARTUP_ALLOW_ANONYMOUS_ACCESS));
+/* a slightly tricky one, since functions here are accessible with or without login,
+ * and also by admin only (in some caseS) and by anyone (in others).
+ * 
+ * Either admin did it, in which case we need admin login; or new user did it, 
+ * in which case we do not need any login at all ........... 
+ */
+cqpweb_startup_environment(
+	/* flags: */
+		CQPWEB_STARTUP_DONT_CONNECT_CQP	| ($script_called_from_admin ? CQPWEB_STARTUP_CHECK_ADMIN_USER : CQPWEB_STARTUP_ALLOW_ANONYMOUS_ACCESS),
+	/* run location: */
+		($script_called_from_admin ? RUN_LOCATION_ADM : RUN_LOCATION_USR)
+	);
 /* BUT NOTE, some of the script below will re-impose the user-test. */
 
-if ($script_called_from_admin)
-{
-	$Config->css_path = $Config->css_path_for_adminpage;
-	$Config->run_location = 'adm';
-}
-else
-{
-	$Config->css_path = $Config->css_path_for_userpage;
-	$Config->run_location = 'usr';
-}
 
 $script_mode = isset($_GET['userAction']) ? $_GET['userAction'] : false; 
 
@@ -83,21 +81,99 @@ switch ($script_mode)
 	
 case 'userLogin':
 
-	//TODO
+	/* step 1 - delete the logon cookie, and stop it being sent if it was going to be. */
+	if (isset($_COOKIE[$Config->cqpweb_cookie_name]))
+	{
+		delete_cookie_token($_COOKIE[$Config->cqpweb_cookie_name]);
+		unset($_COOKIE[$Config->cqpweb_cookie_name]);
+		header_remove('Set-Cookie');
+		
+		/* if the cookie WAS set, the global $User object will have the wrong user in it.
+		 * but we don't need to worry about that, because this script just redirects anyway:
+		 * does not actually DO anything. */
+	}
 
+	/* step 2 - retrieve user info from form && check, piece by piece */
+	
+	/* easy one first: stay logged in on this browser? */
+	$persist = (isset($_GET['persist']) && $_GET['persist']);
+
+	/* username  & password */
+	if (! isset($_POST['username'], $_POST['password']))
+		exiterror_login("Sorry but the system didn't receive your username/password. Please try again.");
+	
+	$username_for_login = trim($_POST['username']);
+	/* we perform a basic check of the username now, to enabl;e amore informative error message */
+	if (0 < preg_match('/\W/', $username_for_login))
+		exiterror_login("Login error: please re-check yuor password, you may have mistyped it.");
+	
+	if ( false === ($userinfo = check_user_password($username_for_login, $_POST['password'])))
+	{
+		/* add a delay to reduce the possibility of excessive experimentation via login form */
+		sleep(2);
+		exiterror_login(array("The credentials you entered are not valid.","Please go back to the log on page and try again."));		
+	}
+	else
+	{
+		/* check that the account is active */
+		switch ($userinfo->acct_status)
+		{
+		case USER_STATUS_ACTIVE:
+			/* break and fall through to the rest of this "else" which completes login. */
+			break;
+			
+		case USER_STATUS_UNVERIFIED:
+			exiterror_login(array(
+				"You cannot log in to this account because it has not been activated yet.",
+				"Please use the link in the verification message sent to your email address to activate this account."
+				));
+		case USER_STATUS_SUSPENDED:
+			exiterror_login(array(
+				"You cannot log in because your account has been suspended.",
+				"This may have happened because your account was time-limited and has now expired.",
+				"Alternatively, it is possible that the system administrator has suspected your account.",
+				"If in doubt, you should contact the system administrator."
+				));
+		case USER_STATUS_PASSWORD_EXPIRED:
+			exiterror_login(array(
+				"Your cannot log in because your password has expired.",
+				"Please use the [Reset lost password] function (from the account creation page) to change your password.",
+				"You will then be able to log in."
+				));
+		default:
+			/* should never be reached */
+			exiterror_general("Unreachable option was reached!",__FILE__,__LINE__);
+		}
+		
+		/* OK , user now logged in. Register a token for them, and send it as a cookie */
+		
+		/* how long before timeout? either 10 years, or till browser closed */
+		$browser_timeout = ($persist ? (time()+(10*365*24*60*60)) : 0);
+	
+		$token = generate_new_cookie_token();
+		setcookie($Config->cqpweb_cookie_name, $token, $browser_timeout, '/');
+		register_new_cookie_token($username_for_login, $token);
+	}
+	
 	if (isset($_GET['locationAfter']))
 		$next_location = $_GET['locationAfter'];
 	else
 		$next_location = '../usr/index.php?thisQ=welcome';
+	
+	
 	break;
 
 
 case 'userLogout':
 
-	// TODO
+	/* to log out, all that is necessary is to delete the cookie, delete the token, and end this run of the script... */
+	
+	if (isset($_COOKIE[$Config->cqpweb_cookie_name]))
+		delete_cookie_token($_COOKIE[$Config->cqpweb_cookie_name]);
+	setcookie($Config->cqpweb_cookie_name, '', time() - 3600, '/');
 	
 	/* redirect to mainhome */
-	$next_location = '../usr/index.php?thisQ=logoutDone';
+	$next_location = '..';
 	break;
 
 
@@ -209,7 +285,7 @@ case 'resetUserPassword':
 
 	/* change a user's password to the new value specified. */
 	
-	/* nb dos nto count as requiring a loing, since that is only one of THREE ways this function can be accessed */
+	/* nb does not count as requiring a login, since that is only one of THREE ways this function can be accessed */
 	
 	
 	/* if the user is logged in, they must supply the old password */
@@ -239,7 +315,10 @@ case 'revisedUserSettings':
 
 	update_multiple_user_settings($username, parse_get_user_settings());
 	$next_location = 'index.php?thisQ=userSettings&uT=y';
+
 	break;
+
+case 'updateUserAccountDetails':
 
 	
 	/*
@@ -269,7 +348,7 @@ exit(0);
  * ------------- */
 
 
-/** Gets all "newSetting" parameters from $_GET and sanitises for correct type of input. */
+/** Gets all "newSetting" parameters (relating to UI settings) from $_GET and sanitises for correct type of input. */
 function parse_get_user_settings()
 {
 	$settings = array();
@@ -288,14 +367,7 @@ function parse_get_user_settings()
 			case 'thin_default_reproducible':
 				$settings[$m[1]] = (bool)$v;
 				break;
-			
-			/* string settings */
-			case 'realname':
-			case 'email':
-				/* This will be sanitised at the DB interface level. */
-				 $settings[$m[1]] = $v;
-				break;
-			
+					
 			/* integer settings */
 			case 'coll_statistic':
 			case 'coll_freqtogether':
@@ -310,9 +382,6 @@ function parse_get_user_settings()
 			case 'linefeed':
 				if (preg_match('/^(da|d|a|au)$/', $v) > 0)
 					$settings[$m[1]] = $v;
-				break;
-			case 'username':
-				$settings[$m[1]] = preg_replace('/\W/', '', $m[1]);
 				break;
 			}
 		} 

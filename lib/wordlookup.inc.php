@@ -28,7 +28,8 @@
 
 require('../lib/environment.inc.php');
 
-//require('../lib/library.inc.php');
+require('../lib/library.inc.php');
+require('../lib/user-lib.inc.php');
 require('../lib/concordance-lib.inc.php');
 require('../lib/exiterror.inc.php');
 

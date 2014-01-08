@@ -38,6 +38,8 @@ require('../lib/environment.inc.php');
 require_once('../lib/cache.inc.php');
 require_once('../lib/db.inc.php');
 require_once('../lib/library.inc.php');
+require_once('../lib/user-lib.inc.php');
+require_once('../lib/html-lib.inc.php');
 require_once('../lib/metadata.inc.php');
 require_once('../lib/exiterror.inc.php');
 require_once('../lib/subcorpus.inc.php');

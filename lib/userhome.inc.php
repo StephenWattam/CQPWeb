@@ -39,18 +39,11 @@ require('../lib/library.inc.php');
 require('../lib/html-lib.inc.php');
 require('../lib/user-lib.inc.php');
 require('../lib/exiterror.inc.php');
-
+require('../lib/colloc-lib.inc.php');
 require('../lib/indexforms-user.inc.php');
 require('../lib/indexforms-others.inc.php');
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST);
-
-
-$Config->run_location = 'usr';
-
-
-
-
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST, RUN_LOCATION_USR);
 
 
 
@@ -62,7 +55,7 @@ header('Content-Type: text/html; charset=utf-8');
 $thisQ = ( isset($_GET["thisQ"]) ? $_GET["thisQ"] : 'welcome' );
 
 
-echo print_html_header('CQPweb User Page', $Config->css_path_for_userpage, array('cqpweb-clientside'));
+echo print_html_header('CQPweb User Page', $Config->css_path, array('cqpweb-clientside'));
 
 
 /* ******************* *
@@ -91,9 +84,11 @@ if ($User->logged_in)
 {
 	echo print_menurow_heading('Your account');
 	echo print_menurow_index('welcome', 'Overview');
-	echo print_menurow_index('userSettings', 'User settings');
+	echo print_menurow_index('userSettings', 'Interface settings');
 	echo print_menurow_index('userMacros', 'User macros');
 	echo print_menurow_heading('Account actions');
+	echo print_menurow_index('userDetails', 'Account details');
+	echo print_menurow_index('userLogout', 'Log out of CQPweb');
 	echo print_menurow_index('changePassword', 'Change password');	
 }
 else
@@ -158,14 +153,26 @@ if ($User->logged_in)
 		break;
 
 	case 'userSettings':
-		printquery_usersettings();
+		printscreen_usersettings();
 		break;
 
 	case 'userMacros':
-		printquery_usermacros();
+		printscreen_usermacros();
 		break;
 
-	
+	case 'userDetails':
+		printscreen_userdetails();
+		break;
+
+	case 'userLogout':
+		printscreen_logout();
+		break;
+
+	case 'changePassword':
+//		printscreen_changepassword();
+		coming_soon_page();
+		break;
+
 	/* common cases... */
 	
 	case 'who_the_hell':

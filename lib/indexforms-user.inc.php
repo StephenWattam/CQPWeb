@@ -68,9 +68,9 @@ function printscreen_welcome()
 	global $User;
 	
 	if (empty($User->realname) || $User->realname == 'unknown person')
-		$personalise = ',' . cqpweb_htmlspecialchars($User->realname);
-	else
 		$personalise = '';
+	else
+		$personalise = ', ' . cqpweb_htmlspecialchars($User->realname);
 	
 	?>
 	<table class="concordtable" width="100%">
@@ -140,6 +140,139 @@ function printscreen_login()
 }
 
 
+function printscreen_logout()
+{
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">
+				Log out of CQPweb?
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				<p>&nbsp;</p>
+				<p>Are you sure you want to log out of the system?</p>
+				
+				<table class="basicbox" style="margin:auto">
+					<form action="redirect.php" method="GET">
+						<tr>
+							<td class="basicbox">
+								<input type="submit" value="Click here to log out and return to the main menu" />
+							</td>
+						</tr>
+						<input type="hidden" name="redirect" value="userLogout" />
+						<input type="hidden" name="uT" value="y" />
+					</form>
+				</table>
+
+				<p>&nbsp;</p>
+			</td>
+		</tr>
+	</table>
+	<?php
+}
+
+
+function printscreen_userdetails()
+{
+	global $User;
+	global $Config;
+	
+	/* initialise the iso 3166-1 array... */
+	require('../lib/user-iso31661.inc.php');
+	sort($Config->iso31661);
+	
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th colspan="3" class="concordtable">
+				Account details
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Username:
+			</td>
+			<td class="concordgeneral" colspan="2">
+				<?php echo $User->username, "\n"; ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Email address:
+			</td>
+			<td class="concordgeneral" colspan="2">
+				<?php echo $User->email, "\n"; ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="3">
+				&nbsp;<br/>
+				<b>Important note</b>:
+				You cannot change either the username or the email address that this account is associated with.
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<form action="redirect.php" method="POST">
+			<tr>
+				<td class="concordgeneral">
+					Your full name:
+				</td>
+				<td class="concordgeneral">
+					<input type="text" name="updateValue" value="<?php echo cqpweb_htmlspecialchars($User->realname); ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+				<input type="hidden" name="fieldToUpdate" value="realname" />
+				<input type="hidden" name="redirect" value="updateUserAccountDetails" />
+				<input type="hidden" name="uT" value="y" />
+			</tr>
+		</form>
+		<form action="redirect.php" method="POST">
+			<tr>
+				<td class="concordgeneral">
+					Your affiliation (institution or company):
+				</td>
+				<td class="concordgeneral">
+					<input type="text" name="updateValue" value="<?php echo cqpweb_htmlspecialchars($User->affiliation); ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+				<input type="hidden" name="fieldToUpdate" value="affiliation" />
+				<input type="hidden" name="redirect" value="updateUserAccountDetails" />
+				<input type="hidden" name="uT" value="y" />
+			</tr>
+		</form>
+		<form action="redirect.php" method="POST">
+			<tr>
+				<td class="concordgeneral">
+					Your location:
+				</td>
+				<td class="concordgeneral">
+					<?php echo cqpweb_htmlspecialchars($User->country); ?>
+					<select name="updateValue">
+						<option selected="selected">Select new location ...</option>
+						<?php
+						foreach ($Config->iso31661 as $k => $country)
+							echo "\t\t\t\t\t\t<option value=\"$k\">", cqpweb_htmlspecialchars($country), "</option>\n";
+						?>
+					</select>
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+				<input type="hidden" name="fieldToUpdate" value="country" />
+				<input type="hidden" name="redirect" value="updateUserAccountDetails" />
+				<input type="hidden" name="uT" value="y" />
+			</tr>
+		</form>
+
+	</table>
+	<?php
+}
 
 
 function printscreen_usersettings()
@@ -154,16 +287,15 @@ function printscreen_usersettings()
 	<form action="redirect.php" method="get">
 	
 		<tr>
-			<th colspan="2" class="concordtable">User settings</th>
+			<th colspan="2" class="concordtable">User interface settings</th>
 		</tr>
 	
 		<tr>
 			<td colspan="2" class="concordgrey" align="center">
-				Important note: all these options can be set, but they may not have their full 
-				intended effect, if the part of CQPweb they apply to is still under development.
-			<!--
-				Important note: these settigns apply to all the corpora that you access on CQPweb.
-			-->
+				<p>&nbsp;</p>
+				<p>Use this form to personalise your options for the user interface.</p> 
+				<p>Important note: these settings apply to all the corpora that you access on CQPweb.</p>
+				<p>&nbsp;</p>
 			</td>
 		</tr>		
 
@@ -306,7 +438,7 @@ function printscreen_usersettings()
 			</td>
 		</tr>
 
-
+<!--
 		<tr>
 			<th colspan="2" class="concordtable">Other options</th>
 		</tr>		
@@ -322,6 +454,7 @@ function printscreen_usersettings()
 				<input name="newSetting_email" type="text" width="64" value="<?php echo cqpweb_htmlspecialchars($User->email); ?>"/>
 			</td>
 		</tr>
+-->
 		<tr>
 			<td class="concordgrey" align="right">
 				<input type="submit" value="Update settings" />

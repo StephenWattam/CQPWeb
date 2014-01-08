@@ -30,15 +30,12 @@ require('../lib/environment.inc.php');
 
 require('../lib/library.inc.php');
 require('../lib/html-lib.inc.php');
+require('../lib/user-lib.inc.php');
 require('../lib/metadata.inc.php');
 require('../lib/exiterror.inc.php');
 
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST);
-
-/* extra adjustment.... */
-$Config->run_location = 'mainhome';
-$Config->css_path = $css_path_for_homepage;
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST, RUN_LOCATION_MAINHOME);
 
 if ($use_corpus_categories_on_homepage)
 {
@@ -107,40 +104,85 @@ echo print_html_header('CQPweb Main Page', $Config->css_path, array('cqpweb-clie
 	</tr>
 	<tr>
 	<?php
+
+
+
 	if ($User->logged_in)
 	{
-		// TODO
+		/* personalised wlecome message */
+		if (empty($User->realname) || $User->realname == 'unknown person')
+			$personalise = '';
+		else
+			$personalise = ', ' . cqpweb_htmlspecialchars($User->realname);
+
+/* TODO: once we have the title in database, pull it here */ 
+		$result = do_mysql_query("select corpus from query_history where user='{$User->username}' order by date_of_query desc");
 		
-		//6 recently used corpora?
-		/*
-		 * NOT LOGGED ON
-		 * 
-		 * - log on form & links
-		 * - Corpora available
-		 * - system messages
-		 * 
-		 * LOGGED ON
-		 * 
-		 * Welcome back, NAME OF PERSON! (quick links to user pages and LOG OFF LINK)
-		 * 
-		 * - recently used corpora
-		 * - recent queries
-		 * - system messages
-		 * - Corpora available
-		 * 
-		 * 
-		 * 
-		 */
+		$recent_corpora = array();
+		
+		while (count($recent_corpora) < 6 && false !== ($o = mysql_fetch_object($result)))
+		{
+			foreach($recent_corpora as $rc)
+				if ($rc->corpus == $o->corpus)
+					continue 2;
+			$recent_corpora[] = $o; // TODO make the value to the description, once we have it
+		}
+		?>
+		<tr>
+			<td colspan="3" class="concordgeneral">
+			
+				<p>&nbsp;</p>
+			
+				<p align="center" style="font-size:large">
+					Welcome back to the CQPweb server<?php echo $personalise; ?>.<br/>You are logged in to the system.
+				</p>
+
+				<p>&nbsp;</p>
+				
+				<table class="basicbox" style="margin:auto" width="40%">
+					<tr>
+						<th width="50%" class="basicbox">Recently-used corpora</th>
+						<th width="50%" class="basicbox">Quick links</th>
+					</tr>
+					<tr>
+						<td class="basicbox">
+							<ul style="margin:auto">
+								<?php
+								foreach($recent_corpora as $rc)
+									echo "\t\t\t\t\t\t\t\t<li><a href=\"{$rc->corpus}/\">{$rc->corpus}</a></li>\n";
+								?>
+							</ul>
+						</td>
+						<td class="basicbox">
+							<ul>
+								<li><a href="usr/index.php?thisQ=userDetails&uT=y">Your user account details</a></li>
+								<!-- <li><a href="">Open help system</a></li>  -->
+								<!--<li><a href="usr/">Your corpus access privileges</a></li>-->
+								<li><a href="usr/redirect.php?redirect=userLogout&uT=y">Log out of CQPweb</a></li>
+							</ul>
+						</td>
+					</tr>
+				</table>
+				
+			</td>
+		</tr>
+		
+		<?php
+		echo "\t<tr>\n\t\t\n";
+		
 	}
 	else
 	{
 		echo "\t<tr>\n\t\t<td colspan=\"3\" class=\"concordgeneral\">\n";
 		echo print_login_form();
 		echo "\t\t\t<p align=\"center\"><a href=\"usr/?thisQ=create&uT=y\">Create account</a>";
-		echo " | <a href=\"usr/\">Other account options</a>\n";
+		echo " | <a href=\"usr/\">Full account-control options</a>\n";
 		echo "\t\t\t<p>&nbsp;</p>\n"; 
 		echo "\t\t</td>\n\t</tr>\n";
 	}
+
+
+	
 	?>
 	<tr>
 		<th colspan="3" class="concordtable">
@@ -149,8 +191,6 @@ echo print_html_header('CQPweb Main Page', $Config->css_path, array('cqpweb-clie
 	</tr>
 <?php
 
-if ($User->logged_in)
-	display_system_messages();
 
 
 foreach ($categories as $id => $cat)
@@ -232,8 +272,7 @@ foreach ($categories as $id => $cat)
 
 <?php
 
-if (!$User->logged_in)
-	display_system_messages();
+display_system_messages();
 
 echo print_html_footer('admin');
 
