@@ -189,8 +189,7 @@ else
 		. $row[0] . '" onmouseover="return escape(\'Info on ' . addcslashes($corpus_title, '\'')
 		. ' on the web\')">' . 'Corpus documentation</a></td></tr>';
 }
-unset($result);
-unset($row);
+
 
 
 /* print a link to each tagset for which an external_url is declared in metadata */
@@ -206,13 +205,12 @@ while (($row = mysql_fetch_assoc($result)) != false)
 			. $row['external_url'] . '" onmouseover="return escape(\'' . $row['description']
 			. ': view documentation\')">' . $row['tagset'] . '</a></td></tr>';
 }
-unset($result);
-unset($row);
+
 
 
 
 /* these are the super-user options */
-if (user_is_superuser($username))
+if ($User->is_admin())
 {
 	echo print_menurow_heading('Admin tools');
 	?>

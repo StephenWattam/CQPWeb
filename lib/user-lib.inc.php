@@ -52,14 +52,14 @@ function user_id_to_name($id)
 }
 
 /**
- * returns flat array of usernames
+ * returns flat array of usernames, ordered alphabetically
  */
 function get_list_of_users()
 {
-	$result = do_mysql_query("select username from user_info");
+	$result = do_mysql_query("select username from user_info order by username asc");
 	$u = array();
 	while (false !== ($r = mysql_fetch_row($result)))
-		$u[] = $r[0];	
+		$u[] = $r[0];
 	return $u;
 }
 
@@ -228,6 +228,34 @@ function update_user_password($user, $new_password)
 }
 
 
+
+/**
+ * Uses the details within a user database-object to render a name
+ * and email suitable for use within an email body and header respectively.
+ * 
+ * Usage: list($realname, $address) = render_user_name_and_email($object);
+ * 
+ * @param $user_object  A DB object (stdClass; members used: realname, email).
+ * @return              An array with first member printable name,
+ *                      second member email (either raw address or "Name <address>").
+ */
+function render_user_name_and_email($user_object)
+{
+	if (empty($user_object->realname) || $user_object->realname == 'unknown person')
+	{
+		$realname = 'User';
+		$user_address = $user_object->email;
+	}
+	else
+	{
+		$realname = $user_object->realname;
+		$user_address = "$realname <{$user_object->email}>";
+	}
+	
+	return array($realname, $user_address);
+}
+
+
 /**
  * Sends out an account verification email,
  * with a freshly-generated verification key.
@@ -239,16 +267,9 @@ function send_user_verification_email($user)
 	/* create key and set in database */
 	$verify_key = set_user_verification_key($user);
 	
-	list($email,$realname) = mysql_fetch_row(do_mysql_query("select email, realname from user_info where username='$user'"));
-	
-	if (empty($realname) || $realname == 'unknown person')
-	{
-		$realname = 'User';
-		$user_address = $email;
-	}
-	else
-		$user_address = "$realname <$email>";
-	
+	list($realname, $user_address) 
+		= render_user_name_and_email(mysql_fetch_object(do_mysql_query("select email, realname from user_info where username='$user'")));
+
 	$verify_url = url_absolutify('../usr/redirect.php?redirect=verifyUser&v=' . urlencode($verify_key) . '&uT=y');
 	
 	$body = <<<HERE
@@ -281,9 +302,6 @@ The CQPweb User Administration System
 
 
 HERE;
-	
-	if (!empty($Config->cqpweb_root_url))
-		$body .= $Config->cqpweb_root_url . "\n"; 
 	
 	send_cqpweb_email($user_address, 'CQPweb: please verify user account creation!', $body);
 }
@@ -370,7 +388,7 @@ function change_user_status($user, $new_status)
  */
 function get_user_setting($username, $field)
 {
-	$o = get_all_user_settings($username);
+	$o = get_user_info($username);
 	if (empty($o))
 		return false;
 	else
@@ -386,8 +404,8 @@ function get_user_setting($username, $field)
  * 
  * Note that it's not necessary for the user to be the same person
  * as the user logged-on in the environment (global $User).
- */  
-function get_all_user_settings($username)
+ */
+function get_user_info($username)
 {	
 	static $cache;
 		
@@ -399,7 +417,7 @@ function get_all_user_settings($username)
 	$result = do_mysql_query("SELECT * from user_info WHERE username = '$username'");
 	
 	if (mysql_num_rows($result) == 0)
-			return false;
+		return false;
 	else
 	{
 		$cache[$username] = mysql_fetch_object($result);
@@ -433,9 +451,12 @@ function update_user_setting($username, $field, $setting)
 		'max_dbsize',
 		'linefeed',
 		'thin_default_reproducible',
+		'realname',
+		'affiliation',
+		'country'
 	);
 	
-	/* nb. This treats all values as string, although most are ints, but it seems to work... */
+	/* nb. This treats all values as string, although many are ints, but it seems to work... */
 	do_mysql_query("UPDATE user_info SET $field = '$setting' WHERE username = '$username'");
 }
 
@@ -674,6 +695,43 @@ function group_id_to_name($id)
 	return $name;
 }
 
+
+/**
+ * Create a new group with the speciifed name (description and autojoin-regex can also
+ * be set at creation time).
+ */
+function add_new_group($group, $description = '', $regex = '')
+{
+	$group = cqpweb_handle_enforce($group);
+	if (empty($group))
+		exiterror_general("You cannot create a group with no name!");
+	if (0 < mysql_num_rows(do_mysql_query("select id from user_groups where group_name = '$group'")))
+		exiterror_general("You tried to create a group which already exists!"); 
+
+	$description = mysql_real_escape_string($description);
+	$regex = mysql_real_escape_string($regex);
+	
+	do_mysql_query("insert into user_groups (group_name,description,autojoin_regex) values
+		('$group','$description','$regex')");
+}
+
+
+
+
+function delete_group($group)
+{
+	assert_not_reserved_group($group);
+	
+	$g = group_name_to_id($group);
+	
+	/* delete all memberships */
+	do_mysql_query("delete from user_memberships where group_id = $g");
+	
+	/* delete group */
+	do_mysql_query("delete from user_groups where id = $g");
+}
+
+
 /**
  * Assertion: causes an error abort if this group is one of the "reserved" 
  * group names (i.e. magic, can't be deleted from the database etc.)
@@ -685,16 +743,34 @@ function assert_not_reserved_group($group)
 }
 
 /**
- * returns flat array of group names
+ * returns flat array of group names (ordered alphabetically, but with superusers and everybody first)
  */
 function get_list_of_groups()
 {
-	$result = do_mysql_query("select group_name from user_groups");
-	$g = array();
+	$result = do_mysql_query("select group_name from user_groups order by group_name asc");
+	$g = array('superusers','everybody');
 	while (false !== ($r = mysql_fetch_row($result)))
-		$g[] = $r[0];	
+		if ( ! ($r[0] == 'superusers' || $r[0] == 'everybody') )
+			$g[] = $r[0];	
 	return $g;
 }
+
+///**
+// * A user-sort function that puts everyone and superusers first.
+// * 
+// */
+//function group_name_sort_function($group_a, $group_b)
+//{
+//	if ($group_a == 'everybody')
+//		return ($group_b == 'superusers' ? 1 : -1);
+//	if ($group_a == 'superusers')
+//		return -1;
+//	if ($group_b == 'everybody')
+//		return ($group_a == 'superusers' ? -1 : 1);
+//	if ($group_b == 'superusers')
+//		return 1;
+//	return ($group_a > $group_b ? 1 : -1); 
+//}
 
 
 
@@ -736,14 +812,38 @@ function get_group_info($group)
 	return mysql_fetch_object($result);
 }
 
+/**
+ * Returns array of group DB objects, ordered alphabetically, but with superusers and everybody first.
+ */
 function get_all_groups_info()
 {
-	$result = do_mysql_query("select * from user_groups");
+	$result = do_mysql_query("select * from user_groups order by group_name asc");
 	$all = array();
 	while (false !== ($o = mysql_fetch_object($result)))
-		$all[] = $o;
+	{
+		if ( $o->group_name == 'everybody' )
+			$everybody = $o;
+		else if ( $o->group_name == 'superusers')
+			$superusers = $o;
+		else
+			$all[] = $o;
+	}
+	array_unshift($all, $superusers, $everybody);
 	return $all;
-}		
+}
+
+/**
+ * Set new values for group description and/or regex 
+ */
+function update_group_info($group, $new_description, $new_regex)
+{
+	assert_not_reserved_group($group);
+	$group = mysql_real_escape_string($group);
+	$new_description = mysql_real_escape_string($new_description);  
+	$new_regex = mysql_real_escape_string($new_regex);
+	do_mysql_query("update user_groups set description = '$new_description', autojoin_regex = '$new_regex' where group_name = '$group'");
+}
+
 
 function add_user_to_group($user, $group, $expiry_time = 0)
 {
@@ -784,30 +884,358 @@ function list_group_regexen()
 
 
 
+
+
+/**
+
+	THE CODING OF PRIVILEGES
+	========================
+	
+	Privileges are coded as follows.
+	
+	The *owner* or *subject* of the privilege is not stored in the privilege table.
+	Instead, that info is stored in the "_grants" tables.
+	
+	The privilege table consists of "verbs" and "objects".
+	
+	The "verb" consists of an integer constant explaining what kind of access privilege
+	this is. The "object" is expressed as an array of entities to what the privilege
+	applies. All "object" arrays are encodable as strings, which are what is stored in the
+	database in the `scope` field. The "verb" is stored in the `type` field using the 
+	correct constant.
+
+	The following explains the nature, and subcategorisation frame template,
+	of each type of privilege.
+	
+	
+	Privileges of type PRIVILEGE_TYPE_CORPUS_FULL
+	---------------------------------------------
+	
+	This privilege represents the level of access a user can have when it is assumed that
+	they have full rights to access the underlying text of a particular corpus.
+	
+	- Concordances WILL NOT be auto-thinned.
+	- User can access the "Context" feature with the maximum possible scope.
+	- User can access the "Browse Text" feature (anyway they will be able to, once it is implemented).
+	
+	Privileges of type PRIVILEGE_TYPE_CORPUS_NORMAL
+	-----------------------------------------------
+	
+	This privilege represents a normal level of access a user can have when it is assumed that
+	they have normal privileges to use a particular corpus.
+	
+	- Concordances WILL NOT be auto-thinned.
+	- User can access the "Context" feature with a configurable scope.
+	- User cannot access the "Browse Text" feature.
+	
+	This is equivalent to the level of access that any user had in CQPweb v less than 3.1.
+	
+	Privileges of type PRIVILEGE_TYPE_CORPUS_RESTRICTED
+	---------------------------------------------------
+	
+	This privilege represents the level of access a user can have when it is assumed that
+	they can only be allowed restricted access to a particular corpus.
+	
+	- Concordances WILL be auto-thinned to a configurable maximum number of hits (random, reproducible)
+	- User can access the "Context" feature with a configurable scope (less than that for normal privilege).
+	- User cannot access the "Browse Text" feature.
+	
+	Syntax for PRIVILEGE_TYPE_CORPUS_*
+	----------------------------------
+	
+	The "object" of these privileges is a set of corpora which must contain at least one corpus.
+	
+	The data-object representation of this is an array of strings, where each string is an array of
+	corpus handles.
+	
+	The string representation of this in the DB is the strings in question concatenated together and
+	separated by ~ .
+	
+*/
+
+/**
+ * Encodes a complex value that is the "object" of a privilege "verb" into
+ * a string for the database.
+ */
+function encode_privilege_scope_to_string($type, $object)
+{
+	switch($type)
+	{
+	case PRIVILEGE_TYPE_CORPUS_FULL:
+	case PRIVILEGE_TYPE_CORPUS_NORMAL:
+	case PRIVILEGE_TYPE_CORPUS_RESTRICTED:
+		/* "object" is an array of corpus names... */
+		foreach($object as &$c)
+			$c = cqpweb_handle_enforce($c);
+		return implode('~', $object);
+		
+	/* TODO Add more privileges here as the system develops. */
+	
+	default:
+		exiterror_general("Critical error: invalid privilege type constant encountered!", __FILE__, __LINE__);
+	}
+}
+
+
+/**
+ * Encodes a complex value that is the "object" of a privilege "verb" into
+ * a string for the database.
+ */
+function decode_privilege_scope_from_string($type, $string)
+{
+	switch($type)
+	{
+	case PRIVILEGE_TYPE_CORPUS_FULL:
+	case PRIVILEGE_TYPE_CORPUS_NORMAL:
+	case PRIVILEGE_TYPE_CORPUS_RESTRICTED:
+		/* "object" is an array of corpus names... */
+		return explode ('~', $string);
+
+	/* TODO Add more privileges here as the system develops. */
+
+	default:
+		exiterror_general("Critical error: invalid privilege type constant encountered!", __FILE__, __LINE__);
+	}
+}
+
+/**
+ * Encodes a complex value that is the "object" of a privilege "verb" into
+ * a string for the database.
+ */
+function print_privilege_scope_as_html($type, $object)
+{
+	switch($type)
+	{
+	case PRIVILEGE_TYPE_CORPUS_FULL:
+	case PRIVILEGE_TYPE_CORPUS_NORMAL:
+	case PRIVILEGE_TYPE_CORPUS_RESTRICTED:
+		/* "object" is an array of corpus names... */
+		foreach($object as &$c)
+			$c = cqpweb_handle_enforce($c);
+		$s = (count($object) > 1 ? '<b>Corpora:</b> ' : '<b>Corpus:</b> ');
+		$s .= implode(', ', $object);
+		return $s;
+		
+	/* TODO Add more privileges here as the system develops. */
+	
+	default:
+		exiterror_general("Critical error: invalid privilege type constant encountered!", __FILE__, __LINE__);
+	}
+}
+
+
+
+
+/**
+ * Creates a new privilege.
+ */
+function add_new_privilege($type, $scope, $description = '')
+{
+	$scope_string = encode_privilege_scope_to_string($type, $scope);
+	$type = (int)$type;
+	$description = mysql_real_escape_string($description);
+	
+	do_mysql_query("insert into user_privilege_info (type,scope,description) values ($type, '$scope_string', '$description')") ;
+}
+
+/**
+ * Generate the 3 default privileges for a specified corpus.
+ * 
+ * Returns boolean (false if corpus did not exist, otherwise true).
+ */
+function create_corpus_default_privileges($corpus)
+{
+	/* generates the descriptions for the new privileges .... */
+	static $mapper = array(
+		PRIVILEGE_TYPE_CORPUS_FULL       => "Full access privilege",
+		PRIVILEGE_TYPE_CORPUS_NORMAL     => "Normal access privilege",
+		PRIVILEGE_TYPE_CORPUS_RESTRICTED => "Restricted access privilege",
+		);
+	
+	if (!in_array($corpus, list_corpora()))
+		return false;
+		
+	foreach(array_keys($mapper) as $type)
+	{
+		/* does a privilege exist which has this type and scope over just this corpus? */ 
+		if (check_privilege_by_content($type, array($corpus)))
+			;
+		else
+			add_new_privilege($type, array($corpus), $mapper[$type] . " for corpus [$corpus]");
+	}
+	return true;
+}
+
+function create_all_corpora_default_privileges()
+{
+	foreach(list_corpora() as $c)
+		create_corpus_default_privileges($c);
+}
+
+/**
+ * Delete the privilege with the specified ID number.
+ */
+function delete_privilege($id)
+{
+	$id = (int) $id;
+	
+	/* delete all grants of this privilege; then delete the privilege itself. */
+	
+	do_mysql_query("delete from user_grants_to_users  where privilege_id = $id");
+	do_mysql_query("delete from user_grants_to_groups where privilege_id = $id");
+	
+	do_mysql_query("delete from user_privilege_info where id = $id");
+}
+
+/** 
+ * Returns an object (stdClass with members corresponding to the
+ * fields of the user_privilege_info table in the database) containing
+ * all DB fields for the specified privilege.
+ * 
+ * An extra field is added, namely the DECODED SCOPE. This is a complex value
+ * (array or object) in the member scope_object.
+ * 
+ * Returns false in case of a nonexistent privilege.
+ */
+function get_privilege_info($id)
+{
+	$id = (int)$id;
+
+	if (1 > mysql_num_rows($result = do_mysql_query("select * from user_privilege_info where id = $id")))
+		return false; 
+	else
+	{
+		$o = mysql_fetch_object($result);
+		$o->scope_object = decode_privilege_scope_from_string($o->type, $o->scope);
+		return $o;
+	}
+}
+
+/**
+ * Gets the description string for a given privilege ID.
+ * Returns empty string in case of an invalid ID.
+ */
+function privilege_id_to_description($privilege_id)
+{
+	$p = (int)$privilege_id;
+	$result = do_mysql_query("select description from user_privilege_info where id = $p");
+	if (1 > mysql_num_rows($result))
+		return '';
+	list($d) = mysql_fetch_row($result);
+	return $d; 
+}
+
+/**
+ * Gets an array mapping privilege ids (as keys) to descriptions (as values).
+ */
+function get_all_privilege_descriptions()
+{
+	$a = array();
+	$result = do_mysql_query("select id, description from user_privilege_info order by id asc");
+	while (false !== ($o = mysql_fetch_object($result)))
+		$a[$o->id] = $o->description;
+	return $a;
+}
+
+
+/** 
+ * Returns an array of objects of the type returned by get_privilege_info().
+ * 
+ * The array keys are integers equal to the privilege ID code. 
+ * The array is sorted by ascending ID. 
+ * 
+ * @see get_privilege_info
+ */
+function get_all_privileges_info()
+{
+	$list = array();
+	$result = do_mysql_query("select * from user_privilege_info order by id");
+	while (false !== ($o = mysql_fetch_object($result)))
+	{
+		$o->scope_object = decode_privilege_scope_from_string($o->type, $o->scope);
+		$list[$o->id] = $o;
+	}
+	return $list;
+}
+
+/**
+ * Checks whether at least one privilege exists with the given type and scope.
+ * 
+ * Pass in scope as data object, not as string.
+ *  
+ * Returns true (a privilege exists) or false (no such privilege exists).
+ */
+function check_privilege_by_content($type, $scope)
+{
+	$type = (int)$type;
+	$scope_string = encode_privilege_scope_to_string($type,$scope);
+	
+	return (0 < mysql_num_rows(do_mysql_query("select id from user_privilege_info where type = $type and scope = '$scope_string'")));
+}
+
+
+
+function grant_privilege_to_user($user, $privilege_id, $expiry = 0)
+{
+	$user_id = user_name_to_id($user);
+	$privilege_id = (int)$privilege_id;
+	$expiry = (int)$expiry;
+
+	if (0 < mysql_num_rows(do_mysql_query("select user_id from user_grants_to_users where user_id=$user_id and privilege_id=$privilege_id")))
+		return;
+
+	do_mysql_query("insert into user_grants_to_users(user_id, privilege_id, expiry_time) values ($user_id, $privilege_id,$expiry)");  
+}
+
+function grant_privilege_to_group($group, $privilege_id, $expiry = 0)
+{
+	$group_id = group_name_to_id($group);
+	$privilege_id = (int)$privilege_id;
+	$expiry = (int)$expiry;
+	
+	if (0 < mysql_num_rows(do_mysql_query("select group_id from user_grants_to_groups where group_id=$group_id and privilege_id=$privilege_id")))
+		return;
+	
+	do_mysql_query("insert into user_grants_to_groups(group_id, privilege_id, expiry_time) values ($group_id, $privilege_id,$expiry");  
+}
+
+function remove_grant_from_user($user, $privilege_id)
+{
+	$user_id = user_name_to_id($user);
+	$privilege_id = (int)$privilege_id;
+	
+	do_mysql_query("delete from user_grants_to_users where user_id = $user_id and privilege_id = $privilege_id");
+}
+
+function remove_grant_from_group($group, $privilege_id)
+{
+	$group_id = group_name_to_id($group);
+	$privilege_id = (int)$privilege_id;
+
+	do_mysql_query("delete from user_grants_to_groups where group_id = $group_id and privilege_id = $privilege_id");
+}
+
+
+/**
+ * Returns an array of DB objects, representing the grants given to the user with the specified name.
+ */
+function list_user_grants($user)
+{
+	$uid = user_name_to_id($user);
+	$ret = array();
+	$result = do_mysql_query("select * from user_grants_to_users where user_id = $uid");
+	while (false !== ($o = mysql_fetch_object($result)))
+		$ret[] = $o;
+	return $ret;
+}
+
+
+function list_group_grants($group)
+{
+	
+}
+
 //TODO
-function add_new_group($group)
-{
-
-}
-
-
-
-
-function delete_group($group)
-{
-	assert_not_reserved_group($group);
-	
-	$g = group_name_to_id($group);
-	
-	/* delete all memberships */
-	do_mysql_query("delete from user_memberships where group_id = $g");
-	
-	/* delete group */
-	do_mysql_query("delete from user_groups where id = $g");
-}
-
-
-
 function deny_group_access_to_corpus($corpus, $group)
 {
 //	$group = preg_replace('/\W/', '', $group);
@@ -827,6 +1255,7 @@ function deny_group_access_to_corpus($corpus, $group)
 //	$apache->save();
 }
 
+//TODO
 function give_group_access_to_corpus($corpus, $group)
 {
 //	if ($corpus == '' || $group == '')
@@ -846,6 +1275,7 @@ function give_group_access_to_corpus($corpus, $group)
 //	$apache->save();
 }
 
+//TODO
 /**
  * Function wrapping multiple calls to give_group_access_to_corpus()
  * and deny_group_access_to_corpus().
@@ -858,43 +1288,44 @@ function give_group_access_to_corpus($corpus, $group)
  */ 
 function update_group_access_rights($group, $corpora_to_grant)
 {
-	$to_grant = explode('|', $corpora_to_grant);
-	
-	foreach($to_grant as $c)
-		give_group_access_to_corpus($c, $group);
-	
-	unset($c);
-	
-	foreach(list_corpora() as $c)
-		if (!in_array($c, $to_grant))
-			deny_group_access_to_corpus($c, $group);
+//	$to_grant = explode('|', $corpora_to_grant);
+//	
+//	foreach($to_grant as $c)
+//		give_group_access_to_corpus($c, $group);
+//	
+//	unset($c);
+//	
+//	foreach(list_corpora() as $c)
+//		if (!in_array($c, $to_grant))
+//			deny_group_access_to_corpus($c, $group);
 }
 
+//TODO
 function clone_group_access_rights($from_group, $to_group)
 {
 	/* checks for group validity */
 	if ($from_group == $to_group)
 		return;
-	$apache = get_apache_object('nopath');
-	$group_list = $apache->list_groups();
-	if (!in_array($from_group, $group_list))
-		return;
-	if (!in_array($to_group, $group_list))
-		return;
-	
-	$list_of_corpora = list_corpora();
-	foreach ($list_of_corpora as $c)
-	{
-		$apache->set_path_to_web_directory("../$c");
-		$apache->load();
-		if ( in_array($from_group, $apache->get_allowed_groups()) )
-			/* allow */
-			$apache->allow_group($to_group);
-		else
-			/* deny */
-			$apache->disallow_group($to_group);
-		$apache->save();
-	}
+//	$apache = get_apache_object('nopath');
+//	$group_list = $apache->list_groups();
+//	if (!in_array($from_group, $group_list))
+//		return;
+//	if (!in_array($to_group, $group_list))
+//		return;
+//	
+//	$list_of_corpora = list_corpora();
+//	foreach ($list_of_corpora as $c)
+//	{
+//		$apache->set_path_to_web_directory("../$c");
+//		$apache->load();
+//		if ( in_array($from_group, $apache->get_allowed_groups()) )
+//			/* allow */
+//			$apache->allow_group($to_group);
+//		else
+//			/* deny */
+//			$apache->disallow_group($to_group);
+//		$apache->save();
+//	}
 }
 
 

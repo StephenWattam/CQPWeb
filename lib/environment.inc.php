@@ -35,17 +35,6 @@
  */
 
 
-/*
- * THE FOLLOWING IS TEMP CODE TO PRESERVE THE OLD CONFIG SYSTEM WHILE IMPLEMENTING THE NEW
- */
-
-/* include defaults and settings */
-if (file_exists("settings.inc.php"))
-	require( '' . "settings.inc.php");	/* concatenate to avoid annoying bug warning */
-require('../lib/config.inc.php');
-require('../lib/defaults.inc.php');
-
-
 
 
 /* ------------------------------- */
@@ -101,6 +90,44 @@ define('USER_STATUS_UNVERIFIED',               0);
 define('USER_STATUS_ACTIVE',                   1);
 define('USER_STATUS_SUSPENDED',                2);
 define('USER_STATUS_PASSWORD_EXPIRED',         3);
+
+
+/*
+ * privilege types
+ */
+
+define('PRIVILEGE_TYPE_CORPUS_FULL',           1);
+define('PRIVILEGE_TYPE_CORPUS_NORMAL',         2);
+define('PRIVILEGE_TYPE_CORPUS_RESTRICTED',     3);
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * THE FOLLOWING IS TEMP CODE TO PRESERVE THE OLD CONFIG SYSTEM WHILE IMPLEMENTING THE NEW
+ */
+
+/* include defaults and settings */
+if (file_exists("settings.inc.php"))
+	require( '' . "settings.inc.php");	/* concatenate to avoid annoying bug warning */
+require('../lib/config.inc.php');
+require('../lib/defaults.inc.php');
+
+
+
+
+
+
+
+
 
 
 
@@ -230,8 +257,7 @@ global $username;
 		if ($this->logged_in)
 		{
 			touch_user($username);
-			$result = do_mysql_query("select * from user_info where username = '$username'");
-			foreach (mysql_fetch_assoc($result) as $k => $v)
+			foreach ( ((array)get_user_info($username)) as $k => $v)
 				if (!isset($this->$k))
 					$this->$k = $v;
 			/* the "if isset" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */

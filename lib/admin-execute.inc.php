@@ -140,62 +140,13 @@ switch($_GET['admFunction'])
 		exit();
 
 
-	case 'accessRemoveGroup':
-		$_GET['function'] = 'deny_group_access_to_corpus';
-		$_GET['args'] = $_GET['corpus'] . '#' . $_GET['groupToRemove'];
-		$_GET['locationAfter'] 
-			= '../' . preg_replace('/\W/', '', $_GET['corpus']) . '/index.php?thisQ=userAccess&uT=y';
-		require('../lib/execute.inc.php');
-		exit();
-		
-	case 'accessAddGroup':
-		$_GET['function'] = 'give_group_access_to_corpus';
-		$_GET['args'] = $_GET['corpus'] . '#' . $_GET['groupToAdd'];
-		$_GET['locationAfter'] 
-			= '../' . preg_replace('/\W/', '', $_GET['corpus']) . '/index.php?thisQ=userAccess&uT=y';
-		require('../lib/execute.inc.php');
-		exit();
-	
-	case 'accessUpdateGroupRights':
-		$_GET['function'] = 'update_group_access_rights';
-		
-		/* block potential hack removing suepruser access */
-		if ($_GET['group'] == 'superusers')
-			exit(); 
-		
-		$group_update_allow = array();
-		foreach ($_GET as $k => $v)
-		{
-			if (substr($k,0,12) == 'hasAccessTo_')
-			{
-				if ( (bool)$v  )
-					$group_update_allow[] = substr($k,12);
-			}
-		}
-			
-		$_GET['args'] = $_GET['group'];		
-		$_GET['args'] .= '#' . implode('|', $group_update_allow);
-		
-		$_GET['locationAfter'] = 'index.php?thisF=groupAccess&uT=y';
-		require('../lib/execute.inc.php');
-		exit();
-		
-		
-	case 'accessCloneGroupRights':
-		$_GET['function'] = 'clone_group_access_rights';
-		$_GET['args'] = $_GET['groupCloneFrom'] . '#' . $_GET['groupCloneTo'];
-		$_GET['locationAfter'] = 'index.php?thisF=groupAccess&uT=y';
-		require('../lib/execute.inc.php');
-		exit();
-	
-		
-		
 	case 'newUser':
 		$_GET['redirect'] = 'newUser';
 		$_GET['userFunctionFromAdmin'] = 1;
 		unset($_GET['admFunction']);
 		require('../lib/redirect.inc.php');
 		exit();
+
 	
 	case 'resetUserPassword':
 		$_GET['redirect'] = 'resetUserPassword';
@@ -203,6 +154,7 @@ switch($_GET['admFunction'])
 		unset($_GET['admFunction']);
 		require('../lib/redirect.inc.php');
 		exit();	
+
 		
 	case 'deleteUser':
 		$_GET['function'] = 'delete_user';
@@ -211,19 +163,126 @@ switch($_GET['admFunction'])
 		require('../lib/execute.inc.php');
 		exit();
 
+
 	case 'addUserToGroup':
 		$_GET['function'] = 'add_user_to_group';
 		$_GET['args'] = $_GET['userToAdd'] .'#' . $_GET['groupToAddTo'] ;
-		$_GET['locationAfter'] = 'index.php?thisF=groupAdmin&uT=y';
+		$_GET['locationAfter'] = 'index.php?thisF=groupMembership&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
+
 		
 	case 'removeUserFromGroup':
 		$_GET['function'] = 'remove_user_from_group';
 		$_GET['args'] = $_GET['userToRemove'] .'#' . $_GET['groupToRemoveFrom'] ;
-		$_GET['locationAfter'] = 'index.php?thisF=groupAdmin&uT=y';
+		$_GET['locationAfter'] = 'index.php?thisF=groupMembership&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
+		
+	case 'newGroup':
+		$_GET['function'] = 'add_new_group';
+		$_GET['args'] = $_GET['groupToAdd'] . '#' . str_replace('#',"\xE2\x99\xAF",$_GET['newGroupDesc']) . '#' . $_GET['newGroupAutojoinRegex'];
+		$_GET['locationAfter'] = 'index.php?thisF=groupAdmin&uT=y';
+		require('../lib/execute.inc.php');
+		exit();		
+
+
+	case 'updateGroupInfo':
+		$_GET['function'] = 'update_group_info';
+		$_GET['args'] = $_GET['groupToUpdate'] . '#' . str_replace('#',"\xE2\x99\xAF",$_GET['newGroupDesc']) . '#' . $_GET['newGroupAutojoinRegex'];
+		$_GET['locationAfter'] = 'index.php?thisF=groupAdmin&uT=y';
+		require('../lib/execute.inc.php');
+		exit();		
+
+
+	case 'generateDefaultPrivileges':
+		if ($_GET['corpus'] == '~~all~~')
+		{
+			$_GET['function'] = 'create_all_corpora_default_privileges';
+			$_GET['args'] = '';
+		}
+		else
+		{
+			$_GET['function'] = 'create_corpus_default_privileges';
+			$_GET['args'] = $_GET['corpus'];
+		}
+		$_GET['locationAfter'] = 'index.php?thisF=privilegeAdmin&uT=y'; 
+		require('../lib/execute.inc.php');
+		exit();
+		
+	
+	case 'deletePrivilege':
+		$_GET['function'] = 'delete_privilege';
+		$_GET['args'] = (string)(int)$_GET['privilege'];
+		$_GET['locationAfter'] = 'index.php?thisF=privilegeAdmin&uT=y'; 
+		require('../lib/execute.inc.php');
+		exit();
+
+	case 'newGrantToUser':
+		$_GET['function'] = 'grant_privilege_to_user';
+		$_GET['args'] = $_GET['user'] . '#' . (int)$_GET['privilege'];
+		$_GET['locationAfter'] = 'index.php?thisF=userGrants&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
+
+
+	case 'removeUserGrant':
+		$_GET['function'] = 'remove_grant_from_user';
+		$_GET['args'] = $_GET['user'] . '#' . (int)$_GET['privilege'];
+		$_GET['locationAfter'] = 'index.php?thisF=userGrants&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
+
+
+//	case 'accessRemoveGroup':
+//		$_GET['function'] = 'deny_group_access_to_corpus';
+//		$_GET['args'] = $_GET['corpus'] . '#' . $_GET['groupToRemove'];
+//		$_GET['locationAfter'] 
+//			= '../' . preg_replace('/\W/', '', $_GET['corpus']) . '/index.php?thisQ=userAccess&uT=y';
+//		require('../lib/execute.inc.php');
+//		exit();
+//		
+//	case 'accessAddGroup':
+//		$_GET['function'] = 'give_group_access_to_corpus';
+//		$_GET['args'] = $_GET['corpus'] . '#' . $_GET['groupToAdd'];
+//		$_GET['locationAfter'] 
+//			= '../' . preg_replace('/\W/', '', $_GET['corpus']) . '/index.php?thisQ=userAccess&uT=y';
+//		require('../lib/execute.inc.php');
+//		exit();
+//	
+//	case 'accessUpdateGroupRights':
+//		$_GET['function'] = 'update_group_access_rights';
+//		
+//		/* block potential hack removing suepruser access */
+//		if ($_GET['group'] == 'superusers')
+//			exit(); 
+//		
+//		$group_update_allow = array();
+//		foreach ($_GET as $k => $v)
+//		{
+//			if (substr($k,0,12) == 'hasAccessTo_')
+//			{
+//				if ( (bool)$v  )
+//					$group_update_allow[] = substr($k,12);
+//			}
+//		}
+//			
+//		$_GET['args'] = $_GET['group'];		
+//		$_GET['args'] .= '#' . implode('|', $group_update_allow);
+//		
+//		$_GET['locationAfter'] = 'index.php?thisF=groupAccess&uT=y';
+//		require('../lib/execute.inc.php');
+//		exit();
+//		
+//		
+//	case 'accessCloneGroupRights':
+//		$_GET['function'] = 'clone_group_access_rights';
+//		$_GET['args'] = $_GET['groupCloneFrom'] . '#' . $_GET['groupCloneTo'];
+//		$_GET['locationAfter'] = 'index.php?thisF=groupAccess&uT=y';
+//		require('../lib/execute.inc.php');
+//		exit();
+	
+		
 		
 	case 'addSystemMessage':
 		$_GET['function'] = 'add_system_message';

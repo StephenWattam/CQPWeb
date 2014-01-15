@@ -874,9 +874,12 @@ function prepare_page_no($n)
 function user_is_superuser($username)
 {
 	/* superusers are determined in the config file */
-	global $superuser_username;
+	global $Config;
 	
-	$a = explode('|', $superuser_username);
+	static $a = NULL;
+	
+	if (empty($a))
+		$a = explode('|', $Config->superuser_username);
 	
 	return in_array($username, $a);
 }
@@ -995,10 +998,18 @@ function coming_soon_page()
 function coming_soon_finish_page()
 {
 	?>
-	<p class="errormessage">&nbsp;<br/>
-		&nbsp; <br/>
-		We are sorry, but that part of CQPweb has not been built yet.
-	</p>
+	<table width="100%" class="concordtable">
+		<tr>
+			<th class="concordtable">Unfinished function!</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				&nbsp;<br/>
+				<b>We are sorry, but that part of CQPweb has not been built yet.</b>
+				<br/>&nbsp;
+			</td>
+		</tr>
+	</table>
 	
 	</body>
 	</html>
@@ -1322,12 +1333,15 @@ function longvalue_retrieve($id)
  *                      (Specified in config file) will be used instead.
  * @return              Boolean: true if email sent, otherwise false.
  */
-function send_cqpweb_email($address_to, $mail_subject, $mail_content, $extra_headers = NULL)
+function send_cqpweb_email($address_to, $mail_subject, $mail_content, $extra_headers = array())
 {
 	global $Config;
 	
 	if ($Config->cqpweb_no_internet)
 		return false;
+
+	if (!empty($Config->cqpweb_root_url))
+		$mail_content .= "\n" . $Config->cqpweb_root_url . "\n";
 	
 	if (!empty($Config->cqpweb_email_from_address))
 	{

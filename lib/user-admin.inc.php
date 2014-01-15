@@ -184,6 +184,10 @@ case 'newUser':
 
 	/* CREATE NEW USER ACCOUNT */
 
+	if (!$User->is_admin())
+		if (!$Config->allow_account_self_registration)
+			exiterror_general("Sorry but self-registration has been disabled on this CQPweb server.");
+
 	if (!isset($_GET['newUsername'],$_GET['newPassword'],$_GET['newEmail']))
 		exiterror_general("Missing information: you must specify a username, password and email address to create an account!");
 	
@@ -201,16 +205,23 @@ case 'newUser':
 		exiterror_general("The password cannot be an empty string!");		
 	if (! $script_called_from_admin)
 	{
-		// TODO: check for the standard password-typed-twice thing.
+		/* check for the standard password-typed-twice thing. */
+		if ( ! (isset($_GET['newPasswordCheck']) && $password == $_GET['newPasswordCheck']))
+			exiterror_general(array("The password you typed the second time did not match the password you typed the first time",
+				"Please click the Back button on your browser and try again."));   
 	}
 	
 	$email = trim($_GET['newEmail']);
 	if (empty($email))
 		exiterror_general("The email address for a new account cannot be an empty string!");
 	
-	/* OK, all 3 things now collected, so we can call the sharp-end function... */
+	// TODO make it a config option whether or not the same email address can have more than one acct ... 
 	
+	/* OK, all 3 things now collected, so we can call the sharp-end function... */
+
 	add_new_user($new_username, $password, $email);
+
+	/* which also, note, does the group regexen... */
 	
 	/* verification status: do we email? do we change it? */
 	if ($script_called_from_admin)
@@ -240,8 +251,24 @@ case 'newUser':
 		break;
 	}
 	
-	// tODO auto group assign using regexen
+	/* if the script was not called from the admin interface, we may also have the non-essential fields... */
 	
+	if (!empty($_GET['country']))
+	{
+		require('../lib/user-iso31661.inc.php');
+		if (! array_key_exists($_GET['country'], $Config->iso31661))
+			/* no error, cos acct created already... */
+			;
+		else
+			update_user_setting($new_username, 'country', $_GET['country']);
+	}
+	/* latter 2 sanitised at DB level... */
+	if (!empty($_GET['realName']))
+		update_user_setting($new_username, 'realname', $_GET['realName']);
+	if (!empty($_GET['affiliation']))
+		update_user_setting($new_username, 'affiliation', $_GET['affiliation']);
+	
+		
 	/* and redirect out */
 	
 	if ($script_called_from_admin)
@@ -257,7 +284,7 @@ case 'verifyUser':
 	
 	$key = trim($_GET['v']);
 
-	if (0 < preg_match('/^[abcdef1234567890]{32}$/',$key))
+	if (1 > preg_match('/^[abcdef1234567890]{32}$/',$key))
 	{
 		$next_location = 'index.php?thisQ=verify&verifyScreenType=badlink&uT=y';
 		break;
@@ -272,6 +299,7 @@ case 'verifyUser':
 	}
 
 	$next_location = 'index.php?thisQ=verify&verifyScreenType=success&uT=y';
+	
 	break;
 
 
@@ -279,25 +307,190 @@ case 'resendVerifyEmail':
 
 	/* re-send a verification email, w/ a new activation code */
 	
+	if (empty($_GET['email']))
+		exiterror_general("You did not type an email address! Please go back and try again.");
+	
+	$result = do_mysql_query("select username from user_info where email = '".mysql_real_escape_string($_GET['email'])."'
+							and acct_status=" . USER_STATUS_UNVERIFIED . " limit 1");
+	if (mysql_num_rows($result) < 1)
+		exiterror_general("No unverified account associated with that email could be found on our system.");
+	
+	list($resend_username) = mysql_fetch_row($result);
+	
+	send_user_verification_email($resend_username);
+	
+	$next_location = 'index.php?thisQ=verify&verifyScreenType=newEmailSent&uT=y';
+	
 	break;
+
 
 case 'resetUserPassword':
 
-	/* change a user's password to the new value specified. */
+	/* 
+	 * change a user's password to the new value specified. 
+	 */
 	
-	/* nb does not count as requiring a login, since that is only one of THREE ways this function can be accessed */
+	/* there are big differences in the checks needed between calling this from admin and from a normal login.... 
+	 * This if/else contains just the checks that everything is OK and in place before we call password-reset function. */
+	if ($script_called_from_admin)
+	{
+		if ( ! $User->is_admin())
+			exiterror_general("You do not have permission to use that function.");
+		if ( ! isset($_GET['userForPasswordReset'], $_GET['newPassword']) )
+			exiterror_general("Badly-formed password reset request. Please go back and try again.");
+		if ( ! in_array($_GET['userForPasswordReset'], get_list_of_users()) )
+			exiterror_general("Invalid username!");
+		$next_location = 'index.php?thisF=userAdmin&uT=y';
+	}
+	else
+	{
+		/* username and password are needed PLUS one of the old password / a verification key;
+		 * the latter is checked below*/
+		if ( ! isset($_GET['userForPasswordReset'],$_GET['newPassword'], $_GET['newPasswordCheck']) )
+			exiterror_general("Badly-formed password reset request. Please go back and try again.");
+		
+		if ( $_GET['newPassword'] != $_GET['newPasswordCheck'] )
+			exiterror_general(array("The password you typed the second time did not match the password you typed the first time",
+				"Please click the Back button on your browser and try again."));
+
+		if ($User->logged_in)
+		{
+			/* if the user is logged in, they must supply an existing password */
+			if ( ! isset($_GET['oldPassword']) )
+				exiterror_general("No existing password found in form submission. Please go back and try again.");
+			
+			if ($User->username != $_GET['userForPasswordReset'])
+				exiterror_general("Invalid username specified in form submission. Please go back and try again.");
+			
+			if ( false === check_user_password($User->username, $_GET['oldPassword']) )
+				exiterror_general("The existing password you entered was not correct. Please go back and try again.");
+		}
+		else
+		{
+			/* if the user is not logged in, they must provide a suitable verification key */
+			if (!isset($_GET['v']))
+				exiterror_general("You must be logged in to CQPweb, or supply a verification code, to perform that action.");
+			
+			$key = str_replace(" ", "", trim($_GET['v']));
+		
+			if (1 > preg_match('/^[abcdef1234567890]{32}$/',$key))
+				exiterror_general("Mis-typed verification code; please go back and try again.");
+			
+			if ($_GET['userForPasswordReset'] != resolve_user_verification_key($key))
+				exiterror_general("That verification code was not valid. Please go back and try again.");
+
+			/* all successful, so delete the verification key */
+			unset_user_verification_key($_GET['userForPasswordReset']);
+		}
+		
+		$next_location = "index.php?thisQ=welcome&extraMsg=" . urlencode("Your password has been reset.") . "&uT=y";
+	}
 	
+	/* if we got to here, one way or another, everything is OK. */
 	
-	/* if the user is logged in, they must supply the old password */
-	//TODO;
-	
-	/* if the user is not logged in, they must provide a suitable verification key */
-	// TODO
-	
-	// finally, if the user is admin, they can do what they damn well please
-	//TODO
+	update_user_password($_GET['userForPasswordReset'], $_GET['newPassword']);
 
 	break;
+
+
+case 'remindUsername':
+
+	if (!isset($_GET['emailToRemind']))
+		exiterror_general("No email address specified! Please go back and try again.");
+
+	$sqemail = mysql_real_escape_string($_GET['emailToRemind']);
+	$result = do_mysql_query("select username, realname, email from user_info where email='$sqemail'");
+	
+	if (1 > mysql_num_rows($result))
+		exiterror_general(array(
+			"No account with the following email address was found on the system:",
+			$_GET['emailToRemind'], 
+			"Please go back and try again!"
+			));
+	
+	/* there may be more than one account with the same email.... */
+	while (false !== ($o = mysql_fetch_object($result)))
+	{
+		$reminder = $o->username;
+
+		list($realname, $user_address) = render_user_name_and_email($o);
+		
+		$body = <<<HERE
+Dear $realname,
+
+A username reminder has been requested for this email address on 
+CQPweb.
+
+The CQPweb username associated with your email is as follows:
+
+    $reminder
+
+Yours sincerely,
+
+The CQPweb User Administration System
+
+HERE;
+		
+		send_cqpweb_email($user_address, 'CQPweb: username reminder', $body);
+	}
+	
+	/* but the message assumes just one email, since that's the normal case */
+	$next_location = "index.php?thisQ=welcome&extraMsg=" . urlencode("A reminder email with your username has been sent.") . "&uT=y";
+
+	break;
+
+
+
+case 'requestPasswordReset':
+
+	if (!isset($_GET['userForPasswordReset']))
+		exiterror_general("No username supplied. Please go back and try again.");
+
+	if ( ! in_array($_GET['userForPasswordReset'], get_list_of_users()) )
+		exiterror_general("Invalid username! Please go back and try again.");
+
+	if (false === ($reset_user = get_user_info($_GET['userForPasswordReset'])))
+		exiterror_general("Invalid username! Please go back and try again.");
+
+	list($realname, $user_address) = render_user_name_and_email($reset_user);
+
+	$vcode = set_user_verification_key($reset_user->username);
+	$vcode_render = trim(chunk_split($vcode, 4, ' '));
+	$abs_url = url_absolutify("index.php?thisQ=lostPassword&uT=y");
+
+		$body = <<<HERE
+Dear $realname,
+
+A password reset has been requested for your user account on CQPweb.
+
+If you really want to reset your password, you can use the following 
+32-letter code on the password-reset form:
+
+    $vcode_render
+
+The form can be accessed at the following URL:
+
+    $abs_url
+
+If you DO NOT want to reset your password, ignore this email.
+
+Yours sincerely,
+
+The CQPweb User Administration System
+
+HERE;
+		
+		send_cqpweb_email($user_address, 'CQPweb: username reminder', $body);
+
+
+	$next_location = "index.php?thisQ=lostPassword&showSentMessage=1&uT=y";
+	
+	break;
+	
+	
+	
+
+
 
 
 	/*
@@ -311,19 +504,50 @@ case 'resetUserPassword':
 case 'revisedUserSettings':
 
 	/* change user's interface preferences */
+	
+	if (!$User->logged_in)
+		exiterror("You must be logged in to perform that action.");
 
-
-	update_multiple_user_settings($username, parse_get_user_settings());
+	update_multiple_user_settings($User->username, parse_get_user_settings());
 	$next_location = 'index.php?thisQ=userSettings&uT=y';
 
 	break;
 
+
+
 case 'updateUserAccountDetails':
 
+	if (!$User->logged_in)
+		exiterror("You must be logged in to perform that action.");
+
+	if (!isset($_GET['fieldToUpdate'], $_GET['updateValue']))
+		exiterror_general("Invalid parameters supplie for user account detail update; please go back and try again. ");
+
+	switch ($_GET['fieldToUpdate'])
+	{
+	case 'country':
+		require('../lib/user-iso31661.inc.php');
+		if (! array_key_exists($_GET['updateValue'], $Config->iso31661))
+			exiterror_general("Invalid country code supplied.");
+		/* and fallthrough... */
+	case 'realname':
+	case 'affiliation':
+		update_user_setting($User->username, $_GET['fieldToUpdate'], $_GET['updateValue']);
+		$next_location = 'index.php?thisQ=userDetails&uT=y';
+		break;
+	default:
+		exiterror_general("Invalid user account details field provided.");
+	}
+
+
+	
+	break;
+	
+	
 	
 	/*
 	 * 
-	 * Finally, defualt is an unconditional abort, so it really doesn't matter whether or not one is logged in.
+	 * Finally, default is an unconditional abort, so it really doesn't matter whether or not one is logged in.
 	 * 
 	 */
 	

@@ -45,12 +45,29 @@ require('../lib/exiterror.inc.php');
 require ('../bin/cli-lib.php');
 
 
+
+
+/* VARS THAT NEED UPDATING EVERY TIME A NEW VERSION IS PILED ON */
+
+		/* the most recent database version: ie the last version whose release involved a DB change */
+		$last_changed_version = '3.1.0';
+		
+		/* 
+		 * versions where there is no change. Array of old_version => version that followed. 
+		 * E.g. if there were no changes between 3.1.0 and 3.1.1, this array should contain
+		 * '3.1.0' => '3.1.1', so the function can then reiterate and look for changes between
+		 * 3.1.2 and whatever follows it.
+		 */
+		$versions_where_there_was_no_change = array();
+
+/* END COMPULSORY UPDATE VARS */
+
+
+
 /* ============ */
 /* begin script */
 /* ============ */
 
-/* the most recent database version: ie the last version whose release involved a DB change */
-$last_changed_version = '3.1.0';
 
 cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
@@ -96,10 +113,12 @@ function upgrade_db_version_from($oldv)
 	global $versions_where_there_was_no_change;
 	
 	if (array_key_exists($oldv,$versions_where_there_was_no_change))
-	
-	$func = 'upgrade_' . str_replace('.','_',$oldv);
-	
-	
+		do_mysql_query("update system_info set value = '{$versions_where_there_was_no_change[$oldv]}' where setting_name = 'db_version'");
+	else
+	{
+		$func = 'upgrade_' . str_replace('.','_',$oldv);
+		$func();
+	}
 }
 
 
@@ -202,6 +221,7 @@ function upgrade_3_0_16()
 		'alter table saved_queries modify `user` varchar(30) default NULL',
 		'alter table saved_catqueries modify `user` varchar(30) default NULL',
 		'alter table query_history modify `user` varchar(30) default NULL',
+		'alter table user_info modify `username` varchar(30) NOT NULL',
 		/* new tables for the new username system */
 		'CREATE TABLE `user_groups` (
 		   `id` int NOT NULL AUTO_INCREMENT,
@@ -239,8 +259,8 @@ function upgrade_3_0_16()
 	/* CONVERT EXISTING PASSWORDS INTO PASSHASHES */
 	echo "about to shift password system over to hashed-values in the database....\n";
 	echo "all users whose accounts go back to the era before CQPweb kept passwords in the database will\n";
-	echo "have their password changed to the string ``change_me'' (no quotes) and a near-future expiry date set on that password.\n";
-	echo "(Please acknowledge).\n";
+	echo "have their password changed to the string ``change_me'' (no quotes) and a near-future expiry date set on that password;\n";
+	echo "depending on your code version, password expiry may or may not be implemented. (Please acknowledge).\n";
 	get_enter_to_continue();
 	
 	$result = do_mysql_query("select username, password from user_info");
@@ -258,8 +278,9 @@ function upgrade_3_0_16()
 		$passhash = generate_new_hash_from_password($o->password);
 		do_mysql_query("update user_info set passhash = '$passhash'$extra where username = '$username'");
 	}
-	echo "done transferring passwords to secure hashed form. Old passwords will now be deleted.\n";
-		
+	echo "done transferring passwords to secure encrypted form. Old passwords will now be deleted.\nPlease acknowledge.\n";
+	get_enter_to_continue();
+	
 	/* back to DB changes again */
 	
 	$sql = array(
@@ -270,8 +291,23 @@ function upgrade_3_0_16()
 			`user_id` int NOT NULL,
 			`expiry`  int UNSIGNED NOT NULL default 0
 			) CHARACTER SET utf8 COLLATE utf8_bin",
-		"alter table user_info add column 
-
+		"alter table user_info modify column `email` varchar(255) default NULL",
+		"alter table user_info modify column `realname` varchar(255) default NULL",
+		"alter table user_info add column `affiliation` varchar(255) default NULL after `email`",
+		"alter table user_info add column `country` char(2) default '00' after `affiliation`",
+		"CREATE TABLE `user_privilege_info` (
+			`id` int NOT NULL AUTO_INCREMENT,
+			`description` varchar(255) default '',
+			`type` tinyint(1) unsigned default NULL,
+			`scope` text,
+			primary key(`id`)
+			) CHARACTER SET utf8 COLLATE utf8_general_ci",
+		"CREATE TABLE `user_grants_to_groups` 
+			(`group_id` int NOT NULL,`privilege_id` int NOT NULL,`expiry_time` int UNSIGNED NOT NULL default 0) 
+			CHARACTER SET utf8 COLLATE utf8_general_ci",
+		"CREATE TABLE `user_grants_to_users` 
+			(`user_id` int NOT NULL,`privilege_id` int NOT NULL,`expiry_time` int UNSIGNED NOT NULL default 0) 
+			CHARACTER SET utf8 COLLATE utf8_general_ci",
 
 
 

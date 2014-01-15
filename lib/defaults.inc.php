@@ -31,6 +31,13 @@
 
 
 
+
+
+/* ------------------------ */
+/* ARRAYS OF CONSTANTS ETC. */
+/* ------------------------ */
+
+
 /* php stubs in each corpus directory; we can't make this constant, but it should be treated as if it was! */ 
 $cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
 						'distribution', 'execute', 'freqlist',
@@ -38,12 +45,18 @@ $cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
 						'keywords', 'redirect', 'subcorpus-admin',
 						'textmeta', 'upload-query');
 
+
 /* "reserved words" that can't be used for corpus ids;
  * note: all reserved words are 3 lowercase letters and any new ones we add will also be 3 lowercase letters */
 $cqpweb_reserved_subdirs = array('adm', 'bin', 'css', 'doc', 'lib', 'rss', 'usr');
 
 
-
+/* mapper hash for turning privilege type constants into descriptive strings for printing etc. */
+$privilege_type_descriptions = array(
+	PRIVILEGE_TYPE_CORPUS_FULL       => "Full access to corpus",
+	PRIVILEGE_TYPE_CORPUS_NORMAL     => "Normal access to corpus",
+	PRIVILEGE_TYPE_CORPUS_RESTRICTED => "Restricted access to corpus",
+);
 
 
 
@@ -66,6 +79,9 @@ if (!isset($cqpweb_no_internet))
 /* supply default email address */
 if (!isset($cqpweb_email_from_address))
 	$cqpweb_email_from_address = '';
+
+if (!isset($allow_account_self_registration))
+	$allow_account_self_registration = true;
 
 /* name for cookies stored in users' browsers */
 if (!isset($cqpweb_cookie_name))

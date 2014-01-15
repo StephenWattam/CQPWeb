@@ -85,7 +85,8 @@ function prepare_query_mode($s, $strict = true)
 
 
 
-/* returns an array: [0] == number of words searched, [1] == number of files searched */
+/** returns an array: [0] == number of words searched, [1] == number of files searched */
+// TODO end use of globals
 function amount_of_text_searched($subcorpus, $restrictions)
 {
 	global $corpus_sql_name;
@@ -118,7 +119,7 @@ function amount_of_text_searched($subcorpus, $restrictions)
 
 
 // so useful, it should prob be in library
-/* takes a "query-record" style associative array */
+/** takes a "query-record" style associative array */
 function create_solution_heading($record, $include_corpus_size = true)
 {
 	global $corpus_sql_name;

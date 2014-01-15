@@ -155,6 +155,7 @@ echo print_html_header('CQPweb Main Page', $Config->css_path, array('cqpweb-clie
 						</td>
 						<td class="basicbox">
 							<ul>
+								<?php if ($User->is_admin()) echo "<li><a href=\"adm\">Admin control panel</a></li>\n"; ?>
 								<li><a href="usr/index.php?thisQ=userDetails&uT=y">Your user account details</a></li>
 								<!-- <li><a href="">Open help system</a></li>  -->
 								<!--<li><a href="usr/">Your corpus access privileges</a></li>-->

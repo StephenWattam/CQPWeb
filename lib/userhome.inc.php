@@ -88,8 +88,19 @@ if ($User->logged_in)
 	echo print_menurow_index('userMacros', 'User macros');
 	echo print_menurow_heading('Account actions');
 	echo print_menurow_index('userDetails', 'Account details');
+	echo print_menurow_index('changePassword', 'Change password');
 	echo print_menurow_index('userLogout', 'Log out of CQPweb');
-	echo print_menurow_index('changePassword', 'Change password');	
+	if ($User->is_admin())
+	{
+		?>
+		<tr>
+			<td class="concordgeneral">
+				<a class="menuItem" href="../adm">Go to admin control panel</a>
+			</td>
+		</tr>
+		<?php
+	
+	}
 }
 else
 {
@@ -101,9 +112,10 @@ else
 	echo print_menurow_heading('Account actions');
 	echo print_menurow_index('login', 'Log in to CQPweb');
 	echo print_menurow_index('create', 'Create new user account');
-	echo print_menurow_index('verify', 'Activate new acount');
+	echo print_menurow_index('verify', 'Activate new account');
 	echo print_menurow_index('resend', 'Resend account activation');
-	echo print_menurow_index('lost', 'Reset lost password');
+	echo print_menurow_index('lostUsername', 'Retrieve lost username');
+	echo print_menurow_index('lostPassword', 'Reset lost password');
 	
 }
 
@@ -164,13 +176,12 @@ if ($User->logged_in)
 		printscreen_userdetails();
 		break;
 
-	case 'userLogout':
-		printscreen_logout();
+	case 'changePassword':
+		printscreen_changepassword();
 		break;
 
-	case 'changePassword':
-//		printscreen_changepassword();
-		coming_soon_page();
+	case 'userLogout':
+		printscreen_logout();
 		break;
 
 	/* common cases... */
@@ -207,10 +218,10 @@ else
 		display_system_messages();
 		break;
 	
+	case 'create':
+		printscreen_create();
+		break;
 	
-//		echo print_menurow_index('login', 'Log in to CQPweb');
-//	echo print_menurow_index('create', 'Create new user account');
-
 	case 'verify':
 		printscreen_verify();
 		break;
@@ -218,10 +229,17 @@ else
 	case 'resend':
 		printscreen_resend();
 		break;
-//	echo print_menurow_index('lost', 'Reset lost password');
 	
+	case 'lostUsername':
+		printscreen_lostusername();
+		break;
 	
-	
+	case 'lostPassword':
+		printscreen_lostpassword();
+		break;
+
+
+
 	/* common cases... (repeated code from above */
 	
 	case 'who_the_hell':

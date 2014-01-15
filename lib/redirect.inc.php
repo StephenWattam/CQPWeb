@@ -295,9 +295,11 @@ if (isset($_GET['redirect']))
 	case 'userLogin':
 	case 'userLogout':
 	case 'newUser':
+	case 'requestPasswordReset':
 	case 'resetUserPassword':
 	case 'resendVerifyEmail':
 	case 'verifyUser':
+	case 'remindUsername':
 	case 'revisedUserSettings':
 	case 'updateUserAccountDetails':
 		$_GET['userAction'] = $redirect_script_redirector;

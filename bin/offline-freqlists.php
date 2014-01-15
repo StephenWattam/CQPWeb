@@ -49,7 +49,7 @@ Note, if you run this script before setting up the text metdata table, things WI
 
 
 /* include defaults and settings */
-require("settings.inc.php");
+require('' . "settings.inc.php");
 require("../lib/defaults.inc.php");
 
 

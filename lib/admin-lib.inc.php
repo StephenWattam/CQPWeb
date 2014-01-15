@@ -1174,7 +1174,7 @@ function cqpweb_mysql_recreate_tables()
 	 */
 	global $mysql_link;
 	list($major, $minor, $rest) = explode('.', mysql_get_server_info($mysql_link), 3);
-	$engine_if_fulltext_key_needed = ( ($major > 5 || ($major == 5 && $minor >= 6) ) ? '' : 'ENGINE=MyISAM'); 
+	$engine_if_fulltext_key_needed = ( ($major > 5 || ($major == 5 && $minor >= 6) ) ? '' : 'ENGINE=MyISAM');
 	
 	/*
 	 * STRING FIELD LENGTHS TO USE
@@ -1434,6 +1434,22 @@ function cqpweb_mysql_recreate_tables()
 	) CHARACTER SET utf8 COLLATE utf8_bin";
 
 
+	$create_statements['user_grants_to_users'] =
+		"CREATE TABLE `user_grants_to_users` (
+			`user_id` int NOT NULL,
+			`privilege_id` int NOT NULL,
+			`expiry_time` int UNSIGNED NOT NULL default 0
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+	
+	$create_statements['user_grants_to_groups'] =
+		"CREATE TABLE `user_grants_to_groups` (
+			`group_id` int NOT NULL,
+			`privilege_id` int NOT NULL,
+			`expiry_time` int UNSIGNED NOT NULL default 0
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+	
 	$create_statements['user_groups'] =
 		"CREATE TABLE `user_groups` (
 			`id` int NOT NULL AUTO_INCREMENT,
@@ -1449,8 +1465,8 @@ function cqpweb_mysql_recreate_tables()
 			`id` int NOT NULL AUTO_INCREMENT,
 			`username` varchar(20) NOT NULL,
 			`password` varchar(20) default NULL,
-			`realname` varchar(50) default NULL,
-			`email` varchar(50) default NULL,
+			`realname` varchar(255) default NULL,
+			`email` varchar(255) default NULL,
 			`passhash` char(61),
 			`acct_status` tinyint(1) NOT NULL default 0,
 			`verify_key` varchar(32) default NULL,
@@ -1492,6 +1508,16 @@ function cqpweb_mysql_recreate_tables()
 			`user_id` int NOT NULL,
 			`group_id` int NOT NULL,
 			`expiry_time` int UNSIGNED NOT NULL default 0
+	) CHARACTER SET utf8 COLLATE utf8_general_ci";
+	
+	
+	$create_statements['user_privilege_info'] =
+		"CREATE TABLE `user_privilege_info` (
+			`id` int NOT NULL AUTO_INCREMENT,
+			`description` varchar(255) default '',
+			`type` tinyint(1) unsigned default NULL,
+			`scope` text,
+			primary key(`id`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 	
 	

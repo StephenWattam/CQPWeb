@@ -79,21 +79,24 @@ function printscreen_welcome()
 				You are logged on to CQPweb
 			</th>
 		</tr>
+		
+		<?php
+		if (!empty($_GET['extraMsg']))
+			echo '<tr><td class="concordgeneral">&nbsp;<br/>', cqpweb_htmlspecialchars(), "<br/>&nbsp;</td></tr>\n";
+		?>
+		
 		<tr>
 			<td class="concordgeneral">
-				
-				<p>&nbsp;</p>
+				&nbsp;<br/>
 			
-				<p>Welcome back to the CQPweb server<?php echo $personalise; ?>. You are logged in to the system.</p>
+				Welcome back to the CQPweb server<?php echo $personalise; ?>. You are logged in to the system.
 
-				<p>&nbsp;</p>
+				<br/>&nbsp;<br/>
 
-				<p>
-					This is your user page; select an option from the menu on the right, or
-					<a href="../">click here to return to the main homepage</a>.
-				</p>
+				This is your user page; select an option from the menu on the right, or
+				<a href="../">click here to return to the main homepage</a>.
 
-				<p>&nbsp;</p>
+				<br/>&nbsp;
 			</td>
 		</tr>
 	</table>
@@ -109,6 +112,12 @@ function printscreen_login()
 				Log in to CQPweb
 			</th>
 		</tr>
+
+		<?php
+		if (!empty($_GET['extraMsg']))
+			echo '<tr><td class="concordgeneral">&nbsp;<br/>', cqpweb_htmlspecialchars($_GET['extraMsg']), "<br/>&nbsp;</td></tr>\n";
+		?>
+
 		<tr>
 			<td class="concordgeneral">
 				
@@ -174,105 +183,522 @@ function printscreen_logout()
 }
 
 
-function printscreen_userdetails()
+function printscreen_create()
 {
-	global $User;
 	global $Config;
+	
+	if (!$Config->allow_account_self_registration)
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					Account self-registration not available
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgrey" colspan="2">
+					&nbsp;<br/>
+					Sorry but self-registration has been disabled on this CQPweb server. 
+					<br/>&nbsp;
+				</td>
+			</tr>
+		</table>	
+		<?php	
+		return;
+	}
 	
 	/* initialise the iso 3166-1 array... */
 	require('../lib/user-iso31661.inc.php');
-	sort($Config->iso31661);
-	
+	natsort($Config->iso31661);
+
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
-			<th colspan="3" class="concordtable">
-				Account details
+			<th class="concordtable" colspan="2">
+				Register for an account on this CQPweb server
 			</th>
 		</tr>
 		<tr>
-			<td class="concordgeneral">
-				Username:
-			</td>
-			<td class="concordgeneral" colspan="2">
-				<?php echo $User->username, "\n"; ?>
-			</td>
-		</tr>
-		<tr>
-			<td class="concordgeneral">
-				Email address:
-			</td>
-			<td class="concordgeneral" colspan="2">
-				<?php echo $User->email, "\n"; ?>
-			</td>
-		</tr>
-		<tr>
-			<td class="concordgrey" colspan="3">
+			<td class="concordgrey" colspan="2">
 				&nbsp;<br/>
-				<b>Important note</b>:
-				You cannot change either the username or the email address that this account is associated with.
+				<b>First</b>, select a username and password. Your username can be up to 30 letters long, and must consist of only
+				unaccented letters, digits and the underscore (&nbsp;_&nbsp;).
+				<br/>&nbsp;<br/>
+				Your password or passphrase can consist of any characters you like including punctuation marks and spaces. 
+				The length limit is 255 characters.
 				<br/>&nbsp;
 			</td>
 		</tr>
 		<form action="redirect.php" method="POST">
 			<tr>
 				<td class="concordgeneral">
-					Your full name:
+					Enter your chosen username:
 				</td>
 				<td class="concordgeneral">
-					<input type="text" name="updateValue" value="<?php echo cqpweb_htmlspecialchars($User->realname); ?>" />
+					<input type="text" size="30" maxlength="30" name="newUsername" />
 				</td>
-				<td class="concordgeneral" align="center">
-					<input type="submit" value="Update" />
-				</td>
-				<input type="hidden" name="fieldToUpdate" value="realname" />
-				<input type="hidden" name="redirect" value="updateUserAccountDetails" />
-				<input type="hidden" name="uT" value="y" />
 			</tr>
-		</form>
-		<form action="redirect.php" method="POST">
 			<tr>
 				<td class="concordgeneral">
-					Your affiliation (institution or company):
+					Enter your password or passphrase:
 				</td>
 				<td class="concordgeneral">
-					<input type="text" name="updateValue" value="<?php echo cqpweb_htmlspecialchars($User->affiliation); ?>" />
+					<input type="password" size="30" maxlength="255" name="newPassword" />
 				</td>
-				<td class="concordgeneral" align="center">
-					<input type="submit" value="Update" />
-				</td>
-				<input type="hidden" name="fieldToUpdate" value="affiliation" />
-				<input type="hidden" name="redirect" value="updateUserAccountDetails" />
-				<input type="hidden" name="uT" value="y" />
 			</tr>
-		</form>
-		<form action="redirect.php" method="POST">
 			<tr>
 				<td class="concordgeneral">
-					Your location:
+					Retype the password or passphrase:
 				</td>
 				<td class="concordgeneral">
-					<?php echo cqpweb_htmlspecialchars($User->country); ?>
-					<select name="updateValue">
-						<option selected="selected">Select new location ...</option>
+					<input type="password" size="30" maxlength="255" name="newPasswordCheck" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey" colspan="2">
+					&nbsp;<br/>
+					<b>Now</b>, enter your email address. We will send a verification message to this email address.
+					<em>Your account will not be activated until you click on the link that we send in that email message!</em>
+					<br/>&nbsp;<br/>
+					<b>If you have an institutional email address</b> (linked to a company or university, for instance), 
+					<b>you should use it to sign up</b>.
+					<br/>&nbsp;<br/>
+					This is because your access to some corpora may depend on what
+					institution you are affiliated to &ndash; and we use your email address to detect your affiliation.
+					If you specify a Gmail, Hotmail or other freely-obtainable email address, we won't be able to detect
+					your affiliation, and you may not have access to all the corpora that you should have access to.
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Enter your email address:
+					<br/>
+					<em>Note that this cannot be changed later!</em>
+				</td>
+				<td class="concordgeneral">
+					<input type="text" size="30" maxlength="255" name="newEmail" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey" colspan="2">
+					&nbsp;<br/>
+					The following three questions are optional. You can leave these parts of the form empty if you wish. 
+					However, it is highly useful to us to know a bit more about who is using our CQPweb installation,
+					so we will be very grateful if you supply this information.
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Please enter your real name:
+				</td>
+				<td class="concordgeneral">
+					<input type="text" size="30" maxlength="255" name="realName" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Please enter your affiliation:
+					<br/>
+					<em>(a company, university or other body that you are associated with)</em>
+				</td>
+				<td class="concordgeneral">
+					<input type="text" size="30" maxlength="255" name="affiliation" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Please enter your location (select a country or territory):
+				</td>
+				<td class="concordgeneral">
+					<select name="country">
+						<option selected="selected" value="00">Prefer not to specify</option>
 						<?php
-						foreach ($Config->iso31661 as $k => $country)
-							echo "\t\t\t\t\t\t<option value=\"$k\">", cqpweb_htmlspecialchars($country), "</option>\n";
+						unset($Config->iso31661['00']);
+						foreach($Config->iso31661 as $code => $country)
+							echo "\t\t\t\t\t\t<option value=\"$code\">$country</option>\n";
+						
 						?>
 					</select>
 				</td>
-				<td class="concordgeneral" align="center">
-					<input type="submit" value="Update" />
-				</td>
-				<input type="hidden" name="fieldToUpdate" value="country" />
-				<input type="hidden" name="redirect" value="updateUserAccountDetails" />
-				<input type="hidden" name="uT" value="y" />
 			</tr>
+			<tr>
+				<td class="concordgrey" colspan="2" align="center">
+					&nbsp;<br/>
+					When you are happy with the settings you have entered, use the button below to register.
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="2" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Register account" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<input type="hidden" name="redirect" value="newUser" />
+			<input type="hidden" name="uT" value="y" />
 		</form>
-
 	</table>
 	<?php
 }
+
+
+
+
+function printscreen_verify()
+{
+	$screentype = (isset($_GET['verifyScreenType']) ? $_GET['verifyScreenType'] : 'newform');
+	
+	if ($screentype == 'newform' || $screentype == 'badlink')
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					Enter activation key
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					<p>&nbsp;</p>
+					<?php
+					if ($screentype=='badlink')
+						echo "\t\t\t\t\t<p>CQPweb could not read a verification key from the link you clicked.</p>\n"
+							,"\t\t\t\t\t<p>Enter your 32-letter key code manually instead?</p>\n";
+					else
+						echo "\t\t\t\t\t<p>You should have received an email with a 32-letter code.</p>\n"
+							,"\t\t\t\t\t<p>Enter this code into the form below to activate the account.</p>\n";						
+					?>
+
+					<form action="redirect.php" method="get">
+					
+						<table class="basicbox" style="margin:auto">
+							<tr>
+								<td class="basicbox" >
+									Enter code here:
+								</td>
+								<td class="basicbox" >
+									<input type="text" name="v" size="32" maxlength="32" />
+								</td>
+							</tr>
+
+							<tr>
+								<td class="basicbox" colspan="2" align="center">
+									<input type="submit" value="Click here to verify account" /> 
+								</td>
+							</tr>						
+						</table>
+						<input type="hidden" name="redirect" value="verifyUser" />
+						<input type="hidden" name="uT" value="y" />
+					</form>
+					<p>
+						If you have not received an email with an activation code,
+						<a href="index.php?thisQ=resend&uT=y">click here</a>
+						to ask for one to be sent to your account's designated email address.
+					</p>
+					<p>&nbsp;</p>
+				</td>
+			</tr>
+		</table>
+		<?php	}
+	else if ($screentype == 'success')
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					New account verification has succeeded!
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					<p>&nbsp;</p>
+					<p align="center">
+						Your new user account has been successfully activated. 
+					</p>
+					<p align="center">
+						Welcome to our CQPweb server!
+					</p>
+					<p align="center">
+						<a href="index.php">Click here to log in.</a>
+					</p>
+					<p>&nbsp;</p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+	else if ($screentype == 'failure')
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					Account verification failed!
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					<p>&nbsp;</p>
+					<p>
+						Your account could not be verified. The activation key you supplied could not be found in our database. 
+					</p>
+					<p>
+						We recommend you request <a href="index.php?thisQ=resend">a new activation email</a>.
+					</p>
+					<p>
+						If a new email does not solve the problem, we suggest 
+						<a href="create">restarting the account-creation process from scratch</a>.
+					</p>
+					<p>&nbsp;</p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+	else if ($screentype == 'newEmailSent')
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					A new verification email has been sent!
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					<p>&nbsp;</p>
+					<p>
+						Please access your email account: a message with a new activation link should arrive soon. 
+					</p>
+					<p>
+						Note that activation links from earlier emails will <em>no longer work</em>.
+					</p>
+					<p>&nbsp;</p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+}
+
+
+function printscreen_resend()
+{
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">
+				Re-send account activation email
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				<p>&nbsp;</p>
+				<p>
+					If you have created an account on CQPweb but have not received an email to activate it,
+					you can use this control to request another activation email.
+				</p>
+
+				<p>&nbsp;</p>
+				<p>
+					All accounts must be verified by the owner of the associated email address by clicking
+					on the activation link in the email message.
+				</p>
+
+				<table class="basicbox" style="margin:auto">
+					<form action="redirect.php" method="GET">
+						<tr>
+							<td class="basicbox">Enter your email address:</td>
+							<td class="basicbox">
+								<input type="text" name="email" width="50" />
+							</td>
+						</tr>
+						<tr>
+							<td class="basicbox" colspan="2">
+								<input type="submit" value="Request a new activation email" />
+							</td>
+						</tr>
+						<input type="hidden" name="redirect" value="resendVerifyEmail" />
+						<input type="hidden" name="uT" value="y" />
+					</form>
+				</table>
+
+				<p>&nbsp;</p>
+			</td>
+		</tr>
+	</table>
+	<?php
+}
+
+
+
+
+function printscreen_lostusername()
+{
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">
+				Retrieve lost or forgotten username
+			</th>
+		</tr>
+		<tr>
+			<form action="redirect.php" method="GET">
+				<td class="concordgeneral">
+					<p>If you have lost or forgotten your username, you can request an email reminder.</p>
+					<p>Enter the email address you used to sign up in the text box below and press &rdquo;Request username reminder email&ldquo;.</p>
+					<p>A message will be sent to your email with a reminder of your username.</p>
+					<p align="center">
+						<input type="text" name="emailToRemind" size="30" maxlength="30" />
+					</p>
+					<p align="center">
+						<input type="submit" value="Request username reminder email" />
+					</p>
+					<p>&nbsp;</p>
+				</td>
+				<input type="hidden" name="redirect" value="remindUsername" />
+				<input type="hidden" name="uT" value="y" />
+			</form>
+		</tr>
+	</table>
+	<?php
+}
+
+
+function printscreen_lostpassword()
+{
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="2">
+				Reset lost password
+			</th>
+		</tr>
+		<?php
+		
+		if (isset($_GET['showSentMessage']) && $_GET['showSentMessage'])
+		{
+			?>
+			
+			<tr>
+				<td class="concordgeneral" colspan="2" align="center">
+					&nbsp;<br/>
+					<b>
+						An email has been sent to the address associated with your account. Please check your inbox!
+					</b>
+					<br/>&nbsp;
+				</td>
+			</tr>
+			
+			<?php
+		}
+		?>
+		
+		<tr>
+			<td class="concordgrey" colspan="2">
+				&nbsp;<br/>
+				If you have forgotten your password, or if your password has expired, 
+				you can request a password-reset.
+				<i>CQPweb does not store your password and so we cannot send you a reminder
+				of what your password is (because doing so would risk the security of your account).</i>
+				You must instead reset the password to something new.
+				
+				<br/>&nbsp;<br/>
+				
+				First, use the <b>first</b> form below to request a password-reset verification code.
+				This will be sent to the email address associated with your username.
+				
+				<br/>&nbsp;<br/>
+				
+				Then, return to this webpage, and use the <b>second</b> form below to change your password, using the 
+				verification code that we send you via email message.
+				
+				<br/>&nbsp;
+			</td>
+		<tr>
+			<th class="concordtable" colspan="2">
+				Request password reset via email
+			</th>
+		</tr>
+		<form action="redirect.php" method="POST">
+			<tr>
+				<td class="concordgeneral">
+					Enter your username:
+				</td>
+				<td class="concordgeneral">
+					<input type="text" size="40" maxlength="30" name="userForPasswordReset" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="2" align="center">
+					&nbsp;<br/>
+						<input type="submit" value="Click here to request a password reset verification code via email" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<input type="hidden" name="redirect" value="requestPasswordReset" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+		<tr>
+			<th class="concordtable" colspan="2">
+				Reset your password
+			</th>
+		</tr>
+		<form action="redirect.php" method="POST">
+			<tr>
+				<td class="concordgeneral">
+					Enter your username:
+				</td>
+				<td class="concordgeneral">
+					<input type="text" size="40" maxlength="30" name="userForPasswordReset" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Enter your <b>new</b> password or passphrase:
+				</td>
+				<td class="concordgeneral">
+					<input type="password" size="40" maxlength="255" name="newPassword" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Retype the <b>new</b> password or passphrase:
+				</td>
+				<td class="concordgeneral">
+					<input type="password" size="40" maxlength="255" name="newPasswordCheck" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Enter the 32-letter verification code sent to you by email:
+					<br/>
+					<em>(spaces optional)</em>
+				</td>
+				<td class="concordgeneral">
+					<input type="text" size="40" maxlength="40" name="v" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="2" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Click here to reset password" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<input type="hidden" name="redirect" value="resetUserPassword" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+	</table>
+	<?php
+}
+
+
+
 
 
 function printscreen_usersettings()
@@ -582,167 +1008,169 @@ function printscreen_usermacros()
 
 
 
-
-
-
-function printscreen_verify()
+function printscreen_userdetails()
 {
-	$screentype = (isset($_GET['verifyScreenType']) ? $_GET['verifyScreenType'] : 'newform');
+	global $User;
+	global $Config;
 	
-	if ($screentype == 'newform' || $screentype == 'badlink')
-	{
-		?>
-		<table class="concordtable" width="100%">
-			<tr>
-				<th class="concordtable">
-					Enter activation key
-				</th>
-			</tr>
-			<tr>
-				<td class="concordgeneral">
-					<p>&nbsp;</p>
-					<?php
-					if ($screentype=='badlink')
-						echo "\t\t\t\t\t<p>CQPweb could not read a verification key from the link you clicked.</p>\n"
-							,"\t\t\t\t\t<p>Enter your 32-letter key code manually instead?</p>\n";
-					else
-						echo "\t\t\t\t\t<p>You should have received an email with a 32-letter code.</p>\n"
-							,"\t\t\t\t\t<p>Enter this code into the form below to activate the account.</p>\n";						
-					?>
-
-					<form action="redirect.php" method="get">
-					
-						<table class="basicbox" style="margin:auto">
-							<tr>
-								<td class="basicbox" >
-									Enter code here:
-								</td>
-								<td class="basicbox" >
-									<input type="text" name="v" size="32" maxlength="32" />
-								</td>
-							</tr>
-
-							<tr>
-								<td class="basicbox" colspan="2" align="center">
-									<input type="submit" value="Click here to verify account" /> 
-								</td>
-							</tr>						
-						</table>
-						<input type="hidden" name="redirect" value="verifyUser" />
-						<input type="hidden" name="uT" value="y" />
-					</form>
-					<p>
-						If you have not received an email with an activation code,
-						<a href="index.php?thisQ=resend&uT=y">click here</a>
-						to ask for one to be sent to your account's designated email address.
-					</p>
-					<p>&nbsp;</p>
-				</td>
-			</tr>
-		</table>
-		<?php	}
-	else if ($screentype == 'success')
-	{
-		?>
-		<table class="concordtable" width="100%">
-			<tr>
-				<th class="concordtable">
-					New account verification has succeeded!
-				</th>
-			</tr>
-			<tr>
-				<td class="concordgeneral">
-					<p>&nbsp;</p>
-					<p align="center">
-						Your new user account has been successfully activated. 
-					</p>
-					<p align="center">
-						Welcome to our CQPweb server!
-					</p>
-					<p align="center">
-						<a href="index.php">Click here to log in.</a>
-					</p>
-					<p>&nbsp;</p>
-				</td>
-			</tr>
-		</table>
-		<?php
-	}
-	else if ($screentype == 'failure')
-	{
-		?>
-		<table class="concordtable" width="100%">
-			<tr>
-				<th class="concordtable">
-					Account verification failed!
-				</th>
-			</tr>
-			<tr>
-				<td class="concordgeneral">
-					<p>&nbsp;</p>
-					<p>
-						Your account could not be verified. The activation key you supplied could not be found in our database. 
-					</p>
-					<p>
-						We recommend you request <a href="index.php?thisQ=resend">a new activation email</a>.
-					</p>
-					<p>
-						If a new email does not solve the problem, we suggest 
-						<a href="create">restarting the account-creation process from scratch</a>.
-					</p>
-					<p>&nbsp;</p>
-				</td>
-			</tr>
-		</table>
-		<?php
-	}
-}
-
-
-function printscreen_resend()
-{
+	/* initialise the iso 3166-1 array... */
+	require('../lib/user-iso31661.inc.php');
+	natsort($Config->iso31661);
+	
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable">
-				Re-send account activation email
+			<th colspan="3" class="concordtable">
+				Account details
 			</th>
 		</tr>
 		<tr>
 			<td class="concordgeneral">
-				<p>&nbsp;</p>
-				<p>
-					If you have created an account on CQPweb but have not received an email to activate it,
-					you can use this control to request another activation email.
-				</p>
-
-				<p>&nbsp;</p>
-				<p>
-					All accounts must be verified by the owner of the associated email address by clicking
-					on the activation link in the email message.
-				</p>
-
-				<table class="basicbox" style="margin:auto">
-					<form action="redirect.php" method="GET">
-						<tr>
-							<td class="basicbox">Enter your email address:</td>
-							<td class="basicbox">
-								<input type="text" name="email" width="50" />
-							</td>
-						</tr>
-						<tr>
-							<td class="basicbox" colspan="2">
-								<input type="submit" value="Request a new activation email" />
-							</td>
-						</tr>
-						<input type="hidden" name="redirect" value="resendVerifyEmail" />
-						<input type="hidden" name="uT" value="y" />
-					</form>
-				</table>
-
-				<p>&nbsp;</p>
+				Username:
+			</td>
+			<td class="concordgeneral" colspan="2">
+				<?php echo $User->username, "\n"; ?>
 			</td>
 		</tr>
+		<tr>
+			<td class="concordgeneral">
+				Email address:
+			</td>
+			<td class="concordgeneral" colspan="2">
+				<?php echo cqpweb_htmlspecialchars($User->email), "\n"; ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="3">
+				&nbsp;<br/>
+				<b>Important note</b>:
+				You cannot change either the username or the email address that this account is associated with.
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<form action="redirect.php" method="POST">
+			<tr>
+				<td class="concordgeneral">
+					Your full name:
+				</td>
+				<td class="concordgeneral">
+					<input type="text" name="updateValue" value="<?php echo cqpweb_htmlspecialchars($User->realname); ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+				<input type="hidden" name="fieldToUpdate" value="realname" />
+				<input type="hidden" name="redirect" value="updateUserAccountDetails" />
+				<input type="hidden" name="uT" value="y" />
+			</tr>
+		</form>
+		<form action="redirect.php" method="POST">
+			<tr>
+				<td class="concordgeneral">
+					Your affiliation (institution or company):
+				</td>
+				<td class="concordgeneral">
+					<input type="text" name="updateValue" value="<?php echo cqpweb_htmlspecialchars($User->affiliation); ?>" />
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+				<input type="hidden" name="fieldToUpdate" value="affiliation" />
+				<input type="hidden" name="redirect" value="updateUserAccountDetails" />
+				<input type="hidden" name="uT" value="y" />
+			</tr>
+		</form>
+		<form action="redirect.php" method="POST">
+			<tr>
+				<td class="concordgeneral">
+					Your location:
+				</td>
+				<td class="concordgeneral">
+					<table class="basicbox" width="100%">
+						<tr>
+							<td class="basicbox">
+								<?php echo cqpweb_htmlspecialchars($Config->iso31661[$User->country]); ?>
+							</td>
+							<td class="basicbox">
+								<select name="updateValue">
+									<option selected="selected">Select new location ...</option>
+									<?php
+									foreach ($Config->iso31661 as $k => $country)
+										echo "\t\t\t\t\t\t<option value=\"$k\">", cqpweb_htmlspecialchars($country), "</option>\n";
+									?>
+								</select>
+							</td>
+						</tr>
+					</table>
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="submit" value="Update" />
+				</td>
+				<input type="hidden" name="fieldToUpdate" value="country" />
+				<input type="hidden" name="redirect" value="updateUserAccountDetails" />
+				<input type="hidden" name="uT" value="y" />
+			</tr>
+		</form>
+
+	</table>
+	<?php
+}
+
+
+function printscreen_changepassword()
+{
+	global $User;
+	
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="2">
+				Change your password
+			</th>
+		</tr>
+		<form action="redirect.php" method="POST">
+			<tr>
+				<td class="concordgeneral">
+					Enter your <b>current</b> password or passphrase:
+				</td>
+				<td class="concordgeneral">
+					<input type="password" size="30" maxlength="255" name="oldPassword" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Enter your <b>new</b> password or passphrase:
+				</td>
+				<td class="concordgeneral">
+					<input type="password" size="30" maxlength="255" name="newPassword" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					Retype the <b>new</b> password or passphrase:
+				</td>
+				<td class="concordgeneral">
+					<input type="password" size="30" maxlength="255" name="newPasswordCheck" />
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgrey" colspan="2" align="center">
+					&nbsp;<br/>
+					Click below to change your password.
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="2" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Submit this form to change your password" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<input type="hidden" name="userForPasswordReset" value="<?php echo cqpweb_htmlspecialchars($User->username); ?>" />
+			<input type="hidden" name="redirect" value="resetUserPassword" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
 	</table>
 	<?php
 }

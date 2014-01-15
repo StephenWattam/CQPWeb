@@ -27,7 +27,7 @@
  * 
  * Initialises the large array of country codes and names for ISO 3166-1 alpha-2.
  * 
- * Hangs them off the global $Config object, so can be used locally or globally;
+ * Hangs array off the global $Config object, so can be used locally or globally;
  * if locally, declare global $Config first.
  */
 
@@ -36,12 +36,16 @@
  * Note: mostly follows the ISO, but substitutes common names for official UN names
  * wherever this would not lead to ambiguity. 
  * 
- * All "republic of X", "state of X" etc. are omitted for brevity. 
+ * All "republic of X", "state of X" etc. are omitted for brevity unless they are a
+ * critical part of the name, e.g. "Central African Republic", "United States of America".
  * 
  * All alternative names are omitted for brevity.
+ * 
+ * Plus 00, rather than ZZ, is used for the "unknown" code.
  */
 if (!isset($Config->iso31661))
 	$Config->iso31661 = array (
+		'00'=>'--Unknown or not specified--',
 		'AD'=>'Andorra',
 		'AE'=>'United Arab Emirates',
 		'AF'=>'Afghanistan',
@@ -293,7 +297,5 @@ if (!isset($Config->iso31661))
 		'ZM'=>'Zambia',
 		'ZW'=>'Zimbabwe'
 	);
-
-?>
 
 ?>
