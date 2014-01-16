@@ -676,7 +676,6 @@ function delete_cookie_token($token)
 
 function group_name_to_id($group)
 {
-	assert_not_reserved_group($group);
 	$group = mysql_real_escape_string($group);
 	$result = do_mysql_query("select id from user_groups where group_name = '$group'");
 	if (mysql_num_rows($result) < 1)
@@ -1196,7 +1195,7 @@ function grant_privilege_to_group($group, $privilege_id, $expiry = 0)
 	if (0 < mysql_num_rows(do_mysql_query("select group_id from user_grants_to_groups where group_id=$group_id and privilege_id=$privilege_id")))
 		return;
 	
-	do_mysql_query("insert into user_grants_to_groups(group_id, privilege_id, expiry_time) values ($group_id, $privilege_id,$expiry");  
+	do_mysql_query("insert into user_grants_to_groups(group_id, privilege_id, expiry_time) values ($group_id, $privilege_id,$expiry)");  
 }
 
 function remove_grant_from_user($user, $privilege_id)
@@ -1223,109 +1222,43 @@ function list_user_grants($user)
 {
 	$uid = user_name_to_id($user);
 	$ret = array();
-	$result = do_mysql_query("select * from user_grants_to_users where user_id = $uid");
+	$result = do_mysql_query("select * from user_grants_to_users where user_id = $uid order by privilege_id asc");
 	while (false !== ($o = mysql_fetch_object($result)))
 		$ret[] = $o;
 	return $ret;
 }
 
 
+/**
+ * Returns an array of DB objects, representing the grants given to the user with the specified name.
+ */
 function list_group_grants($group)
 {
-	
+	$gid = group_name_to_id($group);
+	$ret = array();
+	$result = do_mysql_query("select * from user_grants_to_groups where group_id = $gid order by privilege_id asc");
+	while (false !== ($o = mysql_fetch_object($result)))
+		$ret[] = $o;
+	return $ret;
 }
 
-//TODO
-function deny_group_access_to_corpus($corpus, $group)
-{
-//	$group = preg_replace('/\W/', '', $group);
-//	
-//	if ($corpus == '' || $group == '')
-//		return;
-//	if (! file_exists("../$corpus/.htaccess"))
-//		return;
-//	/* having got here, we know the $corpus variable is OK */
-//	
-//	/* don't check group in the same way -- we want to be  */
-//	/* able to disallow access to nonexistent groups       */
-//
-//	$apache = get_apache_object(realpath("../$corpus"));
-//	$apache->load();
-//	$apache->disallow_group($group);
-//	$apache->save();
-}
 
-//TODO
-function give_group_access_to_corpus($corpus, $group)
-{
-//	if ($corpus == '' || $group == '')
-//		return;
-//	if (! file_exists("../$corpus/.htaccess"))
-//		return;
-//	/* having got here, we know the $corpus variable is OK */
-//
-//	$apache = get_apache_object(realpath("../$corpus"));
-//	$group_list = $apache->list_groups();
-//	if (!in_array($group, $group_list))
-//		return;
-//	/* and having survived that, we know group is OK too */
-//	
-//	$apache->load();
-//	$apache->allow_group($group);
-//	$apache->save();
-}
-
-//TODO
-/**
- * Function wrapping multiple calls to give_group_access_to_corpus()
- * and deny_group_access_to_corpus().
- * 
- * $corpora_to_grant is a string of individual corpora, 
- * delimited by |
- * 
- * Any corpus not in that list -- access is denied.
- * 
- */ 
-function update_group_access_rights($group, $corpora_to_grant)
-{
-//	$to_grant = explode('|', $corpora_to_grant);
-//	
-//	foreach($to_grant as $c)
-//		give_group_access_to_corpus($c, $group);
-//	
-//	unset($c);
-//	
-//	foreach(list_corpora() as $c)
-//		if (!in_array($c, $to_grant))
-//			deny_group_access_to_corpus($c, $group);
-}
-
-//TODO
-function clone_group_access_rights($from_group, $to_group)
+function clone_group_grants($from_group, $to_group)
 {
 	/* checks for group validity */
-	if ($from_group == $to_group)
+	if ($from_group == $to_group || empty($from_group) || empty($to_group))
 		return;
-//	$apache = get_apache_object('nopath');
-//	$group_list = $apache->list_groups();
-//	if (!in_array($from_group, $group_list))
-//		return;
-//	if (!in_array($to_group, $group_list))
-//		return;
-//	
-//	$list_of_corpora = list_corpora();
-//	foreach ($list_of_corpora as $c)
-//	{
-//		$apache->set_path_to_web_directory("../$c");
-//		$apache->load();
-//		if ( in_array($from_group, $apache->get_allowed_groups()) )
-//			/* allow */
-//			$apache->allow_group($to_group);
-//		else
-//			/* deny */
-//			$apache->disallow_group($to_group);
-//		$apache->save();
-//	}
+	
+	$id_from = group_name_to_id($from_group);
+	$id_to   = group_name_to_id($to_group);
+	
+	do_mysql_query("delete from user_grants_to_groups where group_id = $id_to");
+	
+	$result = do_mysql_query("select * from user_grants_to_groups where group_id = $id_from");
+	
+	while (false === ($o = mysql_fetch_object($result)))
+		do_mysql_query("insert into user_grants_to_groups 
+			(group_id,privilege_id,expiry_time) values ($id_to,{$o->privilege_id},{$o->expiry_time})");
 }
 
 

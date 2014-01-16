@@ -218,6 +218,7 @@ switch($_GET['admFunction'])
 		require('../lib/execute.inc.php');
 		exit();
 
+
 	case 'newGrantToUser':
 		$_GET['function'] = 'grant_privilege_to_user';
 		$_GET['args'] = $_GET['user'] . '#' . (int)$_GET['privilege'];
@@ -226,10 +227,25 @@ switch($_GET['admFunction'])
 		exit();
 
 
+	case 'newGrantToGroup':
+		$_GET['function'] = 'grant_privilege_to_group';
+		$_GET['args'] = $_GET['group'] . '#' . (int)$_GET['privilege'];
+		$_GET['locationAfter'] = 'index.php?thisF=groupGrants&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
+
+
 	case 'removeUserGrant':
 		$_GET['function'] = 'remove_grant_from_user';
 		$_GET['args'] = $_GET['user'] . '#' . (int)$_GET['privilege'];
 		$_GET['locationAfter'] = 'index.php?thisF=userGrants&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
+
+	case 'removeGroupGrant':
+		$_GET['function'] = 'remove_grant_from_group';
+		$_GET['args'] = $_GET['group'] . '#' . (int)$_GET['privilege'];
+		$_GET['locationAfter'] = 'index.php?thisF=groupGrants&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
 
@@ -275,12 +291,12 @@ switch($_GET['admFunction'])
 //		exit();
 //		
 //		
-//	case 'accessCloneGroupRights':
-//		$_GET['function'] = 'clone_group_access_rights';
-//		$_GET['args'] = $_GET['groupCloneFrom'] . '#' . $_GET['groupCloneTo'];
-//		$_GET['locationAfter'] = 'index.php?thisF=groupAccess&uT=y';
-//		require('../lib/execute.inc.php');
-//		exit();
+	case 'accessCloneGrants':
+		$_GET['function'] = 'clone_group_grants';
+		$_GET['args'] = $_GET['groupCloneFrom'] . '#' . $_GET['groupCloneTo'];
+		$_GET['locationAfter'] = 'index.php?thisF=groupAccess&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
 	
 		
 		
@@ -291,6 +307,7 @@ switch($_GET['admFunction'])
 		require('../lib/execute.inc.php');
 		exit();
 
+
 	case 'variableMetadata':
 		$_GET['function'] = 'add_variable_corpus_metadata';
 		$_GET['args'] = $_GET['corpus'] . '#' . $_GET['variableMetadataAttribute']. '#' 
@@ -298,13 +315,15 @@ switch($_GET['admFunction'])
 		$_GET['locationAfter'] = '../'. $_GET['corpus'] .'/index.php?thisQ=manageMetadata&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
-		
+
+
 	case 'regenerateCSS':
 		$_GET['function'] = 'cqpweb_regenerate_css_files';
 		$_GET['locationAfter'] = 'index.php?thisF=skins&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
-	
+
+
 	case 'transferStylesheetFile':
 		$_GET['function'] = 'cqpweb_import_css_file';
 		if (!isset($_GET['cssFile']))
@@ -316,7 +335,8 @@ switch($_GET['admFunction'])
 		$_GET['locationAfter'] = 'index.php?thisF=skins&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
-		
+
+
 	case 'updateCategoryDescriptions':
 		$update_text_metadata_values_descriptions_info['corpus'] = $_GET['corpus'];
 		$update_text_metadata_values_descriptions_info['actions'] = array();
@@ -335,7 +355,8 @@ switch($_GET['admFunction'])
 		$_GET['locationAfter'] = '../' . $_GET['corpus'] .'/index.php?thisQ=manageCategories&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
-	
+
+
 	case 'updateCorpusMetadata':
 		$update_corpus_metadata_info['corpus'] = $_GET['corpus'];
 		$update_corpus_metadata_info['visible'] = $_GET['updateVisible'];
@@ -372,6 +393,7 @@ switch($_GET['admFunction'])
 		$_GET['locationAfter'] = '../' . $_GET['corpus'] .'/index.php?thisQ=manageMetadata&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
+
 
 	case 'createMetadataFromXml':
 		$create_text_metadata_for_info = array();
@@ -412,6 +434,7 @@ switch($_GET['admFunction'])
 		require('../lib/execute.inc.php');
 		exit();
 
+
 	case 'clearMetadataTable':
 	 	if ($_GET['clearMetadataAreYouReallySure'] != 'yesYesYes')
 	 	{
@@ -446,7 +469,8 @@ switch($_GET['admFunction'])
 		}
 		require('../lib/execute.inc.php');
 		exit();
-		
+
+
 	default:
 		/* break and fall through to the rest of adminhome.inc.php */
 		break;

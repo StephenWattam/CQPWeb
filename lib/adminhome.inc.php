@@ -214,11 +214,9 @@ echo print_menurow_heading('Users and privileges');
 echo print_menurow_admin('userAdmin', 'Manage users');
 echo print_menurow_admin('groupAdmin', 'Manage groups');
 echo print_menurow_admin('groupMembership', 'Manage group membership');
-echo print_menurow_admin('groupAccess', 'Manage group access');
 echo print_menurow_admin('privilegeAdmin', 'Manage privileges');
 echo print_menurow_admin('userGrants', 'Manage user grants');
 echo print_menurow_admin('groupGrants', 'Manage group grants');
-// groupAccess privilegeAdmin userGrants groupGrants
 
 echo print_menurow_heading('Database');
 echo print_menurow_admin('manageProcesses', 'Manage MySQL processes');
@@ -331,10 +329,6 @@ case 'groupAdmin':
 
 case 'groupMembership':
 	printquery_groupmembership();
-	break;
-
-case 'groupAccess':
-	printquery_groupaccess();
 	break;
 
 case 'privilegeAdmin':

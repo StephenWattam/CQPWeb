@@ -1364,181 +1364,121 @@ function printquery_groupmembership()
 }
 
 
-function printquery_groupaccess()
-{
-
-	$apache = get_apache_object('nopath');	
-
-	?>
-	<table class="concordtable" width="100%">
-		<tr>
-			<th colspan="7" class="concordtable">
-				Manage user groups
-			</th>
-		</tr>
-		<tr>
-			<th class="concordtable">Group</th>
-			<th class="concordtable">Corpus access rights</th>
-			<th class="concordtable">Actions</th>
-		</tr>
-	<?php
-	
-	
-	/* create a template for a table of tickboxes for each corpus */
-	
-	$list_of_corpora = list_corpora();
-	
-	$tableform_of_corpora = '<table width="100%"><tr>';
-
-	$i = 1;
-	foreach ($list_of_corpora as $c)
-	{
-		/* setup the template */
-		if ($i == 1)
-			$tableform_of_corpora .= '<tr>';	
-		
-		$tableform_of_corpora .= '<td class="basicbox" width="25%" style="padding:0px">'
-			. '<input type="checkbox" name="hasAccessTo_'.$c.'" value="1" __CHECKVALUE__FOR__'.$c.' />&nbsp;'.$c 
-			. '</td>';
-		if ($i == 4)
-		{
-			$tableform_of_corpora .= "</tr>\n\n\n";	
-			$i = 1;
-		}
-		else
-			$i++;
-		
-		/* and get the list of groups that has access to that corpus */
-		$apache->set_path_to_web_directory("../$c");
-		$apache->load();
-		$corpus_access_rights[$c] = $apache->get_allowed_groups();
-	}
-	if ($i > 1)
-	{
-		/* ie, if we are mid-tr */
-		while ($i <= 4)
-		{
-			$tableform_of_corpora .= '<td class="basicbox" width="25%" style="padding:0px">&nbsp;</td>';
-			$i++;
-		}
-	}
-	
-	$tableform_of_corpora .= '</tr></table>'; 
-	
-	/* OK, now render a form for each group showing the current access 
-	 * rights and allowing changes to be made */
-	
-	$list_of_groups = $apache->list_groups();
-
-	foreach ($list_of_groups as $group)
-	{
-		?>
-		
-		<form action="index.php" method="get">
-			<tr>
-				<td class="concordgeneral"><strong><?php echo $group; ?></strong></td>
-				
-				<td class="concordgeneral">
-					
-					<?php 
-					
-					if ($group == "superusers")
-						echo "<center><br/>Superusers always have access to everything.<br/>&nbsp;";
-					else
-					{
-						foreach($list_of_corpora as $c)
-							$translations["__CHECKVALUE__FOR__$c"] 
-								= (in_array($group, $corpus_access_rights[$c]) ? 'checked="checked"' : '');
-						
-						echo strtr($tableform_of_corpora, $translations); 
-					}
-					?>
-					
-				</td>
-				
-				<td class="concordgeneral" align="center">
-					<?php
-					echo ($group == 'superusers'
-						? '&nbsp;'
-						: '<input type="submit" value="Update" />'); ?>	
-				</td>
-			</tr>
-			<input type="hidden" name="admFunction" value="accessUpdateGroupRights" />
-			<input type="hidden" name="group" value="<?php echo $group; ?>" />
-			<input type="hidden" name="uT" value="y" />
-		</form>
-		
-		<?php
-	}
-	?>
-	</table>
-	
-	
-	
-	<table class="concordtable" width="100%">
-		<tr>
-			<th colspan="3" class="concordtable">
-				Access right cloning
-			</th>
-		</tr>
-		
-		<tr>
-			<td colspan="3" class="concordgrey">
-				&nbsp;<br/>
-				If you "clone" access rights from Group A to Group B, you overwrite all the current access
-				rights of Group B; it will have exactly the same privilenges as Group A.
-				<br/>&nbsp;
-			</td>
-		</tr>
-		
-		<?php
-		
-		$clone_group_options = '';
-		foreach ($list_of_groups as $group)
-		{
-			if ($group == 'superusers')
-				continue;
-			$clone_group_options .= "<option>$group</option>\n";
-		}
-		
-		?>
-		
-		<form action="index.php" method="get">
-		
-			<tr>
-				<td class="concordgeneral">
-					&nbsp;<br/>
-					Clone from:
-					<select name="groupCloneFrom">
-						<?php echo $clone_group_options; ?>
-					</select>
-					<br/>&nbsp;
-				</td>
-				<td class="concordgeneral">
-					&nbsp;<br/>
-					Clone to:
-					<select name="groupCloneTo">
-						<?php echo $clone_group_options; ?>
-					</select>
-					<br/>&nbsp;
-				</td>
-				<td class="concordgeneral" align="center">
-					&nbsp;<br/>
-					<input type="submit" value="Clone access rights!" />
-					<br/>&nbsp;
-				</td>
-			</tr>
-			
-			<input type="hidden" name="admFunction" value="accessCloneGroupRights"/>
-			<input type="hidden" name="uT" value ="y" />
-			
-		</form>
-
-	</table>		
-
-	<?php
-
-}
+//function printquery_groupaccess()
+//{
+//
+//	$apache = get_apache_object('nopath');	
+//
+//	? >
+//	<table class="concordtable" width="100%">
+//		<tr>
+//			<th colspan="7" class="concordtable">
+//				Manage user groups
+//			</th>
+//		</tr>
+//		<tr>
+//			<th class="concordtable">Group</th>
+//			<th class="concordtable">Corpus access rights</th>
+//			<th class="concordtable">Actions</th>
+//		</tr>
+//	<?php
+//	
+//	
+//	/* create a template for a table of tickboxes for each corpus */
+//	
+//	$list_of_corpora = list_corpora();
+//	
+//	$tableform_of_corpora = '<table width="100%"><tr>';
+//
+//	$i = 1;
+//	foreach ($list_of_corpora as $c)
+//	{
+//		/* setup the template */
+//		if ($i == 1)
+//			$tableform_of_corpora .= '<tr>';	
+//		
+//		$tableform_of_corpora .= '<td class="basicbox" width="25%" style="padding:0px">'
+//			. '<input type="checkbox" name="hasAccessTo_'.$c.'" value="1" __CHECKVALUE__FOR__'.$c.' />&nbsp;'.$c 
+//			. '</td>';
+//		if ($i == 4)
+//		{
+//			$tableform_of_corpora .= "</tr>\n\n\n";	
+//			$i = 1;
+//		}
+//		else
+//			$i++;
+//		
+//		/* and get the list of groups that has access to that corpus */
+//		$apache->set_path_to_web_directory("../$c");
+//		$apache->load();
+//		$corpus_access_rights[$c] = $apache->get_allowed_groups();
+//	}
+//	if ($i > 1)
+//	{
+//		/* ie, if we are mid-tr */
+//		while ($i <= 4)
+//		{
+//			$tableform_of_corpora .= '<td class="basicbox" width="25%" style="padding:0px">&nbsp;</td>';
+//			$i++;
+//		}
+//	}
+//	
+//	$tableform_of_corpora .= '</tr></table>'; 
+//	
+//	/* OK, now render a form for each group showing the current access 
+//	 * rights and allowing changes to be made */
+//	
+//	$list_of_groups = $apache->list_groups();
+//
+//	foreach ($list_of_groups as $group)
+//	{
+//		? >
+//		
+//		<form action="index.php" method="get">
+//			<tr>
+//				<td class="concordgeneral"><strong><?php echo $group; ? ></strong></td>
+//				
+//				<td class="concordgeneral">
+//					
+//					<?php 
+//					
+//					if ($group == "superusers")
+//						echo "<center><br/>Superusers always have access to everything.<br/>&nbsp;";
+//					else
+//					{
+//						foreach($list_of_corpora as $c)
+//							$translations["__CHECKVALUE__FOR__$c"] 
+//								= (in_array($group, $corpus_access_rights[$c]) ? 'checked="checked"' : '');
+//						
+//						echo strtr($tableform_of_corpora, $translations); 
+//					}
+//					? >
+//					
+//				</td>
+//				
+//				<td class="concordgeneral" align="center">
+//					<?php
+//					echo ($group == 'superusers'
+//						? '&nbsp;'
+//						: '<input type="submit" value="Update" />'); ? >	
+//				</td>
+//			</tr>
+//			<input type="hidden" name="admFunction" value="accessUpdateGroupRights" />
+//			<input type="hidden" name="group" value="<?php echo $group; ? >" />
+//			<input type="hidden" name="uT" value="y" />
+//		</form>
+//		
+//		<?php
+//	}
+//	? >
+//	</table>
+//	
+//	
+//	
+//
+//	<?php
+//
+//}
 
 
 function printquery_privilegeadmin()
@@ -1712,17 +1652,22 @@ function printquery_usergrants()
 		{
 			$grants = list_user_grants($user);
 			
+			$nrows = count($grants);
+			
+			$firstgrant = true;
+			
 			foreach($grants as $g)
 			{
 				$at_least_one_row_written = true;
 				echo "<tr>"
-					, "<td class=\"concordgeneral\" align=\"center\">$user</td>"
+					, ($firstgrant ? "<td class=\"concordgeneral\" align=\"center\" rowspan=\"$nrows\">$user</td>" : '')
 					, "<td class=\"concordgeneral\" align=\"center\"><b>{$g->privilege_id}</b>: {$priv_desc[$g->privilege_id]}</td>"
 					, "<td class=\"concordgeneral\" align=\"center\">", ($g->expiry_time < 1 ? 'Never' : date($g->expiry_time)), "</td>"
 					, "<td class=\"concordgeneral\" align=\"center\">"
 					, "<a class=\"menuItem\" href=\"index.php?admFunction=removeUserGrant&user=$user&privilege={$g->privilege_id}&uT=y\">[x]</a>"
 					, "</td>"
 					, "</tr>";
+				$firstgrant = false;
 			}
 		}
 		
@@ -1782,6 +1727,9 @@ function printquery_usergrants()
 
 function printquery_groupgrants()
 {
+	$priv_desc = get_all_privilege_descriptions();
+	$group_list = get_list_of_groups();
+	
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -1789,16 +1737,169 @@ function printquery_groupgrants()
 				Manage grants of privileges to groups
 			</th>
 		</tr>
+		<tr>
+			<th class="concordtable">
+				Group
+			</th>
+			<th class="concordtable">
+				Privilege
+			</th>
+			<th class="concordtable">
+				Expiry time
+			</th>
+			<th class="concordtable">
+				Delete
+			</th>
+		</tr>
+		
+		<?php
+		
+		foreach($group_list as $group)
+		{
+			$grants = list_group_grants($group);
+			
+			if ($group == 'superusers')
+				echo "\t\t<tr>\n\t\t\t<td class=\"concordgeneral\" align=\"center\" rowspan=\"1\"><b>superusers</b></td>\n"
+					, "\t\t\t<td class=\"concordgrey\" align=\"center\" colspan=\"3\"><em>This group always has all privileges.</em></td>\n"
+					, "\t\t</tr>";
+			else
+			{
+				if (empty($grants))
+				echo "\t\t<tr>\n\t\t\t<td class=\"concordgeneral\" align=\"center\" rowspan=\"1\"><b>$group</b></td>\n"
+					, "\t\t\t<td class=\"concordgrey\" align=\"center\" colspan=\"3\"><em>This group currently has no granted privileges.</em></td>\n"
+					, "\t\t</tr>";
+				else
+				{
+					if (0 == ($nrows = count($grants)))
+						++$nrows;
+					$firstgrant = true;	
+
+					foreach($grants as $g)
+					{
+						echo "<tr>"
+							, ($firstgrant ? "<td class=\"concordgeneral\" align=\"center\" rowspan=\"$nrows\"><b>$group</b></td>" : '')
+							, "<td class=\"concordgeneral\" align=\"center\"><b>{$g->privilege_id}</b>: {$priv_desc[$g->privilege_id]}</td>"
+							, "<td class=\"concordgeneral\" align=\"center\">", ($g->expiry_time < 1 ? 'Never' : date($g->expiry_time)), "</td>"
+							, "<td class=\"concordgeneral\" align=\"center\">"
+							, "<a class=\"menuItem\" href=\"index.php?admFunction=removeGroupGrant&group=$group&privilege={$g->privilege_id}&uT=y\">[x]</a>"
+							, "</td>"
+							, "</tr>";
+						$firstgrant = false;
+					}
+				}
+			}
+		}
 	
+		?>
+	</table>	
 	
-	
-	
-	
-	
-	
-	
-	
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="3">
+				Grant new privilege to group
+			</th>
+		</tr>
+		<form action="index.php" method="GET">
+			<tr>
+				<td class="concordgeneral" align="center">
+					&nbsp;<br/>
+					Select group:
+					<select name="group">
+						<option value="">[Select a group...]</option>
+						<?php
+						foreach ($group_list as $g)
+							if ($g != 'superusers')
+								echo "\n\t\t\t\t\t\t<option value=\"$g\">$g</option>\n";
+						?> 
+					</select>
+					<br/>&nbsp;
+				</td>
+				<td class="concordgeneral" align="center">
+					&nbsp;<br/>
+					Select privilege:
+					<select name="privilege">
+						<option value="">[Select a privilege...]</option>
+						<?php
+						foreach ($priv_desc as $id => $desc)
+							echo "\n\t\t\t\t\t\t<option value=\"$id\">$id: $desc</option>\n";
+						?> 
+					</select>
+					<br/>&nbsp;
+				</td>
+				<td class="concordgeneral" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Grant privilege to group!" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<input type="hidden" name="admFunction" value="newGrantToGroup" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
 	</table>
+
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th colspan="3" class="concordtable">
+				Clone a group&rsquo;s granted privileges
+			</th>
+		</tr>
+		
+		<tr>
+			<td colspan="3" class="concordgrey">
+				&nbsp;<br/>
+				If you "clone" privilege grants from Group A to Group B, you overwrite all the current privileges
+				of Group B; it will have exactly the same set of privileges as Group A.
+				<br/>&nbsp;
+			</td>
+		</tr>
+		
+		<?php
+		
+		$clone_group_options = '<option value="">[Select a group...]</option>';
+		foreach ($group_list as $group)
+		{
+			if ($group == 'superusers')
+				continue;
+			$clone_group_options .= "<option>$group</option>\n";
+		}
+		
+		?>
+		
+		<form action="index.php" method="get">
+		
+			<tr>
+				<td class="concordgeneral">
+					&nbsp;<br/>
+					Clone from:
+					<select name="groupCloneFrom">
+						<?php echo $clone_group_options; ?>
+					</select>
+					<br/>&nbsp;
+				</td>
+				<td class="concordgeneral">
+					&nbsp;<br/>
+					Clone to:
+					<select name="groupCloneTo">
+						<?php echo $clone_group_options; ?>
+					</select>
+					<br/>&nbsp;
+				</td>
+				<td class="concordgeneral" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Clone access rights!" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			
+			<input type="hidden" name="admFunction" value="accessCloneGrants"/>
+			<input type="hidden" name="uT" value ="y" />
+			
+		</form>
+
+	</table>		
+
 	<?php
 }
 
