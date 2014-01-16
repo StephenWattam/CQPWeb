@@ -1467,6 +1467,8 @@ function cqpweb_mysql_recreate_tables()
 			`password` varchar(20) default NULL,
 			`realname` varchar(255) default NULL,
 			`email` varchar(255) default NULL,
+			`affiliation` varchar(255) default NULL,
+			`country` char(2) default '00',
 			`passhash` char(61),
 			`acct_status` tinyint(1) NOT NULL default 0,
 			`verify_key` varchar(32) default NULL,

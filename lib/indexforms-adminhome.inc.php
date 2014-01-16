@@ -1782,7 +1782,24 @@ function printquery_usergrants()
 
 function printquery_groupgrants()
 {
-	coming_soon_finish_page();
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="4">
+				Manage grants of privileges to groups
+			</th>
+		</tr>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	</table>
+	<?php
 }
 
 
