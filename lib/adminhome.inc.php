@@ -376,10 +376,6 @@ case 'systemDiagnostics':
 	printquery_systemdiagnostics();
 	break;
 
-case 'mysqlRestore':
-	printquery_mysqlsystemrestore();
-	break;
-
 case 'phpConfig':
 	printquery_phpconfig();
 	break;
