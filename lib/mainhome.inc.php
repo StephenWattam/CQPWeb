@@ -37,7 +37,7 @@ require('../lib/exiterror.inc.php');
 
 cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST, RUN_LOCATION_MAINHOME);
 
-if ($use_corpus_categories_on_homepage)
+if ($Config->homepage_use_corpus_categories)
 {
 	/* get a list of categories */
 	$categories = list_corpus_categories();
@@ -45,7 +45,7 @@ if ($use_corpus_categories_on_homepage)
 	/* how many categories? if only one, it is either uncategorised or a single assigned cat: ergo don't use cats */
 	$n = count($categories);
 	if ($n < 2)
-		$use_corpus_categories_on_homepage = false;
+		$Config->homepage_use_corpus_categories = false;
 }
 else
 {
@@ -54,18 +54,18 @@ else
 }
 
 
-/* devise the HTML for the hreader-bar logos. */
+/* devise the HTML for the header-bar logos. */
 $logo_divs = '';
 foreach ( array('left', 'right') as $side)
 {
 	$addresses = 'homepage_logo_'.$side;
-	if (!isset($$addresses))
+	if (empty($Config->$addresses))
 		continue;
-	if (false !== strpos($$addresses, "\t"))
-		list ($img_url, $link_url) = explode("\t", $$addresses, 2);	
+	if (false !== strpos($Config->$addresses, "\t"))
+		list ($img_url, $link_url) = explode("\t", $Config->$addresses, 2);	
 	else
 	{
-		$img_url = $$addresses;
+		$img_url = $Config->$addresses;
 		$link_url = false;
 	}
 	$logo_divs .= "<div style=\"float: $side;\">" .
@@ -81,17 +81,6 @@ foreach ( array('left', 'right') as $side)
 
 echo print_html_header('CQPweb Main Page', $Config->css_path, array('cqpweb-clientside'));
 
-//<html>
-//<head>
-//
-//<title>CQPweb Main Page</title>
-//
-//<link rel="stylesheet" type="text/css" href="css/<?php echo $css_path_for_homepage;? >" />
-//
-//<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-//
-//</head>
-//<body>
 ?>
 
 
@@ -199,7 +188,7 @@ foreach ($categories as $id => $cat)
 	/* get a list of corpora */
 	
 	$sql_query = "select corpus, visible from corpus_info where visible = 1 "
-		. ($use_corpus_categories_on_homepage ? "and corpus_cat = $id" : '') 
+		. ($Config->homepage_use_corpus_categories ? "and corpus_cat = $id" : '') 
 		. " order by corpus asc";
 
 	$result = do_mysql_query($sql_query);
@@ -214,7 +203,7 @@ foreach ($categories as $id => $cat)
 	
 
 
-	if ($use_corpus_categories_on_homepage)
+	if ($Config->homepage_use_corpus_categories)
 		echo "\t\t<tr><th colspan=\"3\" class=\"concordtable\">$cat</th></tr>\n\n";
 	
 	

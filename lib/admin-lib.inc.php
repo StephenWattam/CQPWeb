@@ -351,31 +351,6 @@ function password_insert_lancaster($n)
 	return explode("\n", str_replace("\r\n", "\n", trim($page)));
 }
 
-function password_insert_from_atoms($n)
-{
-	$pwd = array();
-
-	/* get static variables from the file of atoms (separate file so this massive array
-	 * is not loaded into RAM unless we need it) */
-	if (! isset($password_atoms))
-		include('../lib/password-atoms.inc.php');
-
-	for ( $i = 0 ; $i < $n ; $i++ )
-	{
-		$pwd[$i] = 	$password_atoms[rand(0, $password_atoms_N - 1)] 
-					. rand(0,9) . rand(0,9)
-					. $password_atoms[rand(0, $password_atoms_N - 1)];
-	}
-	// TODO
-	// allow alternate pattern-schemes for password suggestions to be called on
-	// e.g. to allow choice between scramble-rand (like we have in password_insert_internal)
-	// and lexical-rand, like we have here.
-	// and, what's mroe, options for inserting extra $%^&£ punc-marks into the password suggestion. 
-	// so ultimately, we should ahve just one func for creating password-suggestions (mebbe?)
-
-	return $pwd;
-}
-
 
 /**
  * Utility function for the create_text_metadata_for functions.
@@ -1069,7 +1044,7 @@ function cqpweb_mysql_undump_data($dump_file_path)
 
 
 /**
- * Function to re-set the mysql setup to its initialised form.
+ * Function to set the mysql setup to its initialised form.
  */
 function cqpweb_mysql_total_reset()
 {

@@ -584,7 +584,7 @@ function printquery_deletecorpus()
 
 function printquery_corpuscategories()
 {
-	global $use_corpus_categories_on_homepage;
+	global $Config;
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -597,10 +597,10 @@ function printquery_corpuscategories()
 				Corpus categories are used to organise links to corpora on CQPweb's home page.
 				<br/>&nbsp;<br/>
 				This behaviour can be turned on or off using the setting 
-					<code>$use_corpus_categories_on_homepage</code>
+					<code>$homepage_use_corpus_categories</code>
 				in your configuration file.
 				<br/>&nbsp;<br/>
-				Currently, it is turned <strong><?php echo ($use_corpus_categories_on_homepage?'on':'off'); ?></strong>.
+				Currently, it is turned <strong><?php echo ($Config->homepage_use_corpus_categories?'on':'off'); ?></strong>.
 				<br/>&nbsp;<br/>
 				Categories are displayed on the home page in the defined <em>sort order</em>, with low numbers shown first
 				(in the case of a numerical tie, categories are sorted alphabetically).

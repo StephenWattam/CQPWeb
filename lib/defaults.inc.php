@@ -175,9 +175,6 @@ if (!isset($mysql_utf8_set_required))
 	
 /* the next defaults are for tweaks to the system -- not so much critical! */
 
-if (!isset($use_corpus_categories_on_homepage))
-	$use_corpus_categories_on_homepage = false;
-
 if (!isset($css_path_for_homepage))
 	$css_path_for_homepage = "css/CQPweb.css";
 
@@ -186,6 +183,9 @@ if (!isset($css_path_for_adminpage))
 
 if (!isset($css_path_for_userpage))
 	$css_path_for_userpage = "../css/CQPweb-green.css";
+
+if (!isset($homepage_use_corpus_categories))
+	$homepage_use_corpus_categories = false;
 
 if (!isset($homepage_welcome_message))
 	$homepage_welcome_message = "Welcome to CQPweb!";
