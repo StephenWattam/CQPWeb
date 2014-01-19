@@ -364,10 +364,6 @@ case 'systemMessages':
 	printquery_systemannouncements();
 	break;
 
-case 'systemSecurity':
-	printquery_systemsecurity();
-	break;
-
 case 'systemSnapshots':
 	printquery_systemsnapshots();
 	break;

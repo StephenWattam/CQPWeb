@@ -87,9 +87,14 @@ include('../lib/user-lib.inc.php');
 include('../lib/xml.inc.php');
 
 
-
-cqpweb_startup_environment(CQPWEB_STARTUP_CHECK_ADMIN_USER);
-/* note above - only superusers get to use this script! */
+cqpweb_startup_environment(CQPWEB_STARTUP_CHECK_ADMIN_USER, (PHP_SAPI == 'cli' ? RUN_LOCATION_CLI : RUN_LOCATION_CORPUS));
+/* 
+ * note above - only superusers get to use this script!
+ * also note, this script assumes it is running within a corpus.
+ * If it ISN'T, then you need to be careful not to call any
+ * function that needs an environment $Corpus to be specfied.
+ * This applies, most critically, to admin-execute and execute-cli. 
+ */
 
 
 

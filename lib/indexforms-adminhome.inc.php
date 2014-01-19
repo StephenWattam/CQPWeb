@@ -2164,46 +2164,6 @@ function printquery_systemsettings()
 
 
 
-function printquery_systemsecurity()
-{
-	?>
-	<table class="concordtable" width="100%">
-		<tr>
-			<th class="concordtable">
-				CQPweb system security
-			</th>
-		</tr>
-		<tr>
-			<td class="concordgrey">
-				Use the button below to restore default security to the built-in system subdirectories of
-				the CQPweb base directory.
-				<br/>&nbsp;<br/>
-				These directories are: <strong>adm</strong> (only superusers can access), <strong>lib</strong>
-				(no one can access), and <strong>css</strong> and <strong>doc</strong> (totally open: don't 
-				require login).
-				<br/>&nbsp;<br/>
-				.htaccess files in these directories will be replaced / deleted.
-				<br/>&nbsp;<br/>
-				Use the <em>manage access</em> links under <em>Show corpora</em> to manage security for 
-				individual corpus directories.
-			</td>
-		</tr>
-		<tr>
-			<td class="concordgeneral" align="center">
-				<form action="index.php" method="get">
-					<br/>
-					<input type="submit" value="Restore default security!" />
-					<br/>
-					<input type="hidden" name="admFunction" value="resetSystemSecurity"/>
-					<input type="hidden" name="uT" value="y" />
-				</form>
-			</td>
-		</tr>
-	</table>
-	<?php
-}
-
-
 function printquery_systemsnapshots()
 {
 	global $Config;

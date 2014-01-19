@@ -146,56 +146,6 @@ function delete_corpus_from_cqpweb($corpus)
 
 
 
-/**
- * Removes the autoconfig script if it exists.
- */
-function restore_system_security()
-{
-	/* folders: adm, css, doc, lib; plus root folder */
-	
-	/* four of those are easy */
-//	if (file_exists('../.htaccess'))
-//		unlink('../.htaccess');
-//	if (file_exists('../doc/.htaccess'))
-//		unlink('../doc/.htaccess');
-//	if (file_exists('../css/.htaccess'))
-//		unlink('../css/.htaccess');
-//	if (file_exists('../rss/.htaccess'))
-//		unlink('../rss/.htaccess');
-	
-	/* adm needs a standard .htaccess which just allows superusers */
-//	if (file_exists('../adm/.htaccess'))
-//		unlink('../adm/.htaccess');
-//	$adm = get_apache_object(realpath('../adm'));
-//	$adm->allow_group('superusers');
-//	$adm->save();
-//	chmod("../adm/.htaccess", 0664);
-//	unset($adm);
-	
-	/* lib needs the same, but easier cos NO ONE allowed */
-//	if (file_exists('../lib/.htaccess'))
-//		unlink('../lib/.htaccess');
-//	file_put_contents('../lib/.htaccess', "deny from all");
-//	chmod("../lib/.htaccess", 0664);
-//	/* but javascript within lib needs to be allowed */
-//	if (file_exists('../lib/javascript/.htaccess'))
-//		unlink('../lib/javascript/.htaccess');
-//	file_put_contents('../lib/javascript/.htaccess', "allow from all");
-//	chmod("../lib/javascript/.htaccess", 0664);
-
-	/* bin needs a total block also */
-//	if (file_exists('../bin/.htaccess'))
-//		unlink('../bin/.htaccess');
-//	file_put_contents('../bin/.htaccess', "deny from all");
-
-	
-	/* check that the autoconfig script in the root folder is GONE */
-	if (file_exists('../cqpweb-autoconfig.php'))
-		unlink('../cqpweb-autoconfig.php');
-	if (file_exists('../cqpweb-autoconfig.php.gz'))
-		unlink('../cqpweb-autoconfig.php.gz');
-}
-
 
 /**
  * This function, for admin use only, updates the text metadata of the corpus with begin and end 

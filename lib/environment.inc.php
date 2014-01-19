@@ -67,7 +67,7 @@ define('RUN_LOCATION_CORPUS',                  0);
 define('RUN_LOCATION_MAINHOME',                1);
 define('RUN_LOCATION_ADM',                     2);
 define('RUN_LOCATION_USR',                     3);
-
+define('RUN_LOCATION_CLI',                     4);
 
 
 /* 
@@ -233,22 +233,31 @@ class CQPwebEnvUser
 // TODO temp code. Delete when global username no longer needed.
 global $username;
 
-		/* look for logged on user */
-		if (isset($_COOKIE[$Config->cqpweb_cookie_name]))
+		/* if this environment is in a CLI script, count us as being logged in as the first admin user */ 
+		if (PHP_SAPI == 'cli')
 		{
-			if (false === ($username = check_user_cookie_token($_COOKIE[$Config->cqpweb_cookie_name])))
+			list($username) = explode('|', $Config->superuser_username);
+			$this->logged_in = true; 
+		}
+		else
+		{
+			/* look for logged on user */
+			if (isset($_COOKIE[$Config->cqpweb_cookie_name]))
 			{
-				/* no one is logged in */
-				$username = '__unknown_user';
-				// TODO maybe change the above?
-				$this->logged_in = false;
-			}
-			else
-			{
-				$this->logged_in = true;
-				/* we don't need to re-send the cookie. But we do need to touch it in cache. */
-				touch_cookie_token($_COOKIE[$Config->cqpweb_cookie_name]);
-				/* cookie tokens which don't get touched will eventually get old enough to be deleted */
+				if (false === ($username = check_user_cookie_token($_COOKIE[$Config->cqpweb_cookie_name])))
+				{
+					/* no one is logged in */
+					$username = '__unknown_user';
+					// TODO maybe change the above?
+					$this->logged_in = false;
+				}
+				else
+				{
+					$this->logged_in = true;
+					/* we don't need to re-send the cookie. But we do need to touch it in cache. */
+					touch_cookie_token($_COOKIE[$Config->cqpweb_cookie_name]);
+					/* cookie tokens which don't get touched will eventually get old enough to be deleted */
+				}
 			}
 		}
 
@@ -398,6 +407,10 @@ function declare_plugin($class, $type, $path_to_config_file = NULL)
  */
 function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS, $run_location = RUN_LOCATION_CORPUS)
 {
+	if ($run_location == RUN_LOCATION_CLI)
+		if (php_sapi_name() != 'cli')
+			exit("Critical error: Cannot run CLI scripts over the web!\n");
+	
 	/* -------------- *
 	 * TRANSFROM HTTP *
 	 * -------------- */

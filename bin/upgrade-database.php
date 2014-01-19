@@ -64,12 +64,12 @@ require ('../bin/cli-lib.php');
 
 
 
-/* ============ */
-/* begin script */
-/* ============ */
+/* ============ * 
+ * begin script * 
+ * ============ */
 
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
 
 /* begin by checking for a really old database version ... */
 

@@ -21,17 +21,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//TODO move this to bin
-// and generalise whatever eklements can be generalised.
-
 //TODO usage here? generalise usage for all bin scripts?
 // if --corpus=corpus is specified, change to ../corpus
 
-
-/* refuse to run unless we are in CLI mode */
-
-if (php_sapi_name() != 'cli')
-	exit("Offline script must be run in CLI mode!");
 
 echo "\n\n/***********************/\n\n\n";
 
@@ -48,14 +40,13 @@ Note, if you run this script before setting up the text metdata table, things WI
 
 
 
+
 /* include defaults and settings */
-require('' . "settings.inc.php");
-require("../lib/defaults.inc.php");
+require('../lib/environment.inc.php');
 
 
 /* include all function files */
 include('../lib/admin-lib.inc.php');
-include('../lib/apache.inc.php');
 include('../lib/cache.inc.php');
 include('../lib/db.inc.php');
 include('../lib/colloc-lib.inc.php');
@@ -65,11 +56,11 @@ include('../lib/freqtable-cwb.inc.php');
 include('../lib/library.inc.php');
 include('../lib/metadata.inc.php');
 include('../lib/subcorpus.inc.php');
-include('../lib/indexforms-admin.inc.php');
-include('../lib/indexforms-queries.inc.php');
-include('../lib/indexforms-saved.inc.php');
-include('../lib/indexforms-others.inc.php');
-include('../lib/indexforms-subcorpus.inc.php');
+//include('../lib/indexforms-admin.inc.php');
+//include('../lib/indexforms-queries.inc.php');
+//include('../lib/indexforms-saved.inc.php');
+//include('../lib/indexforms-others.inc.php');
+//include('../lib/indexforms-subcorpus.inc.php');
 include('../lib/exiterror.inc.php');
 include('../lib/user-lib.inc.php');
 include('../lib/rface.inc.php');
@@ -78,24 +69,28 @@ include('../lib/xml.inc.php');
 include('../lib/cwb.inc.php');
 include('../lib/cqp.inc.php');
 
+
+if (isset($argv[1]) && is_dir ("../$argv[1]"))
+	chdir("../$argv[1]");
+else if (!file_exists('settings.inc.php'))
+	exit("\nNo corpus specified to run freqlist setup for?\n");
+
+
+cqpweb_startup_environment();
+
 /* keep a note of when we started */
 $start_time = @date(DATE_RSS);
 
 /* expand the PHP memory limit to the same generous limit allowed for CWB */
 ini_set('memory_limit', "${cwb_max_ram_usage_cli}M");
 
-/* connect to mySQL */
-connect_global_mysql();
 
-/* connect to CQP */
-connect_global_cqp();
 
 $print_debug_messages = true;
 
 /* set up some variables for the offline code */
 $corpus = $corpus_sql_name; /* code below was copied from subroutine with argument $corpus */
-$superuser_list = explode('|', $superuser_username); /* only superusers are allowed to create frequency tables, so pretend we're one */
-$username = $superuser_list[0];
+
 
 echo "About to run the function populating corpus CQP positions...\n\n";
 populate_corpus_cqp_positions();
@@ -131,7 +126,9 @@ echo "About to run the function creating frequency tables.\n\n";
 corpus_make_freqtables();
 echo "Done creating frequency tables...\n\n";
 
-disconnect_all();
+
+
+cqpweb_shutdown_environment();
 
 $end_time = @date(DATE_RSS);
 echo "
