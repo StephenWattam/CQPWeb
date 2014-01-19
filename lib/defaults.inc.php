@@ -145,7 +145,7 @@ if (!isset($cwb_max_ram_usage_cli))
 else
 	$cwb_max_ram_usage_cli = (int)$cwb_max_ram_usage_cli;
 /* the default allows generous memory for indexing in command-line mode,
- * but is stingy in the Web interface, so admins can't bring down the server accidentally */
+ * but is stingy in the Web interface, so people can't bring down the server accidentally */
 
 
 /* defaults for paths: we add on / unless it is empty, in which case, a zero-string gets embedded before program names. */
