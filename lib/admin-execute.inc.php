@@ -250,51 +250,10 @@ switch($_GET['admFunction'])
 		exit();
 
 
-//	case 'accessRemoveGroup':
-//		$_GET['function'] = 'deny_group_access_to_corpus';
-//		$_GET['args'] = $_GET['corpus'] . '#' . $_GET['groupToRemove'];
-//		$_GET['locationAfter'] 
-//			= '../' . preg_replace('/\W/', '', $_GET['corpus']) . '/index.php?thisQ=userAccess&uT=y';
-//		require('../lib/execute.inc.php');
-//		exit();
-//		
-//	case 'accessAddGroup':
-//		$_GET['function'] = 'give_group_access_to_corpus';
-//		$_GET['args'] = $_GET['corpus'] . '#' . $_GET['groupToAdd'];
-//		$_GET['locationAfter'] 
-//			= '../' . preg_replace('/\W/', '', $_GET['corpus']) . '/index.php?thisQ=userAccess&uT=y';
-//		require('../lib/execute.inc.php');
-//		exit();
-//	
-//	case 'accessUpdateGroupRights':
-//		$_GET['function'] = 'update_group_access_rights';
-//		
-//		/* block potential hack removing suepruser access */
-//		if ($_GET['group'] == 'superusers')
-//			exit(); 
-//		
-//		$group_update_allow = array();
-//		foreach ($_GET as $k => $v)
-//		{
-//			if (substr($k,0,12) == 'hasAccessTo_')
-//			{
-//				if ( (bool)$v  )
-//					$group_update_allow[] = substr($k,12);
-//			}
-//		}
-//			
-//		$_GET['args'] = $_GET['group'];		
-//		$_GET['args'] .= '#' . implode('|', $group_update_allow);
-//		
-//		$_GET['locationAfter'] = 'index.php?thisF=groupAccess&uT=y';
-//		require('../lib/execute.inc.php');
-//		exit();
-//		
-//		
-	case 'accessCloneGrants':
+	case 'cloneGroupGrants':
 		$_GET['function'] = 'clone_group_grants';
 		$_GET['args'] = $_GET['groupCloneFrom'] . '#' . $_GET['groupCloneTo'];
-		$_GET['locationAfter'] = 'index.php?thisF=groupAccess&uT=y';
+		$_GET['locationAfter'] = 'index.php?thisF=groupGrants&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
 	

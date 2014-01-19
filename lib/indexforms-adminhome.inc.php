@@ -1691,7 +1691,7 @@ function printquery_usergrants()
 					&nbsp;<br/>
 					Select user:
 					<select name="user">
-						<option>[Select a user...]</option>
+						<option value="">[Select a user...]</option>
 						<?php
 						foreach ($user_list as $u)
 							echo "\n\t\t\t\t\t\t<option value=\"$u\">$u</option>\n";
@@ -1703,7 +1703,7 @@ function printquery_usergrants()
 					&nbsp;<br/>
 					Select privilege:
 					<select name="privilege">
-						<option>[Select a privilege...]</option>
+						<option value="">[Select a privilege...]</option>
 						<?php
 						foreach ($priv_desc as $id => $desc)
 							echo "\n\t\t\t\t\t\t<option value=\"$id\">$id: $desc</option>\n";
@@ -1893,7 +1893,7 @@ function printquery_groupgrants()
 				</td>
 			</tr>
 			
-			<input type="hidden" name="admFunction" value="accessCloneGrants"/>
+			<input type="hidden" name="admFunction" value="cloneGroupGrants"/>
 			<input type="hidden" name="uT" value ="y" />
 			
 		</form>

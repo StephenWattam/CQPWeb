@@ -31,7 +31,8 @@
 
 // TODO: get the first superuser username and set it as username by popping it
 // into the right place for defaults.inc.php to find it (as if it had come via the web)
-
+// actually shouldn't all CLI scripts do this?
+// no: they only need to if they call one of the main pages.
 
 /* refuse to run unless we are in CLI mode */
 

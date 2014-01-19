@@ -329,108 +329,133 @@ function printquery_manageaccess()
 {
 	global $corpus_sql_name;
 	
-	$access = get_apache_object(realpath('.'));
-	$access->load();
+//	$access = get_apache_object(realpath('.'));
+//	$access->load();
 	
-	$all_groups = $access->list_groups();
-	$allowed_groups = $access->get_allowed_groups();
-	$disallowed_groups = array();
-	foreach($all_groups as &$g)
-		if (! in_array($g, $allowed_groups))
-			$disallowed_groups[] = $g;
+//	$all_groups = get_list_of_groups();
+//	$allowed_groups = $access->get_allowed_groups();
+//	$disallowed_groups = array();
+//	foreach($all_groups as &$g)
+//		if (! in_array($g, $allowed_groups))
+//			$disallowed_groups[] = $g;
 
 	$options_groups_to_add = '';
-	foreach($disallowed_groups as &$dg)
-		$options_groups_to_add .= "\n\t\t<option>$dg</option>";
-		
-	$options_groups_to_remove = '';
-	foreach($allowed_groups as &$ag)
-	{
-		if ($ag == 'superusers')
-			continue;
-		$options_groups_to_remove .= "\n\t\t<option>$ag</option>";
-	}
-		
+//	foreach($disallowed_groups as &$dg)
+//	{
+//		if ($ag == 'superusers')
+//			continue;
+//		$options_groups_to_add .= "\n\t\t<option>$dg</option>";
+//	}
+//		
+//	$options_groups_to_remove = '';
+//	foreach($allowed_groups as &$ag)
+//	{
+//		if ($ag == 'superusers')
+//			continue;
+//		$options_groups_to_remove .= "\n\t\t<option>$ag</option>";
+//	}
+
+	$short_priv_desc = array(
+		PRIVILEGE_TYPE_CORPUS_FULL       => 'Full',
+		PRIVILEGE_TYPE_CORPUS_NORMAL     => 'Normal',
+		PRIVILEGE_TYPE_CORPUS_RESTRICTED => 'Restricted'
+		);
+	
+	$all_users_allowed = array();
+	
+	$corpus_privileges = get_all_privileges_info(array('corpus'=>$corpus_sql_name));
+	
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable" colspan="2">Corpus access control panel</th>
+			<th class="concordtable" colspan="4">Corpus access control panel</th>
 		</tr>
 		<tr>
-			<td class="concordgrey" align="center" colspan="2">
+			<td class="concordgrey" align="center" colspan="4">
 				&nbsp;<br/>
-				The following user groups have access to this corpus:
+				The following privileges control access to this corpus:
 				<br/>&nbsp;
 			</td>
 		</tr>
 		<tr>
-			<th class="concordtable" width="50%">Group</th>
-			<th class="concordtable">Members</th>
+			<th class="concordtable">ID</th>
+			<th class="concordtable">Description</th>
+			<th class="concordtable">Access level</th>
+			<th class="concordtable">Granted to...</th>
 		</tr>
 		
 		<?php
-		foreach ($allowed_groups as &$group)
+		
+		foreach ($corpus_privileges as $p)
 		{
-			echo "\n<tr>\n<td class=\"concordgeneral\" align=\"center\"><strong>$group</strong></td>\n";
-			$member_list = $access->list_users_in_group($group);
-			sort($member_list);
-			echo "\n<td class=\"concordgeneral\">";
-			$i = 0;
-			foreach ($member_list as &$member)
-			{
-				echo $member . ' ';
-				$i++;
-				if ($i == 5)
-				{
-					echo "<br/>\n";
-					$i = 0;
-				}
-			}
-			echo '</td>';
+			$users_with = list_users_with_privilege($p->id);
+			$grant_string_u = (empty($users_with) ? '&nbsp;' : "<b>Users:</b> " . implode(', ',$users_with));
+			$all_users_allowed = array_merge($all_users_allowed, $users_with);
+			
+			
+			$groups_with = list_groups_with_privilege($p->id);
+			$grant_string_g = (empty($groups_with) ? '&nbsp;' : "<b>Groups:</b> " . implode(', ',$groups_with));
+			foreach($groups_with as $gw)
+				$all_users_allowed = array_merge($all_users_allowed, list_users_in_group($gw));
+			
+			echo "\t\t<tr>\n"
+				, "\t\t\t<td class=\"concordgeneral\" align=\"center\">{$p->id}</td>\n"
+				, "\t\t\t<td class=\"concordgeneral\">{$p->description}</td>\n"
+				, "\t\t\t<td class=\"concordgeneral\">{$short_priv_desc[$p->type]}</td>\n"
+				, "\t\t\t<td class=\"concordgeneral\">$grant_string_g<br/>$grant_string_u</td>\n"
+				;
 		}
+		
+		$all_users_allowed = array_values(array_unique($all_users_allowed));
+		
 		?>
 		
 		<tr>
-			<th class="concordtable">Add group</th>
-			<th class="concordtable">Remove group</th>
-		</tr>
-		<tr>
-			<td class="concordgeneral" align="center">
-				<form action="../adm/index.php" method="get">
-					<br/>
-					<select name="groupToAdd">
-						<?php echo $options_groups_to_add ?>
-					</select>
-					&nbsp;
-					<input type="submit" value="Go!" />
-					<br/>
-					<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name ?>"/>
-					<input type="hidden" name="admFunction" value="accessAddGroup"/>
-					<input type="hidden" name="uT" value="y"/>
-				</form>
-			</td>
-			<td class="concordgeneral" align="center">
-				<form action="../adm/index.php" method="get">
-					<br/>
-					<select name="groupToRemove">
-						<?php echo $options_groups_to_remove ?>
-					</select>
-					&nbsp;
-					<input type="submit" value="Go!" />
-					<br/>
-					<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name ?>"/>
-					<input type="hidden" name="admFunction" value="accessRemoveGroup"/>
-					<input type="hidden" name="uT" value="y"/>
-				</form>
-			</td>
-		</tr>
-		<tr>
-			<td class="concordgrey" align="center" colspan="2">
+			<td class="concordgrey" align="center" colspan="4">
 				&nbsp;<br/>
-				You can manage group membership via the 
-				<a href="../adm/index.php?thisF=groupAdmin&uT=y">Sysadmin Control Panel</a>.
+				<a href="../adm/index.php?thisF=userGrants&uT=y">Manage individual privileges</a>
+				|
+				<a href="../adm/index.php?thisF=groupGrants&uT=y">Manage group privileges</a>
+				| 
+				<a href="../adm/index.php?thisF=groupMembership&uT=y">Manage group membership</a>
 				<br/>&nbsp;
-			</th>
+			</td>
+		</tr>
+
+		<tr>
+			<th class="concordtable" colspan="4">Full list of users with access </th>
+		</tr>
+		<tr>
+			<td class="concordgrey" align="center" colspan="4">
+				&nbsp;<br/>
+				The following users have access to this corpus (any level), individually or via a group membership:
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgeneral" align="center" colspan="4">
+				&nbsp;<br/>
+				
+				<table class="basicbox">
+					<tr>
+					<?php
+					
+					// TODO make user names links to the admin-user's User Overview page.
+					
+					for($i = 0, $n = count($all_users_allowed); $i < $n ; $i++)
+					{
+						echo "\n\t\t\t\t\t\t<td class=\"basicbox\">{$all_users_allowed[$i]}</td>";
+						if ( 0 == (($i+1) % 8) && ($i+1) != $n)
+							echo "\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>";
+					}
+					
+					?>
+					
+					</tr>
+				</table>
+				
+				<br/>&nbsp;
+			</td>
 		</tr>
 	</table>
 	

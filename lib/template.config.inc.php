@@ -26,9 +26,9 @@ $mysql_schema  = '';
 $mysql_server  = '';
 
 
-/* ---------------------- */
-/* server directory paths */
-/* ---------------------- */
+/* ---------------------- *
+ * server directory paths *
+ * ---------------------- */
 
 $cqpweb_tempdir   = '';
 $cqpweb_uploaddir = '';

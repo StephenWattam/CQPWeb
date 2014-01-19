@@ -774,7 +774,7 @@ function get_list_of_groups()
 
 
 /**
- * Returns flat array of usernames
+ * Returns flat array of usernames.
  */
 function list_users_in_group($group)
 {
@@ -1137,21 +1137,47 @@ function get_all_privilege_descriptions()
 }
 
 
+
+
 /** 
  * Returns an array of objects of the type returned by get_privilege_info().
  * 
  * The array keys are integers equal to the privilege ID code. 
- * The array is sorted by ascending ID. 
+ * The array is sorted by ascending ID.
+ * 
+ * Optional conditions can be specified as an associative array, as follows:
+ * 
+ * - If key 'corpus' is set, then only privileges that affect the corpus specified
+ *   are returned. 
+ * - (others to follow)
+ * 
+ * 
+ * (Add specifi cation of how different conditions interact, if they do....)
  * 
  * @see get_privilege_info
  */
-function get_all_privileges_info()
+function get_all_privileges_info($conditions = array())
 {
+	$cond = '';
+		
+	if (isset($conditions['corpus']))
+		$cond = 'where type=' . PRIVILEGE_TYPE_CORPUS_FULL 
+				. ' or type=' . PRIVILEGE_TYPE_CORPUS_NORMAL 
+				. ' or type=' . PRIVILEGE_TYPE_CORPUS_RESTRICTED; 
+
 	$list = array();
-	$result = do_mysql_query("select * from user_privilege_info order by id");
+	$result = do_mysql_query("select * from user_privilege_info $cond order by id");
 	while (false !== ($o = mysql_fetch_object($result)))
 	{
 		$o->scope_object = decode_privilege_scope_from_string($o->type, $o->scope);
+		
+		/* corpus filter, if requested */
+		if (isset($conditions['corpus']))
+			if (!in_array($conditions['corpus'], $o->scope_object))
+				continue;
+		/* end corpus filter */
+		
+		/* no filter has taken effect, so add to returnable list */
 		$list[$o->id] = $o;
 	}
 	return $list;
@@ -1176,6 +1202,8 @@ function check_privilege_by_content($type, $scope)
 
 function grant_privilege_to_user($user, $privilege_id, $expiry = 0)
 {
+	if (empty($user))
+		return;
 	$user_id = user_name_to_id($user);
 	$privilege_id = (int)$privilege_id;
 	$expiry = (int)$expiry;
@@ -1188,6 +1216,8 @@ function grant_privilege_to_user($user, $privilege_id, $expiry = 0)
 
 function grant_privilege_to_group($group, $privilege_id, $expiry = 0)
 {
+	if (empty($group))
+		return;
 	$group_id = group_name_to_id($group);
 	$privilege_id = (int)$privilege_id;
 	$expiry = (int)$expiry;
@@ -1212,6 +1242,42 @@ function remove_grant_from_group($group, $privilege_id)
 	$privilege_id = (int)$privilege_id;
 
 	do_mysql_query("delete from user_grants_to_groups where group_id = $group_id and privilege_id = $privilege_id");
+}
+
+/**
+ * Returns flat array of usernames of all users who INDIVIDUALLY have the specified privilege.
+ * 
+ * For non-existent privilege, or privilege not assigned to anyone, returns empty array.
+ */
+function list_users_with_privilege($privilege_id)
+{
+	$privilege_id = (int) $privilege_id;
+	
+	$result = do_mysql_query("select username from user_grants_to_users 
+							inner join user_info on user_grants_to_users.user_id = user_info.id 
+							where privilege_id = $privilege_id");
+	
+	$names = array();
+	while (false !== ($r = mysql_fetch_row($result)))
+		$names[] = $r[0];
+	return $names;
+}
+
+/**
+ * Returns flat array of names of groups with the specified privilege.
+ */
+function list_groups_with_privilege($privilege_id)
+{
+	$privilege_id = (int) $privilege_id;
+	
+	$result = do_mysql_query("select group_name from user_grants_to_groups
+							inner join user_groups on user_grants_to_groups.group_id = user_groups.id 
+							where privilege_id = $privilege_id");	
+	
+	$names = array();
+	while (false !== ($r = mysql_fetch_row($result)))
+		$names[] = $r[0];
+	return $names;	
 }
 
 
@@ -1256,7 +1322,7 @@ function clone_group_grants($from_group, $to_group)
 	
 	$result = do_mysql_query("select * from user_grants_to_groups where group_id = $id_from");
 	
-	while (false === ($o = mysql_fetch_object($result)))
+	while (false !== ($o = mysql_fetch_object($result)))
 		do_mysql_query("insert into user_grants_to_groups 
 			(group_id,privilege_id,expiry_time) values ($id_to,{$o->privilege_id},{$o->expiry_time})");
 }

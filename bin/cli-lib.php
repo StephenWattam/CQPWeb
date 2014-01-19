@@ -24,17 +24,34 @@
 
 /* BEGIN FUNCTION DEFINITIONS */
 
+function get_variable_string($desc)
+{
+	while (1)
+	{
+		echo wordwrap("Please enter $desc:"), "\n\n";
+		
+		$s = trim(fgets(STDIN));
+		
+		echo "\n\nYou entered [$s], are you happy with this?\n\n";
+		echo "Enter [Y]es or [N]:";
+		
+		$check = strtolower(trim(fgets(STDIN), " \t\r\n"));
+		if ($check[0] == 'y')
+			return $s;
+	}	
+}
+
 function get_variable_path($desc)
 {
-	echo "Please enter\n$desc\nas an absolute directory path:\n\n";
+	echo wordwrap("Please enter $desc as an absolute or relative directory path:"), "\n\n";
 	
 	while (1)
 	{
-		$s = trim(fgets(STDIN), "/ \t\r\n");
+		$s = trim(fgets(STDIN));
 		echo "\n\n";
 	
-		if (!is_dir("/$s") || $s === '')
-			echo "\n\n/$s does not appear to be a valid directory path, please try again:\n\n\n";
+		if (!is_dir($s) || empty($s))
+			echo "\n\n", wordwrap("$s does not appear to be a valid directory path, please try again:"), "\n\n\n";
 		else
 			return $s;
 	}	
@@ -42,7 +59,7 @@ function get_variable_path($desc)
 
 function get_variable_word($desc)
 {
-	echo "Please enter\n$desc.\nNote this can only contain ASCII letters, numbers and underscore.\n\n";
+	echo wordwrap("Please enter $desc. Note this can only contain ASCII letters, numbers and underscore."), "\n\n";
 	
 	while (1)
 	{
@@ -60,7 +77,7 @@ function ask_boolean_question($question)
 {
 	while (1)
 	{
-		echo "\n$question\n\n";
+		echo "\n", wordwrap($question), "\n\n";
 	
 		echo "Enter [Y]es or [N]:";
 		
