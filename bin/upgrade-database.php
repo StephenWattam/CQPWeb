@@ -308,14 +308,18 @@ function upgrade_3_0_16()
 		"CREATE TABLE `user_grants_to_users` 
 			(`user_id` int NOT NULL,`privilege_id` int NOT NULL,`expiry_time` int UNSIGNED NOT NULL default 0) 
 			CHARACTER SET utf8 COLLATE utf8_general_ci",
-
-
-
-
-		"update system_info set value = '3.1.0' where setting_name = 'db_version'"
+		"alter table user_info add column `acct_create_time` timestamp NOT NULL default 0 after `last_seen_time`"
 	);
 	foreach ($sql as $q)
 		do_mysql_query($q);
+	
+	echo "User privileges are managed in the database now, not in Apache htaccess files.\n";
+	echo "If you want to re-import your old group access privileges, please use load-pre-3.1-privileges.php.\n";
+	echo "(Please acknowledge.)\n";
+	get_enter_to_continue();
+	
+	/* do the very last DB change! */
+	do_mysql_query("update system_info set value = '3.1.0' where setting_name = 'db_version'");
 }
 
 function get_db_version()

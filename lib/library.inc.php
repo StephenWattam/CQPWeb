@@ -870,8 +870,19 @@ function prepare_page_no($n)
 
 
 
-
+/**
+ * Returns a bool: is the specified user a username?
+ */
 function user_is_superuser($username)
+{
+	return in_array($username, list_superusers());
+}
+
+
+/**
+ * Returns an array of superuser usernames.
+ */
+function list_superusers()
 {
 	/* superusers are determined in the config file */
 	global $Config;
@@ -881,9 +892,8 @@ function user_is_superuser($username)
 	if (empty($a))
 		$a = explode('|', $Config->superuser_username);
 	
-	return in_array($username, $a);
+	return $a;
 }
-
 
 
 

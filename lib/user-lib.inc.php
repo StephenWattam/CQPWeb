@@ -87,6 +87,7 @@ function add_new_user($username, $password, $email, $initial_status = USER_STATU
 		passhash,
 		acct_status,
 		expiry_time,
+		acct_create_time,
 		conc_kwicview,
 		conc_corpus_order,
 		cqp_syntax,
@@ -109,6 +110,7 @@ function add_new_user($username, $password, $email, $initial_status = USER_STATU
 		'$passhash',
 		$initial_status,
 		0,
+		CURRENT_TIMESTAMP,
 		1,
 		1,
 		0,
@@ -754,22 +756,6 @@ function get_list_of_groups()
 	return $g;
 }
 
-///**
-// * A user-sort function that puts everyone and superusers first.
-// * 
-// */
-//function group_name_sort_function($group_a, $group_b)
-//{
-//	if ($group_a == 'everybody')
-//		return ($group_b == 'superusers' ? 1 : -1);
-//	if ($group_a == 'superusers')
-//		return -1;
-//	if ($group_b == 'everybody')
-//		return ($group_a == 'superusers' ? -1 : 1);
-//	if ($group_b == 'superusers')
-//		return 1;
-//	return ($group_a > $group_b ? 1 : -1); 
-//}
 
 
 
@@ -778,11 +764,9 @@ function get_list_of_groups()
  */
 function list_users_in_group($group)
 {
-	global $Config;
-	
 	/* specials: user membership not recorded in user_memberships table */
 	if ($group == 'superusers')
-		return explode('|', $Config->superuser_username);
+		return list_superusers();
 	else if ($group == 'everybody')
 		$sql = "select username from user_info";
 	else
@@ -862,6 +846,20 @@ function remove_user_from_group($user, $group)
 	do_mysql_query("delete from user_memberships where group_id = $g and user_id = $u");
 }
 
+function user_is_group_member($user, $group)
+{
+	switch ($group)
+	{
+	case 'everybody':
+		return true;
+	case 'superusers':
+		return user_is_superuser($user);
+	default:
+		$g = group_name_to_id($group);
+		$u = user_name_to_id($user);
+		return (0 < mysql_num_rows(do_mysql_query("select * from user_memberships where user_id = $u and group_id = $g")));	
+	}
+}
 
 /**
  * Returns associative array of groupname => group_autojoin_regex
@@ -1057,7 +1055,7 @@ function create_corpus_default_privileges($corpus)
 	foreach(array_keys($mapper) as $type)
 	{
 		/* does a privilege exist which has this type and scope over just this corpus? */ 
-		if (check_privilege_by_content($type, array($corpus)))
+		if (false !== check_privilege_by_content($type, array($corpus)))
 			;
 		else
 			add_new_privilege($type, array($corpus), $mapper[$type] . " for corpus [$corpus]");
@@ -1152,7 +1150,7 @@ function get_all_privilege_descriptions()
  * - (others to follow)
  * 
  * 
- * (Add specifi cation of how different conditions interact, if they do....)
+ * (Add specification of how different conditions interact, if they do....)
  * 
  * @see get_privilege_info
  */
@@ -1188,14 +1186,18 @@ function get_all_privileges_info($conditions = array())
  * 
  * Pass in scope as data object, not as string.
  *  
- * Returns true (a privilege exists) or false (no such privilege exists).
+ * Returns the privilege ID (if a privilege exists) or false (no such privilege exists).
  */
 function check_privilege_by_content($type, $scope)
 {
 	$type = (int)$type;
 	$scope_string = encode_privilege_scope_to_string($type,$scope);
 	
-	return (0 < mysql_num_rows(do_mysql_query("select id from user_privilege_info where type = $type and scope = '$scope_string'")));
+	if (1 > mysql_num_rows($result = do_mysql_query("select id from user_privilege_info where type = $type and scope = '$scope_string'")))
+		return false;
+	
+	list($id) = mysql_fetch_row($result);
+	return $id;
 }
 
 
@@ -1308,6 +1310,33 @@ function list_group_grants($group)
 	return $ret;
 }
 
+
+/**
+ * Returns an array of privilege objects, containing (unique) objects for the
+ * privileges that the given user has, whether by virtue of a user grant, or via
+ * their group memberships and group grants.
+ * 
+ * The privilege id numbers are the array keys (that's how the contents are kept unique!)
+ */
+function get_collected_user_privileges($user)
+{
+	$all_privs = get_all_privileges_info(); 
+	$privileges = array();
+
+	/* add privileges held individually */ 
+	foreach(list_user_grants($user) as $grant)
+		if ( ! array_key_exists($grant->privilege_id, $privileges) )
+			$privileges[$grant->privilege_id] = $all_privs[$grant->privilege_id];
+	
+	/* add privileges held via groups */
+	foreach(get_list_of_groups() as $group)
+		if (user_is_group_member($user, $group))
+			foreach(list_group_grants($group) as $grant)
+				if ( ! array_key_exists($grant->privilege_id, $privileges) )
+					$privileges[$grant->privilege_id] = $all_privs[$grant->privilege_id];
+
+	return $privileges; 
+}
 
 function clone_group_grants($from_group, $to_group)
 {

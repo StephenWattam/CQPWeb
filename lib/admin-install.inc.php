@@ -388,14 +388,7 @@ function install_new_corpus()
 
 	mkdir($newdir, 0775);
 	
-	$settings = new apache_htaccess($newdir);
-	$settings->set_AuthName('CQPweb');
-	$settings->set_path_to_password_file("/$cqpweb_accessdir/.htpasswd");
-	$settings->set_path_to_groups_file("/$cqpweb_accessdir/.htgroup");
-	$settings->allow_group('superusers');
-	$settings->save();
-	chmod("$newdir/.htaccess", 0664);
-	 
+
 	/* create the script files in that folder */
 	install_create_corpus_script_files($newdir);
 

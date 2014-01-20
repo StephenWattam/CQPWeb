@@ -38,7 +38,7 @@ if (!empty($_FILES))
 
 /* code block that diverts up the various "actions" that may enter adminhome, so that they go to execute.php */
 
-$_GET['admFunction'] = (isset($_GET['admFunction']) ? $_GET['admFunction'] : false);
+$_GET['admFunction'] = (isset($_GET['admFunction']) ? $_GET['admFunction'] : (isset($_POST['admFunction']) ? $_POST['admFunction'] : false));
 
 switch($_GET['admFunction'])
 {
@@ -141,6 +141,7 @@ switch($_GET['admFunction'])
 
 
 	case 'newUser':
+	var_dump("here");
 		$_GET['redirect'] = 'newUser';
 		$_GET['userFunctionFromAdmin'] = 1;
 		unset($_GET['admFunction']);

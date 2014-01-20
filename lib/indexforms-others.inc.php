@@ -171,14 +171,20 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
-		<b>Version 3.1.0</b>, 2014-01-06<br/>&nbsp;<br/>
+		<b>Version 3.1.0</b>, 2014-01-20<br/>&nbsp;<br/>
 		Revamped user account system.
 		<br/>&nbsp;<br/>
 		Added a script to automatically upgrade an existing CQPweb MySQL database to match a more recent version of the code.
 		<br/>&nbsp;<br/>
+		Added a script to import user groups from the old system.
+		<br/>&nbsp;<br/>
+		Added a script to import group privileges from the old system.
+		<br/>&nbsp;<br/>
 		Fixed bug affecting use of XML tags in CEQL queries.
 		<br/>&nbsp;<br/>
 		Rewrote configuration file format and added documentation to system administrator's manual.
+		<br/>&nbsp;<br/>
+		Many other miscellaneous tweaks, improvements and architectural changes.
 		<br/>&nbsp;</li>
 
 		<li>

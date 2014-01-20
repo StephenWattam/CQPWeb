@@ -33,34 +33,28 @@
 
 
 
-//function printscreen_????()
-//{
-//	? >
-//	<table class="concordtable" width="100%">
-//		<tr>
-//			<th class="concordtable">
-//				Put the title here!!
-//			</th>
-//		</tr>
-//		<tr>
-//			<td class="concordgeneral">
-//				<p>You can now:</p>
-//				<ul>
-//					<li>
-//						Design and insert a text-metadata table for the corpus
-//					</li>
-//					<li>
-//						<a href="index.php?thisQ=installCorpus&uT=y">
-//							Install another corpus
-//						</a>
-//					</li>
-//				</ul>
-//				<p>&nbsp;</p>
-//			</td>
-//		</tr>
-//	</table>
-//	<?php
-//}
+function printquery_accessdenied()
+{
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">
+				Access denied!
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral">
+				<p>&nbsp;</p>
+				<p>
+					You do not have the necessarily privileges to access the corpus 
+					<b><?php echo cqpweb_htmlspecialchars(isset($_GET['corpusDenied']) ? $_GET['corpusDenied'] : ''); ?></b>.
+				</p>
+				<p>&nbsp;</p>
+			</td>
+		</tr>
+	</table>
+	<?php
+}
 
 
 function printscreen_welcome()
@@ -200,10 +194,14 @@ function printscreen_create()
 				<td class="concordgrey" colspan="2">
 					&nbsp;<br/>
 					Sorry but self-registration has been disabled on this CQPweb server. 
+					<?php
+					if (! empty($Config->account_create_contact))
+						echo "<br/>&nbsp;<br/>To request an account, contact {$Config->account_create_contact}."; 					
+					?>
 					<br/>&nbsp;
 				</td>
 			</tr>
-		</table>	
+		</table>
 		<?php	
 		return;
 	}
@@ -1004,6 +1002,143 @@ function printscreen_usermacros()
 </table>
 	<?php
 
+}
+
+
+function printscreen_corpusaccess()
+{
+	global $User;
+	
+	$header_text_mapper = array(
+		PRIVILEGE_TYPE_CORPUS_FULL       => "You have <em>full</em> access to:",
+		PRIVILEGE_TYPE_CORPUS_NORMAL     => "You have <em>normal</em> access to:",
+		PRIVILEGE_TYPE_CORPUS_RESTRICTED => "You have <em>restricted</em> access to:"
+		);
+	
+	/* now, compile an array of corpora to create table cells for */
+	$accessible_corpora = array(
+		PRIVILEGE_TYPE_CORPUS_FULL       => array(),
+		PRIVILEGE_TYPE_CORPUS_NORMAL     => array(),
+		PRIVILEGE_TYPE_CORPUS_RESTRICTED => array()
+		);
+	foreach ($User->privileges as $p)
+	{
+		switch($p->type)
+		{
+		case PRIVILEGE_TYPE_CORPUS_FULL:
+		case PRIVILEGE_TYPE_CORPUS_NORMAL:
+		case PRIVILEGE_TYPE_CORPUS_RESTRICTED:
+			foreach ($p->scope_object as $c)
+				if ( ! in_array($c, $accessible_corpora[$p->type]) )
+					$accessible_corpora[$p->type][] = $c;
+			break;
+		default:
+			break;			
+		}
+	}
+	/* remove from normal if in full */
+	foreach($accessible_corpora[PRIVILEGE_TYPE_CORPUS_NORMAL] as $k=>$c)
+		if (in_array($c, $accessible_corpora[PRIVILEGE_TYPE_CORPUS_FULL]))
+			unset($accessible_corpora[PRIVILEGE_TYPE_CORPUS_NORMAL][$k]);
+	/* remove from restricted if in full or normal */
+	foreach($accessible_corpora[PRIVILEGE_TYPE_CORPUS_RESTRICTED] as $k=>$c)
+		if (in_array($c, $accessible_corpora[PRIVILEGE_TYPE_CORPUS_FULL]) || in_array($c, $accessible_corpora[PRIVILEGE_TYPE_CORPUS_NORMAL]))
+			unset($accessible_corpora[PRIVILEGE_TYPE_CORPUS_RESTRICTED][$k]);
+
+	?>
+	
+	<table class="concordtable" width="100%">
+		<tr>
+			<th colspan="3" class="concordtable">Corpus access permissions</th>
+		</tr>
+		<tr>
+			<td colspan="3" class="concordgrey" align="center">
+				&nbsp;<br/>
+				You have permission to access the following corpora.
+				<br/>&nbsp;
+			</td>
+		</tr>
+		
+		<?php
+		
+		/* in case of superuser, shortcut everything and return */
+		if ($User->is_admin())
+		{
+			echo "\t\t<tr><td colspan=\"3\" class=\"concordgeneral\" align=\"center\">"
+				, "&nbsp;<br/><b>You are a superuser. You have full access to everything.</b><br/>&nbsp;"
+				, "</td></tr>\n\t</table>";
+			return;
+		}
+		
+		foreach(array(PRIVILEGE_TYPE_CORPUS_FULL, PRIVILEGE_TYPE_CORPUS_NORMAL, PRIVILEGE_TYPE_CORPUS_RESTRICTED) as $t)
+		{
+			if ( empty($accessible_corpora[$t] ))
+				continue;
+			
+			?>
+			<tr>
+				<th colspan="3" class="concordtable"><?php echo $header_text_mapper[$t]; ?></th>
+			</tr>
+			<?php
+			
+			/* the following hunk o' code is a variant on what is found in mainhome */
+			
+			$i = 0;
+			$celltype = 'concordgeneral';
+			
+			foreach($accessible_corpora[$t] as $c)
+			{
+				if ($i == 0)
+					echo "\t\t<tr>";
+				
+				/* get $corpus_title */
+				include ("../{$c}/settings.inc.php");
+				if (!isset($corpus_title))
+					$corpus_title = $c;
+				// TODO much better done with DB record.
+				
+				echo "
+					<td class=\"$celltype\" width=\"33.3%\" align=\"center\">
+						&nbsp;<br/>
+						<a href=\"../{$c}/\">$corpus_title</a>
+						<br/>&nbsp;
+					</td>\n";
+				
+				$celltype = ($celltype=='concordgrey'?'concordgeneral':'concordgrey');
+				
+				if ($i == 2)
+				{
+					echo "\t\t</tr>\n";
+					$i = 0;
+				}
+				else
+					$i++;
+				
+				unset($corpus_title);
+			}
+	
+			if ($i == 1)
+			{
+				echo "\t\t\t<td class=\"$celltype\" width=\"33.3%\" align=\"center\">&nbsp;</td>\n";
+				$i++;
+				$celltype = ($celltype=='concordgrey'?'concordgeneral':'concordgrey');
+			}
+			if ($i == 2)
+				echo "\t\t\t<td class=\"$celltype\" width=\"33.3%\" align=\"center\">&nbsp;</td>\n\t\t</tr>\n";
+		}
+
+		?>
+		<tr>
+			<td colspan="3" class="concordgrey">
+				&nbsp;<br/>
+				If you think that you should have permission for more corpora than are listed above, 
+				you should contact the system administrator, explaining which corpora you wish to use,
+				and on what grounds you believe you have permission to use them.
+				<br/>&nbsp;
+			</td>
+		</tr>
+	</table>
+	<?php
 }
 
 

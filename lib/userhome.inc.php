@@ -86,6 +86,7 @@ if ($User->logged_in)
 	echo print_menurow_index('welcome', 'Overview');
 	echo print_menurow_index('userSettings', 'Interface settings');
 	echo print_menurow_index('userMacros', 'User macros');
+	echo print_menurow_index('corpusAccess', 'Corpus permissions');
 	echo print_menurow_heading('Account actions');
 	echo print_menurow_index('userDetails', 'Account details');
 	echo print_menurow_index('changePassword', 'Change password');
@@ -172,6 +173,10 @@ if ($User->logged_in)
 		printscreen_usermacros();
 		break;
 
+	case 'corpusAccess':
+		printscreen_corpusaccess();
+		break;
+
 	case 'userDetails':
 		printscreen_userdetails();
 		break;
@@ -185,6 +190,10 @@ if ($User->logged_in)
 		break;
 
 	/* common cases... */
+	
+	case 'accessDenied':
+		printquery_accessdenied();
+		break;
 	
 	case 'who_the_hell':
 		printquery_who();
@@ -240,7 +249,11 @@ else
 
 
 
-	/* common cases... (repeated code from above */
+	/* common cases... (repeated code from above) */
+
+	case 'accessDenied':
+		printquery_accessdenied();
+		break;
 	
 	case 'who_the_hell':
 		printquery_who();

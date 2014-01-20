@@ -216,6 +216,7 @@ case 'newUser':
 		exiterror_general("The email address for a new account cannot be an empty string!");
 	
 	// TODO make it a config option whether or not the same email address can have more than one acct ... 
+	// For now, it universally can.
 	
 	/* OK, all 3 things now collected, so we can call the sharp-end function... */
 

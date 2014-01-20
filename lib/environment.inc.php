@@ -96,10 +96,11 @@ define('USER_STATUS_PASSWORD_EXPIRED',         3);
  * privilege types
  */
 
-define('PRIVILEGE_TYPE_CORPUS_FULL',           1);
+define('PRIVILEGE_TYPE_NO_PRIVILEGE',          0);	/* can be used to indicate absence of one or more privileges; not used in the DB */
+define('PRIVILEGE_TYPE_CORPUS_RESTRICTED',     1);
 define('PRIVILEGE_TYPE_CORPUS_NORMAL',         2);
-define('PRIVILEGE_TYPE_CORPUS_RESTRICTED',     3);
-
+define('PRIVILEGE_TYPE_CORPUS_FULL',           3);
+/* note that the above 4 definitions create a greater-than/less-than sequence. Intentionally so. */
 
 
 
@@ -174,6 +175,7 @@ class CQPwebEnvConfig
 				);
 		foreach ($variables as $k => $v)
 			$this->$k = $v;
+		/* this also creates run_location as a member.... */
 
 		/* check compulsory config variables */
 		$compulsory_config_variables = array(
@@ -226,6 +228,9 @@ class CQPwebEnvUser
 	/** Is there a logged in user? (bool) */
 	public $logged_in;
 	
+	/** full array of privileges (db objects) available to this user (individually or via group) */
+	public $privileges;
+ 
 	public function __construct()
 	{
 		global $Config;
@@ -236,7 +241,7 @@ global $username;
 		/* if this environment is in a CLI script, count us as being logged in as the first admin user */ 
 		if (PHP_SAPI == 'cli')
 		{
-			list($username) = explode('|', $Config->superuser_username);
+			list($username) = list_superusers();
 			$this->logged_in = true; 
 		}
 		else
@@ -261,16 +266,23 @@ global $username;
 			}
 		}
 
-		
-		/* import database fields as object members. */
+
+		/* now we know whether we are logged in and if so, who we are, set up the user information */
 		if ($this->logged_in)
 		{
+			/* Update the last-seen date (on every hit from user's browser!) */
 			touch_user($username);
+			
+			/* import database fields as object members. */
 			foreach ( ((array)get_user_info($username)) as $k => $v)
 				if (!isset($this->$k))
 					$this->$k = $v;
+			/* will also import $username --> $User->username which is canonical way to acces it. */
 			/* the "if isset" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
 		}
+		
+		/* finally: look for a full list of privileges that this user has. */
+		$this->privileges = ($this->logged_in ? get_collected_user_privileges($username) : array());	
 	}
 	
 	public function is_admin()
@@ -293,26 +305,26 @@ class CQPwebEnvCorpus
 	/** are we running within a particular corpus ? */
 	public $specified = false;
 	
- 
+	/** This is set to a privilege constant to indicate what level of privilege the currently-logged-on used has. */
+	public $access_level;
+	
 	public function __construct()
 	{
 		/* first: try to identify the corpus. */
+		// dirty hack. TODO to be scrubbed once the settings are not in global scope. Deduce from URL instead.
 		global $corpus_sql_name;
 		$this->name = $corpus_sql_name;
 		if (!empty($this->name))
 			$this->specified = true;
-		else
-		{
-			/* are we in either adm or usr? or mainhome? */
-		// TODO instead, try to get it from the URL.
-		}
+		/* if specified is not true, then $Config->run_location will tell you where we are running from. */
 
 
 		/* only go hunting for more info on the $Corpus if one is actually specified...... */
 		if ($this->specified)
 		{
-// the corpus settings are already in global space, but let's get them into the object too
-// eventually, they will go into corpus_info....			
+			// the corpus settings are already in global space, but let's get them into the object too
+			// eventually, they will go into corpus_info and this clunky hack can be deleted....
+			// TODO
 			require( '' . "settings.inc.php");	/* concatenate to avoid annoying bug warning */
 			$variables = get_defined_vars();
 			unset(	$variables['GLOBALS'], $variables['_SERVER'], $variables['_GET'],
@@ -337,9 +349,67 @@ class CQPwebEnvCorpus
 				if (!isset($this->$k))
 					$this->$k = $v;
 			/* the "if" above is a bit paranoid. Can probably dispose of it later..... TODO */
+
+			/* finally, since we are in a corpus, we need to ascertain (a) whether the user is allowed
+			 * to access this corpus; (b) at what level the access is. */
+			$this->ascertain_access_level();
+			
+			if ($this->access_level == PRIVILEGE_TYPE_NO_PRIVILEGE)
+			{
+				/* redirect to a page telling them they do not have the privilege to access this corpus. */ 
+				set_next_absolute_location("../usr/index.php?thisQ=accessDenied&corpusDenied={$this->name}&uT=y");
+				cqpweb_shutdown_environment();
+				exit;
+				/* otherwise, we know that the user has some sort of access to the corpus, and we can continue */
+			}
+		}
+	}
+	
+	/**
+	 * Sets up the access_level member to the privilege type indicating 
+	 * the HIGHEST level of access to whihc the currently-logged-in user
+	 * is entitled for this corpus.
+	 */ 
+	private function ascertain_access_level()
+	{
+		global $User;
+		
+		/* superusers have full access to everything. */
+		if ($User->is_admin())
+		{
+			$this->access_level = PRIVILEGE_TYPE_CORPUS_FULL;
+			return;
+		}
+		
+		/* otherwise we must dig through the privilweges owned by this user. */
+		
+		/* start by assuming NO access. Then look for the highest privilege this user has. */
+		$this->access_level = PRIVILEGE_TYPE_NO_PRIVILEGE;
+
+		foreach($User->privileges as $p)
+		{
+			switch($p->type)
+			{
+			/* a little trick: we know that these constants are 3, 2, 1 respectively,
+			 * so we can do the following: */
+			case PRIVILEGE_TYPE_CORPUS_FULL:
+			case PRIVILEGE_TYPE_CORPUS_NORMAL:
+			case PRIVILEGE_TYPE_CORPUS_RESTRICTED:
+				if (in_array($this->name, $p->scope_object))
+					if ($p->type > $this->access_level)
+						$this->access_level = $p->type;
+				break;
+			default:
+				break;
+			}
 		}
 	}
 }
+
+
+
+
+
 
 
 /* ============================== *
@@ -532,13 +602,6 @@ function cqpweb_shutdown_environment()
 	/* these funcs have their own "if" clauses so can be called here unconditionally... */
 	disconnect_global_cqp();
 	disconnect_global_mysql();
-	
-	/* delete the global objects - in case they need to be rebuilt. (should probably never happen, but just in case) */
-	global $Config;
-	global $User;
-	global $Corpus;
-	
-	unset($Config, $User, $Corpus);
 }
 
 

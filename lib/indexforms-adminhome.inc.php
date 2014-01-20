@@ -929,7 +929,7 @@ function printquery_useradmin()
 				</td>
 			</tr>
 			<input type="hidden" name="admFunction" value="newUser"/>
-			<input type="hidden" name="newUserType" value="byAdmin"/>
+			<!--<input type="hidden" name="newUserType" value="byAdmin"/>-->
 			<input type="hidden" name="uT" value="y" />
 		</form>
 		

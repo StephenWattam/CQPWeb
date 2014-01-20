@@ -76,7 +76,10 @@ if (!isset($cqpweb_running_on_windows))
 
 /* Is this copy of CQPweb available for access via the internet? */
 if (!isset($cqpweb_no_internet))
+{
 	$cqpweb_no_internet = false;
+	$allow_account_self_registration = false;
+}
 
 /* supply default email address */
 if (!isset($cqpweb_email_from_address))
