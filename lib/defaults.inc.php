@@ -47,8 +47,10 @@ $cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
 
 
 /* "reserved words" that can't be used for corpus ids;
- * note: all reserved words are 3 lowercase letters and any new ones we add will also be 3 lowercase letters */
-$cqpweb_reserved_subdirs = array('adm', 'bin', 'css', 'doc', 'lib', 'rss', 'usr');
+ * note: all reserved words are 3 lowercase letters,
+ * and any new ones we add will also be 3 lowercase letters */
+$cqpweb_reserved_subdirs = array('adm', 'bin', 'css', 'doc', 'jsc', 'lib', 'rss', 'usr');
+/* nb: jsc stands for "javascript clientside"; if ever we have any "javascript serverside", 'jss' will be used */
 
 
 /* mapper hash for turning privilege type constants into descriptive strings for printing etc. */
@@ -57,7 +59,7 @@ $privilege_type_descriptions = array(
 	PRIVILEGE_TYPE_CORPUS_NORMAL     => "Normal access to corpus",
 	PRIVILEGE_TYPE_CORPUS_RESTRICTED => "Restricted access to corpus",
 );
-
+/* some functions define alternative mapper hashes for their own purposes, note! */
 
 
 

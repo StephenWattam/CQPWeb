@@ -174,7 +174,7 @@ function print_html_footer($link = 'help')
 			</td>
 		</tr>
 	</table>
-	<script language="JavaScript" type="text/javascript" src="<? echo $diverter; ?>lib/javascript/wz_tooltip.js">
+	<script language="JavaScript" type="text/javascript" src="<? echo $diverter; ?>jsc/wz_tooltip.js">
 	</script>
 	</body>
 </html>
@@ -202,7 +202,7 @@ function print_html_header($title, $css_url, $js_scripts = false)
 	if (!empty($css_url))
 		$s .= "\t<link rel=\"stylesheet\" type=\"text/css\" href=\"$css_url\" >\n";
 
-	$js_path = ($Config->run_location == RUN_LOCATION_MAINHOME ? 'lib/javascript' : '../lib/javascript');
+	$js_path = ($Config->run_location == RUN_LOCATION_MAINHOME ? 'jsc' : '../jsc');
 
 	if (! empty($js_scripts))
 		foreach ($js_scripts as $js)

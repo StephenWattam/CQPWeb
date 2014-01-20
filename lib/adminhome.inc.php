@@ -74,7 +74,7 @@ header('Content-Type: text/html; charset=utf-8');
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>CQPweb Admin Control Panel</title>
 <link rel="stylesheet" type="text/css" href="<?php echo $Config->css_path ;?>" />
-<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script>
+<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script>
 
 <!-- nonstandard header includes javascript for doodads specific to the admin-interface -->
 <script type="text/javascript">

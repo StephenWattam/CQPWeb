@@ -294,7 +294,7 @@ else
 	echo '<title>' . $corpus_title . ' -- view CQPweb frequency list</title>';
 	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	?>
-	<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
+	<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
 	
 	</head>
 	<body>
@@ -432,7 +432,8 @@ function print_freqlist_control_row($page_no, $next_page_exists)
 
 function freqlist_write_download($att_desc, $description, &$result)
 {
-	$da = get_user_linefeed($username);
+	global $User;
+	$da = get_user_linefeed($User->username);
 	$description = preg_replace('/&[lr]dquo;/', '"', $description);
 
 	header("Content-Type: text/plain; charset=utf-8");

@@ -190,8 +190,8 @@ else
 	echo '<title>' . $corpus_title . ' -- CQPweb showing distribution of query solutions</title>';
 	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	?>
-	<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
-	<script type="text/javascript" src="../lib/javascript/cqpweb-distTableSort.js"></script> 
+	<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
+	<script type="text/javascript" src="../jsc/cqpweb-distTableSort.js"></script> 
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	
 	</head>

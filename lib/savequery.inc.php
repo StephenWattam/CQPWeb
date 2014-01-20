@@ -256,7 +256,7 @@ function print_savename_top()
 	echo '<title>CQPweb Save Query</title>';
 	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 	?>
-	<script type="text/javascript" src="../lib/javascript/cqpweb-clientside.js"></script> 
+	<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
 	
 	</head>
 	<body>
