@@ -221,7 +221,6 @@ echo print_menurow_admin('groupGrants', 'Manage group grants');
 echo print_menurow_heading('Database');
 echo print_menurow_admin('manageProcesses', 'Manage MySQL processes');
 echo print_menurow_admin('tableView', 'View a MySQL table');
-echo print_menurow_admin('mysqlRestore', 'Reset MySQL database');
 
 echo print_menurow_heading('System');
 echo print_menurow_admin('systemSettings', 'System settings');
