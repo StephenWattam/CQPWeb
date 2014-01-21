@@ -168,17 +168,21 @@ else if ( ! isset($_GET['locationAfter']) && headers_sent() == false )
  * =============
  */
 
-
 /** a special form of "exit" function just used by execute.php script */
 function execute_print_and_exit($title, $content)
 {
-	exit("
+	global $execute_cli_is_running;
+	if (isset($execute_cli_is_running) && $execute_cli_is_running)
+		exit("CQPweb has completed the requested action.\n");
+	else
+		exit(<<<HERE
 <html><head><title>$title</title></head><body><pre>
 $content
 
 CQPweb (c) 2008-today
 </pre></body></html>
-		");
+HERE
+		);
 }
 
 

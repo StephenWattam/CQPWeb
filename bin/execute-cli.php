@@ -55,6 +55,8 @@ if (!empty($argv))
 	$_GET['args'] = implode('#', $argv);
 unset($argc, $argv);
 
+$execute_cli_is_running = true;
+
 require('../lib/execute.inc.php');
 
 //TODO use output buffering to capture the results, strip html and print?
