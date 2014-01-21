@@ -52,29 +52,24 @@ if (php_sapi_name() != 'cli')
 
 echo "\nNow finalising setup for this installation of CQPweb....\n";
 
-echo "\nInstalling database structure; please wait.\n";
+/* create partial environment */
 
+include ('../lib/config.inc.php');
 connect_global_mysql();
+/* these are the values needed for username creation */
+$Config = new stdClass();
+$Config->default_calc_stat = $default_calc_stat;
+$Config->default_colloc_minfreq = $default_colloc_minfreq;
+$Config->default_colloc_range = $default_colloc_range;
+$Config->default_max_dbsize = $default_max_dbsize;
 
+
+echo "\nInstalling database structure; please wait.\n";
 cqpweb_mysql_total_reset();
-
-disconnect_global_mysql();
-
-/* 
- * NB the above depends on the MySQL settings being available otherwise than via $Config;
- * once config.inc.php is no longer globally included in environment.nc.php 
- * it will be necessary to directly include it here.
- */
 
 echo "\nDatabase setup complete.\n";
 
-/* with DB installed, we can now startup the environment.... */
-
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
-
 echo "\nNow, we must set passwords for each user account specified as a superuser.\n";
-
-include ('../lib/config.inc.php');
 
 foreach(explode('|', $superuser_username) as $super)
 {
@@ -85,17 +80,34 @@ foreach(explode('|', $superuser_username) as $super)
 
 echo "\n--- done.\n";
 
+
+/* destroy partial environment */
+
+unset($Config);
+disconnect_global_mysql();
+
+
+/* with DB installed, we can now startup the environment.... */
+
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
+
+
+
 echo "\nCreating CSS files....\n";
 
 cqpweb_regenerate_css_files();
 
 echo "\n--- done.\n";
 
+
+
 echo "\nCreating built-in mapping tables....\n";
 
 regenerate_builtin_mapping_tables();
 
 echo "\n--- done.\n";
+
+
 
 /*
  * If more setup actions come along, add them here

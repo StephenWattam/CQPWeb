@@ -82,10 +82,13 @@ function ask_boolean_question($question)
 		echo "Enter [Y]es or [N]:";
 		
 		$s = strtolower(trim(fgets(STDIN), "/ \t\r\n"));
-		if ($s[0] == 'y')
-			return true;
-		else if ($s[0] == 'n')
-			return false;
+		if (!empty($s))
+		{
+			if ($s[0] == 'y')
+				return true;
+			else if ($s[0] == 'n')
+				return false;
+		}
 	}
 }
 

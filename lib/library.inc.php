@@ -148,7 +148,7 @@ function connect_global_mysql()
 	global $mysql_utf8_set_required;
 	
 	/* check for previous connection */
-	if ( ! is_null($mysql_link) )
+	if ( is_resource($mysql_link) )
 		mysql_close($mysql_link);
 	
 	/* Connect with flag 128 == mysql client lib constant CLIENT_LOCAL_FILES;
