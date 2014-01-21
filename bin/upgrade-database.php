@@ -72,6 +72,10 @@ require ('../bin/cli-lib.php');
 //cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
 connect_global_mysql();
 
+/* a hack to make debug printing work */
+$Config = new stdClass();
+$Config->debug_messages_textonly = true;
+
 /* begin by checking for a really old database version ... */
 
 $greater_than_3_0_16 = false;
