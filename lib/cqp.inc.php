@@ -1179,15 +1179,22 @@ class CQP
 		/* all checks are wrapped in a do ... while(false) to allow a break to go straight to shutdown */
 		do {
 			/* check path to cqp is a real directory */
-			$infoblob .= "Checking that $path_to_cqp exists... ";
-			if (!is_dir($path_to_cqp))
+			if ('' == $path_to_cqp)
 			{
-				$infoblob .= "$EOL    CHECK FAILED. Check that $path_to_cqp exists"
-					. " and contains the CQP executable.$EOL";
-				break;
+				
 			}
 			else
-				$infoblob .= " yes it does!$EOL$EOL";
+			{
+				$infoblob .= "Checking that $path_to_cqp exists... ";
+				if (!is_dir($path_to_cqp))
+				{
+					$infoblob .= "$EOL    CHECK FAILED. Check that $path_to_cqp exists"
+						. " and contains the CQP executable.$EOL";
+					break;
+				}
+				else
+					$infoblob .= " yes it does!$EOL$EOL";
+			}
 			
 			// check that this user has read/execute permissions to it TODO
 			

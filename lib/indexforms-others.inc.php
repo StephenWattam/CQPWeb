@@ -171,6 +171,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.1.1</b>, 2014-01-20<br/>&nbsp;<br/>
+		Fixes for the inevitable bugs following a large update.
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.1.0</b>, 2014-01-20<br/>&nbsp;<br/>
 		Revamped user account system.
 		<br/>&nbsp;<br/>

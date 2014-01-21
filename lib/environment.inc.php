@@ -45,7 +45,7 @@
 /* 
  * version number of CQPweb 
  */
-define('CQPWEB_VERSION', '3.1.0');
+define('CQPWEB_VERSION', '3.1.1');
 
 /*
  * FLAGS for cqpweb_startup_environment()
