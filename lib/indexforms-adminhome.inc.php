@@ -1193,7 +1193,7 @@ function printquery_groupadmin()
 			<td class="concordgeneral" align="center">
 				<a class="menuItem" href="index.php?admFunction=execute&function=delete_group&args=<?php
 				echo $group->group_name, '&locationAfter=', urlencode('index.php?thisF=groupAdmin&uT=y');
-				?>$l&uT=y\">
+				?>&uT=y">
 					[x]
 				</a>
 			</td>
