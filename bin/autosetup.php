@@ -50,15 +50,27 @@ require ('../bin/cli-lib.php');
 if (php_sapi_name() != 'cli')
 	exit("Critical error: Cannot run CLI scripts over the web!\n");
 
-connect_global_mysql();
-
 echo "\nNow finalising setup for this installation of CQPweb....\n";
 
 echo "\nInstalling database structure; please wait.\n";
 
+connect_global_mysql();
+
 cqpweb_mysql_total_reset();
 
+disconnect_global_mysql();
+
+/* 
+ * NB the above depends on the MySQL settings being available otherwise than via $Config;
+ * once config.inc.php is no longer globally included in environment.nc.php 
+ * it will be necessary to directly include it here.
+ */
+
 echo "\nDatabase setup complete.\n";
+
+/* with DB installed, we can now startup the environment.... */
+
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
 
 echo "\nNow, we must set passwords for each user account specified as a superuser.\n";
 
@@ -90,10 +102,9 @@ echo "\n--- done.\n";
  * (e.g. annotation templates, xml templates...
  */
 
-disconnect_global_mysql();
-
-
 echo "\nAutosetup complete; you can now start using CQPweb.\n";
+
+cqpweb_shutdown_environment();
 
 exit;
 
