@@ -1181,7 +1181,17 @@ class CQP
 			/* check path to cqp is a real directory */
 			if ('' == $path_to_cqp)
 			{
+				/* we are expected to find it on the path; attempt to find with "which" */
 				
+				$infoblob .= "Checking that CQP is on the path ... ";
+				$which_out = trim(shell_exec("which cqp"));//var_dump($which_out);
+				
+				if (substr($which_out, -4) == '/cqp')
+					$infoblob .= " yes it is!$EOL$EOL";
+				else
+					$infoblob .= " could not ascertain, but I will proceed on the assumption it is.$EOL$EOL";
+				
+				$cqp_exe = 'cqp';
 			}
 			else
 			{
@@ -1194,32 +1204,38 @@ class CQP
 				}
 				else
 					$infoblob .= " yes it does!$EOL$EOL";
-			}
-			
-			// check that this user has read/execute permissions to it TODO
-			
-			/* check that cqp exists within it */
-			$infoblob .= "Checking that CQP program exists... ";
-			if (!is_file("$path_to_cqp/cqp"))
-			{
-				$infoblob .= "$EOL    CHECK FAILED. Check that $path_to_cqp"
-					. " contains the CQP executable.$EOL";
-				break;
-			}
-			else
-				$infoblob .= " yes it does!$EOL$EOL";
-			
-			/* check that cqp is executable TODO */
-			$infoblob .= "Checking that CQP program is executable by this user... ";
-			if (!is_executable("$path_to_cqp/cqp"))
-			{
-				$infoblob .= "$EOL    CHECK FAILED. Check that $path_to_cqp/cqp"
-					. " is executable by the username this script is running under.$EOL";
-				break;
-			}
-			else
-				$infoblob .= " yes it is!$EOL$EOL";
 
+				// check that this user has read/execute permissions to that folder TODO
+				
+				$cqp_exe = realpath($path_to_cqp . '/cqp');
+				
+				/* check that cqp exists within it */
+				$infoblob .= "Checking that CQP program exists... ";
+				if (!is_file($cqp_exe))
+				{
+					$infoblob .= "$EOL    CHECK FAILED. Check that $path_to_cqp"
+						. " contains the CQP executable.$EOL";
+					break;
+				}
+				else
+					$infoblob .= " yes it does!$EOL$EOL";
+				/* check that cqp is executable TODO */
+				$infoblob .= "Checking that CQP program is executable by this user... ";
+				if (!is_executable($cqp_exe))
+				{
+					$infoblob .= "$EOL    CHECK FAILED. Check that $cqp_exe"
+						. " is executable by the username this script is running under.$EOL";
+					break;
+				}
+				else
+					$infoblob .= " yes it is!$EOL$EOL";
+	
+			}
+			
+			
+			
+
+			
 			/* check that cwb_registry is a real directory */
 			$infoblob .= "Checking that $cwb_registry exists... ";
 			if (!is_dir($cwb_registry))

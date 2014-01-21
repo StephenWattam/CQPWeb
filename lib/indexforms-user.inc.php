@@ -180,7 +180,7 @@ function printscreen_logout()
 function printscreen_create()
 {
 	global $Config;
-	
+
 	if (!$Config->allow_account_self_registration)
 	{
 		?>

@@ -76,17 +76,14 @@ if (!isset($cqpweb_running_on_windows))
 
 /* Is this copy of CQPweb available for access via the internet? */
 if (!isset($cqpweb_no_internet))
-{
 	$cqpweb_no_internet = false;
-	$allow_account_self_registration = false;
-}
 
 /* supply default email address */
 if (!isset($cqpweb_email_from_address))
 	$cqpweb_email_from_address = '';
 
 if (!isset($allow_account_self_registration))
-	$allow_account_self_registration = true;
+	$allow_account_self_registration = ( ! $cqp_no_internet );
 
 /* name for cookies stored in users' browsers */
 if (!isset($cqpweb_cookie_name))
