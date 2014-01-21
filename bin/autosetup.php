@@ -62,7 +62,9 @@ echo "\nDatabase setup complete.\n";
 
 echo "\nNow, we must set passwords for each user account specified as a superuser.\n";
 
-foreach(list_superusers() as $super)
+include ('../lib/config.inc.php');
+
+foreach(explode('|', $superuser_username) as $super)
 {
 	$pw = get_variable_string("a password for user ``$super''");
 	add_new_user($super, $pw, 'not-specified@nowhere.net', USER_STATUS_ACTIVE);
