@@ -284,13 +284,16 @@ function upgrade_3_0_16()
 		$passhash = generate_new_hash_from_password($o->password);
 		do_mysql_query("update user_info set passhash = '$passhash'$extra where username = '$username'");
 	}
-	echo "done transferring passwords to secure encrypted form. Old passwords will now be deleted.\nPlease acknowledge.\n";
+	echo "done transferring passwords to secure encrypted form. Old passwords will NOT be deleted.\n";
+	echo "Once you are satisfied the database transfer has worked correctly, you should MANUALLY run\n";
+	echo "the following MySQL statement: \n";
+	echo "    alter table `user_info` drop column `password`\n";
+	echo "Please acknowledge.\n";
 	get_enter_to_continue();
 	
 	/* back to DB changes again */
 	
 	$sql = array(
-		"alter table user_info drop column password",
 		"alter table user_info add column `verify_key` varchar(32) default NULL AFTER acct_status",
 		"CREATE TABLE `user_cookie_tokens` (
 			`token` char(33) NOT NULL default '__token' UNIQUE,

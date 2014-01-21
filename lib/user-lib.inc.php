@@ -189,7 +189,7 @@ function delete_user($user)
 		recursive_delete_directory($d);
 	
 	/* delete user saved queries and categorised queries */
-	$result = do_mysql_query("select query_name, saved from saved_queries where saved > 0 and user = $user");
+	$result = do_mysql_query("select query_name, saved from saved_queries where saved > 0 and user = '$user'");
 	while (false !== ($q = mysql_fetch_object($result)))
 	{
 		if ($q->saved == 2)
