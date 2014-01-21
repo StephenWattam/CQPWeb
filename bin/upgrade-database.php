@@ -131,21 +131,35 @@ function upgrade_db_version_from($oldv)
 /* this one is the huge one ....... */
 function upgrade_3_0_16()
 {
+	/* first, the pre-amendments from v 3.0.15 */
+	if (1 > mysql_num_rows(do_mysql_query("show indexes from saved_dbs where Key_name = 'PRIMARY'")))
+	{
+		if (1 > mysql_num_rows(do_mysql_query("show indexes from saved_dbs where Key_name = 'dbname'")))
+			do_mysql_query('alter table saved_dbs drop key dbname');
+		do_mysql_query('alter table saved_dbs add primary key `dbname` (`dbname`)');
+	}
+	if (1 > mysql_num_rows(do_mysql_query("show indexes from mysql_processes where Key_name = 'PRIMARY'")))
+		do_mysql_query('alter table mysql_processes add primary key (`dbname`)');
+	if (1 > mysql_num_rows(do_mysql_query("show indexes from saved_freqtables where Key_name = 'PRIMARY'")))
+		do_mysql_query('alter table saved_freqtables add primary key (`freqtable_name`)');
+	if (1 > mysql_num_rows(do_mysql_query("show indexes from saved_dbs where Key_name = 'PRIMARY'")))
+	{
+		if (1 > mysql_num_rows(do_mysql_query("show indexes from system_messages where Key_name = 'message_id'")))
+			do_mysql_query('alter table system_messages drop key `message_id`');
+		do_mysql_query('alter table system_messages add primary key (`message_id`)');
+	}
+	
+	/* now, the main course: 3.0.16 */
+	
 	$sql = array(
 		'alter table user_settings    alter column username set default ""',
 		'alter table saved_catqueries alter column corpus set default ""',
 		'alter table saved_catqueries alter column dbname set default ""',
-		'alter table saved_dbs drop key dbname',
-		'alter table saved_dbs add primary key `dbname` (`dbname`)',
 		'alter table saved_dbs alter column corpus set default ""',
 		'alter table saved_subcorpora alter column subcorpus_name set default ""',
 		'alter table saved_subcorpora alter column corpus set default ""',
-		'alter table mysql_processes add primary key (`dbname`)',
-		'alter table saved_freqtables add primary key (`freqtable_name`)',
 		'alter table saved_freqtables alter column subcorpus set default ""',
 		'alter table saved_freqtables alter column corpus set default ""',
-		'alter table system_messages drop key `message_id`',
-		'alter table system_messages add primary key (`message_id`)',
 		'alter table system_messages alter column header set default ""',
 		'alter table system_messages alter column fromto set default NULL',
 		'alter table user_macros alter column username set default ""',
