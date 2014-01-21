@@ -76,7 +76,13 @@ while (1)
 				list($g_id) = mysql_fetch_row(do_mysql_query("select id from user_groups where group_name = '$group'"));
 				foreach (explode(' ', trim($m[2])) as $a_user)
 				{
-					list($u_id) = mysql_fetch_row(do_mysql_query("select id from user_info where username='$a_user'")); 
+					$u_res = do_mysql_query("select id from user_info where username='$a_user'");
+					if (1 > mysql_num_rows($u_res))
+					{
+						echo "... user $a_user not found in DB, not readded to group $group.\n";
+						continue;
+					}
+					list($u_id) = mysql_fetch_row($u_res); 
 					do_mysql_query("insert into user_memberships (user_id, group_id, expiry_time) values ($u_id, $g_id, 0)");
 				}
 				echo "....reinserted $group successfully!\n";
