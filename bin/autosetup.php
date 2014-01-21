@@ -46,11 +46,11 @@ require ('../bin/cli-lib.php');
 /* BEGIN HERE */
 
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
-
 /* refuse to run unless we are in CLI mode */
+if (php_sapi_name() != 'cli')
+	exit("Critical error: Cannot run CLI scripts over the web!\n");
 
-
+connect_global_mysql();
 
 echo "\nNow finalising setup for this installation of CQPweb....\n";
 
@@ -88,10 +88,10 @@ echo "\n--- done.\n";
  * (e.g. annotation templates, xml templates...
  */
 
+disconnect_global_mysql();
+
 
 echo "\nAutosetup complete; you can now start using CQPweb.\n";
-
-cqpweb_shutdown_environment();
 
 exit;
 
