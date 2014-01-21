@@ -279,7 +279,7 @@ function exiterror_mysqlquery($errornumber, $errormessage, $origquery=NULL, $scr
 	global $User;
 	$msg = array();
 	$msg[] = "A mySQL query did not run successfully!";
-	if (!empty($origquery) && $User->is_admin())
+	if (!empty($origquery) &&  (empty($User) || $User->is_admin()) )
 		$msg[] = "Original query: \n\n$origquery\n\n";
 	$msg[] = "Error # $errornumber: $errormessage ";
 	exiterror_msg_location($msg, $script, $line);
