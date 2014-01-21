@@ -69,7 +69,8 @@ require ('../bin/cli-lib.php');
  * ============ */
 
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
+//cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
+connect_global_mysql();
 
 /* begin by checking for a really old database version ... */
 
@@ -100,7 +101,8 @@ while (($version = get_db_version()) != $last_changed_version)
 
 echo "CQPweb database is now at the most-recently-changed version ($last_changed_version). Upgrade complete!\n";	
 
-cqpweb_shutdown_environment();
+//cqpweb_shutdown_environment();
+disconnect_global_mysql();
 
 exit;
 

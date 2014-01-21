@@ -114,7 +114,7 @@ function exiterror_endpage($backlink = false)
 	
 	/* print the PHP back trace */
 	global $User;
-	if ($User->is_admin())
+	if (isset($User) && $User->is_admin())
 	{
 		if ($debug_messages_textonly)
 		{
