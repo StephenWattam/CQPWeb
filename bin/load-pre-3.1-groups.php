@@ -56,8 +56,9 @@ while (1)
 	{
 		foreach(file($f) as $line)
 		{
-			if (empty(trim($line))) continue;
-			if (1 > preg_match('/^(\w+):(.*)$/', trim($line), $m))
+			$line = trim($line);
+			if (empty($line)) continue;
+			if (1 > preg_match('/^(\w+):(.*)$/', $line, $m))
 				echo "Skipping indecipherable group line: $line\n";
 			else
 			{

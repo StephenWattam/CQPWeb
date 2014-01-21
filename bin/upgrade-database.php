@@ -271,7 +271,7 @@ function upgrade_3_0_16()
 	
 	$result = do_mysql_query("select username, password from user_info");
 	$t = time() + (7 * 24 * 60 * 60);
-	while (false === ($o = mysql_fetch_object($result)))
+	while (false !== ($o = mysql_fetch_object($result)))
 	{
 		if (empty($o->password))
 		{
