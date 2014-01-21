@@ -440,12 +440,6 @@ $mysql_process_name = array(
  */ 
 $instance_name = base_convert(uniqid(), 16, 36);
 
-if (! isset($this_script))
-{
-	preg_match('/\/([^\/]+)$/', $_SERVER['SCRIPT_FILENAME'], $m);
-	$this_script = $m[1];
-}
-
 
 
 ?>

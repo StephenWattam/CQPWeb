@@ -407,7 +407,7 @@ function print_freqlist_control_row($page_no, $next_page_exists)
 				. '"';
 		$string .= ">$m</b></a></td>";
 	}
-// this should be generalised as is used by lots of scripts: use $this_script
+// this should be generalised as is used by lots of scripts
 
 
 	$string .= 

@@ -1134,7 +1134,6 @@ function display_system_messages()
 	global $User;
 	global $Config;
 	global $instance_name;
-	global $this_script;
 	global $corpus_sql_name;
 	global $rss_feed_available;
 	
@@ -1159,7 +1158,7 @@ function display_system_messages()
 	case RUN_LOCATION_CORPUS:
 		/* we are in a corpus */
 		$execute_path = 'execute.php?function=delete_system_message';
-		$after_path = urlencode($this_script);
+		$after_path = urlencode(basename($_SERVER['SCRIPT_FILENAME']));
 		$rel_add = '../';
 		break;
 	}

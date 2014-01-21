@@ -59,7 +59,6 @@ if (isset($_GET['redirect']))
 	case 'newQuery':
 		foreach ($_GET as $k=>&$g)
 			unset($_GET[$k]);
-		$this_script = 'index.php';
 		require("../lib/queryhome.inc.php");
 		break;
 	
