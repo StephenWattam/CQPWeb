@@ -83,7 +83,7 @@ if (!isset($cqpweb_email_from_address))
 	$cqpweb_email_from_address = '';
 
 if (!isset($allow_account_self_registration))
-	$allow_account_self_registration = ( ! $cqp_no_internet );
+	$allow_account_self_registration = ( ! $cqpweb_no_internet );
 
 /* name for cookies stored in users' browsers */
 if (!isset($cqpweb_cookie_name))

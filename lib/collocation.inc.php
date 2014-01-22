@@ -66,11 +66,6 @@ require("../lib/cqp.inc.php");
 
 
 
-// debug
-ob_implicit_flush(true);
-
-
-
 cqpweb_startup_environment();
 
 //not needed as we now have $User!
