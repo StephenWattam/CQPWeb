@@ -164,11 +164,14 @@ if ( abs($calc_range_end) > $colloc_range )
 	$calc_range_end = $colloc_range * ($calc_range_end / abs($calc_range_end));
 
 
+$generic_error = array("If you did not specify a position range, then it may be that you have set a bad range in your user settings.");
 
-if ( ( ! ($calc_range_end >= $calc_range_begin)) || $calc_range_end == 0 || $calc_range_begin == 0 )
-	exiterror_parameter("Your position range does not make sense; go 'back' and change it!");
-	/* !! this is a stop-gap -- there should be a properly printed report page here, like in BW.  (TODO) */
-	// perhaps called as a function?? which could be hived off to a separate file colloc-lib.
+if ( ! ($calc_range_end >= $calc_range_begin) )
+	exiterror_parameter(array_unshift($generic_error, "Your position range does not make sense; the end-point cannot be less than the start-point."));
+if ( $calc_range_end == 0 || $calc_range_begin == 0 )
+	exiterror_parameter(array_unshift($generic_error, "Your position range does not make sense; you cannot end the range at zero!"));
+if ( $calc_range_begin == 0 )
+	exiterror_parameter(array_unshift($generic_error, "Your position range does not make sense; you cannot begin the range at zero!"));
 
 
 

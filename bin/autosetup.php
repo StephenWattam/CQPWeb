@@ -71,6 +71,7 @@ echo "\nDatabase setup complete.\n";
 
 echo "\nNow, we must set passwords for each user account specified as a superuser.\n";
 
+
 foreach(explode('|', $superuser_username) as $super)
 {
 	$pw = get_variable_string("a password for user ``$super''");
