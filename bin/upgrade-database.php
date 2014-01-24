@@ -298,7 +298,7 @@ function upgrade_3_0_16()
 			$extra = '';
 		
 		$passhash = generate_new_hash_from_password($o->password);
-		do_mysql_query("update user_info set passhash = '$passhash'$extra where username = '$username'");
+		do_mysql_query("update user_info set passhash = '$passhash'$extra where username = '{$o->username}'");
 	}
 	echo "done transferring passwords to secure encrypted form. Old passwords will NOT be deleted.\n";
 	echo "Once you are satisfied the database transfer has worked correctly, you should MANUALLY run\n";
