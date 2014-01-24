@@ -320,6 +320,6 @@ function bdo_tags_on_tag($tag)
 	//so let's keep things consistent. 
 	global $visualise_gloss_in_concordance;
 	
-	return '_<bdo dir="ltr">' . ($visualise_gloss_in_concordance ? substr($tag, 1) : $tag) . '</bdo>';
+	return '_<bdo dir="ltr">' . ($visualise_gloss_in_concordance ? $tag : substr($tag, 1)) . '</bdo>';
 }
 ?>
