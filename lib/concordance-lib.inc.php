@@ -995,6 +995,7 @@ function concordance_invert_tds($string)
  */
 function extract_cqp_word_and_tag($cqp_source_string)
 {
+	// TODO this is also used in context!
 	global $visualise_gloss_in_concordance;
 	
 	static $word_extraction_pattern = NULL;
@@ -1091,7 +1092,8 @@ function extract_cqp_line_position_labels(&$cqp_line, &$text_id, &$position_labe
 /** print a sorry-no-solutions page, shut down CQP, and end */
 function say_sorry($instance_name, $sorry_input = "no_solutions")
 {
-
+	global $Config;
+	
 	switch ($sorry_input)
 	{
 	case  'empty_postproc':
@@ -1112,7 +1114,7 @@ function say_sorry($instance_name, $sorry_input = "no_solutions")
 		// TODO logically, the above DOES NOT BELONG IN THIS FUNCTION. move out & do alongside, not within
 	
 	
-	echo print_html_header('Query error!', $Corpus->css_path);
+	echo print_html_header('Query error!', $Config->css_path);
 
 	// TODO proper formatting below (as in exiterror) (or use exiterror?)
 	?>

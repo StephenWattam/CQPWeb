@@ -316,6 +316,10 @@ cqpweb_shutdown_environment();
 
 function bdo_tags_on_tag($tag)
 {
-	return '_<bdo dir="ltr">' . substr($tag, 1) . '</bdo>';
+	//TODO this should be "ion_context", but right now  extract_cqp_word_and_tag only uses $visualise_gloss_in_concordance
+	//so let's keep things consistent. 
+	global $visualise_gloss_in_concordance;
+	
+	return '_<bdo dir="ltr">' . ($visualise_gloss_in_concordance ? substr($tag, 1) : $tag) . '</bdo>';
 }
 ?>

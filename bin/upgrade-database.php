@@ -58,7 +58,9 @@ require ('../bin/cli-lib.php');
 		 * '3.1.0' => '3.1.1', so the function can then reiterate and look for changes between
 		 * 3.1.2 and whatever follows it.
 		 */
-		$versions_where_there_was_no_change = array();
+		$versions_where_there_was_no_change = array(
+			'3.1.0' => '3.1.1'
+			);
 
 /* END COMPULSORY UPDATE VARS */
 
