@@ -107,7 +107,7 @@ function cwb_corpus_exists($corpus_name)
 	
 	// TODO this does not work because it does not allow for cwb_external.
 	
-	if  ( is_file("{$Config->dir->registry}/$corpus_name") && is_dir("$Config->dir->index/$corpus_name") )
+	if  ( is_file("{$Config->dir->registry}/$corpus_name") && is_dir("{$Config->dir->index}/$corpus_name") )
 		return true;
 	else
 		return false;	
