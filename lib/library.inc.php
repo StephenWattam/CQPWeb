@@ -191,6 +191,17 @@ function disconnect_global_mysql()
 
 
 
+
+
+/* 
+ * =====================
+ * MySQL query functions 
+ * =====================
+ */
+
+
+
+
 /**
  * Does a MySQL query on the CQPweb database, with error checking.
  * 
@@ -502,6 +513,7 @@ function import_settings_as_global($corpus)
 		global $$v;	
 	include("../$corpus/settings.inc.php");
 	
+	// TODO shouldn't this be a separate function?
 	/* one special one */
 	global $cqp;
 	if (isset($cqp, $corpus_cqp_name))
