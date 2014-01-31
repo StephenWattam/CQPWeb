@@ -47,23 +47,23 @@
 
 
 /* initialise variables from settings files  */
-require('../lib/environment.inc.php');
+require_once('../lib/environment.inc.php');
 
 
 /* include function library files */
-require('../lib/library.inc.php');
-require('../lib/html-lib.inc.php');
-require('../lib/user-lib.inc.php');
-require('../lib/exiterror.inc.php');
-require('../lib/cache.inc.php');
-require('../lib/subcorpus.inc.php');
-require('../lib/db.inc.php');
-require('../lib/ceql.inc.php');
-require('../lib/freqtable.inc.php');
-require('../lib/metadata.inc.php');
-require('../lib/concordance-lib.inc.php');
-require('../lib/colloc-lib.inc.php');
-require('../lib/xml.inc.php');
+require_once('../lib/library.inc.php');
+require_once('../lib/html-lib.inc.php');
+require_once('../lib/user-lib.inc.php');
+require_once('../lib/exiterror.inc.php');
+require_once('../lib/cache.inc.php');
+require_once('../lib/subcorpus.inc.php');
+require_once('../lib/db.inc.php');
+require_once('../lib/ceql.inc.php');
+require_once('../lib/freqtable.inc.php');
+require_once('../lib/metadata.inc.php');
+require_once('../lib/concordance-lib.inc.php');
+require_once('../lib/colloc-lib.inc.php');
+require_once('../lib/xml.inc.php');
 
 /* especially, include the functions for each type of query */
 require('../lib/indexforms-queries.inc.php');
