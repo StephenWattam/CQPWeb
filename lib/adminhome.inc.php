@@ -204,7 +204,9 @@ echo print_menurow_heading('Corpora');
 echo print_menurow_admin('showCorpora', 'Show corpora');
 echo print_menurow_admin('installCorpus', 'Install new corpus');
 echo print_menurow_admin('manageCorpusCategories', 'Manage corpus categories');
-echo print_menurow_admin('publicTables', 'Public frequency lists');
+echo print_menurow_admin('annotationTemplates', 'Annotation templates');
+echo print_menurow_admin('metadataTemplates', 'Metadata templates');
+echo print_menurow_admin('xmlTemplates', 'XML templates');
 
 echo print_menurow_heading('Uploads');
 echo print_menurow_admin('newUpload', 'Upload a file');
@@ -218,41 +220,38 @@ echo print_menurow_admin('privilegeAdmin', 'Manage privileges');
 echo print_menurow_admin('userGrants', 'Manage user grants');
 echo print_menurow_admin('groupGrants', 'Manage group grants');
 
-echo print_menurow_heading('Database');
-echo print_menurow_admin('manageProcesses', 'Manage MySQL processes');
-echo print_menurow_admin('tableView', 'View a MySQL table');
-
-echo print_menurow_heading('System');
-echo print_menurow_admin('systemSettings', 'System settings');
+echo print_menurow_heading('Frontend interface');
 echo print_menurow_admin('systemMessages', 'System messages');
-echo print_menurow_admin('systemSecurity', 'System security');
-echo print_menurow_admin('systemSnapshots', 'System snapshots');
-echo print_menurow_admin('systemDiagnostics', 'System diagnostics');
-
-echo print_menurow_heading('Misc');
-?>
-
-<tr>
-	<td class="concordgeneral">
-		<a class="menuItem" href="../"
-			onmouseover="return escape('Go to a list of all corpora on the CQPweb system')">
-			CQPweb main menu
-		</a>
-	</td>
-</tr>
-<?php
 echo print_menurow_admin('skins', 'Skins and colours');
 echo print_menurow_admin('mappingTables', 'Mapping tables');
+
+echo print_menurow_heading('Backend system');
 echo print_menurow_admin('cacheControl', 'Cache control');
+echo print_menurow_admin('manageProcesses', 'Manage MySQL processes');
+echo print_menurow_admin('tableView', 'View a MySQL table');
 echo print_menurow_admin('phpConfig', 'PHP configuration');
+echo print_menurow_admin('opcodeCache', 'PHP opcode cache');
+echo print_menurow_admin('publicTables', 'Public frequency lists');
+echo print_menurow_admin('systemSnapshots', 'System snapshots');
+echo print_menurow_admin('systemDiagnostics', 'System diagnostics');
 
 echo print_menurow_heading('Usage Statistics');
 echo print_menurow_admin('corpusStatistics', 'Corpus statistics');
 echo print_menurow_admin('userStatistics', 'User statistics');
 echo print_menurow_admin('queryStatistics', 'Query statistics');
 echo print_menurow_admin('advancedStatistics', 'Advanced statistics');
-
+echo print_menurow_heading('Exit')
 ?>
+
+<tr>
+	<td class="concordgeneral">
+		<a class="menuItem" href="../"
+			onmouseover="return escape('Go to a list of all corpora on the CQPweb system')">
+			Exit to CQPweb homepage
+		</a>
+	</td>
+</tr>
+
 </table>
 
 		</td>
@@ -306,10 +305,18 @@ case 'manageCorpusCategories':
 	printquery_corpuscategories();
 	break;
 	
-case 'publicTables':
+case 'annotationTemplates':
 	echo '<p class="errormessage">We\'re sorry, this function has not been built yet.</p>';
 	break;
-
+	
+case 'metadataTemplates':
+	echo '<p class="errormessage">We\'re sorry, this function has not been built yet.</p>';
+	break;
+	
+case 'xmlTemplates':
+	echo '<p class="errormessage">We\'re sorry, this function has not been built yet.</p>';
+	break;
+	
 case 'newUpload':
 	printquery_newupload();
 	break;
@@ -342,10 +349,10 @@ case 'groupGrants':
 	printquery_groupgrants();
 	break;
 
-case 'superuserAccess':
-	printquery_superuseraccess();
+case 'systemMessages':
+	printquery_systemannouncements();
 	break;
-	
+
 case 'skins':
 	printquery_skins();
 	break;
@@ -355,12 +362,27 @@ case 'mappingTables':
 	break;
 
 case 'cacheControl':
-case 'systemSettings':
 	echo '<p class="errormessage">We\'re sorry, this function has not been built yet.</p>';
 	break;
 	
-case 'systemMessages':
-	printquery_systemannouncements();
+case 'manageProcesses':
+	printquery_systemprocesses();
+	break;
+	
+case 'tableView':
+	printquery_tableview();
+	break;
+	
+case 'phpConfig':
+	printquery_phpconfig();
+	break;
+
+case 'opcodeCache':
+	printquery_opcodecache();
+	break;
+
+case 'publicTables':
+	echo '<p class="errormessage">We\'re sorry, this function has not been built yet.</p>';
 	break;
 
 case 'systemSnapshots':
@@ -371,18 +393,6 @@ case 'systemDiagnostics':
 	printquery_systemdiagnostics();
 	break;
 
-case 'phpConfig':
-	printquery_phpconfig();
-	break;
-
-case 'tableView':
-	printquery_tableview();
-	break;
-	
-case 'manageProcesses':
-	printquery_systemprocesses();
-	break;
-	
 case 'corpusStatistics':
 	printquery_statistic('corpus');
 	break;

@@ -21,6 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 /**
  * @file
  * 
@@ -29,6 +30,146 @@
  * It should generally not be included into scripts unless the user
  * is a sysadmin.
  */
+
+
+
+
+/*
+ * ===========================================
+ * code file self-awareness and opcode caching
+ * =========================================== 
+ */
+
+/** 
+ * Returns a list of realpaths for the PHP files that make up
+ * the online CQPweb system. Offline "bin" scripts are excluded.
+ * 
+ * By default, all files are returned, but the return can be limited
+ * to just the "stub" file,s or to actual "code" files (library,
+ * plus plugins).
+ * 
+ * Return is flat array with numeric keys.
+ */
+function list_cqpweb_php_files($limit = 'all')
+{
+	$r = array();
+	
+	if ($limit == 'all' || $limit == 'stub')
+	{
+		/* add stubs */
+		$r = array_merge($r, array('../index.php'));
+		foreach(array_merge(array('adm', 'rss', 'usr'), list_corpora()) as $c)
+			$r = array_merge($r, glob("../$c/*.php"));
+	}
+	
+	if ($limit == 'all' || $limit == 'code')
+		/* add lib + plugins */
+		$r = array_merge($r, glob('../lib/*.php'), glob('../lib/plugins/*.php'));;
+	
+	return array_map('realpath', $r); 
+}
+
+/**
+ * Detects which of the three opcache extensions is loaded, if any.
+ * 
+ * Returns a string (same as the internal extension label, all lowercase)
+ * or false if none if available.
+ */
+function detect_php_opcaching()
+{
+	switch (true)
+	{
+	case extension_loaded('opcache'):
+		return 'opcache';
+	case extension_loaded('apc'):
+		return 'apc';
+	case extension_loaded('wincache'):
+		return 'wincache';
+	default:
+		return false;
+	}
+}
+
+/**
+ * Loads a code file into whatever opcode cache is in use. 
+ */
+function do_opcache_load_file($file)
+{
+	switch (detect_php_opcaching())
+	{	
+	case 'apc':
+		apc_compile_file(realpath($file));
+		break;
+	case 'opcache':
+		opcache_compile_file(realpath($file));
+		break;
+	case 'wincache':
+		/* note, we don't have an "load" in this case. So, refresh instead. */
+		wincache_refresh_if_changed(array(realpath($file)));
+		break;	/* default do nothing */	
+	}
+}
+
+/**
+ * Unloads a code file from whatever opcode cache is in use.
+ */
+function do_opcache_unload_file($file)
+{
+	switch (detect_php_opcaching())
+	{
+	case 'apc':
+		apc_delete_file($file);
+		break;
+	case 'opcache':
+		opcache_invalidate($file, true);
+		break;
+	case 'wincache':
+		/* note, we don't have an "unload" in this case. So, refresh instead. */
+		wincache_refresh_if_changed(array(realpath($file)));
+		break;
+	/* default do nothing */	
+	}
+}
+
+/**
+ * Loads ALL code files to opcode cache.
+ * 
+ * Accepts same "limit" as list_cqpweb_php_files(). 
+ */
+function do_opcache_full_load($limit = 'all')
+{
+	array_map('do_opcache_load_file', list_cqpweb_php_files($limit));
+}
+
+/** 
+ * Unloads ALL code files from opcode cache.
+ * 
+ * Accepts same "limit" as list_cqpweb_php_files(). 
+ */
+function do_opcache_full_unload($limit = 'all')
+{
+	switch(detect_php_opcaching())
+	{
+	case 'apc':
+		apc_delete_file(list_cqpweb_php_files($limit));
+		break;
+	case 'opcache':
+		foreach(list_cqpweb_php_files($limit) as $f)
+			opcode_invalidate($f, true);
+		break;
+	case 'wincache':
+		wincache_refresh_if_changed(list_cqpweb_php_files($limit));
+		break;
+	/* default do nothing */
+	}
+}
+
+
+
+
+
+
+
 
 // TODO -- check this against cwb_uncreate_corpus and prevent duplication of functionality
 /**

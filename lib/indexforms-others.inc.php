@@ -171,6 +171,12 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.1.2</b>, 2014-01-31<br/>&nbsp;<br/>
+		Gave the admin control panel a spring-clean, and added a facility to monitor the PHP opcode cache.
+		Plus more bug fixes!
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.1.1</b>, 2014-01-20<br/>&nbsp;<br/>
 		Fixes for the inevitable bugs following a large update.
 		<br/>&nbsp;</li>

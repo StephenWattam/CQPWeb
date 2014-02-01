@@ -37,15 +37,17 @@
 
 
 
-/* ------------------------------- */
-/* Constant definitions for CQPweb */
-/* ------------------------------- */
+/*
+ * ------------------------------- *
+ * Constant definitions for CQPweb *
+ * ------------------------------- *
+ */
 
 
 /* 
  * version number of CQPweb 
  */
-define('CQPWEB_VERSION', '3.1.1');
+define('CQPWEB_VERSION', '3.1.2');
 
 /*
  * FLAGS for cqpweb_startup_environment()
@@ -210,8 +212,10 @@ class CQPwebEnvConfig
 		case RUN_LOCATION_MAINHOME:     $this->css_path = $this->css_path_for_homepage;     break;
 		case RUN_LOCATION_ADM:          $this->css_path = $this->css_path_for_adminpage;    break;
 		case RUN_LOCATION_USR:          $this->css_path = $this->css_path_for_userpage;     break;
-		/* tacit default: RUN_LOCATION_CORPUS, where the $Corpus object takes responsibility for
-		 * setting the global $Config css_path appropriately. */
+		/* 
+		 * tacit default: RUN_LOCATION_CORPUS, where the $Corpus object takes responsibility for
+		 * setting the global $Config css_path appropriately. 
+		 */
 		}
 	}
 }

@@ -275,7 +275,7 @@ case 'newUser':
 	if ($script_called_from_admin)
 		$next_location = "index.php?thisF=showMessage&message=" . urlencode("User account '$new_username' has been created.") . "&uT=y";
 	else
-		$next_location = ""; /* i.e. {BASE}/usr */
+		$next_location = "index.php?extraMsg=" . urlencode("User account '$new_username' has been created.") . "&uT=y";
 	break;
 
 

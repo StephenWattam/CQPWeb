@@ -59,7 +59,8 @@ require ('../bin/cli-lib.php');
 		 * 3.1.2 and whatever follows it.
 		 */
 		$versions_where_there_was_no_change = array(
-			'3.1.0' => '3.1.1'
+			'3.1.0' => '3.1.1',
+			'3.1.1' => '3.1.2'
 			);
 
 /* END COMPULSORY UPDATE VARS */

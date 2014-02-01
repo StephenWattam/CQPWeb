@@ -2994,6 +2994,203 @@ function printquery_phpconfig()
 	<?php
 }
 
+function printquery_opcodecache()
+{
+	$mode = detect_php_opcaching();
+	$mode_names = array ('apc'=>'APC', 'opcache'=>'OPcache', 'wincache'=>'WinCache');
+
+	$codefiles = list_cqpweb_php_files('code');
+	$stubfiles = list_cqpweb_php_files('stub');
+	
+	?>
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">
+				Opcode cache overview
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgrey">
+				&nbsp;<br/>
+				Opcode caches are tools to speed up PHP applications like CQPweb. Several different ones are available,
+				but any individual server will only use <i>one</i>. 
+				<b>APC</b>, <b>OPcache</b> and <b>winCache</b> are three opcode caches that can be monitored from within CQPweb.
+				<?php
+				echo '<ul>'
+					, '<li><b>APC</b> '     , $mode == 'apc'      ? 'is <u>active</u>' : 'is inactive or unavailable', '.</li>'
+					, '<li><b>OPcache</b> ' , $mode == 'opcache'  ? 'is <u>active</u>' : 'is inactive or unavailable', '.</li>'
+					, '<li><b>WinCache</b> ', $mode == 'wincache' ? 'is <u>active</u>' : 'is inactive or unavailable', '.</li>'
+					, "</ul>\n";
+				?>
+				
+				Use the controls below to monitor your opcode cache, and to clear/reload it if necessary (e.g. after a version upgrade;
+				should not normally be necessary as a properly-working cache will reload from disk automatically as needed).
+				<br/>&nbsp;
+			</td>
+		</tr>
+	</table>
+	
+	<?php
+	
+	if ($mode === false)
+	{
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					Opcode cache monitor unavailable
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgrey" align="center">
+					&nbsp;<br/>
+					Opcode cache monitoring is not available (opcode cache extension not installed?)
+					<br/>&nbsp;
+				</td>
+			</tr>
+		</table>
+		<?php	
+	}
+	else
+	{
+//		show_var($codefiles);
+//		show_var($stubfiles);
+	
+		switch($mode)
+		{
+		case 'apc':
+			$info = apc_cache_info();
+			$rawinfo = $info['cache_list'];
+			$fnkey = 'filename';
+			$func_date_timestamp = create_function('$x', 'return $x["creation_time"];');
+			$hitkey = 'num_hits';
+			break;
+		case 'opcache':
+			$info = opcache_get_status(true);
+			$rawinfo = $info['scripts'];
+			$fnkey = 'full_path';
+			$func_date_timestamp = create_function('$x', 'return $x["timestamp"];');
+			$hitkey = 'hits';
+			break;
+		case 'wincache':
+			$info = wincache_ocache_fileinfo(false);
+			$rawinfo = $info['file_entries'];
+			$fnkey = 'file_name';
+			$func_date_timestamp = create_function('$x', 'return (time() - $x["add_time"]);');
+			$hitkey = 'hit_count';
+			break;
+		}
+		$codeinfo = array();
+		$stubinfo = array();
+		
+		foreach($rawinfo as $f)
+		{
+			if (in_array($f[$fnkey], $stubfiles))
+				$stubinfo[$f[$fnkey]] = $f;
+			else if(in_array($f[$fnkey], $codefiles))
+				$codeinfo[$f[$fnkey]] = $f;
+		}
+		
+		$n_cqpweb = ($n_stub = count($stubinfo)) + ($n_code = count($codeinfo));
+		$n_overall = count($rawinfo);
+		
+		/* locationAfter for buttons */
+		$loc = '&locationAfter=' . urlencode('index.php?thisF=opcodeCache&uT=y');
+		
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable" colspan="4">
+					<?php echo $mode_names[$mode], ' status as of ', date('H:i:s \o\n Y-M-d'); ?>
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="4" align="center">
+					&nbsp;<br/>
+					<?php 
+					echo "The cache contains <b>", $n_overall, "</b> files, <b>", $n_cqpweb, "</b> of which are part of CQPweb."; 
+					echo "<br/>&nbsp;<br/>";
+					echo "<b>", $n_stub, "</b> of these are stub-files and <b>", $n_code, "</b> of these are library code files (see below).";
+					echo "<br/>&nbsp; <br/>(Stub-files present on the system: <b>", count($stubfiles), "</b>)."; 
+					?>
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<th class="concordtable" colspan="4">Manipulate cache</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="4" align="center">
+					<table class="basicbox" width="100%">
+						<tr>
+							<td class="basicbox" align="center" width="25%">
+								<a class="menuItem" href="index.php?admFunction=execute<?php echo $loc; ?>&function=do_opcache_full_unload&uT=y">
+									[Clear all files from cache]
+								</a>
+							</td>
+							<td class="basicbox" align="center" width="25%">
+								<a class="menuItem" href="index.php?admFunction=execute<?php echo $loc; ?>&function=do_opcache_full_load&args=code&uT=y">
+									[Insert library files to cache]
+								</a>
+							</td>
+							<td class="basicbox" align="center" width="25%">
+								<a class="menuItem" href="index.php?admFunction=execute<?php echo $loc; ?>&function=do_opcache_full_load&args=stub&uT=y">
+									[Insert stub files to cache]
+								</a>
+							</td>
+							<td class="basicbox" align="center" width="25%">
+								<a class="menuItem" href="index.php?admFunction=execute<?php echo $loc; ?>&function=do_opcache_full_load&uT=y">
+									[Insert all files to cache]
+								</a>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<th class="concordtable">Library file</th>
+				<th class="concordtable">Last loaded</th>
+				<th class="concordtable">Times reused</th>
+				<th class="concordtable">Actions</th>
+			</tr>
+			<?php
+			
+			$chop_off = realpath('../lib/'). '/';
+			
+			foreach($codefiles as $f)
+			{
+				echo "<tr>\n"
+					, '<td class="concordgeneral">', str_replace($chop_off, '', $f), "</td>\n";
+				if (isset ($codeinfo[$f]))
+				{
+					$i = $codeinfo[$f];
+					echo '<td class="concordgeneral" align="center">', date('H:i:s \o\n Y-M-d', $func_date_timestamp($i)), "</td>\n"
+						, '<td class="concordgeneral" align="center">', number_format($i[$hitkey]), "</td>\n"
+						, '<td class="concordgeneral" align="center">'
+							, '<a class="menuItem" href="index.php?admFunction=execute'
+							, $loc, '&function=do_opcache_unload_file&args=', urlencode($f), '&uT=y">[Unload]</a>' 
+						, "</td>\n"
+						;
+				}
+				else
+				{
+					echo  '<td class="concordgeneral" align="center" colspan="2">-</td>'
+						, '<td class="concordgeneral" align="center">'
+							, '<a class="menuItem" href="index.php?admFunction=execute'
+							, $loc, '&function=do_opcache_load_file&args=', urlencode($f), '&uT=y">[Load]</a>' 
+						, "</td>\n"
+						, "\n"
+						;
+				}
+				echo "</tr>\n";
+			}
+			
+			?>
+		</table>
+		<?php
+	}
+}
 
 
 function printquery_advancedstats()

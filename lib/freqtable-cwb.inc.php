@@ -142,6 +142,8 @@ function make_cwb_freq_index()
 		/* in case of whitespace... */
 		$line = trim($line);
 		
+		$F = array();
+		
 		if (preg_match('/^<text_id\s+(\w+)>$/', $line, $m) > 0)
 		{
 			/* extract the id from the preceding regex using (\w+) */
