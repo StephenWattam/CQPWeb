@@ -427,6 +427,26 @@ function get_user_info($username)
 	}
 }
 
+/**
+ * Gets full info for all users.
+ * 
+ * Returns array of objects of the kind returned by get_user_info.
+ * 
+ * The keys are the user ids.
+ */
+function get_all_users_info()
+{
+	$users = array();
+	
+	$result = do_mysql_query("select * from user_info");
+	
+	while (false !== ($o = mysql_fetch_object($result)))
+		$users[$o->id] = $o;
+		
+	return $users;
+}
+
+
 
 /** 
  * Update a user setting relating to the user interface tweaks.
@@ -879,8 +899,40 @@ function list_group_regexen()
 	return $list;
 }
 
+/**
+ * Run group regex against all existing users; if their email address mathces the regex, 
+ * they are added to the group.
+ * 
+ * (Note this is the only way for regexes to take effect retroactively; otherwise regexen
+ * only run at account create-time.)
+ */
+function reapply_group_regex($group)
+{
+	$group = mysql_real_escape_string($group);
+	
+	$result = do_mysql_query("select autojoin_regex from user_groups where group_name = '$group'");
+	 
+	if (1 > mysql_num_rows($result))
+		return;
+	
+	list($rx) = mysql_fetch_row($result);
+	
+	foreach(get_all_users_info() as $u)
+		if (0 < preg_match("/$rx/", $u->email))
+			add_user_to_group($u->username, $group);
+}
 
 
+/**
+ * Run an arbitrary regex acropss all users' emails, and add them to the group specified
+ * if their email address matches.
+ */
+function apply_custom_group_regex($group, $regex)
+{
+	foreach(get_all_users_info() as $u)
+		if (0 < preg_match("/$regex/", $u->email))
+			add_user_to_group($u->username, $group);
+}
 
 
 /**

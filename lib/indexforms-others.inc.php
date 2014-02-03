@@ -171,6 +171,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.1.3</b>, 2014-02-03<br/>&nbsp;<br/>
+		Added bulk-add function for assigning users to groups <em>en masse</em>.
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.1.2</b>, 2014-01-31<br/>&nbsp;<br/>
 		Gave the admin control panel a spring-clean, and added a facility to monitor the PHP opcode cache.
 		Plus more bug fixes!

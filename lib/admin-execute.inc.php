@@ -180,6 +180,7 @@ switch($_GET['admFunction'])
 		require('../lib/execute.inc.php');
 		exit();
 		
+		
 	case 'newGroup':
 		$_GET['function'] = 'add_new_group';
 		$_GET['args'] = $_GET['groupToAdd'] . '#' . str_replace('#',"\xE2\x99\xAF",$_GET['newGroupDesc']) . '#' . $_GET['newGroupAutojoinRegex'];
@@ -193,7 +194,24 @@ switch($_GET['admFunction'])
 		$_GET['args'] = $_GET['groupToUpdate'] . '#' . str_replace('#',"\xE2\x99\xAF",$_GET['newGroupDesc']) . '#' . $_GET['newGroupAutojoinRegex'];
 		$_GET['locationAfter'] = 'index.php?thisF=groupAdmin&uT=y';
 		require('../lib/execute.inc.php');
-		exit();		
+		exit();
+
+
+	case 'groupRegexRerun':
+		$_GET['function'] = 'reapply_group_regex';
+		$_GET['args'] = $_GET['group'];
+		$_GET['locationAfter'] = 'index.php?thisF=groupMembership&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
+
+
+	case 'groupRegexApplyCustom':
+		$_GET['function'] = 'apply_custom_group_regex';
+		$_GET['args'] = $_GET['group'] . '#' . $_GET['regex'];
+		$_GET['locationAfter'] = 'index.php?thisF=groupMembership&uT=y';
+var_dump($_GET);
+		require('../lib/execute.inc.php');
+		exit();
 
 
 	case 'generateDefaultPrivileges':

@@ -1279,7 +1279,9 @@ function printquery_groupmembership()
 		</tr>
 	<?php
 	
-	foreach (get_list_of_groups() as $group)
+	$group_list = get_list_of_groups();
+	
+	foreach ($group_list as $group)
 	{
 		echo '<tr>';
 		echo '<td class="concordgeneral"><strong>' . $group . '</strong></td>';
@@ -1342,13 +1344,94 @@ function printquery_groupmembership()
 	?>
 	</table>
 
+	<?php
+	
+	$g_opts = '';
+	
+	foreach ($group_list as $g)
+		if ($g != 'superusers' && $g != 'everybody')
+			$g_opts .= "\n\t\t\t\t\t\t<option value=\"$g\">$g</option>\n";
+	
+	?>
+
 	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable">
+			<th colspan="2" class="concordtable">
 				Bulk Add:
 				<br/>
 				<em>Add users to group by email address pattern-match</em>
 			</th>
+		<tr>
+			<form action="index.php" method="get">
+				<td class="concordgrey" width="50%">
+					<p>&nbsp;</p>
+					
+					<p>
+						Apply group's stored pattern-match to existing users
+						<br/>&nbsp;<br/>
+						<i>by default, the group auto-add regex only applies to <u>new</u>
+						accounts; this function adds any existing users whose emails match
+						that regex to the group in question.</i>
+					</p>
+					
+					<p>&nbsp;</p>
+				</td>
+				<td class="concordgeneral">
+					<p>&nbsp;</p>
+					
+					<p>Select group:</p>
+					
+					<select name="group">
+						<option value="">[Select a group...]</option>
+						<?php echo $g_opts; ?>
+
+					</select>
+					
+					<br/>&nbsp;<br/>
+					
+					<input type="submit" value="Click here to run group regex against existing users" />
+					
+					<p>&nbsp;</p>
+				</td>
+				<input type="hidden" name="admFunction" value="groupRegexRerun" />
+				<input type="hidden" name="uT" value="y" />
+			</form>
+		</tr>
+		<tr>
+			<form action="index.php" method="get">
+				<td class="concordgrey">
+					<p>&nbsp;</p>
+					
+					<p>Apply one-off custom regex to all existing users:</p>
+					
+					<p>&nbsp;</p>
+				</td>
+				<td class="concordgeneral">
+					<p>&nbsp;</p>
+					
+					<p>Select group:</p>
+					
+					<select name="group">
+						<option value="">[Select a group...]</option>
+						<?php echo $g_opts; ?>
+											
+					</select>
+					
+					<p>Enter the regex to apply:</p>
+					
+					<input type="text" maxlength="255" size="50" name="regex" />
+					
+					<br/>&nbsp;<br/>
+					
+					<input type="submit" value="Click here to add all users matching this regex to the group specified" />
+					
+					<p>&nbsp;</p>
+				</td>
+				<input type="hidden" name="admFunction" value="groupRegexApplyCustom" />
+				<input type="hidden" name="uT" value="y" />
+			</form>
+		</tr>
+		<!--
 		<tr>
 			<td class="concordgrey">
 				<p>&nbsp;</p>
@@ -1358,6 +1441,8 @@ function printquery_groupmembership()
 				<p>&nbsp;</p>
 			</td>
 		</tr>
+		-->
+	</table>
 	<?php
 	
 	//TODO : bulk add users
