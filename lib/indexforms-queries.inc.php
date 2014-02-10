@@ -91,7 +91,7 @@ function printquery_search()
 							</option>
 						</select>
 						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-						<a target="_blank" href="../doc/Simple_query_language.pdf"
+						<a target="_blank" href="../doc/cqpweb-simple-syntax-help.pdf"
 							onmouseover="return escape('How to compose a search using the Simple Query language')">
 							Simple query language syntax
 						</a>
