@@ -612,12 +612,12 @@ function print_sc_define_text_id()
 
 function print_sc_showsubcorpora()
 {
-	global $username;
+	global $User;
 	global $default_history_per_page;	/* the same variable used for query history is used here */
 	global $collocation_disallow_cutoff;
 	global $corpus_sql_name;
 
-	if (user_is_superuser($username))
+	if ($User->is_admin())
 	{
 		// 	TODO -- "Show subcorpora of all users"	link in title bar
 	}
@@ -639,7 +639,7 @@ function print_sc_showsubcorpora()
 
 
 		$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
-			where corpus = '$corpus_sql_name' and user = '$username' order by subcorpus_name";
+			where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
 		$result = do_mysql_query($sql_query);
 				
 		$subcorpora_with_freqtables = list_freqtabled_subcorpora();

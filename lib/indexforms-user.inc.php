@@ -33,7 +33,7 @@
 
 
 
-function printquery_accessdenied()
+function printscreen_accessdenied()
 {
 	?>
 	<table class="concordtable" width="100%">
@@ -46,7 +46,7 @@ function printquery_accessdenied()
 			<td class="concordgeneral">
 				<p>&nbsp;</p>
 				<p>
-					You do not have the necessarily privileges to access the corpus 
+					You do not have the necessary privileges to access the corpus 
 					<b><?php echo cqpweb_htmlspecialchars(isset($_GET['corpusDenied']) ? $_GET['corpusDenied'] : ''); ?></b>.
 				</p>
 				<p>&nbsp;</p>
@@ -180,6 +180,19 @@ function printscreen_logout()
 function printscreen_create()
 {
 	global $Config;
+	
+	/**
+	 * If we are returning from a failed CAPTCHA, we should put several of the values into the slots.
+	 */
+	if (isset($_GET['captchaFail']))
+	{
+		$prepop = new stdClass();
+		foreach (array('newUsername', 'newEmail', 'realName', 'affiliation', 'country') as $x)
+			$prepop->$x = isset($_GET[$x]) ? cqpweb_htmlspecialchars($_GET[$x]) : '';
+	}
+	else
+		$prepop = false;
+	
 
 	if (!$Config->allow_account_self_registration)
 	{
@@ -228,13 +241,34 @@ function printscreen_create()
 				<br/>&nbsp;
 			</td>
 		</tr>
+		<?php
+		if ($prepop)
+		{
+			?>
+			<tr>
+				<td class="concorderror" colspan="2">
+					&nbsp;<br/>
+					You failed the human-being test; please try again.
+					<br/>&nbsp;<br/>
+					Note: you will need to re-enter your chosen password.
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<?php
+		}
+		?>
 		<form action="redirect.php" method="POST">
 			<tr>
 				<td class="concordgeneral">
 					Enter your chosen username:
 				</td>
 				<td class="concordgeneral">
-					<input type="text" size="30" maxlength="30" name="newUsername" />
+					<input type="text" size="30" maxlength="30" name="newUsername" 
+					<?php
+					if ($prepop)
+						echo " value=\"{$prepop->newUsername}\" ";
+					?>
+					/>
 				</td>
 			</tr>
 			<tr>
@@ -276,9 +310,39 @@ function printscreen_create()
 					<em>Note that this cannot be changed later!</em>
 				</td>
 				<td class="concordgeneral">
-					<input type="text" size="30" maxlength="255" name="newEmail" />
+					<input type="text" size="30" maxlength="255" name="newEmail"
+					<?php
+					if ($prepop)
+						echo " value=\"{$prepop->newEmail}\" ";
+					?>
+					/>
 				</td>
 			</tr>
+			<?php
+			
+			if ($Config->account_create_captcha)
+			{
+				$captcha_code = create_new_captcha();
+				$params = "redirect=captchaImage&which=$captcha_code&uT=y&cacheblock=" . uniqid();
+				?>
+				<tr>
+					<td class="concordgeneral">
+						Type in the 6 characters from the picture to prove you are a human being:
+					</td>
+					<td class="concordgeneral">
+						<script type="text/javascript" src="../jsc/captcha.js"></script>
+						<img id="captchaImg" src="../usr/redirect.php?<?php echo $params; ?>" />
+						<br/>
+						<a onClick="refresh_captcha()" class="menuItem">[Too hard? Click for another]</a>
+						<br/>
+						<input type="text" size="30" maxlength="10" name="captchaResponse" />
+					</td>
+				</tr>
+				<input id="captchaRef" type="hidden" name="captchaRef" value="<?php echo $captcha_code; ?>" />
+				<?php
+			}
+			
+			?>
 			<tr>
 				<td class="concordgrey" colspan="2">
 					&nbsp;<br/>
@@ -293,7 +357,12 @@ function printscreen_create()
 					Please enter your real name:
 				</td>
 				<td class="concordgeneral">
-					<input type="text" size="30" maxlength="255" name="realName" />
+					<input type="text" size="30" maxlength="255" name="realName" 
+					<?php
+					if ($prepop)
+						echo " value=\"{$prepop->realName}\" ";
+					?>
+					/>
 				</td>
 			</tr>
 			<tr>
@@ -303,7 +372,12 @@ function printscreen_create()
 					<em>(a company, university or other body that you are associated with)</em>
 				</td>
 				<td class="concordgeneral">
-					<input type="text" size="30" maxlength="255" name="affiliation" />
+					<input type="text" size="30" maxlength="255" name="affiliation" 
+					<?php
+					if ($prepop)
+						echo " value=\"{$prepop->affiliation}\" ";
+					?>
+					/>
 				</td>
 			</tr>
 			<tr>
@@ -314,10 +388,18 @@ function printscreen_create()
 					<select name="country">
 						<option selected="selected" value="00">Prefer not to specify</option>
 						<?php
+						if ( (! $prepop) || '00' == $prepop->country)
+							echo '<option selected="selected" value="00">Prefer not to specify</option>', "\n";
+						else
+							echo '<option selected="selected" value="00">Prefer not to specify</option>, "\n"';				
 						unset($Config->iso31661['00']);
 						foreach($Config->iso31661 as $code => $country)
-							echo "\t\t\t\t\t\t<option value=\"$code\">$country</option>\n";
-						
+						{
+							if ($prepop && $code == $prepop->country)
+								echo "\t\t\t\t\t\t<option selected=\"selected\" value=\"$code\">$country</option>\n";
+							else
+								echo "\t\t\t\t\t\t<option value=\"$code\">$country</option>\n";
+						}
 						?>
 					</select>
 				</td>

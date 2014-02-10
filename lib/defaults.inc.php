@@ -85,6 +85,17 @@ if (!isset($cqpweb_email_from_address))
 if (!isset($allow_account_self_registration))
 	$allow_account_self_registration = ( ! $cqpweb_no_internet );
 
+if (!isset($account_create_contact))
+	$account_create_contact = '';
+
+if (!isset($account_create_captcha))
+	$account_create_captcha = true;
+/* override captcha setting if no gd extension */
+if (! extension_loaded('gd'))
+	$account_create_captcha = false;
+
+
+
 /* name for cookies stored in users' browsers */
 if (!isset($cqpweb_cookie_name))
 	$cqpweb_cookie_name = "CQPwebLogonToken";

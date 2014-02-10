@@ -220,6 +220,33 @@ case 'newUser':
 	
 	/* OK, all 3 things now collected, so we can call the sharp-end function... */
 
+	/* but first check for CAPTCHA, if not called from admin */
+	if ($Config->account_create_captcha && ! $script_called_from_admin)
+	{
+		if (!isset($_GET['captchaRef'], $_GET['captchaResponse']))
+			exiterror_general("Missing information: no response to the human being test received!!");
+		if (!check_captcha((int)$_GET['captchaRef'], $_GET['captchaResponse']))
+		{
+			/* instead of an error message, go back to a pre-filled create form. */
+			$prefill = array(
+				'thisQ'=>'create',
+				'captchaFail'=>'1',
+				'newUsername'=>$new_username,
+				'newEmail'=>$email
+				);
+			if (!empty($_GET['country']))
+				$prefill['country'] = $_GET['country'];
+			if (!empty($_GET['realName']))
+				$prefill['realName'] = $_GET['realName'];
+			if (!empty($_GET['affiliation']))
+				$prefill['affiliation'] = $_GET['affiliation'];
+			$prefill['uT'] = 'y';
+			$_GET = $prefill;
+			$next_location = 'index.php?' . url_printget();
+			break;
+		}
+	}
+
 	add_new_user($new_username, $password, $email);
 
 	/* which also, note, does the group regexen... */
@@ -276,6 +303,30 @@ case 'newUser':
 		$next_location = "index.php?thisF=showMessage&message=" . urlencode("User account '$new_username' has been created.") . "&uT=y";
 	else
 		$next_location = "index.php?extraMsg=" . urlencode("User account '$new_username' has been created.") . "&uT=y";
+	break;
+
+
+case 'captchaImage':
+	
+	/* this option is very different to all the others. All it does is write out a captcha image. */
+
+	/* we can't do anything unless we know which captcha has been asked for */
+	if (!isset($_GET['which']))
+		break;
+
+	$which = cqpweb_handle_enforce($_GET['which']);
+
+	send_captcha_image($which);
+
+	break;
+
+
+case 'ajaxNewCaptchaImage':
+
+	/* like the prev option, very different; just returns the code for a brand-new captcha. */
+	
+	echo create_new_captcha();
+	
 	break;
 
 

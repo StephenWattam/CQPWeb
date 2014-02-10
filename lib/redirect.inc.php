@@ -294,6 +294,8 @@ if (isset($_GET['redirect']))
 	case 'userLogin':
 	case 'userLogout':
 	case 'newUser':
+	case 'captchaImage':
+	case 'ajaxNewCaptchaImage':
 	case 'requestPasswordReset':
 	case 'resetUserPassword':
 	case 'resendVerifyEmail':

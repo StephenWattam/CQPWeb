@@ -430,6 +430,17 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 
 
 
+/**
+ * Wrapper around mysql_insert_id, to keep all the process-resource access in this library.
+ */
+function get_mysql_insert_id()
+{
+	global $mysql_link;
+	return mysql_insert_id($mysql_link);
+}
+
+
+
 /* 
  * the next two functions are really just for convenience
  */
@@ -775,8 +786,8 @@ function url_printget($changes = "Nope!")
 			if ($c[0] != '' && $c[1] != '')
 				$extra .= $c[0] . '=' . $c[1] . '&';
 		$string = $extra . $string;
-		
 	}
+	
 	return $string;
 }
 

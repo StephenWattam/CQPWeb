@@ -1483,4 +1483,244 @@ function user_macro_loadall($username)
 
 
 
+
+
+
+/* ***************** *
+ * CAPTCHA FUNCTIONS *
+ * ***************** */
+
+/**
+ * Returns true if the captcha in DB matches the response.
+ * Whether true or false, destroys the captcha.
+ */
+function check_captcha($which, $response)
+{
+	$which = (int) $which;
+	
+	$result = do_mysql_query('select captcha from user_captchas where id = ' . $which);
+	
+	if (mysql_num_rows($result) < 1) 
+		return false;
+	
+	list($correct) = mysql_fetch_row($result);
+	
+	do_mysql_query('delete from user_captchas where id = ' . $which);
+var_dump($correct);
+var_dump($response);
+	return ($correct == $response);
+}
+
+/**
+ * Puts a new captcha into the DB, and return its DB number (for reference)
+ */
+function create_new_captcha()
+{
+	global $Config;
+	static $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+=&!@:^123456789';
+
+	/* delete any captchas that are past their expiry time. */
+	$now = time();
+	do_mysql_query("delete from user_captchas where expiry_time < $now");
+	
+	/* create a new captcha from the alphabet above & store in the DB */
+	
+	for($i = 0, $n = 6, $l = strlen($alphabet)-1, $captcha = ''; $i < $n; $i++)
+		$captcha .= $alphabet[mt_rand(0, $l)];
+	
+	/* captchas expire after 30 mins */
+	$t = $now + 1800;
+	
+	do_mysql_query("insert into user_captchas (captcha, expiry_time) values ('$captcha', $t)");
+	
+	/* we get back the ID, which is our reference number, & return it */
+	return get_mysql_insert_id();
+}
+
+/**
+ * Sends to the browser the binary data of an image for the captcha in question.
+ */
+function send_captcha_image($which)
+{
+	static $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+=!@;:^0123456789';
+	
+	/* parameters used by all algorithms */
+	$font = realpath('../css/img/LinLibertine_Mah.ttf');
+	$height = 100;
+	$width  = 240;
+	
+	$image = imagecreatetruecolor($width, $height);
+
+	
+	/* get the capcha from DB; if not available, put error message on image */
+	
+	$which = (int)$which;
+	
+	$result = do_mysql_query('select captcha from user_captchas where id=' . $which);
+
+	if (mysql_num_rows($result) < 1)
+	{
+		$image = imagecreatetruecolor($width, $height);		
+		$bgcol   = imagecolorallocate($image, 255, 255, 255);
+		$textcol = imagecolorallocate($image, 0, 0, 0);
+		imagefill($image, 0, 0, $bgcol);
+		imagettftext($image, 12, 0, 15, 15, $textcol, $font, 'Error: pls retry');
+		header("Content-Type: image/jpeg");
+		imagejpeg($image); 
+		imagedestroy($image);
+		return;
+	}
+	
+	list($captcha) = mysql_fetch_row($result);
+
+
+	/* three different image algorithms, to mix up the kinds of captcha people see */
+	
+	switch (mt_rand(0,2))
+	{
+	case 0:
+	
+		/* COLOURFUL */
+		
+		$bgcol   = imagecolorallocate($image, mt_rand(0,100),  mt_rand(0,100),  mt_rand(0,100));
+		$textcol = imagecolorallocate($image ,mt_rand(200,255),mt_rand(80,255), mt_rand(100,200));
+
+		imagefill($image, 0, 0, $bgcol);
+
+		$fs = mt_rand(20,45);
+		$x = mt_rand(5,20);
+		$y = mt_rand(45,75);
+		
+		for ($i = 0 ; $i < 6 ; $i++)
+		{
+			$angle = mt_rand(-12,12);
+			
+			imagettftext($image, 
+				$fs,           /* font size */
+				$angle,          /* angle */
+				$x,            /* x basepoint */
+				$y,           /* y basepoint */
+				$textcol,
+				$font,
+				$captcha[$i]);
+
+			$x += $fs - mt_rand(0,$fs-(int)($fs/2));
+			$y += ($angle > 0 ? 1 : -1) * mt_rand(0,10);
+			$fs += mt_rand(-5,5);
+			if ($fs < 16)
+				$fs = $fs + 8;
+			if ($fs > 45)
+				$fs = $fs - 8;
+		}
+
+		for($x = 0, $n = mt_rand(10,17); $x < $n ; $x++)
+			imageline($image, 0, mt_rand(0,$height), $width, 10 + mt_rand(0,$height), $textcol);
+
+		break;
+		
+	case 1:
+	
+		/* GREY ON WHITE */
+	
+		$bgcol   = imagecolorallocate($image, 255, 255, 255);
+		$textcol = imagecolorallocate($image, 150, 150, 150);
+
+		imagefill($image, 0, 0, $bgcol);
+		
+		for($x = 1; $x <= 40; $x++)
+			imageline($image, mt_rand(1, $width), mt_rand(1, $height), mt_rand(1, $width), mt_rand(1, $height), $textcol);
+
+		$fs = mt_rand(20,56);
+		$x = mt_rand(10,15);
+		$y = mt_rand(45,70);
+		
+		for ($i = 0 ; $i < 6 ; $i++)
+		{
+			$angle = mt_rand(-4,4);
+			
+			imagettftext($image, 
+				$fs,           /* font size */
+				$angle,          /* angle */
+				$x,            /* x basepoint */
+				$y,           /* y basepoint */
+				$textcol,
+				$font,
+				$captcha[$i]);
+
+			$x += $fs - mt_rand(0,$fs-(int)($fs/2));
+			$y += ($angle > 0 ? 1 : -1) * mt_rand(0,10);
+			$fs += mt_rand(-5,5);
+			if ($fs < 20)
+				$fs = $fs + 8;
+			if ($fs > 56)
+				$fs = $fs - 8;
+		}
+
+		break;		
+
+	
+	case 2:
+	
+		/* BLUE WITH DOTTY BACKGROUND */
+	
+		$font_size = $height * 0.40; 
+
+		/* set the colours */ 
+		$bgcol    = imagecolorallocate($image, 255, 255, 255);
+		$textcol  = imagecolorallocate($image, 20, 40, 100); 
+		$noisecol = imagecolorallocate($image, 60, 80, 140); 
+
+		imagefill($image, 0, 0, $bgcol);
+		
+		/* random dots */ 
+		for($x = 0; $x < ($width*$height)/4; $x++ ) 
+			imagefilledellipse($image, mt_rand(0,$width), mt_rand(0,$height), 1, 1, $noisecol);
+		
+		/* random lines */ 
+		for($x = 0; $x < ($width*$height)/160 ; $x++ )
+			imageline($image, mt_rand(0,$width), mt_rand(0,$height), mt_rand(0,$width), mt_rand(0,$height), $noisecol);
+
+		$fs = $height * 0.40;
+		$x = ($width - mt_rand(($width - 20), ($width - 5)));
+		$y = ($height - mt_rand(0, (int)$height/2));
+		
+		for ($i = 0 ; $i < 6 ; $i++)
+		{
+			$angle = mt_rand(-4,4);
+			
+			imagettftext($image, 
+				$fs,           /* font size */
+				$angle,          /* angle */
+				$x,            /* x basepoint */
+				$y,           /* y basepoint */
+				$textcol,
+				$font,
+				$captcha[$i]);
+
+			$x += $fs - mt_rand(0,$fs-(int)($fs/2));
+			$y += ($angle > 0 ? 1 : -1) * mt_rand(0,10);
+			$fs += mt_rand(-5,5);
+			if ($fs < 20)
+				$fs = $fs + 8;
+			if ($fs > 56)
+				$fs = $fs - 8;
+		}
+
+		break;
+	}
+	
+	
+	/* send the image */
+	
+	header("Content-Type: image/jpeg");
+	imagejpeg($image); 
+	imagedestroy($image);
+}
+
+
+
+
+
+
+
 ?>

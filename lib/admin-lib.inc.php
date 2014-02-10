@@ -1491,6 +1491,14 @@ function cqpweb_mysql_recreate_tables()
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 
 
+	$create_statements['user_captchas'] = 
+		"CREATE TABLE `user_captchas` (
+			`id` bigint unsigned NOT NULL AUTO_INCREMENT,
+			`captcha` char(6),
+			`expiry_time` int unsigned,
+			primary key (`id`)
+	) CHARACTER SET utf8 COLLATE utf8_bin";
+
 	
 	$create_statements['user_cookie_tokens'] =
 		"CREATE TABLE `user_cookie_tokens` (
@@ -1529,7 +1537,7 @@ function cqpweb_mysql_recreate_tables()
 	$create_statements['user_info'] =
 		"CREATE TABLE `user_info` (
 			`id` int NOT NULL AUTO_INCREMENT,
-			`username` varchar(20) NOT NULL,
+			`username` varchar(30) charset utf8 collate utf8_bin NOT NULL,
 			`password` varchar(20) default NULL,
 			`realname` varchar(255) default NULL,
 			`email` varchar(255) default NULL,

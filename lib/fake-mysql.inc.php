@@ -192,6 +192,19 @@ function mysql_affected_rows($link_identifier = NULL)
 
 
 /**
+ * Fake MySQL get-insert-id function using MySQLi
+ */
+function mysql_insert_id($link_identifier = NULL) 
+{
+	if (!mysql_fake_force_link_set($link_identifier))
+		return false;	
+	
+	return mysqli_insert_id($link_identifier);
+}
+
+
+
+/**
  * Module-internal utility function. Returns Boolean (whether the link was successfully made).
  */
 function mysql_fake_force_link_set(&$link_identifier)

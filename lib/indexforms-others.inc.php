@@ -171,6 +171,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.1.4</b>, 2014-02-<br/>&nbsp;<br/>
+		Added CAPTCHA to account-creation process.
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.1.3</b>, 2014-02-03<br/>&nbsp;<br/>
 		Added bulk-add function for assigning users to groups <em>en masse</em>.
 		<br/>&nbsp;</li>

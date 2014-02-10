@@ -21,11 +21,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* adminhome.inc.php: this file contains the code that renders the various admin function controls */
+/**
+ * 
+ * @file
+ * 
+ *  adminhome.inc.php: this file contains the code that renders the various admin function controls 
+ * 
+ * 
+ */
 
-/* ------------ */
-/* BEGIN SCRIPT */
-/* ------------ */
+/* ------------ *
+ * BEGIN SCRIPT *
+ * ------------ */
 
 
 /* first, process the various "actions" that this script may be asked to perform */
@@ -439,9 +446,9 @@ echo print_html_footer();
 
 cqpweb_shutdown_environment();
 
-/* ------------- */
-/* END OF SCRIPT */
-/* ------------- */
+/* ------------- * 
+ * END OF SCRIPT * 
+ * ------------- */
 
 
 

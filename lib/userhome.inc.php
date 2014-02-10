@@ -192,7 +192,7 @@ if ($User->logged_in)
 	/* common cases... */
 	
 	case 'accessDenied':
-		printquery_accessdenied();
+		printscreen_accessdenied();
 		break;
 	
 	case 'who_the_hell':
@@ -252,7 +252,7 @@ else
 	/* common cases... (repeated code from above) */
 
 	case 'accessDenied':
-		printquery_accessdenied();
+		printscreen_accessdenied();
 		break;
 	
 	case 'who_the_hell':

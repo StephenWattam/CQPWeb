@@ -50,7 +50,7 @@ require ('../bin/cli-lib.php');
 /* VARS THAT NEED UPDATING EVERY TIME A NEW VERSION IS PILED ON */
 
 		/* the most recent database version: ie the last version whose release involved a DB change */
-		$last_changed_version = '3.1.0';
+		$last_changed_version = '3.1.4';
 		
 		/* 
 		 * versions where there is no change. Array of old_version => version that followed. 
@@ -132,7 +132,28 @@ function upgrade_db_version_from($oldv)
 }
 
 
-/* this one is the huge one ....... */
+/* 3.1.0->3.1.4 */
+function upgrade_3_1_0()
+{
+	$sql = array(
+		'alter table user_info modify column `username` varchar(30) charset utf8 collate utf8_bin NOT NULL',
+		'CREATE TABLE `user_captchas` (
+		   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+		   `captcha` char(6),
+		   `expiry_time` int unsigned,
+		   primary key (`id`)
+		 ) CHARACTER SET utf8 COLLATE utf8_bin',
+	
+	);
+	foreach ($sql as $q)
+		do_mysql_query($q);
+	
+	/* do the very last DB change! */
+	do_mysql_query("update system_info set value = '3.1.4' where setting_name = 'db_version'");
+}
+
+
+/* this one is the huge one ....... 3.0.16->3.1.0*/
 function upgrade_3_0_16()
 {
 	/* first, the pre-amendments from v 3.0.15 */
