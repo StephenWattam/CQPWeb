@@ -363,18 +363,18 @@ function printquery_installcorpus_unindexed()
 		</table>
 		<table class="concordtable" width="100%" id="annotation_table">
 			<tr>
-				<th  colspan="6" class="concordtable">
+				<th  colspan="7" class="concordtable">
 					Define corpus annotation
 				</th>
 			</tr>
 			<tr>
-				<td  colspan="6" class="concordgrey">
+				<td  colspan="7" class="concordgrey">
 					You do not need to specify the <em>word</em> as a P-attribute or the <em>text</em> as
 					an S-attribute. Both are assumed and added automatically.
 				</td>
 			</tr>
 			<tr>
-				<th colspan="6" class="concordtable">S-attributes (XML elements)</th>
+				<th colspan="7" class="concordtable">S-attributes (XML elements)</th>
 			</tr>
 			<tr id="s_att_row_1">
 				<td rowspan="6" class="concordgeneral" id="s_instruction_cell">
@@ -393,7 +393,7 @@ function printquery_installcorpus_unindexed()
 				foreach(array(1,2,3,4,5,6) as $q)
 				{
 					if ($q != 1) echo '<tr>';
-					echo "<td colspan=\"5\"align=\"center\" class=\"concordgeneral\">
+					echo "<td colspan=\"6\"align=\"center\" class=\"concordgeneral\">
 							<input type=\"text\" name=\"customS$q\"  onKeyUp=\"check_c_word(this)\"/>
 						</td>
 					</tr>
@@ -403,7 +403,7 @@ function printquery_installcorpus_unindexed()
 
 			<!--/tr-->
 			<tr id="p_att_header_row">
-				<th colspan="6" class="concordtable">P-attributes (word tags)</th>
+				<th colspan="7" class="concordtable">P-attributes (word annotation)</th>
 			</tr>
 			<tr id="p_att_row_1">
 				<td rowspan="7" class="concordgeneral" id="p_instruction_cell">
@@ -423,6 +423,7 @@ function printquery_installcorpus_unindexed()
 				<td class="concordgrey" align="center">Description</td>
 				<td class="concordgrey" align="center">Tagset</td>
 				<td class="concordgrey" align="center">External URL</td>
+				<td class="concordgrey" align="center">Feature set?</td>
 			</tr>
 			<?php 
 			foreach(array(1,2,3,4,5,6) as $q)
@@ -442,6 +443,9 @@ function printquery_installcorpus_unindexed()
 					</td>
 					<td align=\"center\" class=\"concordgeneral\">
 						<input type=\"text\" maxlength=\"150\" name=\"customPurl$q\" />
+					</td>
+					<td align=\"center\" class=\"concordgeneral\">
+						<input type=\"checkbox\" name=\"customPfs$q\"  value=\"1\"/>
 					</td>
 				</tr>";
 			}

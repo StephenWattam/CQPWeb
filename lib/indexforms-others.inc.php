@@ -171,7 +171,7 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
-		<b>Version 3.1.4</b>, 2014-02-<br/>&nbsp;<br/>
+		<b>Version 3.1.4</b>, 2014-02-11<br/>&nbsp;<br/>
 		Added CAPTCHA to account-creation process.
 		<br/>&nbsp;</li>
 

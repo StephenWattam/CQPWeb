@@ -272,22 +272,22 @@ class corpus_install_info
 			$this->p_attributes[] = 'pos';
 			$this->p_attributes_mysql_insert[] 
 				= $this->get_p_att_mysql_insert('pos', 'Part-of-speech tag', 'CLAWS7 Tagset', 
-				'http://ucrel.lancs.ac.uk/claws7tags.html');
+				'http://ucrel.lancs.ac.uk/claws7tags.html', 0);
 			$this->p_attributes[] = 'hw';
 			$this->p_attributes_mysql_insert[] 
-				= $this->get_p_att_mysql_insert('hw', 'Lemma', 'Lemma', '');
+				= $this->get_p_att_mysql_insert('hw', 'Lemma', 'Lemma', '', 0);
 			$this->p_attributes[] = 'semtag';
 			$this->p_attributes_mysql_insert[] 
 				= $this->get_p_att_mysql_insert('semtag', 'Semantic tag', 'USAS Tagset', 
-				'http://ucrel.lancs.ac.uk/usas/');
+				'http://ucrel.lancs.ac.uk/usas/', 0);
 			$this->p_attributes[] = 'class';
 			$this->p_attributes_mysql_insert[] 
 				= $this->get_p_att_mysql_insert('class', 'Simple tag', 'Oxford Simplified Tags', 
-				'http://www.natcorp.ox.ac.uk/XMLedition/URG/codes.html#klettpos');
+				'http://www.natcorp.ox.ac.uk/XMLedition/URG/codes.html#klettpos', 0);
 			$this->p_attributes[] = 'lemma';
 			$this->p_attributes_mysql_insert[] 
 				= $this->get_p_att_mysql_insert('lemma', 'Tagged lemma', 'Lemma/OST', 
-				'http://www.natcorp.ox.ac.uk/XMLedition/URG/codes.html#klettpos');
+				'http://www.natcorp.ox.ac.uk/XMLedition/URG/codes.html#klettpos', 0);
 			
 			$this->primary_p_attribute = 'pos';
 			
@@ -302,19 +302,28 @@ class corpus_install_info
 		{
 			for ( $q = 1 ; isset($_GET["customPHandle$q"]) ; $q++ )
 			{
+				// TODO: use handle enforce?
 				$cand = preg_replace('/\W/', '', $_GET["customPHandle$q"]);
 				if ($cand === '')
 					continue;
 				else
 				{
-					//TODO need to add / to cwb-encode command line input string if it's a featureset.
-					$this->p_attributes[] = $cand;
+					if (isset($_GET["customPfs$q"] ) && $_GET["customPfs$q"] === '1')
+					{
+						$cand .= '/';
+						$fs = 1;
+					}
+					else
+						$fs = 0;
 	
+					$this->p_attributes[] = $cand;
+					
 					$this->p_attributes_mysql_insert[] = $this->get_p_att_mysql_insert(
 						$cand, 
 						mysql_real_escape_string($_GET["customPDesc$q"]), 
 						mysql_real_escape_string($_GET["customPTagset$q"]), 
-						mysql_real_escape_string($_GET["customPurl$q"]));
+						mysql_real_escape_string($_GET["customPurl$q"]),
+						$fs );
 				}
 			}
 			
@@ -339,12 +348,12 @@ class corpus_install_info
 
 
 	
-	private function get_p_att_mysql_insert($tag_handle, $description, $tagset, $url)
+	private function get_p_att_mysql_insert($tag_handle, $description, $tagset, $url, $feature_set)
 	{
 		/* assumes everything alreadey made safe with mysql_real_escape_string or equiv */
 		return
-			"insert into annotation_metadata (corpus, handle, description, tagset, external_url) values 
-			('{$this->corpus_mysql_name}', '$tag_handle', '$description', '$tagset', '$url')";
+			"insert into annotation_metadata (corpus, handle, description, tagset, external_url, is_feature_set) values 
+			('{$this->corpus_mysql_name}', '$tag_handle', '$description', '$tagset', '$url', is_feature_set)";
 	}
 
 }/* end class (corpus_install_info) */

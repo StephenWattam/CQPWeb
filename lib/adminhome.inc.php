@@ -177,6 +177,16 @@ function add_p_attribute_row()
 	theTd.appendChild(theIn);
 	theTr.appendChild(theTd);
 	
+	theTd = document.createElement('td');
+	theIn = document.createElement('input');
+	theTd.setAttribute('align','center');
+	theTd.setAttribute('class','concordgeneral');
+	theIn.setAttribute('type','checkbox');
+	theIn.setAttribute('value','1');
+	theIn.setAttribute('name','customPfs'+number);
+	theTd.appendChild(theIn);
+	theTr.appendChild(theTd);
+	
 	document.getElementById('p_att_row_1').parentNode.appendChild(theTr);
 }
 //-->
