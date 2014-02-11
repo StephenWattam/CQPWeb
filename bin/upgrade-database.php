@@ -143,7 +143,20 @@ function upgrade_3_1_0()
 		   `expiry_time` int unsigned,
 		   primary key (`id`)
 		 ) CHARACTER SET utf8 COLLATE utf8_bin',
-	
+		'alter table `annotation_metadata` add column `is_feature_set` tinyint(1) NOT NULL default 0 AFTER `description`',
+		'CREATE TABLE `annotation_template_content` (
+			`template_id` int unsigned NOT NULL,
+			`handle` varchar(20) NOT NULL,
+			`description` varchar(255) default NULL,
+			`is_feature_set` tinyint(1) NOT NULL default 0,
+			`tagset` varchar(255) default NULL,
+			`external_url` varchar(255) default NULL
+		) CHARACTER SET utf8 COLLATE utf8_general_ci',
+		'CREATE TABLE `annotation_template_info` (
+			`id` int unsigned NOT NULL AUTO_INCREMENT,
+			`description` varchar(255) default NULL,
+			PRIMARY KEY (`id`)
+		) CHARACTER SET utf8 COLLATE utf8_general_ci'
 	);
 	foreach ($sql as $q)
 		do_mysql_query($q);
