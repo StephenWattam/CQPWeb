@@ -319,7 +319,7 @@ class corpus_install_info
 					$this->p_attributes[] = $cand;
 					
 					$this->p_attributes_mysql_insert[] = $this->get_p_att_mysql_insert(
-						$cand, 
+						str_replace('/', '', $cand), 
 						mysql_real_escape_string($_GET["customPDesc$q"]), 
 						mysql_real_escape_string($_GET["customPTagset$q"]), 
 						mysql_real_escape_string($_GET["customPurl$q"]),

@@ -82,7 +82,6 @@ function connect_global_cqp()
 	global $Config;
 	global $cqp;
 	global $corpus_cqp_name;
-	global $print_debug_messages;
 
 	/* connect to CQP */
 	$cqp = new CQP($Config->path_to_cwb, $Config->dir->registry);
@@ -94,7 +93,7 @@ function connect_global_cqp()
 	$cqp->set_corpus($corpus_cqp_name);
 	/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
 	
-	if ($print_debug_messages)
+	if ($Config->print_debug_messages)
 		$cqp->set_debug_mode(true);
 }
 
@@ -141,11 +140,14 @@ function refresh_directory_global_cqp()
 function connect_global_mysql()
 {
 	global $mysql_link;
+	global $Config;
+	/*
 	global $mysql_server;
 	global $mysql_webuser;
 	global $mysql_webpass;
 	global $mysql_schema;
 	global $mysql_utf8_set_required;
+	*/
 	
 	/* check for previous connection */
 	if ( is_resource($mysql_link) )
@@ -156,22 +158,21 @@ function connect_global_mysql()
 	 * is deactivated at the mysqld end, e.g. by my.cnf, this won't help, but 
 	 * won't hurt either.) 
 	 */ 
-	$mysql_link = mysql_connect($mysql_server, $mysql_webuser, $mysql_webpass, false, 128);
+	$mysql_link = mysql_connect($Config->mysql_server, $Config->mysql_webuser, $Config->mysql_webpass, false, 128);
 	/* Note, in theory there are performance gains to be had by using a 
 	 * persistent connection. However, current judgement is that the risk
-	 * of problems is too great to justify doing so, due to the use of SET
-	 * NAMES on some corpora but not all, and other uncertainties. MySQLi
-	 * does link cleanup so if ever we shift over to that, persistent 
+	 * of problems is too great to justify doing so. MySQLi does
+	 * link cleanup so once most people are using that, persistent 
 	 * connections are more likely to be useful.
 	 */
 	
 	if (! $mysql_link)
 		exiterror_general('MySQL did not connect - please try again later!');
 	
-	mysql_select_db($mysql_schema, $mysql_link);
+	mysql_select_db($Config->mysql_schema, $mysql_link);
 	
 	/* utf-8 setting is dependent on a variable defined in config.inc.php */
-	if ($mysql_utf8_set_required)
+	if ($Config->mysql_utf8_set_required)
 		mysql_set_charset("utf8", $mysql_link);
 }
 /**
@@ -260,10 +261,10 @@ function do_mysql_query($sql_query)
  */
 function do_mysql_outfile_query($query, $filename)
 {
-	global $mysql_has_file_access;
+	global $Config;
 	global $mysql_link;
 	
-	if ($mysql_has_file_access)
+	if ($Config->mysql_has_file_access)
 	{
 		/* We should use INTO OUTFILE */
 		
@@ -332,8 +333,9 @@ function do_mysql_outfile_query($query, $filename)
  */
 function do_mysql_infile_query($table, $filename, $no_escapes = false)
 {
-	global $mysql_infile_disabled;
-	global $mysql_LOAD_DATA_INFILE_command;
+	global $Config;
+//	global $mysql_infile_disabled;
+//	global $mysql_LOAD_DATA_INFILE_command;
 	
 	/* check variables */
 	if (! is_file($filename))
@@ -342,11 +344,11 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 	
 	/* massive if/else: overall two branches. */
 	
-	if (! $mysql_infile_disabled)
+	if (! $Config->mysql_infile_disabled)
 	{
 		/* the normal sensible way */
 		
-		$sql = "$mysql_LOAD_DATA_INFILE_command '$filename' INTO TABLE $table";
+		$sql = "{$Config->mysql_LOAD_DATA_INFILE_command} '$filename' INTO TABLE $table";
 		if ($no_escapes)
 			$sql .= ' FIELDS ESCAPED BY \'\'';
 		
@@ -355,8 +357,6 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 	else
 	{
 		/* the nasty hacky workaround way */
-		
-//		exiterror_general("MySQL workaround not built yet!", __SCRIPT__, __LINE__);
 		
 		/* first we need to find out about the table ... */
 		$fields = array();
@@ -468,10 +468,8 @@ function database_enable_keys($table)
  */
 function get_cwb_memory_limit()
 {
-	global $cwb_max_ram_usage;
-	global $cwb_max_ram_usage_cli;
-	
-	return ((php_sapi_name() == 'cli') ? $cwb_max_ram_usage_cli : $cwb_max_ram_usage);
+	global $Config;
+	return ((php_sapi_name() == 'cli') ? $Config->cwb_max_ram_usage_cli : $Config->cwb_max_ram_usage);
 }
 
 
@@ -488,12 +486,11 @@ function get_cwb_memory_limit()
  */
 function print_debug_message($message)
 {
-	global $debug_messages_textonly;
-	global $print_debug_messages;
+	global $Config;
 	
-	if ($print_debug_messages)
+	if ($Config->print_debug_messages)
 	{
-		if ($debug_messages_textonly)
+		if ($Config->debug_messages_textonly)
 			echo $message. "\n\n";
 		else
 			pre_echo($message);
@@ -852,6 +849,7 @@ function url_printinputs($changes = "Nope!")
 /* invalid values of $pp cause CQPweb to default back to $default_per_page  */
 function prepare_per_page($pp)
 {
+	// TODO is it possible to use $config here?
 	global $default_per_page;
 	
 	if ( is_string($pp) )
@@ -1127,11 +1125,11 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
  */
 function add_system_message($header, $content)
 {
-	global $instance_name;
+	global $Config;
 	$sql_query = "insert into system_messages set 
 		header = '" . mysql_real_escape_string($header) . "', 
 		content = '" . mysql_real_escape_string($content) . "', 
-		message_id = '$instance_name'";
+		message_id = '{$Config->instance_name}'";
 	/* timestamp is defaulted */
 	do_mysql_query($sql_query);
 }
@@ -1156,9 +1154,7 @@ function display_system_messages()
 {
 	global $User;
 	global $Config;
-	global $instance_name;
 	global $corpus_sql_name;
-	global $rss_feed_available;
 	
 	/* weeeeeelll, this is unfortunately complex! */
 	switch ($Config->run_location)
@@ -1199,7 +1195,7 @@ function display_system_messages()
 			<th colspan="<?php echo ($su ? 3 : 2) ; ?>" class="concordtable">
 				System messages 
 				<?php
-				if ($rss_feed_available)
+				if ($Config->rss_feed_available)
 				{
 					?>
 					<a href="<?php echo $rel_add;?>rss">
@@ -1326,16 +1322,18 @@ function recursive_copy_directory($from, $to)
  */
 function longvalue_store($value)
 {
-	global $instance_name;
+	global $Config;	
+	// TODO do not use instance name, as there might be more than one longvalue per call.
+	// use something based on instance name but guarantee its uniqueness.
 	
 	/* clear out old longvalues */
 	do_mysql_query("delete from system_longvalues where timestamp < DATE_SUB(NOW(), INTERVAL 5 DAY)");
 	
 	$value = mysql_real_escape_string($value);
 	
-	do_mysql_query("insert into system_longvalues (id, value) values ('$instance_name', '$value')");
+	do_mysql_query("insert into system_longvalues (id, value) values ('{$Config->instance_name}', '$value')");
 
-	return $instance_name;
+	return $Config->instance_name;
 }
 
 
@@ -1400,7 +1398,6 @@ function send_cqpweb_email($address_to, $mail_subject, $mail_content, $extra_hea
 
 
 // TODO move these to plugins.inc.php?
-// TODO can we remoev the if ! empty call? or is it needed for the case where no registry exists?
 
 /** Returns an object from the plugin registry, or else false if not found. */
 function retrieve_plugin_info($class)

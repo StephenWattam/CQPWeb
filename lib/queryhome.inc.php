@@ -46,7 +46,6 @@
 
 
 
-/* initialise variables from settings files  */
 require_once('../lib/environment.inc.php');
 
 

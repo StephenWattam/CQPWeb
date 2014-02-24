@@ -538,7 +538,7 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS, $run_locat
 
 	// TODO, move into here setting the HTTP response headers, charset and the like???
 	// (make dependent on whether we are writing plaintext or an HTML response?
-	// (do we want a flag CQPWEB_STARTUP_NONINTERACTIVE for when HTML response is NTO wanted?
+	// (do we want a flag CQPWEB_STARTUP_NONINTERACTIVE for when HTML response is NOT wanted?
 	
 	/* create global settings options */
 	$Config = new CQPwebEnvConfig($run_location);

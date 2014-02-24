@@ -184,7 +184,7 @@ if (!isset($corpus_cqp_name))
 	$corpus_cqp_name = ';';
 
 if (!isset($mysql_utf8_set_required))
-	$mysql_utf8_set_required = false;
+	$mysql_utf8_set_required = true;
 	
 /* the next defaults are for tweaks to the system -- not so much critical! */
 

@@ -192,7 +192,7 @@ function print_html_header($title, $css_url, $js_scripts = false)
 {
 	global $Config;
 	
-	/* also set the generic header (will only be sent when the header is echo'd, though */
+	/* also set the generic header (will only be sent when the header is echo'd, though) */
 	header('Content-Type: text/html; charset=utf-8');
 	
 	$s = "<html>\n<head>\n\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" >\n";

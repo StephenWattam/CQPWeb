@@ -442,10 +442,12 @@ function printquery_manageaccess()
 					
 					// TODO make user names links to the admin-user's User Overview page.
 					
+					natcasesort($all_users_allowed);
+					
 					for($i = 0, $n = count($all_users_allowed); $i < $n ; $i++)
 					{
 						echo "\n\t\t\t\t\t\t<td class=\"basicbox\">{$all_users_allowed[$i]}</td>";
-						if ( 0 == (($i+1) % 8) && ($i+1) != $n)
+						if ( 0 == (($i+1) % 8) && ($i+1) != $n )
 							echo "\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>";
 					}
 					

@@ -250,9 +250,67 @@ function printquery_installcorpus_indexed()
 }
 
 
+/**
+ * Returns string containing a form chunk that has in it the P-attribute definition form.
+ */
+function print_embiggenable_p_attribute_form($input_name_base)
+{
+	$html = <<<END
+
+			<tr id="p_att_row_1">
+				<td class="concordgrey" align="center">Primary?</td>
+				<td class="concordgrey" align="center">Handle</td>
+				<td class="concordgrey" align="center">Description</td>
+				<td class="concordgrey" align="center">Tagset</td>
+				<td class="concordgrey" align="center">External URL</td>
+				<td class="concordgrey" align="center">Feature set?</td>
+			</tr>
+END;
+	foreach(array(1,2,3,4,5,6) as $q)
+	{
+		$html .= "
+			<tr>
+				<td align=\"center\" class=\"concordgeneral\">
+					<input type=\"radio\" name=\"{$input_name_base}PPrimary\" value=\"$q\" />
+				</td>
+				<td align=\"center\" class=\"concordgeneral\">
+					<input type=\"text\" maxlength=\"15\" name=\"{$input_name_base}PHandle$q\" onKeyUp=\"check_c_word(this)\" />
+				</td>
+				<td align=\"center\" class=\"concordgeneral\">
+					<input type=\"text\" maxlength=\"150\" name=\"{$input_name_base}PDesc$q\" />
+				</td>
+				<td align=\"center\" class=\"concordgeneral\">
+					<input type=\"text\" maxlength=\"150\" name=\"{$input_name_base}PTagset$q\" />
+				</td>
+				<td align=\"center\" class=\"concordgeneral\">
+					<input type=\"text\" maxlength=\"150\" name=\"{$input_name_base}Purl$q\" />
+				</td>
+				<td align=\"center\" class=\"concordgeneral\">
+					<input type=\"checkbox\" name=\"{$input_name_base}Pfs$q\"  value=\"1\"/>
+				</td>
+			</tr>\n";
+	}
+	$html .= <<<END
+			<tr id="p_embiggen_button_row">
+				<td colspan="6" class="concordgrey" align="center">
+					&nbsp;<br/>
+					<a onClick="add_p_attribute_row()" class="menuItem">[Embiggen form]</a>
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<input type="hidden" name="pNumRows" id="pNumRows" value="6"/>
+			<input type="hidden" name="inputNameBase" id="inputNameBase" value="$input_name_base"/>
+END;
+
+	return $html;
+}
+
+
 function printquery_installcorpus_unindexed()
 {
 	global $Config;
+	
+	// TODO: add other 8-bit encodings.
 	
 	?>
 	<form action="index.php" method="GET">
@@ -300,7 +358,7 @@ function printquery_installcorpus_unindexed()
 					<br/>
 					<em>
 						(note that the character set in CQPweb is assumed to be UTF8 unless otherwise specifed)
-					</em> 
+					</em>
 				</td>
 				<td class="concordgeneral">
 					<input type="checkbox" name="corpus_encodeIsLatin1" value="1"/>
@@ -361,7 +419,7 @@ function printquery_installcorpus_unindexed()
 			}
 			?>
 		</table>
-		<table class="concordtable" width="100%" id="annotation_table">
+		<table class="concordtable" width="100%" id="annotation_table_second">
 			<tr>
 				<th  colspan="7" class="concordtable">
 					Define corpus annotation
@@ -373,8 +431,10 @@ function printquery_installcorpus_unindexed()
 					an S-attribute. Both are assumed and added automatically.
 				</td>
 			</tr>
+		</table>
+		<table class="concordtable" width="100%" id="annotation_table">
 			<tr>
-				<th colspan="7" class="concordtable">S-attributes (XML elements)</th>
+				<th colspan="2" class="concordtable">S-attributes (XML elements)</th>
 			</tr>
 			<tr id="s_att_row_1">
 				<td rowspan="6" class="concordgeneral" id="s_instruction_cell">
@@ -393,7 +453,7 @@ function printquery_installcorpus_unindexed()
 				foreach(array(1,2,3,4,5,6) as $q)
 				{
 					if ($q != 1) echo '<tr>';
-					echo "<td colspan=\"6\"align=\"center\" class=\"concordgeneral\">
+					echo "<td align=\"center\" class=\"concordgeneral\">
 							<input type=\"text\" name=\"customS$q\"  onKeyUp=\"check_c_word(this)\"/>
 						</td>
 					</tr>
@@ -401,55 +461,48 @@ function printquery_installcorpus_unindexed()
 				}
 				?>
 
-			<!--/tr-->
+		</table>
+		<table class="concordtable" width="100%" id="annotation_table_third">
 			<tr id="p_att_header_row">
-				<th colspan="7" class="concordtable">P-attributes (word annotation)</th>
+				<th colspan="6" class="concordtable">P-attributes (word annotation)</th>
 			</tr>
-			<tr id="p_att_row_1">
-				<td rowspan="7" class="concordgeneral" id="p_instruction_cell">
-					<input type="radio" name="withDefaultPs" value="1" checked="checked"/>
-					Use default setup for P-attributes (pos, hw, semtag, class, lemma)
-					<br/>
-					<input type="radio" name="withDefaultPs" value="0"/>
-					Use custom setup (specify attributes in the boxes opposite)
-					
-					<br/>&nbsp<br/>
-					<a onClick="add_p_attribute_row()" class="menuItem">
-						[Embiggen form]
-					</a>
+			
+			<tr>
+				<td colspan="6" class="concordgeneral" align="center">
+					<table width="100%">
+						<tr>
+							<td class="basicbox" width="50%">
+								&nbsp;<br/>
+								Choose annotation template
+								<br/>
+								<i>(or select "Custom annotation" and specify attributes in the boxes below)</i>
+								<br/>&nbsp;
+							</td>
+							<td class="basicbox" width="50%" align="center">
+							
+								<select name="useAnnotationTemplate">
+									<option value='~~customPs' selected="selected">Custom annotation</option>
+									
+									<?php
+									foreach (list_annotation_templates() as $t)
+										echo "\t\t\t\t\t\t<option value=\"{$t->id}\">{$t->description}</option>\n";
+									?>
+									
+								</select>
+							
+							</td>
+						</tr>
+					</table>
 				</td>
-				<td class="concordgrey" align="center">Primary?</td>
-				<td class="concordgrey" align="center">Handle</td>
-				<td class="concordgrey" align="center">Description</td>
-				<td class="concordgrey" align="center">Tagset</td>
-				<td class="concordgrey" align="center">External URL</td>
-				<td class="concordgrey" align="center">Feature set?</td>
 			</tr>
-			<?php 
-			foreach(array(1,2,3,4,5,6) as $q)
-			{
-				echo "<tr>
-					<td align=\"center\" class=\"concordgeneral\">
-						<input type=\"radio\" name=\"customPPrimary\" value=\"$q\" />
-					</td>
-					<td align=\"center\" class=\"concordgeneral\">
-						<input type=\"text\" maxlength=\"15\" name=\"customPHandle$q\" onKeyUp=\"check_c_word(this)\" />
-					</td>
-					<td align=\"center\" class=\"concordgeneral\">
-						<input type=\"text\" maxlength=\"150\" name=\"customPDesc$q\" />
-					</td>
-					<td align=\"center\" class=\"concordgeneral\">
-						<input type=\"text\" maxlength=\"150\" name=\"customPTagset$q\" />
-					</td>
-					<td align=\"center\" class=\"concordgeneral\">
-						<input type=\"text\" maxlength=\"150\" name=\"customPurl$q\" />
-					</td>
-					<td align=\"center\" class=\"concordgeneral\">
-						<input type=\"checkbox\" name=\"customPfs$q\"  value=\"1\"/>
-					</td>
-				</tr>";
-			}
-			?>
+			
+<?php
+
+
+		echo print_embiggenable_p_attribute_form('custom');
+		
+		?>
+
 		</table>
 		
 		<table class="concordtable" width="100%">
@@ -723,6 +776,168 @@ function printquery_corpuscategories()
 	</table>
 	
 	<?php
+}
+
+
+function printquery_annotationtemplates()
+{
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="8">
+				Manage annotation templates
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="8">
+				&nbsp;<br/>
+				An annotation template is a description of a predefined set of word-level annotations (p-attributes).
+				<br/>&nbsp;<br/>
+				You can use templates when indexing corpora instead of specifying the p-attribute information every time.
+				<br/>&nbsp;<br/>
+				Use the controls below to create and manage annotation templates.
+				<br/>&nbsp;
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable" colspan="8">
+				Currently-defined annotation templates
+			</th>
+		</tr>		
+		<tr>
+			<th class="concordtable">
+				ID
+			</th>
+			<th class="concordtable">
+				Description
+			</th>
+			<th class="concordtable" colspan="5">
+				Attributes (in order of columns left-to-right; [*] = primary)
+			</th>
+			<th class="concordtable">
+				Delete
+			</th>
+		</tr>
+		
+		<?php
+			
+		foreach(list_annotation_templates() as $template)
+		{
+			$rowspan = 1 + count($template->attributes);
+			echo "\n\t\t<tr>"
+				, "\n\t\t\t<td class=\"concordgeneral\" align=\"center\" rowspan=\"$rowspan\">{$template->id}</td>"
+				, "\n\t\t\t<td class=\"concordgeneral\" rowspan=\"$rowspan\">{$template->description}</td>\n"
+				, "\n\t\t\t", '<td class="concordgrey" align="center">N</td>'
+				, '<td class="concordgrey" align="center">Handle</td><td class="concordgrey" align="center">Description</td>'
+				, '<td class="concordgrey" align="center">Feature set?</td><td class="concordgrey" align="center">Tagset</td>'
+				, "\n\t\t\t<td class=\"concordgeneral\" align=\"center\" rowspan=\"$rowspan\">"
+				, "<a class=\"menuItem\" href=\"index.php?admFunction=deleteAnnotationTemplate&toDelete={$template->id}&uT=y\">[x]</a></td>"
+				, "\n\t\t</tr>"
+				;
+			
+			foreach($template->attributes as $k=>$att)
+			{
+				$star = ($att->handle == $template->primary_annotation ? ' [*] ' : '');
+				
+				$link = (empty($att->external_url) ? "{$att->tagset}" :"<a href=\"{$att->external_url}\" target=\"_blank\">{$att->tagset}</a>");
+					
+				echo "\n\t\t\t<td class=\"concordgeneral\" align=\"center\">{$att->order_in_template}</td>"
+					, "\n\t\t\t<td class=\"concordgeneral\">{$att->handle}$star</td>\n"
+					, "\n\t\t\t<td class=\"concordgeneral\">{$att->description}</td>\n"
+					, "\n\t\t\t<td class=\"concordgeneral\" align=\"center\">", ($att->is_feature_set ? 'Y' : 'N'), "</td>\n"
+					, "\n\t\t\t<td class=\"concordgeneral\">$link</td>\n"
+					, "\n\t\t</tr>"
+					;	
+			}
+		}
+			
+		?>
+		
+	</table>
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="6">
+				Add new annotation template
+			</th>
+		</tr>		
+		
+			<tr>
+				<td colspan="6" class="concordgeneral" align="center">
+					<table width="100%">
+						<tr>
+							<td class="basicbox" width="50%" align="center">
+								&nbsp;<br/>
+								Enter a description for your new template:
+								<br/>&nbsp;
+							</td>
+							<td class="basicbox" width="50%" align="center">
+							
+								<input type="text" name="newTemplateDescription" size="60" maxlength="255">
+							
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+
+		<form action="index.php" method="get">
+
+			<?php echo print_embiggenable_p_attribute_form('template'); ?>
+
+			<tr>
+				<td class="concordgeneral" colspan="6" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Click here to create annotation template"/>
+					<br/>&nbsp;
+				</td>
+			</tr>
+
+			<input type="hidden" name="admFunction" value="newAnnotationTemplate" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+	</table>
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="6">
+				Install default templates
+			</th>
+		</tr>		
+		<tr>
+			<td class="concordgrey">
+				&nbsp;<br/>
+				The default annotation templates describe commonly-used corpus annotation patterns 
+				(especially those generated by annotation tools created or used by the CWB/CQPweb developers).
+					<br/>&nbsp;
+			</td>
+		</tr>
+		<tr>
+			<form action="index.php" method="get">
+				<td class="concordgeneral" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Load built-in annotation templates" />
+					<br/>&nbsp;
+				</td>
+				<input type="hidden" name="admFunction" value="loadDefaultAnnotationTemplates" />
+				<input type="hidden" name="uT" value="y" />
+			</form>
+		</tr>
+	</table>
+	
+	<?php
+}
+
+
+function printquery_metadatatemplates()
+{
+	echo '<p class="errormessage">printquery_metadatatemplates: TODO</p>';
+}
+
+
+function printquery_xmltemplates()
+{
+	echo '<p class="errormessage">printquery_xmltemplates: TODO</p>';
 }
 
 

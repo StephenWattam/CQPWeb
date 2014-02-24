@@ -436,7 +436,6 @@ var_dump($_GET);
 			// Actually this is a lie. You can, should you really want to do something that bonkers.
 			// the problem is, rather, that then it can't be passed to execute.inc.php ,
 			// because hash is an argument separator.
-			// TODO: clean this up.
 			$_GET['function'] = 'exiterror_general';
 		}
 		else
@@ -445,6 +444,27 @@ var_dump($_GET);
 			$_GET['locationAfter'] = 'index.php?thisF=mappingTables&showExisting=1&uT=y';
 			$_GET['args'] = $_GET['newMappingTableId'].'#'.$_GET['newMappingTableName'].'#'.$_GET['newMappingTableCode'] ;
 		}
+		require('../lib/execute.inc.php');
+		exit();
+
+
+	case 'newAnnotationTemplate':
+		$_GET['function'] = 'interactive_load_annotation_template';
+		require('../lib/execute.inc.php');
+		exit();
+
+
+	case 'deleteAnnotationTemplate':
+		$_GET['function'] = 'delete_annotation_template';
+		$_GET['args'] = $_GET['toDelete'];
+		$_GET['locationAfter'] = 'index.php?thisF=annotationTemplates&uT=y';
+		require('../lib/execute.inc.php');
+		exit();
+
+
+	case 'loadDefaultAnnotationTemplates':
+		$_GET['function'] = 'load_default_annotation_templates';
+		$_GET['locationAfter'] = 'index.php?thisF=annotationTemplates&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
 

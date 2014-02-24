@@ -25,7 +25,7 @@
  * 
  * @file
  * 
- *  adminhome.inc.php: this file contains the code that renders the various admin function controls 
+ * adminhome.inc.php: this file contains the code that structures the HTML of the admin control panel.
  * 
  * 
  */
@@ -35,26 +35,29 @@
  * ------------ */
 
 
-/* first, process the various "actions" that this script may be asked to perform */
+/* first, process the various "actions" that the admin interface may be asked to perform */
 require('../lib/admin-execute.inc.php');
-/* note that the execute actions are zero-environment: they call either execute.inc.php 
- * or admin-do.inc.php, both of which build an environment, then redirect somewhere */
+/* 
+ * note that the execute actions are zero-environment: they call execute.inc.php 
+ * which builds an environment, then calls a function, then exits. 
+ */
 
 require('../lib/environment.inc.php');
 
 
 /* include function library files */
-require("../lib/library.inc.php");
+require('../lib/library.inc.php');
 require('../lib/html-lib.inc.php');
-require("../lib/admin-lib.inc.php");
-require("../lib/exiterror.inc.php");
-require("../lib/metadata.inc.php");
-require("../lib/ceql.inc.php");
-require("../lib/cqp.inc.php");
-require("../lib/user-lib.inc.php");
+require('../lib/admin-lib.inc.php');
+require('../lib/exiterror.inc.php');
+require('../lib/metadata.inc.php');
+require('../lib/ceql.inc.php');
+require('../lib/cqp.inc.php');
+require('../lib/user-lib.inc.php');
+require('../lib/templates.inc.php');
 
 /* and include, especially, the interface forms for this screen */
-require("../lib/indexforms-adminhome.inc.php");
+require('../lib/indexforms-adminhome.inc.php');
 
 
 cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST | CQPWEB_STARTUP_CHECK_ADMIN_USER, RUN_LOCATION_ADM);
@@ -68,130 +71,9 @@ $thisF = ( isset($_GET["thisF"]) ? $_GET["thisF"] : 'showCorpora' );
 
 
 
+echo print_html_header('CQPweb Admin Control Panel', $Config->css_path, array('cqpweb-clientside', 'corpus-name-highlight', 'attribute-embiggen'));
 
-
-/* before anything else... */
-header('Content-Type: text/html; charset=utf-8');
-
-
-// TODO move the raw .js out of here into a file. And use the html function.
 ?>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>CQPweb Admin Control Panel</title>
-<link rel="stylesheet" type="text/css" href="<?php echo $Config->css_path ;?>" />
-<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script>
-
-<!-- nonstandard header includes javascript for doodads specific to the admin-interface -->
-<script type="text/javascript">
-<!--
-// functions for corpus highlighting in main table
-function corpus_box_highlight_on(corpus)
-{
-	document.getElementById("corpusCell_"+corpus).className = "concorderror";
-}
-function corpus_box_highlight_off(corpus)
-{
-	document.getElementById("corpusCell_"+corpus).className = "concordgeneral";
-}
-// functions for adding extra lines to the "install corpus" forms
-function add_s_attribute_row()
-{
-	var number = document.getElementById('s_instruction_cell').rowSpan + 1;
-	document.getElementById('s_instruction_cell').rowSpan = number.toString();
-
-	var theTr = document.createElement('tr');
-	var theTd = document.createElement('td');
-	var theIn = document.createElement('input');
-	
-	theTd.setAttribute('colspan','5');
-	theTd.setAttribute('align','center');
-	theTd.setAttribute('class','concordgeneral');
-	theIn.setAttribute('type','text');
-	theIn.setAttribute('name','customS'+number);
-	theIn.setAttribute('onKeyUp','check_c_word(this)');
-	
-	theTr.appendChild(theTd);
-	theTd.appendChild(theIn);
-	
-	document.getElementById('s_att_row_1').parentNode.insertBefore(theTr,
-		document.getElementById('p_att_header_row'));
-}
-function add_p_attribute_row()
-{
-	var number = document.getElementById('p_instruction_cell').rowSpan;
-	var newRowSpan = number + 1;
-	document.getElementById('p_instruction_cell').rowSpan = newRowSpan.toString();
-
-	var theTr = document.createElement('tr');
-
-	var theTd = document.createElement('td');
-	var theIn = document.createElement('input');
-	theTd.setAttribute('align','center');
-	theTd.setAttribute('class','concordgeneral');
-	theIn.setAttribute('type','radio');
-	theIn.setAttribute('name','customPPrimary');
-	theIn.value = number;
-	theTd.appendChild(theIn);
-	theTr.appendChild(theTd);
-	
-	theTd = document.createElement('td');
-	theIn = document.createElement('input');
-	theTd.setAttribute('align','center');
-	theTd.setAttribute('class','concordgeneral');
-	theIn.setAttribute('type','text');
-	theIn.setAttribute('maxlength','15');
-	theIn.setAttribute('name','customPHandle'+number);
-	theIn.setAttribute('onKeyUp','check_c_word(this)');
-	theTd.appendChild(theIn);
-	theTr.appendChild(theTd);
-
-	theTd = document.createElement('td');
-	theIn = document.createElement('input');
-	theTd.setAttribute('align','center');
-	theTd.setAttribute('class','concordgeneral');
-	theIn.setAttribute('type','text');
-	theIn.setAttribute('maxlength','150');
-	theIn.setAttribute('name','customPDesc'+number);
-	theTd.appendChild(theIn);
-	theTr.appendChild(theTd);
-
-	theTd = document.createElement('td');
-	theIn = document.createElement('input');
-	theTd.setAttribute('align','center');
-	theTd.setAttribute('class','concordgeneral');
-	theIn.setAttribute('type','text');
-	theIn.setAttribute('maxlength','150');
-	theIn.setAttribute('name','customPTagset'+number);
-	theTd.appendChild(theIn);
-	theTr.appendChild(theTd);
-
-	theTd = document.createElement('td');
-	theIn = document.createElement('input');
-	theTd.setAttribute('align','center');
-	theTd.setAttribute('class','concordgeneral');
-	theIn.setAttribute('type','text');
-	theIn.setAttribute('maxlength','150');
-	theIn.setAttribute('name','customPurl'+number);
-	theTd.appendChild(theIn);
-	theTr.appendChild(theTd);
-	
-	theTd = document.createElement('td');
-	theIn = document.createElement('input');
-	theTd.setAttribute('align','center');
-	theTd.setAttribute('class','concordgeneral');
-	theIn.setAttribute('type','checkbox');
-	theIn.setAttribute('value','1');
-	theIn.setAttribute('name','customPfs'+number);
-	theTd.appendChild(theIn);
-	theTr.appendChild(theTd);
-	
-	document.getElementById('p_att_row_1').parentNode.appendChild(theTr);
-}
-//-->
-</script>
-</head>
 
 <body>
 
@@ -287,9 +169,9 @@ echo print_menurow_heading('Exit')
 
 
 
-/* ********************************** */
-/* PRINT MAIN SEARCH FUNCTION CONTENT */
-/* ********************************** */
+/* ****************** */
+/* PRINT MAIN CONTENT */
+/* ****************** */
 
 
 
@@ -323,15 +205,15 @@ case 'manageCorpusCategories':
 	break;
 	
 case 'annotationTemplates':
-	echo '<p class="errormessage">We\'re sorry, this function has not been built yet.</p>';
+	printquery_annotationtemplates();
 	break;
 	
 case 'metadataTemplates':
-	echo '<p class="errormessage">We\'re sorry, this function has not been built yet.</p>';
+	printquery_metadatatemplates();
 	break;
 	
 case 'xmlTemplates':
-	echo '<p class="errormessage">We\'re sorry, this function has not been built yet.</p>';
+	printquery_xmltemplates();
 	break;
 	
 case 'newUpload':
@@ -446,6 +328,7 @@ default:
 
 
 /* finish off the page */
+
 ?>
 		</td>
 	</tr>

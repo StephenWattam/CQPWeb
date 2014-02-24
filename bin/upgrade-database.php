@@ -73,7 +73,6 @@ require ('../bin/cli-lib.php');
  * ============ */
 
 
-//cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
 connect_global_mysql();
 
 /* a hack to make debug printing work */
@@ -101,15 +100,14 @@ if (!$greater_than_3_0_16)
 	upgrade_db_version_from('3.0.16');
 }
 
-while (($version = get_db_version()) != $last_changed_version)
+while (0 > version_compare($version = get_db_version(), $last_changed_version))
 {
 	echo "Current DB version is $version; target version is $last_changed_version .  About to upgrade....\n";
 	upgrade_db_version_from($version);
 }
 
-echo "CQPweb database is now at the most-recently-changed version ($last_changed_version). Upgrade complete!\n";	
+echo "CQPweb database is now at or above the most-recently-changed version ($last_changed_version). Upgrade complete!\n";	
 
-//cqpweb_shutdown_environment();
 disconnect_global_mysql();
 
 exit;
@@ -131,9 +129,22 @@ function upgrade_db_version_from($oldv)
 	}
 }
 
+/* 3.1.4->3.1.5 */
+function upgrade_3_1_4()
+{
+	$sql = array(
+		'alter table annotation_template_content add column `order_in_template` smallint unsigned after `template_id`',
+		'alter table annotation_template_info add column `primary_annotation` varchar(20) default NULL',
+	);
+	foreach ($sql as $q)
+		do_mysql_query($q);
+	
+	/* do the very last DB change! */
+	do_mysql_query("update system_info set value = '3.1.5' where setting_name = 'db_version'");
+}
 
-/* 3.1.0->3.1.4 */
-function upgrade_3_1_0()
+/* 3.1.3->3.1.4 */
+function upgrade_3_1_3()
 {
 	$sql = array(
 		'alter table user_info modify column `username` varchar(30) charset utf8 collate utf8_bin NOT NULL',
@@ -166,7 +177,7 @@ function upgrade_3_1_0()
 }
 
 
-/* this one is the huge one ....... 3.0.16->3.1.0*/
+/* this one is the huge one ....... 3.0.16->3.1.0 */
 function upgrade_3_0_16()
 {
 	/* first, the pre-amendments from v 3.0.15 */

@@ -82,6 +82,7 @@ include('../lib/indexforms-user.inc.php');
 include('../lib/library.inc.php');
 include('../lib/metadata.inc.php');
 include('../lib/subcorpus.inc.php');
+require('../lib/templates.inc.php');
 include('../lib/uploads.inc.php');
 include('../lib/user-lib.inc.php');
 include('../lib/xml.inc.php');

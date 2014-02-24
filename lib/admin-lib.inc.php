@@ -1292,6 +1292,7 @@ function cqpweb_mysql_recreate_tables()
 	$create_statements['annotation_template_content'] =
 		"CREATE TABLE `annotation_template_content` (
 			`template_id` int unsigned NOT NULL,
+			`order_in_template` smallint unsigned,
 			`handle` varchar(20) NOT NULL,
 			`description` varchar(255) default NULL,
 			`is_feature_set` tinyint(1) NOT NULL default 0,
@@ -1650,7 +1651,8 @@ function cqpweb_mysql_recreate_extras()
 {
 	$statements = array(
 		'insert into user_groups (group_name,description)values("superusers","Users with admin power")',
-		'insert into user_groups (group_name,description)values("everybody","Group to which all users automatically belong")'
+		'insert into user_groups (group_name,description)values("everybody","Group to which all users automatically belong")',
+		'insert into system_info (setting_name, value)values("db_version","' . CQPWEB_VERSION . '")'
 		);
 	return $statements;
 }
