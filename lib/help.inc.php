@@ -59,7 +59,7 @@ require ("../lib/exiterror.inc.php");
 //require ("../lib/colloc-lib.inc.php");
 
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST);
 
 
 
