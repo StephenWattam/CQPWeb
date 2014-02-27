@@ -290,7 +290,9 @@ function printscreen_create()
 			<tr>
 				<td class="concordgrey" colspan="2">
 					&nbsp;<br/>
-					<b>Now</b>, enter your email address. We will send a verification message to this email address.
+					<b>Now</b>, enter your email address. We will send a verification message to this email address, 
+					so it is critical that you <b>double-check for typing errors</b>.
+					<br/>&nbsp;<br/>
 					<em>Your account will not be activated until you click on the link that we send in that email message!</em>
 					<br/>&nbsp;<br/>
 					<b>If you have an institutional email address</b> (linked to a company or university, for instance), 
