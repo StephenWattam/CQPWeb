@@ -341,24 +341,24 @@ else
 				switch($breakdown_of)
 				{
 				case 'words':
-					$iF = $r->n;
+					$iF = urlencode($r->n);
 					$iT = '';
 					break;
 				case 'annot':
 					$iF = '';
-					$iT = $r->n;
+					$iT = urlencode($r->n);
 					break;
 				case 'both':
 					preg_match('/\A(.*)_([^_]+)\z/', $r->n, $m);
-					$iF = $m[1];
-					$iT = $m[2];
+					$iF = urlencode($m[1]);
+					$iT = urlencode($m[2]);
 					break;
 				}
 				$link = "concordance.php?qname=$qname&newPostP=item&newPostP_itemForm=$iF&newPostP_itemTag=$iT&uT=y";
 				
 				echo "<tr>\n";
 				echo "<td class=\"concordgrey\">$i</td>\n";
-				echo "<td class=\"concordgeneral\"><a href=\"$link\">{$r->n}</a></td>\n";
+				echo "<td class=\"concordgeneral\"><a href=\"$link\">", cqpweb_htmlspecialchars($r->n), "</a></td>\n";
 				echo "<td class=\"concordgeneral\" align=\"center\">{$r->sum}</td>\n";
 				echo "<td class=\"concordgeneral\" align=\"center\">$percent%</td>\n";
 				echo "</tr>\n";
