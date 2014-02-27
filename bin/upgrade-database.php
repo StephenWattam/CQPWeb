@@ -50,7 +50,7 @@ require ('../bin/cli-lib.php');
 /* VARS THAT NEED UPDATING EVERY TIME A NEW VERSION IS PILED ON */
 
 		/* the most recent database version: ie the last version whose release involved a DB change */
-		$last_changed_version = '3.1.4';
+		$last_changed_version = '3.1.5';
 		
 		/* 
 		 * versions where there is no change. Array of old_version => version that followed. 
@@ -72,12 +72,19 @@ require ('../bin/cli-lib.php');
  * begin script * 
  * ============ */
 
+/* a hack to make debug printing & mysql connection work */
+$Config = new stdClass();
+$Config->print_debug_messages = false;
+$Config->debug_messages_textonly = true;
+$Config->mysql_utf8_set_required = (isset($mysql_utf8_set_required) && $mysql_utf8_set_required);
+$Config->mysql_schema = $mysql_schema;
+$Config->mysql_webpass = $mysql_webpass;
+$Config->mysql_webuser = $mysql_webuser;
+$Config->mysql_server = $mysql_server;
+
 
 connect_global_mysql();
 
-/* a hack to make debug printing work */
-$Config = new stdClass();
-$Config->debug_messages_textonly = true;
 
 /* begin by checking for a really old database version ... */
 
