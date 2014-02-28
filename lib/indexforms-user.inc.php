@@ -87,7 +87,7 @@ function printscreen_welcome()
 
 				<br/>&nbsp;<br/>
 
-				This is your user page; select an option from the menu on the right, or
+				This is your user page; select an option from the menu on the left, or
 				<a href="../">click here to return to the main homepage</a>.
 
 				<br/>&nbsp;
