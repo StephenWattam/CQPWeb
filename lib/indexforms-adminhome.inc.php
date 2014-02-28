@@ -42,7 +42,7 @@ function printquery_showcorpora()
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable" colspan="8">Showing corpus settings for currently installed corpora</th>
+			<th class="concordtable" colspan="8">Showing list of currently installed corpora</th>
 		</tr>
 		<tr>
 			<td class="concordgrey" colspan="8">
@@ -54,9 +54,12 @@ function printquery_showcorpora()
 		</tr>
 		<tr>
 			<th class="concordtable">Corpus</th>
+			<th class="concordtable">Indexing date</th>
 			<th class="concordtable" colspan="2">Visibility</th>
-			<th class="concordtable" colspan="4">Manage...</th>
-			<th class="concordtable">Delete</th>
+			<!--
+			<th class="concordtable" colspan="3">Manage...</th>
+			-->
+			<th class="concordtable" colspan="2">Actions</th>
 		</tr>
 	<?php
 	
@@ -73,34 +76,38 @@ function printquery_showcorpora()
 		$javalinks = ' onmouseover="corpus_box_highlight_on(\'' . $r['corpus'] 
 			. '\')" onmouseout="corpus_box_highlight_off(\'' . $r['corpus'] 
 			. '\')" ';
-		
+
+//TODO: change tooltip below to the Title of the corpus, once that is in the database (or have as column?)
+
 		?>
 		<tr>
 			<td class="concordgeneral" <?php echo "id=\"corpusCell_{$r['corpus']}\""; ?>>
-				<a class="menuItem" href="../<?php echo $r['corpus']; ?>">
+				<a class="menuItem" onmouseover="return escape('<?php echo $r['corpus']; ?>')" href="../<?php echo $r['corpus']; ?>">
 					<strong><?php echo $r['corpus']; ?></strong>
 				</a>
 			</td>
+
+			<td class="concordgeneral" align="center">
+				<?php echo $r['date_of_indexing'], "\n"; ?>
+			</td>			
+
 			<form action="index.php" method="get">
-				
+			
 				<td align="center" class="concordgeneral">
 					<select name="updateVisible"><?php echo $visible_options; ?></select>
 				</td>
 				
-				<td align="center" class="concordgeneral"><input type="submit" value="Update!"></td>
+				<td align="center" class="concordgeneral">
+					<input <?php echo $javalinks; ?> type="submit" value="Update!">
+				</td>
 				
 				<input type="hidden" name="corpus" value="<?php echo $r['corpus']; ?>" />
 				<input type="hidden" name="admFunction" value="updateCorpusMetadata" />
 				<input type="hidden" name="uT" value="y" />
-			</form>
-
-			<td class="concordgeneral" align="center">
-				<a class="menuItem" 
-				<?php echo $javalinks . ' href="../' . $r['corpus']?>/index.php?thisQ=corpusSettings&uT=y">
-					[Settings]
-				</a>
-			</td>
 			
+			</form>
+			
+			<!--
 			<td class="concordgeneral" align="center">
 				<a class="menuItem" 
 				<?php echo $javalinks . ' href="../' . $r['corpus']?>/index.php?thisQ=userAccess&uT=y">
@@ -121,7 +128,16 @@ function printquery_showcorpora()
 					[Annotation]
 				</a>
 			</td>
+			
+			-->
 
+			<td class="concordgeneral" align="center">
+				<a class="menuItem" 
+				<?php echo $javalinks . ' href="../' . $r['corpus']?>/index.php?thisQ=corpusSettings&uT=y">
+					[Goto corpus settings]
+				</a>
+			</td>
+			
 			<td class="concordgeneral" align="center">
 				<a class="menuItem"
 				<?php echo $javalinks . ' href="index.php?thisF=deleteCorpus&corpus=' . $r['corpus']?>&uT=y">
@@ -862,6 +878,8 @@ function printquery_annotationtemplates()
 			</th>
 		</tr>		
 		
+		<form action="index.php" method="get">
+
 			<tr>
 				<td colspan="6" class="concordgeneral" align="center">
 					<table width="100%">
@@ -881,8 +899,6 @@ function printquery_annotationtemplates()
 				</td>
 			</tr>
 
-		<form action="index.php" method="get">
-
 			<?php echo print_embiggenable_p_attribute_form('template'); ?>
 
 			<tr>
@@ -892,7 +908,6 @@ function printquery_annotationtemplates()
 					<br/>&nbsp;
 				</td>
 			</tr>
-
 			<input type="hidden" name="admFunction" value="newAnnotationTemplate" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
@@ -943,32 +958,39 @@ function printquery_xmltemplates()
 
 function printquery_newupload()
 {
+	// TODO this form could be aesthetically much nicer. I improved it a bit in v3.1.5, but a better layout could be achieved.
+	// re-use the upload interface that users have? (once they have it)
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable">
+			<th class="concordtable" colspan="2">
 				Add a file to the upload area
 			</th>
 		</tr>
 		<tr>
-			<td class="concordgeneral">
-				Files uploaded to CQPweb can be used as the input to indexing, or as database inputs
+			<td class="concordgrey" colspan="2">
+				&nbsp;<br/>
+				Files uploaded to CQPweb can be used as the input to indexing, or as database inputs.
+				<br/>&nbsp;
 			</td>
 		</tr>
-		<tr>
-			<td class="concordgeneral">
-				<form enctype="multipart/form-data" action="index.php" method="POST">
-					<!-- not necessary to set maximum size, because PHP has settings tha thandle that
-					<input type="hidden" name="MAX_FILE_SIZE" value="20000000" />
-					-->
-					Choose a file to upload: <input name="uploadedFile" type="file" />
-					<br />
+		<form enctype="multipart/form-data" action="index.php" method="POST">
+			<tr>
+				<td class="concordgeneral" align="center">
+					Choose a file to upload: 
+				</td>
+				<td class="concordgeneral" align="center">
+					<input type="file" name="uploadedFile" />
+				</td>
+			</tr>
+				<td class="concordgeneral" align="center">
 					<input type="submit" value="Upload file" />
+				</td>
+				<td class="concordgeneral" align="center">
 					<input type="reset"  value="Clear form" />
-					<br/>
-				</form>
-			</td>
-		</tr>
+				</td>
+			</tr>
+		</form>
 	</table>
 	<?php
 }

@@ -31,7 +31,7 @@
 /**
  * Returns an array of objects representing annotation templates.
  * 
- * Each object contains: (a) the field
+ * Each object contains: (a) the fields from the database; (b) an array "attributes" of database objects for the template's p-attributes.
  * 
  * The array keys are the ID numbers.
  */
@@ -176,14 +176,41 @@ function load_default_annotation_templates()
  */
 function interactive_load_annotation_template()
 {
-	if (empty($_GET['description']))
+	if (empty($_GET['newTemplateDescription']))
 		exiterror_general("No description given for new template.");
 	
-	$description = $_GET['description'];
+	$description = $_GET['newTemplateDescription'];
 	
+	$atts = array();
 
-	// TODO
-
+	for ( $i = 1; !empty($_GET["templatePHandle$i"]) ; $i++ )
+	{
+		$atts[$i] = new stdClass();
+		
+		$atts[$i]->handle = cqpweb_handle_enforce($_GET["templatePHandle$i"]);
+		
+		if ($atts[$i]->handle == '__HANDLE')
+		{
+			unset($atts[$i]);
+			break;
+		}
+		
+		$atts[$i]->description = $_GET["templatePDesc$i"];
+		
+		$atts[$i]->tagset = $_GET["templatePTagset$i"];
+		
+		$atts[$i]->external_url = $_GET["templatePurl$i"];
+		
+		$atts[$i]->is_feature_set = (isset($_GET["templatePfs$i"]) && 1 == $_GET["templatePfs$i"]);
+		
+		if (isset($_GET['templatePPrimary']) && $i == $_GET['templatePPrimary'])
+			$primary = $atts[$i]->handle;
+	}
+	
+	if (!isset($primary))
+		$primary = NULL;
+	
+	add_annotation_template($description, $primary, $atts);
 
 	
 }

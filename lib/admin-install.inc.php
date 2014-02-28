@@ -264,9 +264,12 @@ class corpus_install_info
 	} /* end constructor */
 	
 	
-	// TODO currently the code here WILL NOT allow feature sets
 	private function load_p_atts_based_on_get()
 	{
+		if (!isset($_GET['useAnnotationTemplate']))
+			exiterror_general("Critical error: missing parameter useAnnotationTEmplate");
+		
+		/*
 		if ($_GET['withDefaultPs'] === '1')
 		{
 			$this->p_attributes[] = 'pos';
@@ -298,51 +301,81 @@ class corpus_install_info
 				values 
 				('{$this->corpus_mysql_name}', 'pos', 'hw', 'class', 'oxford_simplified_tags', 'lemma')";			
 		}
-		else
+		*/
+		if ('~~customPs' == $_GET['useAnnotationTemplate'])
 		{
+			/* custom p-attributes */
+			
 			for ( $q = 1 ; isset($_GET["customPHandle$q"]) ; $q++ )
 			{
-				// TODO: use handle enforce?
-				$cand = preg_replace('/\W/', '', $_GET["customPHandle$q"]);
-				if ($cand === '')
+				$cand = cqpweb_handle_enforce($_GET["customPHandle$q"]);
+				if ($cand === '__HANDLE')
 					continue;
-				else
+
+				if (isset($_GET["customPfs$q"] ) && $_GET["customPfs$q"] === '1')
 				{
-					if (isset($_GET["customPfs$q"] ) && $_GET["customPfs$q"] === '1')
-					{
-						$cand .= '/';
-						$fs = 1;
-					}
-					else
-						$fs = 0;
-	
-					$this->p_attributes[] = $cand;
-					
-					$this->p_attributes_mysql_insert[] = $this->get_p_att_mysql_insert(
-						str_replace('/', '', $cand), 
-						mysql_real_escape_string($_GET["customPDesc$q"]), 
-						mysql_real_escape_string($_GET["customPTagset$q"]), 
-						mysql_real_escape_string($_GET["customPurl$q"]),
-						$fs );
+					$cand .= '/';
+					$fs = 1;
 				}
+				else
+					$fs = 0;
+
+				$this->p_attributes[] = $cand;
+				
+				$cand = str_replace('/', '', $cand);
+				
+				$this->p_attributes_mysql_insert[] 
+					= $this->get_p_att_mysql_insert(
+							$cand, 
+							mysql_real_escape_string($_GET["customPDesc$q"]), 
+							mysql_real_escape_string($_GET["customPTagset$q"]), 
+							mysql_real_escape_string($_GET["customPurl$q"]),
+							$fs 
+						);
+				
+				if (isset($_GET['customPPrimary']) && (int)$_GET['customPPrimary'] == $q)
+					$this->primary_p_attribute = $cand;
+			}
+		}
+		else
+		{
+			/* p-attributes from annotation template */
+			
+			$template_id = (int)$_GET['useAnnotationTemplate'];
+			
+			$t_list = list_annotation_templates();
+			
+			if (!array_key_exists($template_id, $t_list))
+				exiterror_general("Critical error: nonexistent annotation template specified.");
+			
+			$attributes = $t_list[$template_id]->attributes;
+			
+			for ( $q = 1 ; isset($attributes[$q]) ; $q++ )
+			{
+				$this->p_attributes[] = $attributes[$q]->handle . ($attributes[$q]->is_feature_set ? '/' : '') ;
+				
+				$this->p_attributes_mysql_insert[]
+					= $this->get_p_att_mysql_insert(
+							$attributes[$q]->handle, 
+							mysql_real_escape_string($attributes[$q]->description), 
+							mysql_real_escape_string($attributes[$q]->tagset), 
+							mysql_real_escape_string($attributes[$q]->external_url),
+							$attributes[$q]->is_feature_set
+						);
 			}
 			
-			if (isset($_GET['customPPrimary']))
-				$this->primary_p_attribute = 
-					preg_replace('/\W/', '', $_GET["customPHandle{$_GET['customPPrimary']}"]);
-			else
-				$this->primary_p_attribute = NULL;
-			
-			
-			if (isset ($this->primary_p_attribute))
-				$this->corpus_info_mysql_insert =
-					"insert into corpus_info (corpus, primary_annotation) 
-					values ('{$this->corpus_mysql_name}', '{$this->primary_p_attribute}')";
-			else
-				$this->corpus_info_mysql_insert =
-					"insert into corpus_info (corpus, primary_annotation) 
-					values ('{$this->corpus_mysql_name}', NULL)";
+			if (! empty($t_list[$template_id]->primary_annotation))
+				$this->primary_p_attribute = $t_list[$template_id]->primary_annotation;
 		}
+
+		if (isset ($this->primary_p_attribute))
+			$this->corpus_info_mysql_insert =
+				"insert into corpus_info (corpus, primary_annotation) 
+				values ('{$this->corpus_mysql_name}', '{$this->primary_p_attribute}')";
+		else
+			$this->corpus_info_mysql_insert =
+				"insert into corpus_info (corpus, primary_annotation) 
+				values ('{$this->corpus_mysql_name}', NULL)";
 	
 	} /* end of function */
 

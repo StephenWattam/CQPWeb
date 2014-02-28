@@ -450,6 +450,7 @@ var_dump($_GET);
 
 	case 'newAnnotationTemplate':
 		$_GET['function'] = 'interactive_load_annotation_template';
+		$_GET['locationAfter'] = 'index.php?thisF=annotationTemplates&uT=y';
 		require('../lib/execute.inc.php');
 		exit();
 
