@@ -512,13 +512,15 @@ function run_script_for_solo_collocation()
 	$bdo_tag1 = ($corpus_main_script_is_r2l ? '<bdo dir="ltr">' : '');
 	$bdo_tag2 = ($corpus_main_script_is_r2l ? '</bdo>' : '');
 	
-	$soloform = mysql_real_escape_string($soloform);
-	
+	$soloform_sql = mysql_real_escape_string($soloform);
+	$soloform_html = cqpweb_htmlspecialchars($soloform);
+
 
 	foreach ($statistic as $s => $info)
 	{
 	
-		$sql_query = create_statistic_sql_query($s, $soloform);
+		// TODO the create stat function ought to handle the escaping of the soloform.
+		$sql_query = create_statistic_sql_query($s, $soloform_sql);
 
 		$result = mysql_query($sql_query);
 				
@@ -562,7 +564,7 @@ function run_script_for_solo_collocation()
 	if (empty($basis_to_show))
 	{
 		echo '<td class="concordgeneral"><strong>'
-			. "<em>$soloform</em> does not collocate with &ldquo;{$query_record['cqp_query']}&rdquo"
+			. "<em>$soloform_html</em> does not collocate with &ldquo;{$query_record['cqp_query']}&rdquo"
 			. " within a window of $calc_range_begin to $calc_range_end."
 			. '</strong></td></tr></table>';
 		return;
@@ -573,7 +575,7 @@ function run_script_for_solo_collocation()
 	$tag_description = (empty($tag_filter) ? '' : " with tag restriction <em>$tag_filter</em>");
 	
 	echo "Collocation information for the node &ldquo;{$query_record['cqp_query']}&rdquo; 
-		collocating with &ldquo;$soloform&rdquo; $tag_description $bdo_tag1($basis_to_show occurrences in $basis_point)$bdo_tag2 ";
+		collocating with &ldquo;$soloform_html&rdquo; $tag_description $bdo_tag1($basis_to_show occurrences in $basis_point)$bdo_tag2 ";
 
 	echo "</th>
 		</tr>
@@ -607,7 +609,7 @@ function run_script_for_solo_collocation()
 	echo "
 		<tr>
 			<th class=\"concordtable\" colspan=\"4\">
-				Within the window $calc_range_begin to $calc_range_end, <em>$soloform</em> occurs
+				Within the window $calc_range_begin to $calc_range_end, <em>$soloform_html</em> occurs
 				$observed_to_show times in 
 				$number_of_files_to_show files 
 				(expected frequency: $expected_to_show)
@@ -633,7 +635,7 @@ function run_script_for_solo_collocation()
 
 		$sql_query = "SELECT count(`$att_for_calc`), count(distinct(text_id)) 
 			FROM $dbname 
-			WHERE `$att_for_calc` = '$soloform' 
+			WHERE `$att_for_calc` = '$soloform_sql' 
 			$tag_clause
 			AND dist = $i
 			";
@@ -658,7 +660,7 @@ function run_script_for_solo_collocation()
 				. "&newPostP_collocTagFilter="
 				. urlencode($tag_filter)
 				. "&uT=y\" onmouseover=\"return escape('Show solutions collocating with "
-				. "<B>$soloform</B> at position <B>$i</B>')\">$i</a>";
+				. "<B>$soloform_html</B> at position <B>$i</B>')\">$i</a>";
 			$n_hits = number_format((float)$row[0]);
 			$n_texts = number_format((float)$row[1]);
 			$percent = round(($row[0]/$observed_for_calc)*100.0, 1);	
