@@ -225,7 +225,8 @@ function exiterror_login($errormessage)
 function exiterror_bad_url()
 {
 	$msg[] = "We're sorry, but CQPweb could not read your full URL.";
-	$msg[] = "Proxy servers sometimes truncate URLs, try again without a proxy server!";
+	$msg[] = "This sometimes happens when you have clicked on a link in an email or a document, "
+			."and the link has been mis-formatted by your email or document reader.";
 	
 	exiterror_beginpage();
 	exiterror_printlines($msg);

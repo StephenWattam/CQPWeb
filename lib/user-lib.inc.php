@@ -1564,7 +1564,7 @@ function send_captcha_image($which)
 		$bgcol   = imagecolorallocate($image, 255, 255, 255);
 		$textcol = imagecolorallocate($image, 0, 0, 0);
 		imagefill($image, 0, 0, $bgcol);
-		imagettftext($image, 12, 0, 15, 15, $textcol, $font, 'Error: pls retry');
+		imagettftext($image, 12, 0, 15, 15, $textcol, $font, 'Error: please retry');
 		header("Content-Type: image/jpeg");
 		imagejpeg($image); 
 		imagedestroy($image);
@@ -1597,9 +1597,9 @@ function send_captcha_image($which)
 			
 			imagettftext($image, 
 				$fs,           /* font size */
-				$angle,          /* angle */
+				$angle,        /* angle */
 				$x,            /* x basepoint */
-				$y,           /* y basepoint */
+				$y,            /* y basepoint */
 				$textcol,
 				$font,
 				$captcha[$i]);
