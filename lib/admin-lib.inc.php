@@ -676,7 +676,6 @@ function create_text_metadata_for()
 				'{$create_text_metadata_for_info['fields'][$i]['description']}', 0)";
 		}
 	}
-	/* TODO, varchar(20) seems ungenerous - fix this? */
 
 	/* add the standard fields; begin list of indexes. */
 	$create_statement .= ",

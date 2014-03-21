@@ -573,7 +573,7 @@ case 'updateUserAccountDetails':
 		exiterror("You must be logged in to perform that action.");
 
 	if (!isset($_GET['fieldToUpdate'], $_GET['updateValue']))
-		exiterror_general("Invalid parameters supplie for user account detail update; please go back and try again. ");
+		exiterror_general("Invalid parameters supplied for user account detail update; please go back and try again. ");
 
 	switch ($_GET['fieldToUpdate'])
 	{

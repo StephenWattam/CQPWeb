@@ -174,7 +174,7 @@ function print_html_footer($link = 'help')
 			</td>
 		</tr>
 	</table>
-	<script language="JavaScript" type="text/javascript" src="<? echo $diverter; ?>jsc/wz_tooltip.js">
+	<script language="JavaScript" type="text/javascript" src="<?php echo $diverter; ?>jsc/wz_tooltip.js">
 	</script>
 	</body>
 </html>

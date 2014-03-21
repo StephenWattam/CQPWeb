@@ -86,6 +86,12 @@ $Config->mysql_server = $mysql_server;
 connect_global_mysql();
 
 
+
+//cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
+connect_global_mysql();
+
+
+
 /* begin by checking for a really old database version ... */
 
 $greater_than_3_0_16 = false;

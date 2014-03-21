@@ -55,6 +55,16 @@ echo "\nNow finalising setup for this installation of CQPweb....\n";
 /* create partial environment */
 
 include ('../lib/config.inc.php');
+/* a hack to make the database connection work */
+$Config = new stdClass();
+$Config->mysql_link = $mysql_link;
+$Config->mysql_server = $mysql_server;
+$Config->mysql_webuser = $mysql_webuser;
+$Config->mysql_webpass = $mysql_webpass;
+$Config->mysql_schema = $mysql_schema;
+$Config->mysql_utf8_set_required = $mysql_utf8_set_required;
+
+
 connect_global_mysql();
 /* these are the values needed for username creation */
 $Config = new stdClass();
