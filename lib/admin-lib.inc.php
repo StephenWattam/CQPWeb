@@ -1284,6 +1284,7 @@ function cqpweb_mysql_recreate_tables()
 		"CREATE TABLE `annotation_template_info` (
 			`id` int unsigned NOT NULL AUTO_INCREMENT,
 			`description` varchar(255) default NULL,
+			`primary_annotation` varchar(20) default NULL,
 			PRIMARY KEY (`id`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 

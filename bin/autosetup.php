@@ -55,8 +55,9 @@ echo "\nNow finalising setup for this installation of CQPweb....\n";
 /* create partial environment */
 
 include ('../lib/config.inc.php');
-/* a hack to make the database connection work */
+/* a hack to make debug printing & mysql connection work */
 $Config = new stdClass();
+$Config->print_debug_messages = false;
 $Config->mysql_link = $mysql_link;
 $Config->mysql_server = $mysql_server;
 $Config->mysql_webuser = $mysql_webuser;
