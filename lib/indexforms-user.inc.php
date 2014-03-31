@@ -45,10 +45,34 @@ function printscreen_accessdenied()
 		<tr>
 			<td class="concordgeneral">
 				<p>&nbsp;</p>
-				<p>
-					You do not have the necessary privileges to access the corpus 
-					<b><?php echo cqpweb_htmlspecialchars(isset($_GET['corpusDenied']) ? $_GET['corpusDenied'] : ''); ?></b>.
-				</p>
+				
+				<?php
+				
+				global $User;
+				
+				if ($User->logged_in)
+				{
+					?>
+					<p>
+						You do not have the necessary privileges to access the corpus 
+						<b><?php echo cqpweb_htmlspecialchars(isset($_GET['corpusDenied']) ? $_GET['corpusDenied'] : ''); ?></b>.
+					</p>
+					<?php
+				}
+				else
+				{
+					?>
+					<p>
+						You cannot access that corpus because you are not logged in.
+					</p>
+					<p>
+						Please <a href="../usr/index.php?thisQ=login&uT=y">log in to CQPweb</a> and then try again!
+					</p>
+					<?php
+				}
+				
+				?>
+
 				<p>&nbsp;</p>
 			</td>
 		</tr>

@@ -110,8 +110,12 @@ case 'userLogin':
 	if ( false === ($userinfo = check_user_password($username_for_login, $_POST['password'])))
 	{
 		/* add a delay to reduce the possibility of excessive experimentation via login form */
-		sleep(2);
-		exiterror_login(array("The credentials you entered are not valid.","Please go back to the log on page and try again."));		
+		sleep(3);
+		exiterror_login(array(
+			"That username/password combination was not recognised.",
+			"You may have mistyped either the username or the password. (Both are case-sensitive.)",
+			"Please go back to the log on page and try again."
+			));		
 	}
 	else
 	{
