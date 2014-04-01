@@ -25,10 +25,10 @@ function refresh_captcha()
 	/* get a new captcha ref from the server */
 	var req = new XMLHttpRequest();
 	
-	req.open("GET", "../usr/redirect.php?redirect=ajaxNewCaptchaImage&uT=y", true);
+	req.open("GET", "../usr/redirect.php?redirect=ajaxNewCaptchaImage&uT=y&cacheblock="
+			+ Math.floor(Math.random()*99999999)
+			, true);
 
-	/* here we use only a very basic anonymous function
-	 * that runs another function on the XML doc received back. */
 	req.onreadystatechange = 
 		function()
 		{
@@ -60,7 +60,3 @@ function refresh_captcha()
 
 }
 
-function receive_refresh_captcha()
-{
-
-}
