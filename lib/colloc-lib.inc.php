@@ -660,7 +660,7 @@ function run_script_for_solo_collocation()
 				. "&newPostP_collocTagFilter="
 				. urlencode($tag_filter)
 				. "&uT=y\" onmouseover=\"return escape('Show solutions collocating with "
-				. "<B>$soloform_html</B> at position <B>$i</B>')\">$i</a>";
+				. "<B>" . addslashes($soloform_html) . "</B> at position <B>$i</B>')\">$i</a>";
 			$n_hits = number_format((float)$row[0]);
 			$n_texts = number_format((float)$row[1]);
 			$percent = round(($row[0]/$observed_for_calc)*100.0, 1);	
