@@ -3000,6 +3000,157 @@ function printquery_tableview()
 	?></td></tr></table><?php
 }
 
+
+function printquery_cachecontrol()
+{
+	global $Config;
+	
+	$saved_queries = $recorded_files = $unrecorded_files = array();
+	
+	// TODO no file queries = entry in DB, bbut no file on disk. 
+	// less vital to sort these out. dno't worry about for now.
+	// create an array now but don't worry about displaqy.
+	
+	/* list saved queries */
+	$result = do_mysql_query("select query_name from saved_queries");
+	while (false !== ($r = mysql_fetch_row($result)))
+		$saved_queries[] = $r[0];
+
+	foreach(scandir($WHAT) as $f)
+	{
+		
+	}	
+	$no_file_queries = $SUMMAT;
+	
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="2">Cache control</th>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="2">
+				<p>
+					The <b>query cache</b> contains binary files representing saved and cached queries.
+				</p>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgrey" width="50%">
+				Maximum cache size (set in the configuration file)
+			</td>
+			<td class="concordgeneral">
+				<?php echo number_format(((float)$Config->cache_size_limit)/1024.0), " KB\n"; ?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgrey">
+				Current cache size
+			</td>
+			<td class="concordgeneral">
+				<?php
+				
+				list($size_in_bytes) = mysql_fetch_row(do_mysql_query("select sum(file_size) from saved_queries"));
+				if (empty($size_in_bytes))
+					$size_in_bytes = 0;
+				echo number_format(((float)$size_in_bytes) / 1024.0, 0)
+					, " KB<br/>("
+					, number_format( ( ((float)$size_in_bytes) / ((float)$Config->cache_size_limit) ) * 100.0, 0)
+					, "% of maximum)\n"
+					;
+				 
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgrey">
+				Number of entries in cache table
+			</td>
+			<td class="concordgeneral">
+				<?php
+				
+				list($n_table_entries) = mysql_fetch_row(do_mysql_query("select count(*) from saved_queries"));
+				if (empty($n_table_entries))
+					$n_table_entries = 0;
+				echo number_format($n_table_entries), "\n";
+				
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td class="concordgrey">
+				Number of actual files in cache directory
+				<br/>
+				(includes temporary files, so will be larger than the N of cache table entries)
+			</td>
+			<td class="concordgeneral">
+				<?php 
+				echo number_format(count($recorded_files) + count($unrecorded_files)); 
+				?>
+			</td>
+		</tr>
+
+	</table>
+	
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="4">Cache leak monitor</th>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="4">
+				<p>
+					This table lists files that are present in the cache directory
+					but do not correspond to any entry in the database's cache table. 
+				</p>
+				<p>
+					It is quite likely that these files result from glitches in CQPweb
+					and should be deleted.
+				</p>
+				<p>
+					Note that these files are not counted towards the size limit of the
+					cache, and so if they are (individually or collectively) large, your cache
+					directory may substantially exceed the limit set in the CQPweb configuration.
+			</td>
+		</tr>	
+		<tr>
+			<th class="concordtable">Filename</th>
+			<th class="concordtable">Size (K)</th>
+			<th class="concordtable">Date modified</th>
+			<th class="concordtable">Delete</th>
+		</tr>
+		<?php
+		if (empty($unrecorded_files))
+		{
+			?>
+			
+			<tr>
+				<td colspan="4" class="concordgrey">
+					<p>
+						There are <b>no</b> files in the cache directory that lack a matching entry in the cache table.
+					</p> 
+				</td>
+			</tr>
+
+			<?php
+		}
+		else
+		{
+			foreach ($unrecorded_files as $f)
+			{
+				
+				
+				
+			}
+		}
+		
+		
+		?>
+
+	</table>
+	<?php
+}
+
+
+
 // currently just dumps the table to the page.
 // we also want options to kill, etc.
 // and ideally delete any associated temp files if their names can be worked out.

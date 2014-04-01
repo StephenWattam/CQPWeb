@@ -147,7 +147,7 @@ function upgrade_3_1_4()
 {
 	$sql = array(
 		'alter table annotation_template_content add column `order_in_template` smallint unsigned after `template_id`',
-		'alter table annotation_template_info add column `primary_annotation` varchar(20) default NULL',
+		'alter table annotation_template_info add column `primary_annotation` varchar(20) default NULL after `description`',
 	);
 	foreach ($sql as $q)
 		do_mysql_query($q);

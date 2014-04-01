@@ -261,7 +261,7 @@ case 'mappingTables':
 	break;
 
 case 'cacheControl':
-	echo '<p class="errormessage">We\'re sorry, this function has not been built yet.</p>';
+	printquery_cachecontrol();
 	break;
 	
 case 'manageProcesses':

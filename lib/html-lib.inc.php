@@ -101,9 +101,9 @@ function print_menu_aboutblock()
 </tr>
 <tr>
 	<td class="concordgeneral">
-		<a class="menuItem" target="_blank" href="../doc/CQPweb-man.pdf"
-			onmouseover="return escape('CQPweb manual')">
-			CQPweb manual
+		<a class="menuItem" target="_blank" href="http://www.youtube.com/playlist?list=PL2XtJIhhrHNQgf4Dp6sckGZRU4NiUVw1e"
+			onmouseover="return escape('CQPweb video tutorials (on YouTube)')">
+			Video tutorials
 		</a>
 	</td>
 </tr>

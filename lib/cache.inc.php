@@ -452,7 +452,7 @@ function touch_cached_query($qname)
 
 /* delete cached queries if the (configurable) limit has been reached */
 
-/* this func refers to $cache_size_limit; this is set in defaults.inc */
+/* this func refers to $Config->cache_size_limit; this is set in defaults.inc */
 /* but can be overridden by an individual corpus's settings.inc       */
 
 /* by default, this function does not delete usersaved queries        */
@@ -463,7 +463,7 @@ function touch_cached_query($qname)
 /////user queries shouldn't just be silently deleted!
 function delete_cache_overflow($protect_user_saved = true)
 {
-	global $cache_size_limit;
+	global $Config;
 
 	$protect_user_saved = (bool)$protect_user_saved;
 	
@@ -473,12 +473,12 @@ function delete_cache_overflow($protect_user_saved = true)
 	unset($result);
 	
 
-	if ($current_size > $cache_size_limit)
+	if ($current_size > $Config->cache_size_limit)
 	{
 		/* the cache has exceeded its size limit, ergo: */
 		
 		/* step two: how many bytes do we need to delete? */
-		$toDelete_size = $current_size - $cache_size_limit;
+		$toDelete_size = $current_size - $Config->cache_size_limit;
 		
 		/* step three: get a list of deletable files */
 		$sql_query = "select query_name, file_size from saved_queries"

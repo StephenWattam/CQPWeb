@@ -367,7 +367,7 @@ if (!isset($default_words_in_download_context))
 /* other maximums for mysql, NOT settable in config.inc.php */
 $max_textid_length = 40; // TODO should this not be used in the creation of the MySQL table?????
 
-/* Size limit of cahce directory (based on CQP save-files only!) */
+/* Size limit of cache directory (based on CQP save-files only!) */
 if (!isset($cache_size_limit))
 	$cache_size_limit = 6442450944;
 

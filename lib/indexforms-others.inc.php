@@ -171,8 +171,12 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
-		<b>Version 3.1.5</b>, 2014-02-27<br/>&nbsp;<br/>
+		<b>Version 3.1.5</b>, 2014-03-31<br/>&nbsp;<br/>
 		Added annotation templates, and interface for controlling them.
+		<br/>&nbsp;<br/>
+		Added basic cache control mechanism to admin interface.
+		<br/>&nbsp;<br/>
+		Added query-page link to YouTube video tutorials.
 		<br/>&nbsp;</li>
 
 		<li>

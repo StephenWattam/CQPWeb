@@ -2314,15 +2314,10 @@ function printquery_showfreqtables()
 	global $default_history_per_page;
 	global $mysql_freqtables_size_limit;
 	
-	$sql_query = "select sum(ft_size) from saved_freqtables";
-	$result = do_mysql_query($sql_query);
-	
-	list($size) = mysql_fetch_row($result);
-	if (!isset($size))
+	list($size) = mysql_fetch_row(do_mysql_query("select sum(ft_size) from saved_freqtables"));
+	if (empty($size))
 		$size = 0;
 	$percent = round(((float)$size / (float)$mysql_freqtables_size_limit) * 100.0, 2);
-	
-	unset($result);
 	
 	?>
 	<table class="concordtable" width="100%">
