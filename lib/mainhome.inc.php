@@ -264,7 +264,7 @@ foreach ($categories as $id => $cat)
 
 display_system_messages();
 
-echo print_html_footer('admin');
+echo print_html_footer();
 
 cqpweb_shutdown_environment();
 

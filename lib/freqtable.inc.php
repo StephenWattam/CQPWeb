@@ -122,10 +122,10 @@ function corpus_make_freqtables()
 
 	unlink($filename);
 
-	/* ok - the temporary, ungrouped frequency table is in memory 
-	 * each line is a unique binary line across all the attributes
-	 * it needs grouping differently for each attribute 
-	 * (this will also take care of putting 'the', 'The' and 'THE' together
+	/* OK - the temporary, ungrouped frequency table is in memory. 
+	 * Each line is a unique binary line across all the attributes.
+	 * It needs grouping differently for each attribute. 
+	 * (This will also take care of putting 'the', 'The' and 'THE' together,
 	 * if the collation does that) */
 
 	foreach ($attribute as $att)

@@ -171,6 +171,11 @@ function printquery_latest()
 <!--		Did a lot of new work on the help pages.
 -->
 		<li>
+		<b>Version 3.1.6</b>, 2014-04-11<br/>&nbsp;<br/>
+		Fixed a bug affecting collocations in subcorpora of very large corpora and making the process take hours to run. 
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.1.5</b>, 2014-03-31<br/>&nbsp;<br/>
 		Added annotation templates, and interface for controlling them.
 		<br/>&nbsp;<br/>

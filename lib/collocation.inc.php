@@ -358,7 +358,8 @@ if ($query_record['subcorpus'] != 'no_subcorpus')
 	{
 		/* if not, and if the subseciton is not too big, create it */
 		list($words_in_subsection, $junk) = amount_of_text_searched($query_record['subcorpus'], $query_record['restrictions']);
-		$freq_table_override = ( $words_in_subsection < $collocation_disallow_cutoff ? $freq_table_override : false );
+		$freq_table_override = ( $words_in_subsection < $collocation_disallow_cutoff ? $freq_table_override : true );
+
 		if ( ! $freq_table_override )
 			$freqtable_record = subsection_make_freqtables($query_record['subcorpus']);
 	}
@@ -372,7 +373,8 @@ else if ($query_record['restrictions'] != 'no_restriction')
 	{
 		/* if there isn't one, and if the subsection is not too big, create it */
 		list($words_in_subsection, $junk) = amount_of_text_searched($query_record['subcorpus'], $query_record['restrictions']);
-		$freq_table_override = ( $words_in_subsection < $collocation_disallow_cutoff ? $freq_table_override : false );
+		$freq_table_override = ( $words_in_subsection < $collocation_disallow_cutoff ? $freq_table_override : true );
+
 		if ( ! $freq_table_override )
 			$freqtable_record = subsection_make_freqtables('no_subcorpus', $query_record['restrictions']);
 	}

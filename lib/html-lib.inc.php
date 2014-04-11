@@ -140,15 +140,6 @@ function print_html_footer($link = 'help')
 			<a class="cqpweb_copynote_link" href="help.php" target="_NEW">Corpus and tagset help</a>
 		</td>';
 	}
-	else if ($link == 'admin')
-	{
-		/* use the help cell for an admin logon link instead */
-		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
-			<a href="adm"  class="cqpweb_copynote_link" >[Admin logon]</a>
-		</td>';	
-		/* when link is admin, javascript is in lib, which is a subdir. */
-		$diverter = '';
-	}
 	else
 	{
 		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
