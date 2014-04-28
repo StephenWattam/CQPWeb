@@ -575,6 +575,7 @@ function printquery_lookup()
 
 function printquery_keywords()
 {
+	global $Config;
 	global $corpus_title;
 	global $corpus_sql_name;
 	
@@ -632,9 +633,8 @@ function printquery_keywords()
 		<td class="concordgrey" colspan="4">
 			<center>
 				&nbsp;<br/>
-				Keyword lists are compiled by comparing frequency lists you have 
-				created for different subcorpora. <a href="index.php?thisQ=subcorpus&uT=y">Click 
-				here to create/view frequency lists</a>.
+				Keyword lists are compiled by comparing frequency lists you have created for different subcorpora. 
+				<a href="index.php?thisQ=subcorpus&uT=y">Click here to create/view frequency lists</a>.
 				<br/>&nbsp;
 			</center>
 		</td>
@@ -668,17 +668,65 @@ function printquery_keywords()
 		<tr>
 			<th class="concordtable" colspan="4">Options for keyword analysis:</th>
 		</tr>
-		
+
 
 		<tr>
-			<td class="concordgeneral">Min freq (list 1):</td>
+			<td class="concordgeneral" rowspan="2">Show:</td>
+			<td class="concordgeneral" rowspan="2">
+				<select name="kwWhatToShow">
+					<option value="allKey" >All keywords</option>
+					<option value="onlyPos">Positive keywords</option>
+					<option value="onlyNeg">Negative keywords</option>
+					<?php if ($Config->hide_experimental_features) ; else { ?>
+					<option value="lock"   >Lockwords</option>
+					<?php  } ?>
+				</select>
+			</td>
+			<td class="concordgeneral">Comparison statistic:</td>
+			<td class="concordgeneral">
+				<select name="kwStatistic">
+					<option value="LL"   selected="selected">Log-likelihood</option>
+					<?php if ($Config->hide_experimental_features) ; else { ?>
+					<option value="LR_LL">Log Ratio with Log-likelihood filter</option>
+					<option value="LR_CI">Log Ratio with Confidence Interval filter</option>
+					<option value="LR_UN">Log Ratio (unfiltered)</option>
+					<?php } ?>
+				</select>
+			</td>
+		</tr>
+		
+		<tr>
+			<td class="concordgeneral">
+				Significance cut-off point:
+				<?php if (! $Config->hide_experimental_features) echo '<br>(or confidence interval width)'; ?>
+				</td>
+			<td class="concordgeneral">
+				<select name="kwAlpha">
+					<option value="0.05"      >5%</option>
+					<option value="0.01"      >1%</option>
+					<option value="0.001"     >0.1%</option>
+					<option value="0.0001" selected="selected">0.01%</option>
+					<option value="0.00001"   >0.001%</option>
+					<option value="0.000001"  >0.0001%</option>
+					<option value="0.0000001" >0.00001%</option>
+					<option value="1.0"       >No cut-off</option>
+				</select>
+				<?php if (! $Config->hide_experimental_features) {  ?><br>
+				<input name="kwFamilywiseCorrect" value="Y" type="checkbox" checked="checked" />
+				Use Šidák correction?<?php } ?>
+			</td>
+		</tr>
+		
+		
+		<tr>
+			<td class="concordgeneral">Min. frequency (list 1):</td>
 			<td class="concordgeneral">
 				<select name="kwMinFreq1">
 					<option>1</option>
 					<option>2</option>
-					<option>3</option>
+					<option selected="selected">3</option>
 					<option>4</option>
-					<option selected="selected">5</option>
+					<option>5</option>
 					<option>6</option>
 					<option>7</option>
 					<option>8</option>
@@ -692,14 +740,15 @@ function printquery_keywords()
 					<option>1000</option>
 				</select>
 			</td>
-			<td class="concordgeneral">Min freq (list 2):</td>
+			<td class="concordgeneral">Min. frequency (list 2):</td>
 			<td class="concordgeneral">
 				<select name="kwMinFreq2">
+					<option>0</option>
 					<option>1</option>
 					<option>2</option>
-					<option>3</option>
+					<option selected="selected">3</option>
 					<option>4</option>
-					<option selected="selected">5</option>
+					<option>5</option>
 					<option>6</option>
 					<option>7</option>
 					<option>8</option>
@@ -716,49 +765,27 @@ function printquery_keywords()
 		</tr>
 
 		<tr>
-			<td class="concordgeneral">Comparison statistic:</td>
-			<td class="concordgeneral">
-				<select name="kwStatistic">
-					<option value="LL" selected="selected">Log-likelihood</option>
-					<!-- <option value="X2">Chi-square</option> -->
-				</select>
-			</td>
-			<td class="concordgeneral">Significance threshold:</td>
-			<td class="concordgeneral">
-				<select name="kwThreshold">
-					<option value="5">5%</option>
-					<option value="1">1%</option>
-					<option value="0.1">0.1%</option>
-					<option value="0.01" selected="selected">0.01%</option>
-					<option value="0.001">0.001%</option>
-					<option value="0.0001">0.0001%</option>
-					<option value="0.00001">0.00001%</option>
-					<option value="0">show all</option>
-				</select>
-			</td>
-		</tr>
-		
-		<tr>
 			<td class="concordgeneral" colspan="4">
 				<center>
-					<input type="submit" name="kwMethod" value="Calculate keywords!" />
+					&nbsp;<br>
+					<input type="submit" name="kwMethod" value="Calculate keywords" />
+					<br>&nbsp;
 				</center>
 			</td>
 		</tr>
 		
 		<tr>
 			<th class="concordtable" colspan="4">
-				Options for comparing frequency lists (by filtering):
+				View unique words or tags on one frequency list:
 			</th>
 		</tr>
 		
 		<tr>
-			<td class="concordgeneral" colspan="2">Display words that only occur in:</td>
+			<td class="concordgeneral" colspan="2">Display items that occur in:</td>
 			<td class="concordgeneral" colspan="2">
-				<!-- may need renaming! -->
 				<select name="kwEmpty">
-					<option value="f1">Frequency list 1</option>
-					<option value="f2">Frequency list 2</option>
+					<option value="f1">Frequency list 1 but NOT frequency list 2</option>
+					<option value="f2">Frequency list 2 but NOT frequency list 1</option>
 				</select>
 			</td>
 		</tr>
@@ -766,7 +793,9 @@ function printquery_keywords()
 		<tr>
 			<td class="concordgeneral" colspan="4">
 				<center>
-					<input type="submit" name="kwMethod" value="Compare lists!" />
+					&nbsp;<br>
+					<input type="submit" name="kwMethod" value="Show unique items on list" />
+					<br>&nbsp;
 				</center>
 			</td>
 		</tr>

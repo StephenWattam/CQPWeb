@@ -186,10 +186,11 @@ $cache_record = array(
 	'corpus' => $corpus_sql_name,
 	'query_mode' => 'uploaded',
 	'simple_query' => '',
-	'cqp_query' => '',
+	'cqp_query' => '',			
 	'restrictions' => 'no_restriction',
 	'subcorpus' => 'no_subcorpus',
-	'postprocess' => '',
+	'postprocess' => "upload[{$Config->instance_name}]",
+		/* This is to prevent different uploads matching when a query record / database is looked up by-parameter */ 
 	'hits_left' => '',
 	'time_of_query' => time(),
 	'hits' => $hits,

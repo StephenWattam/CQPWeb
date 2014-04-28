@@ -188,7 +188,7 @@ if (isset($_GET['redirect']))
 		
 	case 'showAll':
 		unset($_GET['redirect']);
-		unset($_GET['kwWhatToShow']);
+		$_GET['kwWhatToShow'] = 'allKey';
 		unset($_GET['pageNo']);
 		require('../lib/keywords.inc.php');
 		break;
@@ -203,6 +203,13 @@ if (isset($_GET['redirect']))
 	case 'showNeg':
 		unset($_GET['redirect']);
 		$_GET['kwWhatToShow'] = 'onlyNeg';
+		unset($_GET['pageNo']);
+		require('../lib/keywords.inc.php');
+		break;
+		
+	case 'showLock':
+		unset($_GET['redirect']);
+		$_GET['kwWhatToShow'] = 'lock';
 		unset($_GET['pageNo']);
 		require('../lib/keywords.inc.php');
 		break;

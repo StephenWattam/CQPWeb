@@ -73,7 +73,6 @@ if  (!extension_loaded('mysql'))
  */
 
 
-
 /**
  * Creates a global connection to a CQP child process.
  */
@@ -1394,6 +1393,31 @@ function send_cqpweb_email($address_to, $mail_subject, $mail_content, $extra_hea
 	}
 
 	return (bool)mail($address_to, $mail_subject, $mail_content, implode("\r\n", $extra_headers));	
+}
+
+
+/**
+ * Perform Bonferroni or Šidák correction.
+ * 
+ * NB this file may not be a good place to do have this function, long-run.
+ */ 
+function correct_alpha_for_familywise($alpha, $n_comparisons, $type = 'Bonferroni')
+{
+	/* any empty value signies don't correct */
+	if (empty($type))
+		return $alpha;
+	
+	switch($type)
+	{
+		case 'Bonferroni':
+			return $alpha/$n_comparisons;
+			
+		case 'Šidák':
+			return 1.0 - pow((1.0 - $alpha), 1.0/$n_comparisons);
+			
+		default:
+			exiterror_general("Unrecognised correction for multiple comparisons.", __FILE__, __LINE__);
+	}
 }
 
 

@@ -76,11 +76,10 @@ function make_cwb_freq_index()
 		return;
 	
 	/* disallow this function for corpora with only one text */
-	list($count_of_texts_in_corpus) 
-		= mysql_fetch_row(do_mysql_query("select count(*) from text_metadata_for_$corpus_sql_name"));
+	list($count_of_texts_in_corpus) = mysql_fetch_row(do_mysql_query("select count(*) from text_metadata_for_$corpus_sql_name"));
 	if ($count_of_texts_in_corpus < 2)
-		exiterror_general("This corpus only contains one text. 
-			Using a CWB frequency text-index is therefore neither necessary nor desirable.");
+		exiterror_general("This corpus only contains one text. "
+			. "Using a CWB frequency text-index is therefore neither necessary nor desirable.");
 	
 	/* this function may take longer than the script time limit */
 	php_execute_time_unlimit();
@@ -127,14 +126,16 @@ function make_cwb_freq_index()
 	$cmd_decode = "{$Config->path_to_cwb}cwb-decode -r \"{$Config->dir->registry}\" -C $corpus_cqp_name $p_att_line -S text_id";
 
 	$source = popen($cmd_decode, 'r');
-
+	if (!is_resource($source))
+		exiterror_general('Freq index creation: CWB decode source pipe did not open properly.');
+	
 	$cmd_encode = "{$Config->path_to_cwb}cwb-encode -d \"$datadir\" -c $charset -R \"$regfile\" $p_att_line_no_word -P __freq -S text:0+id ";
 
 	$dest = popen($cmd_encode, 'w');
+	if (!is_resource($dest) )
+		exiterror_general('Freq index creation: CWB encode destination pipe did not open properly.');
 
-// TODO proper error handling please.
-	if (!is_resource($source) || !is_resource($dest) )
-		echo '<pre>one of the pipes did not open properly </pre>';
+	$F = array();
 
 	/* for each line in the decoded output ... */
 	while ( ($line = fgets($source)) !== false)
@@ -142,7 +143,6 @@ function make_cwb_freq_index()
 		/* in case of whitespace... */
 		$line = trim($line);
 		
-		$F = array();
 		
 		if (preg_match('/^<text_id\s+(\w+)>$/', $line, $m) > 0)
 		{
@@ -155,8 +155,8 @@ function make_cwb_freq_index()
 			/* do the things to be done at the end of each text */
 			
 			if ( ! isset($current_id) )
-				exiterror_general("Unexpected </text> tag while creating corpus 
-					$freq_corpus_cqp_name_uc! -- creation aborted");
+				exiterror_general("Unexpected /text_id tag while creating corpus "
+					. "$freq_corpus_cqp_name_uc! -- creation aborted");
 			
 			fputs($dest, "<text id=\"$current_id\">\n");
 			arsort($F);
@@ -170,13 +170,11 @@ function make_cwb_freq_index()
 		{
 			/* if we're at the point of waiting for a text_id, and we got this, then ABORT! */
 			if ( ! isset($current_id) )
-				exiterror_general("Unexpected line outside &lt;text&gt; tags while creating corpus 
-					$freq_corpus_cqp_name_uc! -- creation aborted");
+				exiterror_general("Unexpected line outside text_id tags while creating corpus "
+					. "$freq_corpus_cqp_name_uc! -- creation aborted");
 			
 			/* otherwise... */
 
-			/* at the equivalent point in BNCweb-encoding, $line is split and then joined on \t */
-			/* don't know why - it can't have any effect */
 			if (isset($F[$line]))
 				$F[$line]++;
 			else
@@ -188,6 +186,7 @@ function make_cwb_freq_index()
 	/* close the pipes */
 	pclose($source);
 	pclose($dest);
+
 	
 	/* system commands for everything else that needs to be done to make it a good corpus */
 
@@ -195,7 +194,6 @@ function make_cwb_freq_index()
 	$cmd_makeall  = "{$Config->path_to_cwb}cwb-makeall $mem_flag -r \"{$Config->dir->registry}\" -V $freq_corpus_cqp_name_uc ";
 	$cmd_huffcode = "{$Config->path_to_cwb}cwb-huffcode          -r \"{$Config->dir->registry}\" -A $freq_corpus_cqp_name_uc ";
 	$cmd_pressrdx = "{$Config->path_to_cwb}cwb-compress-rdx      -r \"{$Config->dir->registry}\" -A $freq_corpus_cqp_name_uc ";
-
 
 
 	/* make the indexes & compress */
@@ -226,31 +224,38 @@ function make_cwb_freq_index()
 	
 	$s_decode_cmd = "{$Config->path_to_cwb}cwb-s-decode -r \"{$Config->dir->registry}\" $freq_corpus_cqp_name_uc -S text_id > $index_filename";
 	exec($s_decode_cmd);
-//	chmod($index_filename, 0777);
+
 	
 	/* make sure the $index_filename is utf8 */
-	// TODO : adapt for latin2 and other variants.
-	if ($charset == 'latin1')
+	if ($charset != 'utf8')
 	{
-		$index_filename_new = $index_filename . '.utf8';
+		$index_filename_new = $index_filename . '.utf8.tmp';
 		
-		$source = fopen($index_filename, 'r');
-		$dest = fopen($index_filename_new, 'w');
+//		$source = fopen($index_filename, 'r');
+//		$dest = fopen($index_filename_new, 'w');
+//		
+//		while ( ($line = fgets($source)) !== false)
+//			fputs($dest, utf8_encode($line));
+//			// TODO replace with iconv
+//		
+//		fclose($source);
+//		fclose($dest);
 		
-		while ( ($line = fgets($source)) !== false)
-			fputs($dest, utf8_encode($line));
-			// TODO replace with iconv
-		
-		fclose($source);
-		fclose($dest);
+		change_file_encoding($index_filename, 
+		                     $index_filename_new,
+		                     CQP::translate_corpus_charset_to_iconv($charset), 
+		                     CQP::translate_corpus_charset_to_iconv('utf8') . '//TRANSLIT');
 		
 		unlink($index_filename);
 		$index_filename = $index_filename_new;
 	}
+
+
+
 	
-	/* now, create a mysql table with text begin-&-end-point indexes for this cwb-indexed corpus */
-	/* a table which is subsequently used in the process of making the subcorpus freq lists */
-// is it??
+	/* now, create a mysql table with text begin-&-end-point indexes for this cwb-indexed corpus *
+	 * (a table which is subsequently used in the process of making the subcorpus freq lists)    */
+
 
 	$freq_text_index = "freq_text_index_$corpus_sql_name";
 	
@@ -299,8 +304,7 @@ function get_freq_index_postitionlist_for_subsection($subcorpus = 'no_subcorpus'
 	
 	/* Check whether the specially-indexed cwb per-file freqlist corpus exists */
 	if ( ! check_cwb_freq_index($corpus_sql_name) )
-		exiterror_general("No CWB frequency-by-text index exists for corpus $corpus_sql_name!", 
-			__FILE__, __LINE__);
+		exiterror_general("No CWB frequency-by-text index exists for corpus $corpus_sql_name!");
 	/* because if it doesn't exist, we can't get the positions from it! */
 	
 	/* this clause implements the override - the caller may or may not have done this already */
@@ -324,8 +328,7 @@ function get_freq_index_postitionlist_for_subsection($subcorpus = 'no_subcorpus'
 			and user   = '$username'";
 		$result = do_mysql_query($sql_query);
 		if (mysql_num_rows($result) < 1)
-			exiterror_arguments($subcorpus, 'This subcorpus doesn\'t appear to exist!',
-				__FILE__, __LINE__);
+			exiterror_arguments($subcorpus, 'This subcorpus doesn\'t appear to exist!');
 
 		$r = mysql_fetch_assoc($result);
 		
@@ -349,7 +352,7 @@ function get_freq_index_postitionlist_for_subsection($subcorpus = 'no_subcorpus'
 	$position_list = array();
 
 	foreach(array_chunk(explode(' ', $text_list), 20) as $chunk_of_texts)
-	{		
+	{
 		/* first step: convert list of texts to an sql where clause */
 		$textid_whereclause = translate_textlist_to_where($chunk_of_texts, true);
 		
@@ -361,7 +364,7 @@ function get_freq_index_postitionlist_for_subsection($subcorpus = 'no_subcorpus'
 		while ( ($r = mysql_fetch_row($result)) !== false )
 			$position_list[] = $r;
 	}
-	
+
 	/* All position lists must be ASC sorted for CWB to make sense of them. The list we have built from
 	 * MySQL may or may not be pre-sorted depending on the original history of the text-list... */
 	$position_list = sort_positionlist($position_list);

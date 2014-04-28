@@ -124,6 +124,27 @@ function load_statistic_info()
 //	$info[5]['desc'] = 'Chi-squared with Yates' correction';		// this apparently turned off in BW?
 	$info[6]['desc'] = 'Log-likelihood';
 	$info[7]['desc'] = 'Dice coefficient';
+	$info[8]['desc'] = 'Log Ratio';
+	
+	/* the "extra info" bar is here. Note, currently this is only used for Log Ratio, and appears above 
+	 * the actual collocation table. */
+	$info[8]['extra'] = '
+
+		The <b>Log Ratio</b> statistic is a measurement of <i>how big the difference is</i> between the (relative) frequency 
+		of the collocate alongside the node, and its (relative) frequency in the rest of the corpus or subcorpus.
+		<br>&nbsp;<br>
+		On its own, Log Ratio is very similar to the Mutual Information measure (both measure <i>effect size</i>). 
+		However, CQPweb combines Log Ratio with a statistical-significance filter. 
+		The collocate list is <u>sorted</u> by Log Ratio but <u>filtered</u> using Log-likelihood.
+		<br>&nbsp;<br>
+		Collocates are only included in the list if they are significant at the 5% level (p &lt; 0.05), adjusted using the Šidák
+		correction. For <b>your current collocation analysis</b>, that means all collocates displayed have Log-likelihood of at least 
+		<b>$LL_CUTOFF</b>.
+		<br>&nbsp;<br>
+		The use of a log-likelihood filter means that it is not necessary to set high minimum values for <i>Freq(node, collocate)</i>
+		and <i>Freq(collocate)</i> when using Log Ratio.
+		';
+	/* long term, once Log Ratio is no longer a new thing, this may not be needed. */
 
 	return $info;
 
@@ -147,6 +168,7 @@ function load_statistic_info()
 
 function create_statistic_sql_query($stat, $soloform = '')
 {
+	global $Config;
 	global $corpus_sql_name;
 	
 	/* TODO these should be parameters instead of globals. */
@@ -243,7 +265,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 	| Totals | $C1   | $C2   | $N  |
 	--------------------------------
 	
-	N   = total words in corpus (or subcorpus or restriction, but they are not implemented yet)
+	N   = total words in corpus
 	C1  = frequency of the collocate in the whole corpus
 	C2  = frequency of words that aren't the collocate in the corpus
 	R1  = total words in window
@@ -305,8 +327,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 			$sql_endclause";
 		break;
 /*	case 5:		/* Chi-squared with Yates' correction * /
-//turned off in BNCweb
-// perhaps exactly because there are two different stats here
+//turned off by Stefan (in the BNCweb code this was copied from)
 		$sql = "select $item, count($item) as observed, $E11 as expected,
 			sign($O11 - $E11) * $N * pow(abs($O11 * $O22 - $O12 * $O21) -  ($N / 2), 2) /
 			(pow($R1*$R2,1) * pow($C1*$C2,1)) as significance,
@@ -340,9 +361,7 @@ function create_statistic_sql_query($stat, $soloform = '')
 	
 	case 7:		/* Dice coefficient */
 		/* this one uses extra variables, so get these first */
-		$sql_query = "SELECT COUNT(DISTINCT refnumber) from $dbname WHERE $range_condition";
-		$result = do_mysql_query($sql_query);
-	
+		$result = do_mysql_query("SELECT COUNT(DISTINCT refnumber) from $dbname WHERE $range_condition");
 		list($DICE_NODE_F) = mysql_fetch_row($result);
 		$P_COLL_NODE = "(COUNT(DISTINCT refnumber) / $DICE_NODE_F)";
 		$P_NODE_COLL = "(COUNT($item) / ($freq_table.freq))";
@@ -353,11 +372,46 @@ function create_statistic_sql_query($stat, $soloform = '')
 			from $dbname, $freq_table 
 			$sql_endclause";
 		break;
+
+	case 8:		/* Log Ratio filtered by log likelihood */
+		/* 
+		 * Before getting to the actual SQL, we need to add the LL filter to the end clause;
+		 * use a base alpha of 0.05 and adjust to number of types we are testing. 
+		 * Nothing is ever easy!
+		 */
+		/* make the LL cutoff globally available, for the infobox. Bugger me this code is ugly! */
+		global $LL_CUTOFF;
+		$n_comparisons = calculate_types_in_window($sql_endclause, array('order by significance desc', 
+																		$limit_string,
+																		"and $freq_table.freq >= $calc_minfreq_collocalone",
+																		"having observed >= $calc_minfreq_together"
+																		));
+		$alpha = correct_alpha_for_familywise(0.05, $n_comparisons, 'Šidák');
+		$r = new RFace($Config->path_to_r);
+		list($LL_CUTOFF) = $r->read_execute(sprintf("qchisq(%E, df=1, lower.tail=FALSE)", $alpha));
+		unset($r);
+//show_var($n_comparisons);
+//show_var($alpha);
+//show_var($LL_CUTOFF);
+		$sql_endclause = str_replace('having observed', "having LogLikelihood >= $LL_CUTOFF and observed", $sql_endclause);
+		/* NB note that this means that the LL filter does not apply in colloc-solo mode. */
+	
+		$sql = "select $item, count($item) as observed, $E11 as expected,
+			log2( ($O11 / $R1) / (IF($O21 > 0, $O21, 0.5) / $R2) ) as significance ,
+			sign($O11 - $E11) * 2 * (
+				IF($O11 > 0, $O11 * log($O11 / $E11), 0) +
+				IF($O12 > 0, $O12 * log($O12 / $E12), 0) +
+				IF($O21 > 0, $O21 * log($O21 / $E21), 0) +
+				IF($O22 > 0, $O22 * log($O22 / $E22), 0)
+			) as LogLikelihood,
+			$freq_table.freq, count(distinct(text_id)) as text_id_count
+			from $dbname, $freq_table
+			$sql_endclause";
+		break;
 	
 	
 	default:
-		exiterror_arguments($stat, "Collocation script specified an unrecognised statistic", 
-			__FILE__, __LINE__);
+		exiterror_arguments($stat, "Collocation script specified an unrecognised statistic!");
 	}
 
 	return $sql;
@@ -449,6 +503,40 @@ function calculate_words_in_window()
 
 
 
+/**
+ * Calculates the total number of word/annotation types in the collocation window
+ * using a fragment of the main query (that designed as $sql_endclause).
+ * 
+ * Uses (some of the) same global values as the calling function.
+ * 
+ * Not to be called by any function other than create_statistic_sql_query()!
+ */
+function calculate_types_in_window($sql_endclause, $strings_to_remove_from_endclause = array())
+{
+	global $dbname;
+	global $freq_table_to_use;
+	global $att_for_calc;
+	
+	$item = "$dbname.`$att_for_calc`";
+	
+	/* this is a dirty, dirty hack. The gods of modular programming will frown upon me. */
+	foreach($strings_to_remove_from_endclause as $s)
+		$sql_endclause = str_replace($s, '', $sql_endclause);
+	/* note: we need to filter out based on the RANGE limits, but NOT based on the frequency cutoffs. */
+	
+	$sql_query = "select $item, count($item) as observed
+			from $dbname, $freq_table_to_use
+			$sql_endclause";
+	
+	return mysql_num_rows(do_mysql_query($sql_query));
+
+//	global $dbname;
+//	global $att_for_calc;
+//	list($n) = mysql_fetch_row(do_mysql_query("select count(distinct($att_for_calc)) from $dbname"));
+//	return $n;
+}
+
+
 
 
 
@@ -518,7 +606,6 @@ function run_script_for_solo_collocation()
 
 	foreach ($statistic as $s => $info)
 	{
-	
 		// TODO the create stat function ought to handle the escaping of the soloform.
 		$sql_query = create_statistic_sql_query($s, $soloform_sql);
 

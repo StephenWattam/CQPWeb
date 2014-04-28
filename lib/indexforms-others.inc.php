@@ -168,8 +168,19 @@ function printquery_latest()
 	<p>&nbsp;</p>
 	
 	<ul>
-<!--		Did a lot of new work on the help pages.
--->
+		<li>
+		<b>Version 3.1.7</b>, 2014-04-28<br/>&nbsp;<br/>
+		Reorganised the keyword output screen to give a richer analysis.
+		<br/>&nbsp;<br/>
+		Added experimental effect-size statistics for keyness: Log Ratio unfiltered, and Log Ratio with LL or CI Filter.
+		<br/>&nbsp;<br/>
+		Added tool to extract lockwords using Log Ratio.
+		<br/>&nbsp;<br/>
+		Added the same Log Ratio with LL filter to the Collocations tool.
+		<br/>&nbsp;<br/>
+		Fixed a bug affecting collocation/sorting done on uploaded queries.
+		<br/>&nbsp;</li>
+
 		<li>
 		<b>Version 3.1.6</b>, 2014-04-11<br/>&nbsp;<br/>
 		Fixed a bug affecting collocations in subcorpora of very large corpora and making the process take hours to run. 

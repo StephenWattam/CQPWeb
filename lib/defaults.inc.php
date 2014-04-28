@@ -165,6 +165,7 @@ else
 $path_to_cwb  = (empty($path_to_cwb)  ? '' : rtrim($path_to_cwb,  DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR );
 $path_to_gnu  = (empty($path_to_gnu)  ? '' : rtrim($path_to_gnu,  DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR );
 $path_to_perl = (empty($path_to_perl) ? '' : rtrim($path_to_perl, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR );
+$path_to_r    = (empty($path_to_r)    ? '' : rtrim($path_to_r,    DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR );
 
 /* Canonical form for $cwb_extra_perl_directories is an array of  directories; but the input format is a string of pipe-
  * delimited directories. This bit of code converts. An empty array is used if the config string vairable is not set.    */ 
@@ -197,6 +198,9 @@ if (!isset($css_path_for_adminpage))
 if (!isset($css_path_for_userpage))
 	$css_path_for_userpage = "../css/CQPweb-green.css";
 
+if (!isset($hide_experimental_features))
+	$hide_experimental_features = false;
+
 if (!isset($homepage_use_corpus_categories))
 	$homepage_use_corpus_categories = false;
 
@@ -217,7 +221,6 @@ if (!isset($debug_messages_textonly))
 /* but whether it was set or not we override it on the command-line */
 if (php_sapi_name() == 'cli')
 	$debug_messages_textonly = true;
-
 
 
 

@@ -489,11 +489,11 @@ function translate_restrictions_to_text_list($restrictions)
 {
 	global $corpus_sql_name;
 
-	$sql_query = "select text_id from text_metadata_for_$corpus_sql_name
-		where $restrictions";
+	$sql_query = "select text_id from text_metadata_for_$corpus_sql_name where $restrictions";
 	/* note - it isn't real-escaped, so it must be escaped before this if necessary */
 	$result = do_mysql_query($sql_query);
 
+	$list = '';
 	while ($r = mysql_fetch_row($result))
 		$list .= $r[0] . ' ';
 		

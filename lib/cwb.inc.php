@@ -134,8 +134,8 @@ function cwb_uncreate_corpus($corpus_name)
 	if (! user_is_superuser($username))
 		return;
 
-	$dir_to_delete = "$Config->dir->index/$corpus_name";
-	$reg_to_delete = "$Config->dir->registry/$corpus_name";
+	$dir_to_delete = "{$Config->dir->index}/$corpus_name";
+	$reg_to_delete = "{$Config->dir->registry}/$corpus_name";
 	
 	/* delete all files in the directory and the directory itself */
 	if (is_dir($dir_to_delete))

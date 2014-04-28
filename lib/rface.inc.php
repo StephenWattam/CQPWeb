@@ -141,21 +141,18 @@ class RFace
 		$ext = (strtoupper(substr(php_uname('s'), 0, 3)) == 'WIN' ? '.exe' : '' );
 
 		/* check that we know where the R program is... */
-		if (empty($path_to_r))
+		if (! empty($path_to_r))
 		{
-			/* detect whether or not R is on the path.... */
-			$found = false;
-			foreach(explode(PATH_SEPARATOR, $_ENV['PATH']) as $path)
-				if (is_executable(rtrim($path, DIRECTORY_SEPARATOR) . '/R' . $ext))
-				{
-					$found = true;
-					break;
-				}
-			if ( ! $found)
-				$this->error("RFace: ERROR: no location supplied for R program, and it is not in the PATH.\n");
+			if ( ! is_dir($path_to_r = rtrim($path_to_r, DIRECTORY_SEPARATOR)) . DIRECTORY_SEPARATOR )
+				$this->error("RFace: ERROR: directory $path_to_r for R executable not found.\n");		
 		}
-		else if ( ! is_dir($path_to_r = rtrim($path_to_r, DIRECTORY_SEPARATOR)) )
-			$this->error("RFace: ERROR: directory $path_to_r for R executable not found.\n");
+		else
+		{
+			/* assume that it is on the path; if not, test for proc_open will catch it. */
+			$this->debug_alert("RFace: Assuming R executable is on the normal PATH.....\n");
+			$path_to_r = '';
+		}
+
 
 		/* array of settings for the three pipe-handles */
 		$io_settings = array(
@@ -164,7 +161,7 @@ class RFace
 			2 => array("pipe", "w")   /* pipe allocated to child's stderr */
 			);
 		
-		$command = "$path_to_r/R$ext --slave --no-readline";
+		$command = "{$path_to_r}R$ext --slave --no-readline";
 		
 		$this->process = proc_open($command, $io_settings, $this->handle);
 		

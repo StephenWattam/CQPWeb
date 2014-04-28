@@ -1393,7 +1393,8 @@ class CQPInterchangeFile
 		
 		$this->protocol = ( $this->compression ? 'compress.zlib://' : '' );
 		$this->handle = fopen($this->protocol . $this->name, 'w');
-		//TODO check fopen success.
+		if (false === $this->handle)
+			$this->error( "CQPInterchangeFile: Error opening file {$this->name} for write" );		
 		$this->status = "W";
 	}
 	
@@ -1463,7 +1464,8 @@ class CQPInterchangeFile
 			if (!fclose($this->handle))
 	 			$this->error("CQPInterchangeFile: Error closing file " . $this->name);
 			$this->handle = fopen($this->protocol . $this->name, "r");
-			// TODO error-check return
+			if (false === $this->handle)
+				$this->error( "CQPInterchangeFile: Error opening file {$this->name} for read" );
 		}
 	}
 	

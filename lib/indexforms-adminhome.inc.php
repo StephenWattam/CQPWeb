@@ -3016,11 +3016,11 @@ function printquery_cachecontrol()
 	while (false !== ($r = mysql_fetch_row($result)))
 		$saved_queries[] = $r[0];
 
-	foreach(scandir($WHAT) as $f)
-	{
-		
-	}	
-	$no_file_queries = $SUMMAT;
+//	foreach(scandir($WHAT) as $f)
+//	{
+//		
+//	}	
+//	$no_file_queries = $SUMMAT;
 	
 	?>
 	<table class="concordtable" width="100%">

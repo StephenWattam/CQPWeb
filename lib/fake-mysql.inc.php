@@ -313,6 +313,20 @@ function mysql_num_rows($result)
 /**
  * Fake MySQL-result table-info function.
  */
+function mysql_num_fields($result)
+{
+	$ret = mysqli_num_fields($result);
+	if ($ret === NULL)
+		return false;
+	else
+		return $ret;	
+}
+
+
+
+/**
+ * Fake MySQL-result table-info function.
+ */
 function mysql_field_name($result, $field_offset)
 {
 	$info = mysqli_fetch_field_direct($result, $field_offset);

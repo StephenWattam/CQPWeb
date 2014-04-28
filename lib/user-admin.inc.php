@@ -536,7 +536,7 @@ The CQPweb User Administration System
 
 HERE;
 		
-		send_cqpweb_email($user_address, 'CQPweb: username reminder', $body);
+		send_cqpweb_email($user_address, 'CQPweb: password reset', $body);
 
 
 	$next_location = "index.php?thisQ=lostPassword&showSentMessage=1&uT=y";

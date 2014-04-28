@@ -48,6 +48,8 @@
 	cat		... a particular "categorisation" has been applied
 	item	... a particular item was selected on the "frequency distribution" page aka "item thinning"
 	custom  ... a custom postprocess was run, doing "something".
+	upload  ... not a postprocess, but it is added to the postprocess string in order 
+	            to form part of the match-by-parameter system
 	
 	
 	Some of these have parameters. These are in the format:
@@ -100,6 +102,9 @@
 	custom[class]
 		The name of the class that did the postprocessing is stored here. The class will be queried for
 		a description!
+		
+	upload[instance_name]
+		This prevents different uploads matching by-parameter.
 	
 	Postprocesses are listed in the order they were applied.
 	
@@ -1464,6 +1469,11 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 		
 		switch ($this_process)
 		{
+		case 'upload':
+			/* this is a dummy postprocess, so delete the last-added ', ', and loop to next */
+			$description = preg_replace('/, $/', '', $description);
+			break;
+
 		case 'sort':
 		
 			$description .= 'sorted on <em>'

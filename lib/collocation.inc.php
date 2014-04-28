@@ -60,6 +60,7 @@ require("../lib/freqtable-cwb.inc.php");
 require("../lib/cache.inc.php");
 require("../lib/subcorpus.inc.php");
 require("../lib/db.inc.php");
+require("../lib/rface.inc.php");
 require("../lib/cwb.inc.php");
 require("../lib/cqp.inc.php");
 
@@ -515,6 +516,7 @@ else
 	/* ok, all select-option dropdowns have been dynamically generated : now, write it! */
 	
 	/* before anything else */
+	// TODO switch to using the HTML-lib function
 	header('Content-Type: text/html; charset=utf-8');
 	?>
 	<html>
@@ -623,7 +625,26 @@ else
 				<input type="hidden" name="uT" value="y"/>
 			</tr>
 		</form>
+
+		<?php
+		
+		/* display a table row with text, if available as an "extra info" entry in the $sztatisticv variable */
+		if (!empty($statistic[$calc_stat]['extra']))
+		{
+			/* allow variables to be used in this string (safe because this always comes from code */
+			preg_match_all('/\$(\w+)\b/', $statistic[$calc_stat]['extra'], $m, PREG_PATTERN_ORDER);
+			foreach($m[1] as $varname)
+				if (isset($$varname))
+					$statistic[$calc_stat]['extra'] = str_replace("\${$varname}", $$varname, $statistic[$calc_stat]['extra']);
+			echo '<tr><td colspan="4" class="concordgrey">&nbsp;<br><u><b>Extra information</b></u>: '
+				, $statistic[$calc_stat]['extra']
+				, "<br>&nbsp;</td></tr>\n\n";
+		}
+		?>
+
 	</table>
+
+
 
 	<!-- 
 		end of collocation control display, start of collocation results display 
@@ -636,16 +657,16 @@ else
 			</th>
 		</tr>
 		<tr>
-			<td class="concordgrey"><center>No.</center></td>
-			<td class="concordgrey"><center><?php echo $att_desc[$att_for_calc];?></center></td>
-			<td class="concordgrey"><center>Total no. in <?php echo $desc_of_basis; ?></center></td>
-			<td class="concordgrey"><center>Expected collocate frequency</center></td>
-			<td class="concordgrey"><center>Observed collocate frequency</center></td>
-			<td class="concordgrey"><center>In no. of texts</center></td>
+			<td class="concordgrey" align="center">No.</td>
+			<td class="concordgrey" align="center"><?php echo $att_desc[$att_for_calc];?></td>
+			<td class="concordgrey" align="center">Total no. in <?php echo $desc_of_basis; ?></td>
+			<td class="concordgrey" align="center">Expected collocate frequency</td>
+			<td class="concordgrey" align="center">Observed collocate frequency</td>
+			<td class="concordgrey" align="center">In no. of texts</td>
 		
 			<?php
 			if ($calc_stat != 0)
-				echo "<td class=\"concordgrey\"><center>{$statistic[$calc_stat]['desc']} value</center></td>\n";
+				echo "<td class=\"concordgrey\"><center>{$statistic[$calc_stat]['desc']}</center></td>\n";
 			?>
 		</tr>
 		
@@ -681,6 +702,13 @@ else
 			. $att_for_calc_tt_show . "</B>')\">{$row['observed']}</a>";
 		
 		$sig = ($calc_stat == 0 ? '' : "<td class=\"concordgeneral\"><center>{$row['significance']}</center></td>");
+		
+		/* debug message (while Log Ratio is in development): show the LL alongside the Log Ratio */
+//if ($User->is_admin()) $Config->print_debug_messages = true;
+		if ($Config->print_debug_messages && isset($row['LogLikelihood'])) 
+			$sig = str_replace('</center>', " [LL:{$row['LogLikelihood']}]</center>", $sig);
+//if ($User->is_admin()) $Config->print_debug_messages = false;
+
 		$str = "
 			<tr>
 				<td class=\"concordgeneral\"><center>$i</center></td>

@@ -116,10 +116,14 @@ function exiterror_endpage($backlink = false)
 	global $User;
 	if (isset($User) && $User->is_admin())
 	{
+		$backtrace = debug_backtrace();
+		unset($backtrace[0]); /* because we don't cal about the call to *this* function */
+		
 		if ($debug_messages_textonly)
 		{
 			echo "\n\nPHP debugging backtrace\n=======================\n";
-			var_dump(debug_backtrace());
+			
+			var_dump($backtrace);
 		}
 		else
 		{
@@ -129,7 +133,7 @@ function exiterror_endpage($backlink = false)
 			</tr>
 			<tr>
 				<td class="concorderror">
-					<pre><?php var_dump(debug_backtrace()); ?></pre>
+					<pre><?php var_dump($backtrace); ?></pre>
 				</td>
 			</tr>			
 			<?php

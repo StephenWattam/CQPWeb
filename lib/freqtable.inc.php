@@ -204,7 +204,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	/* first step: save regions to be scanned to a temp file */
 	$regionfile = new CQPInterchangeFile($Config->dir->cache);
 	$region_list_array = get_freq_index_postitionlist_for_subsection($subcorpus, $restriction);
-	
+
 	foreach ($region_list_array as $reg)
 		$regionfile->write("{$reg[0]}\t{$reg[1]}\n");
 
@@ -252,15 +252,13 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	
 	
 	/* set up temporary table for subcorpus frequencies */
-	$sql_query = "CREATE TABLE `$temp_table` (
-	   `freq` int(11) NOT NULL default 0";
+	$sql_query = "CREATE TABLE `$temp_table` ( `freq` int(11) NOT NULL default 0";
 	foreach ($attribute as $att)
-		$sql_query .= ",
-			`$att` varchar(210) NOT NULL default ''";
+		$sql_query .= ", `$att` varchar(210) NOT NULL default ''"; //TODO why 210?
 	foreach ($attribute as $att)
-		$sql_query .= ",
-			key(`$att`)";
+		$sql_query .= ", key(`$att`)";
 	$sql_query .= ") CHARACTER SET utf8 COLLATE $corpus_sql_collation";
+	
 	do_mysql_query($sql_query);
 
 	
@@ -270,7 +268,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	database_enable_keys($temp_table);
 	
 	unlink($temp_table_loadfile);
-	
+
 
 	/* now, create separate frequency lists for each att from the master table */
 
