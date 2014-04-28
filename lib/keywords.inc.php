@@ -663,7 +663,7 @@ case 'key':
 	$description = 'Key' . ($att_for_comp == 'word' ? '' : ' ') 
 		. strtolower($att_desc[$att_for_comp]) . ' list for '
 		. "{$table_desc[1]} compared to {$table_desc[2]};<br>$using"
-		. ( ($minfreq[1] > 1 && $minfreq[2] > 0) 
+		. ( ($minfreq[1] > 1 || $minfreq[2] > 0) 
 				? "<br>items must have minimum frequency {$minfreq[1]} in list #1 and {$minfreq[2]} in list #2."
 				: "<br>no frequency minima." )
 		;
