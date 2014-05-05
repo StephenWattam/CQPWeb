@@ -180,7 +180,7 @@ class corpus_install_info
 				if ($p == 'word')
 					continue;
 				$this->p_attributes[] = $p;
-				$this->p_attributes_mysql_insert[] = $this->get_p_att_mysql_insert($p, '', '', '');
+				$this->p_attributes_mysql_insert[] = $this->get_p_att_mysql_insert($p, '', '', '', false);
 				
 				/* note that no "primary" annotation is created if we are loading in an existing corpus; 
 				 * instead, the primary annotation can be set later.
