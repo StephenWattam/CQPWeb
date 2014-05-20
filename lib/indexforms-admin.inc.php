@@ -2303,7 +2303,7 @@ function printquery_showcache()
 	else
 		$per_page = $default_history_per_page;
 
-	print_cache_table($begin_at, $per_page, '__ALL', true, true);
+	echo print_cache_table($begin_at, $per_page, '__ALL', true, true);
 }
 
 

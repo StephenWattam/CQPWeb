@@ -659,7 +659,7 @@ function printscreen_lostusername()
 					<p>Enter the email address you used to sign up in the text box below and press &rdquo;Request username reminder email&ldquo;.</p>
 					<p>A message will be sent to your email with a reminder of your username.</p>
 					<p align="center">
-						<input type="text" name="emailToRemind" size="30" maxlength="30" />
+						<input type="text" name="emailToRemind" size="30" maxlength="255" />
 					</p>
 					<p align="center">
 						<input type="submit" value="Request username reminder email" />

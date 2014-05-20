@@ -143,7 +143,7 @@ class RFace
 		/* check that we know where the R program is... */
 		if (! empty($path_to_r))
 		{
-			if ( ! is_dir($path_to_r = rtrim($path_to_r, DIRECTORY_SEPARATOR)) . DIRECTORY_SEPARATOR )
+			if ( ! is_dir($path_to_r = rtrim($path_to_r, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR ))
 				$this->error("RFace: ERROR: directory $path_to_r for R executable not found.\n");		
 		}
 		else

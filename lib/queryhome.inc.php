@@ -153,11 +153,13 @@ echo print_menurow_index('freqList', 'Frequency lists');
 echo print_menurow_index('keywords', 'Keywords');
 
 echo print_menurow_heading('User controls');
-//echo print_menurow_index('userSettings', 'User settings');
 echo print_menurow_index('history', 'Query history');
 echo print_menurow_index('savedQs', 'Saved queries');
 echo print_menurow_index('categorisedQs', 'Categorised queries');
 echo print_menurow_index('uploadQ', 'Upload a query');
+/* TODO: this is only for admin users while under development */
+if ($User->is_admin())
+	echo print_menurow_index('analyseCorpus', 'Analyse corpus');
 echo print_menurow_index('subcorpus', 'Create/edit subcorpora');
 
 echo print_menurow_heading('Corpus info');
@@ -305,6 +307,10 @@ case 'uploadQ':
 	
 case 'subcorpus':
 	printquery_subcorpus();
+	break;
+
+case 'analyseCorpus':
+	printquery_analysecorpus();
 	break;
 
 case 'corpusMetadata':

@@ -235,16 +235,19 @@ if (isset($_GET['redirect']))
 	/* from control box in breakdown.php */
 	
 	case 'concBreakdownWords':
+		unset($_GET['concBreakdownWords']);
 		$_GET['concBreakdownOf'] = 'words';
 		require("../lib/breakdown.inc.php");
 		break;
 
 	case 'concBreakdownAnnot':
+		unset($_GET['concBreakdownAnnot']);
 		$_GET['concBreakdownOf'] = 'annot';
 		require("../lib/breakdown.inc.php");
 		break;
 
 	case 'concBreakdownBoth':
+		unset($_GET['concBreakdownBoth']);
 		$_GET['concBreakdownOf'] = 'both';
 		require("../lib/breakdown.inc.php");
 		break;
@@ -265,6 +268,11 @@ if (isset($_GET['redirect']))
 		$_GET['uT'] = 'y';
 		unset($qname);
 		require("../lib/concordance.inc.php");
+		break;
+	
+	case 'concBreakdownDownload':
+		unset($_GET['concBreakdownDownload']);
+		$_GET['tableDownloadMode'] = 1;
 		break;
 
 

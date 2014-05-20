@@ -734,8 +734,268 @@ function printquery_savedqueries()
 
 
 
-	print_cache_table($begin_at, $per_page, $user_to_show, false, false);
+	echo print_cache_table($begin_at, $per_page, $user_to_show, false, false);
 }
+
+
+
+// TODO move this function?
+function printquery_analysecorpus()
+{
+	global $User;
+	global $corpus_sql_name;
+	
+	
+	// TODO add jQuery to this form so that it changes the display below the top table, depending on the option.  
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="3">Analyse corpus</th>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="3">
+				&nbsp;<br>
+				This page contains controls for advanced corpus analysis functions.
+				<br>&nbsp;
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable" colspan="3">Select analysis</th>
+		</tr>
+		<form>
+			<tr>
+				<td class="concordgrey" width="33.3%">
+					&nbsp;<br>
+					Choose the type of analysis you want to perform:
+					<br>&nbsp;
+				</td>
+				<td class="concordgeneral" align="center" width="33.3%">
+					<select>
+						<option value="designFM" selected="selected">Design feature matrix for multivariate analysis</option>
+						<option value="savedFMs"                    >View existing feature matrix analyses</option>
+						<!-- More options will be added here later. -->
+						<!-- Also: interface to corpus analysis plugins will be added here. -->
+					</select>
+				</td>
+				<td class="concordgeneral" align="center" width="33.3%">
+					<input type="button" value="Show analysis controls" />
+				</td>
+			</tr>
+		</form>
+	</table>
+	
+	<!-- TODO, add jQuery affecting the below. */
+	
+	<!-- begin feature matrix control block -->
+	<form>
+		
+
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable" colspan="2">Design feature matrix for multivariate analysis</th>
+			</tr>
+			
+			<tr>
+				<td class="concordgrey" colspan="2">
+					&nbsp;<br>
+					Explanation fo the use of feature matrices goes ehre.
+					Note it can be used for PCA, cluster analysis or facotr analysis.
+					<br>&nbsp;
+				</td>
+			</tr>
+	
+			<tr>
+				<th class="concordtable" colspan="2">Select unit of analysis</th>
+			</tr>
+			<tr>
+				<td class="concordgrey">
+					Choose a unit of analysis (for factoring, clustering, etc.)
+				</td>
+				<td class="concordgeneral">
+					At the moment, the only choice is "text".
+					Howeve,r in the future, we might want ot make it possibl;e to use other elvels of XML in the ciorpus
+					e.g. utterance, paragraph, chapter, etc·
+				</td>
+			</tr>
+			<tr>
+				<th class="concordtable" colspan="2">Define object labelling method</th>
+			</tr>
+			<tr>
+				<td class="concordgrey">
+					All data objects (e.g. texts) in a feature matrix need to have a label.
+					<br>
+					Choose one of the methods opposite for creation of object labels.
+				</td>
+				<td class="concordgeneral">
+					<select name="labelMethod">
+						<option value="id"  selected="selected">Use &ldquo;id&rdquo; attributes, if available (recommended!)</option> 
+						<option value="n"                      >Use &ldquo;n&rdquo; attributes, if available</option> 
+						<option value="seq"                    >Assign a number to each object in order (fallback method)</option>
+					</select>
+				</td> 
+			</tr>
+			<tr>
+				<th class="concordtable" colspan="2">Select texts<!--or, units more generally --></th>
+			</tr>
+			<tr>
+				<td class="concordgrey" width="50%">
+					Select a subcorpus or the full corpus. 
+					<br>
+					Only the texts in the subcorpus you select will be included in the corpus.
+					<!--
+					<br>
+					(when we add other possible levels, it will be possible to use subcorpora based on those divisions)
+					-->
+				</td>
+				<td class="concordgeneral">
+					<select name="corpusSubdiv">
+						<option selected="selected" value="~~full~corpus~~">Use the entire corpus</option>
+						<?php
+						$sql_query = "select subcorpus_name, numfiles from saved_subcorpora
+							where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
+						$result = do_mysql_query($sql_query);
+						
+						while (false !== ($sc = mysql_fetch_object($result)))#
+							echo "\n\t\t\t\t\t\t<option value=\"{$sc->subcorpus_name}\">"
+								, "Subcorpus &ldquo;" , $sc->subcorpus_name , "&rdquo; (", $sc->numfiles , " texts)" 
+								, "</option>"
+								;
+						
+						
+						?>
+						
+					</select>
+				</td>
+			</tr>
+		</table>
+			
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable" colspan="4">Select features (from saved queries)</th>
+			</tr>
+			<tr>
+				<td class="concordgrey" colspan="4">
+					Use the tickboxes below to select the saved queries you want to include as features.
+				</td>
+			</tr>
+			
+			<tr>
+				<th class="concordtable">Use?</th>
+				<th class="concordtable">Name</th>
+				<th class="concordtable">No. of hits</th>
+				<th class="concordtable">Date</th>
+			</tr>
+			
+			<?php
+			
+			$sql_query = "select query_name, save_name, date_of_saving, hits, hits_left
+				from saved_queries where corpus = '$corpus_sql_name' and user = '{$User->username}'  and saved = 1";			
+			
+			$result = do_mysql_query($sql_query);
+
+			for ($i = 0 ; false !== ($q = mysql_fetch_object($result)) ; ++$i)
+			{
+				if (!empty($q->hits_left))
+					$hits_print = number_format((float)array_pop($junk_temp_array = explode('~', $q->hits_left)));
+				else
+					$hits_print = number_format((float)$q->hits);
+				echo "\n<tr>"
+					, "\n\t<td class=\"concordgeneral\" align=\"center\"><input type=\"checkbox\" value=\"{$q->query_name}\" name=\"useQuery$i\" /></td>"
+					, "\n\t<td class=\"concordgeneral\" align=\"center\">{$q->save_name}</td>"
+					, "\n\t<td class=\"concordgeneral\" align=\"center\">$hits_print</td>"
+					, "\n\t<td class=\"concordgeneral\" align=\"center\">{$q->date_of_saving}</td>"
+					, "\n</tr>\n"
+					;
+			}
+			?>
+		</table>
+		
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable" colspan="2">Select features (based on query permutation)</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					This is for features whose value can only be deuced by mathemtaical manipulation of more than one saved query.
+					Typical example: where a feature is equalo to (search for soemthing ) minus (search for something elsE) 
+				</td>
+			</tr>
+			
+			<tr>
+				<th class="concordtable" colspan="2">Select additional features</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					This is for features whose value can only be deuced by mathemtaical manipulation of more than one saved query.
+					Typical example: where a feature is equalo to (search for soemthing ) minus (search for something elsE) 
+					
+					<p>
+						Allow extra features to be added that are not queries. The list of these is:
+					</p>
+					
+					<ul>
+						<li>Standardised type-token ratio</li>
+						<li>Type-token ratio</li>
+						<li>Average word length</li>
+						<li>Average sub-unit length (as indicated by any XML element: s, p)</li>
+						<li>Lexical density</li>
+					</ul>
+					
+					<p>Other statistical features can be defined via the saved-query feature function: e.g. lexical density.</p>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgrey" width="50%">Enter a name for this new feature matrix:</td>
+				<td class="concordgeneral" width="50%">
+					<!-- TODO add check on characters here -->
+					<input type="text" name="matrixName" />
+				</td>
+			</tr>
+			
+			
+			<tr>
+				<td class="concordgeneral" align="center" colspan="2">
+					<input type="button" value="Build feature matrix database!" />
+					
+					<p>
+						The action above takes us to a new screen where the matrix already exists, and we then have
+						the options for factor analysis.
+					</p>
+				</td>
+			</tr>
+		</table>
+		<input type="hidden" name="uT" value="y" />
+	</form>
+	<!-- end feature matrix control block -->
+
+	<?php
+	
+	/*
+	Here is what will be on the controls for a saved feature matrix.
+	
+	(1) Export feature matrix.
+		- as a plain-text file for offline analysis 
+	
+	(2) Configure factor analysis.
+		Anything that is not a pre-calculated statistic (avg word lenghtr etc.)
+		is normalised by dividing by text length.
+		
+	
+	THE KMO test - code is in the HTML file I downloaded from the web,
+	
+	it requires the ginv function from the MASS library, but full code for ginv()
+	is available in the MASS manual.
+	
+	Have an option to do it.
+	
+	
+	*/
+	
+}
+
+
+
 
 
 
@@ -806,7 +1066,6 @@ function printquery_uploadquery()
 }
 
 
-
 function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_unsaved = true, $show_filesize = true)
 {
 	global $username;
@@ -842,20 +1101,19 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 	$result = do_mysql_query($sql_query);
 
 	
-	?>
+	$s = '
 	<table class="concordtable" width="100%">
 		<tr>
 			<th class="concordtable">No.</th>
-			<?php if ($usercolumn) echo '<th class="concordtable">User</th>'; ?>
+			' . ($usercolumn ? '<th class="concordtable">User</th>' : '') . '
 			<th class="concordtable">Name</th>
 			<th class="concordtable">No. of hits</th>
-			<?php if ($show_filesize) echo '<th class="concordtable">File size</th>'; ?>
+			' . ($show_filesize ? '<th class="concordtable">File size</th>' : '') . '
 			<th class="concordtable">Date</th>
 			<th class="concordtable">Rename</th>
 			<th class="concordtable">Delete</th>	
 		</tr>
-
-	<?php
+	';
 
 	$toplimit = $begin_at + $per_page;
 	$alt_toplimit = mysql_num_rows($result);
@@ -864,7 +1122,7 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 		$toplimit = $alt_toplimit + 1;
 	
 	if ($toplimit == 1)
-		echo '<tr><td class="concordgrey" colspan="' . ($usercolumn ? '8' : '7') . '" align="center">
+		$s .= '<tr><td class="concordgrey" colspan="' . ($usercolumn ? '8' : '7') . '" align="center">
 				&nbsp;<br/>No saved queries were found.<br/>&nbsp;
 				</td</tr>';
 
@@ -876,17 +1134,17 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 		if ($i < $begin_at)
 			continue;
 		
-		echo "<tr>\n<td class='concordgeneral'><center>$i</center></td>";
+		$s .= "<tr>\n<td class='concordgeneral'><center>$i</center></td>";
 		
 		if ($usercolumn)
-			echo "<td class='concordgeneral'><center>" . $row['user'] . '</center></td>';
+			$s .=  "<td class='concordgeneral'><center>" . $row['user'] . '</center></td>';
 		
 		if ($row['save_name'] != '')
 			$print_name = $row['save_name'];
 		else
 			$print_name = $row['query_name'];
 		
-		echo '<td class="concordgeneral"><a href="concordance.php?qname='
+		$s .= '<td class="concordgeneral"><a href="concordance.php?qname='
 			. $row['query_name'] . '&uT=y" onmouseover="return escape(\'Show query solutions\')">'
 			. $print_name . '</a></td>';
 
@@ -895,34 +1153,34 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 		else
 			$hits_print = number_format((float)$row['hits']);
 		
-		echo '<td class="concordgeneral"><center>' . $hits_print . '</center></td>';
+		$s .= '<td class="concordgeneral"><center>' . $hits_print . '</center></td>';
 		
 		if ($show_filesize)
-			echo "<td class='concordgeneral'><center>" . round(($row['file_size']/1024), 1) . ' Kb</center></td>';
+			$s .= "<td class='concordgeneral'><center>" . round(($row['file_size']/1024), 1) . ' Kb</center></td>';
 			
 		
-		echo '<td class="concordgeneral"><center>' . $row['date_of_saving'] . '</center></td>';
+		$s .= '<td class="concordgeneral"><center>' . $row['date_of_saving'] . '</center></td>';
 		
 		$temp_gets = url_printget(array(array('redirect', ''), array('saveScriptmode', ''), array('qname', '')));
 		
 		if ($row['saved'] == "1")
-			echo '<td class="concordgeneral"><center>' 
+			$s .= '<td class="concordgeneral"><center>' 
 				. '<a class="menuItem" href="redirect.php?redirect=saveHits&saveScriptMode=get_save_rename&qname='
 				. $row['query_name'] . '&' . $temp_gets . '" onmouseover="return escape(\'Rename this saved query\')">'
 				. '[rename]</a></center></td>';
 		else
-			echo '<td class="concordgeneral"><center>-</center></td>';
+			$s .= '<td class="concordgeneral"><center>-</center></td>';
 
-		echo '<td class="concordgeneral"><center>' 
+		$s .= '<td class="concordgeneral"><center>' 
 			. '<a class="menuItem" href="redirect.php?redirect=saveHits&saveScriptMode=delete_saved&qname='
 			. $row['query_name'] . '&' . $temp_gets . '" onmouseover="return escape(\'Delete this saved query\')">'
 			. '[x]</a></center></td>';
-		echo '</tr>
+		$s .= '</tr>
 			';
 		unset($temp_gets);
 	}
 	
-	echo '</table>';
+	$s .= "</table>\n\n\n";
 
 	$navlinks = '<table class="concordtable" width="100%"><tr><td class="basicbox" align="left';
 
@@ -943,9 +1201,9 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 	$navlinks .= '">[Older queries] &gt;&gt;';
 	if (mysql_num_rows($result) > $i)
 		$navlinks .= '</a>';
-	$navlinks .= '</td></tr></table>';
-	
-	echo $navlinks;
+	$navlinks .= "</td></tr></table>\n\n\n";
+		
+	return $s . $navlinks;
 }
 
 

@@ -434,10 +434,50 @@ function print_column_headings()
 
 
 
+/**
+ * Prints and returns a series of <option> elements with values -5 to 5
+ * (the standard posiitons available in a sort database). This is used in
+ * both the sort control and in the freq breakdown control box.
+ * 
+ * Parameter: the integer value of the option to be pre-selected.
+ */
+function print_sort_position_options($current_position = 0)
+{
+	global $corpus_main_script_is_r2l;
+
+	$s = '';
+	
+	foreach(array(5,4,3,2,1) as $i)
+	{
+		$s .= "\n\t<option value=\"-$i\""
+			. (-$i == $current_position ? ' selected="selected"' : '')
+			. ">$i Left</option>";
+	}
+	
+	$s .= "\n\t<option value=\"0\""
+		. (0 == $current_position ? ' selected="selected"' : '')
+		. ">Node</option>";
+		
+	foreach(array(1,2,3,4,5) as $i)
+	{
+		$s .= "\n\t<option value=\"$i\""
+			. ($i == $current_position ? ' selected="selected"' : '')
+			. ">$i Right</option>\n";
+	}
+	
+	if ($corpus_main_script_is_r2l)
+	{
+		$s = str_replace('Left',  'Before', $s);
+		$s = str_replace('Right', 'After',  $s);
+	}
+
+	return $s;
+}
+
+
 
 function print_sort_control($primary_annotation, $postprocess_string)
 {
-	global $corpus_main_script_is_r2l;
 	/* get current sort settings : from the current query's postprocess string */
 	/* ~~sort[position~thin_tag~thin_tag_inv~thin_str~thin_str_inv] */
 	$command = array_pop(explode('~~', $postprocess_string));
@@ -464,31 +504,13 @@ function print_sort_control($primary_annotation, $postprocess_string)
 	}
 
 	/* create a select box: the "position" dropdown */
-	$position_select = '<select name="newPostP_sortPosition">';
+	$position_select = '<select name="newPostP_sortPosition">'
+		. print_sort_position_options($current_settings_position)
+		. '</select>
+		';
 	
-	foreach(array(5,4,3,2,1) as $i)
-	{
-		$position_select .= "\n\t<option value=\"-$i\""
-			. (-$i == $current_settings_position ? ' selected="selected"' : '')
-			. ">$i Left</option>";
-	}
-	$position_select .= "\n\t<option value=\"0\""
-		. (0 == $current_settings_position ? ' selected="selected"' : '')
-		. ">Node</option>";
-	foreach(array(1,2,3,4,5) as $i)
-	{
-		$position_select .= "\n\t<option value=\"$i\""
-			. ($i == $current_settings_position ? ' selected="selected"' : '')
-			. ">$i Right</option>";
-	}
+	
 
-	$position_select .= '</select>';
-
-	if ($corpus_main_script_is_r2l)
-	{
-		$position_select = str_replace('Left',  'Before', $position_select);
-		$position_select = str_replace('Right', 'After',  $position_select);
-	}
 
 	/* create a select box: the "tag restriction" dropdown */
 	if (!empty($primary_annotation))

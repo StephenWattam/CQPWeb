@@ -571,7 +571,7 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS, $run_locat
 	$Corpus = new CQPwebEnvCorpus();
 
 	
-	// TODO make this dependent on debug status
+	/* write progressively to output in case of long loading time */
 	ob_implicit_flush(true);
 
 
