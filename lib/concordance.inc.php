@@ -504,8 +504,18 @@ if ($run_new_query)
 	$cqp->execute("save $qname");
 
 	if (($num_of_solutions = $cqp->querysize($qname)) == 0)
-		/* no solutions */
-		say_sorry($instance_name); /* note that this exits() the script! */
+	{
+		/* no solutions: update the history, delete the query file, send the user a message */
+		if ($history_inserted)
+			history_update_hits($instance_name, 0);
+		
+		// TODO would it instead work if the "save $qname" command were only done below?
+		// then no need for a disk write for zero-hits query.
+		// that should be OK, but check.
+		cqp_file_unlink($qname);
+		
+		say_sorry(); /* note that this exits() the script! */
+	}
 	
 	$num_of_texts = count( $cqp->execute("group $qname match text_id") );
 	/* note that this field in the record always refers to the ORIGINAL num of texts

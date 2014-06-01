@@ -1111,40 +1111,41 @@ function extract_cqp_line_position_labels(&$cqp_line, &$text_id, &$position_labe
 }
 
 
-/** print a sorry-no-solutions page, shut down CQP, and end */
-function say_sorry($instance_name, $sorry_input = "no_solutions")
+/** print a sorry-no-solutions page, shut down CQPweb, and end */
+function say_sorry($sorry_input = "no_solutions")
 {
 	global $Config;
 	
 	switch ($sorry_input)
 	{
-	case  'empty_postproc':
+	case 'empty_postproc':
 		$errorText = "No results were left after performing that operation!";
 		break;
-	case "no_files":
+	case 'no_files':
 		$errorText = "There are no texts in the corpus that match your restrictions.";
 		break;
 	case 'no_solutions':
 		$errorText = "Your query had no results.";
 		break;
 	default:
-		$errorText = "Somthing went wrong!";
+		$errorText = "Something went wrong!";
 		break;
 	}
-	if (!empty($instance_name))
-		history_update_hits($instance_name, 0);
-		// TODO logically, the above DOES NOT BELONG IN THIS FUNCTION. move out & do alongside, not within
-	
 	
 	echo print_html_header('Query error!', $Config->css_path);
 
-	// TODO proper formatting below (as in exiterror) (or use exiterror?)
 	?>
-		<table width="100%">
+		<table width="100%" class="concordtable">
 			<tr>
-				<td>
-					<p class="errormessage"><b><?php echo $errorText; ?></b></p>
-					<p class="errormessage"><b>Press [Back] and try again.</b></p>
+				<th class="concordtable">
+					<?php echo $errorText; ?>
+				</th>
+			</tr>
+			<tr>
+				<td class="concorderror" align="center">
+					<p>
+						<b>Press [Back] and try again.</b>
+					</p>
 				</td>
 			</tr>
 		</table>
@@ -1158,7 +1159,7 @@ function say_sorry($instance_name, $sorry_input = "no_solutions")
 /** print a sorry-no-solutions page, shut down CQP, and end */
 function say_sorry_postprocess()
 {
-	say_sorry(false, 'empty_postproc');
+	say_sorry('empty_postproc');
 }
 
 
