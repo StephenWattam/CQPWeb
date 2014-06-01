@@ -169,6 +169,15 @@ function printquery_latest()
 	
 	<ul>
 		<li>
+		<b>Version 3.1.8</b>, 2014-xx-xx<br/>&nbsp;<br/>
+		Updated frequency breakdown to enable breakdown of sort position of a sorted query.
+		<br/>&nbsp;<br/>
+		Fixed critical cache leak bug.
+		<br/>&nbsp;<br/>
+		Improved cache control display.
+		<br/>&nbsp;</li>
+
+		<li>
 		<b>Version 3.1.7</b>, 2014-04-28<br/>&nbsp;<br/>
 		Reorganised the keyword output screen to give a richer analysis.
 		<br/>&nbsp;<br/>

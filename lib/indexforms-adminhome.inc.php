@@ -3010,17 +3010,30 @@ function printquery_cachecontrol()
 	// TODO no file queries = entry in DB, bbut no file on disk. 
 	// less vital to sort these out. dno't worry about for now.
 	// create an array now but don't worry about displaqy.
+php_execute_time_unlimit();
+
 	
 	/* list saved queries */
 	$result = do_mysql_query("select query_name from saved_queries");
 	while (false !== ($r = mysql_fetch_row($result)))
 		$saved_queries[] = $r[0];
 
-//	foreach(scandir($WHAT) as $f)
-//	{
-//		
-//	}	
-//	$no_file_queries = $SUMMAT;
+	foreach(scandir($Config->dir->cache) as $f)
+	{
+		if ('.' == $f || '..' == $f)
+			continue;
+		if (false === strpos($f, ':'))
+			$unrecorded_files[] = $f;
+		else
+		{
+			list(, $q) = explode(':', $f);
+			if (in_array($q, $saved_queries))
+				$recorded_files[] = $f;
+			else
+				$unrecorded_files[] = $f;
+		}
+	}
+	$no_file_queries = array_diff($saved_queries, $recorded_files);
 	
 	?>
 	<table class="concordtable" width="100%">
@@ -3136,7 +3149,20 @@ function printquery_cachecontrol()
 		{
 			foreach ($unrecorded_files as $f)
 			{
-				
+				$stat = stat($Config->dir->cache . '/' . $f);
+				$delurl = 'index.php?admFunction=execute&function=delete_stray_cache_file&args='
+					. urlencode($f) 
+					. '&locationAfter=' . urlencode('index.php?thisF=cacheControl&uT=y') . '&uT=y';
+				echo "\n\t\t<tr>"
+					, '<td class="concordgrey">', $f, '</td>'
+					, '<td class="concordgrey" align="center">', number_format(round($stat['size']/1024, 0)), '</td>'
+					, '<td class="concordgrey" align="center">', date('Y-M-d H:i:s', $stat['mtime']), '</td>'
+					, '<td class="concordgrey" align="center">'
+					, '<a class="menuItem" href="', $delurl, '">[x]</a>'
+					// TODO - jQuery "are you sure?" if file is less than 24 hours old.
+					, '</td>'
+					, "</tr>\n"
+					;
 				
 				
 			}

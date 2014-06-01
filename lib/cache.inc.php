@@ -93,6 +93,20 @@ function cqp_file_path($qname)
 }
 
 
+/**
+ * Deletes a specified file from the cache directory, unconditionally.
+ */
+function delete_stray_cache_file($filename)
+{
+	global $Config;
+	
+	$path = "{$Config->dir->cache}/$filename";
+	
+	if (is_file($path))
+		unlink($path);
+}
+
+
 /** Returns a blank associative array with named keys for each for the fields */
 function blank_cache_assoc()
 {
