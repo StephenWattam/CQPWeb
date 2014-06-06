@@ -347,9 +347,9 @@ echo print_html_footer();
 cqpweb_shutdown_environment();
 
 
-/* ------------- */
-/* end of script */
-/* ------------- */
+/* ------------- *
+ * end of script *
+ * ------------- */
 
 
 
@@ -408,7 +408,7 @@ function print_warning_cell($query_record)
 					(' . number_format((float)$words) . ' words). No cached frequency data
 					was found and frequency lists for the relevant part of the corpus will have to 
 					be compiled in order to provide accurate measures of collocational strength. 
-					Depending on the size of the subcorpus this may take several minutes and will
+					Depending on the size of the subcorpus this may take several minutes and may
 					use a lot of disk space.
 					<br/>&nbsp;<br/>
 					Alternatively, you can use the frequency lists for the main corpus (less precise

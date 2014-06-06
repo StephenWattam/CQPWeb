@@ -140,7 +140,7 @@ case 'ready_to_save':
 	$record = blank_cache_assoc();
 
 	$record['query_name'] = $newqname;
-	$record['user'] = $username;
+	$record['user'] = $User->username;
 	$record['saved'] = 1;
 	$record['save_name'] = $savename;
 	

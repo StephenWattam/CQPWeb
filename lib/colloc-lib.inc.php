@@ -781,8 +781,8 @@ function collocation_write_download(
 	&$result
 	)
 {
-	global $username;
-	$da = get_user_linefeed($username);
+	global $User;
+	$da = get_user_linefeed($User->username);
 	
 	$description = preg_replace('/&([lr]dquo|quot);/', '"', $description);
 	$description = preg_replace('/<span .*>/', '', $description);

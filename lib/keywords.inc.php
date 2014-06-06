@@ -892,8 +892,8 @@ function print_keyword_line_plaintext($data, $line_number, $da, $corpus_size)
 
 function keywords_write_download($att_desc, $description, &$result, $corpus_size)
 {
-	global $username;
-	$da = get_user_linefeed($username);
+	global $User;
+	$da = get_user_linefeed($User->username);
 	$description = preg_replace('/&[lr]dquo;/', '"', $description);
 	$description = str_replace("<br>", $da, $description);
 

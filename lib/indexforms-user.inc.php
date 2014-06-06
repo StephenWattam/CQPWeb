@@ -1007,7 +1007,7 @@ function printscreen_usersettings()
 
 function printscreen_usermacros()
 {
-	global $username;
+	global $User;
 	
 	// TODO - prob better to have these actions in user_admin instead.
 	
@@ -1028,7 +1028,7 @@ function printscreen_usermacros()
 	
 	<?php
 	
-	$result = do_mysql_query("select * from user_macros where user='$username'");
+	$result = do_mysql_query("select * from user_macros where user='{$User->username}'");
 	if (mysql_num_rows($result) == 0)
 	{
 		?>
@@ -1060,17 +1060,17 @@ function printscreen_usermacros()
 			echo "<td class=\"concordgeneral\">{$r->macro_name}({$r->macro_num_args})</td>";
 			
 			echo '<td class="concordgrey"><pre>'
-				. $r->macro_body
-				. '</pre></td>';
+				, $r->macro_body
+				, '</pre></td>';
 			
 			echo '<form action="index.php" method="get"><td class="concordgeneral" align="center">'
-				. '<input type="submit" value="Delete macro" /></td>'
-				. '<input type="hidden" name="macroDelete" value="'.$r->macro_name.'" />'
-				. '<input type="hidden" name="macroDeleteNArgs" value="'.$r->macro_num_args.'" />'
-				. '<input type="hidden" name="macroUsername" value="'.$username.'" />'
-				. '<input type="hidden" name="thisQ" value="userSettings" />'
-				. '<input type="hidden" name="uT" value="y" />'
-				. '</form>';
+				, '<input type="submit" value="Delete macro" /></td>'
+				, '<input type="hidden" name="macroDelete" value="'.$r->macro_name.'" />'
+				, '<input type="hidden" name="macroDeleteNArgs" value="'.$r->macro_num_args.'" />'
+				, '<input type="hidden" name="macroUsername" value="'.$User->username.'" />'
+				, '<input type="hidden" name="thisQ" value="userSettings" />'
+				, '<input type="hidden" name="uT" value="y" />'
+				, '</form>';
 			
 			echo '</tr>';	
 		}	
@@ -1102,7 +1102,7 @@ function printscreen_usermacros()
 			<td class="concordgrey"><input type="submit" value="Create macro"/></td>
 		</tr>
 		
-		<input type="hidden" name="macroUsername" value="<?php echo $username;?>" />
+		<input type="hidden" name="macroUsername" value="<?php echo $Uxer->username;?>" />
 		<input type="hidden" name="thisQ" value="userSettings" />
 		<input type="hidden" name="uT" value="y" />
 		

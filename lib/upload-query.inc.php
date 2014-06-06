@@ -182,7 +182,7 @@ do_mysql_query("insert into saved_queries (query_name) values ('$qname')");
 
 $cache_record = array(
 	'query_name' => $qname,
-	'user' => $username,
+	'user' => $User->username,
 	'corpus' => $corpus_sql_name,
 	'query_mode' => 'uploaded',
 	'simple_query' => '',

@@ -89,15 +89,15 @@ function prepare_query_mode($s, $strict = true)
 // TODO end use of globals
 function amount_of_text_searched($subcorpus, $restrictions)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 	
 	if ($subcorpus != 'no_subcorpus')
 	{
 		$sql_query = "select numwords, numfiles from saved_subcorpora
 			WHERE subcorpus_name = '$subcorpus'
 			AND corpus = '$corpus_sql_name'
-			AND user = '$username'";
+			AND user = '{$User->username}'";
 
 		$result = do_mysql_query($sql_query);
 				

@@ -84,7 +84,8 @@ $hits = ( empty($query_record['hits_left']) ? $query_record['hits']: $query_reco
 
 $num_of_hits_text = '(current no. of instances: ' . number_format((float)$hits) . ')';
 
-$reproducible_is_selected = get_user_setting($username, 'thin_default_reproducible');
+// TODO check: can't this just be got via $User->tjhin_default_reproducible ??
+$reproducible_is_selected = get_user_setting($User->username, 'thin_default_reproducible');
 
 /* now print the options form */
 ?>

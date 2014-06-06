@@ -511,7 +511,7 @@ function metadata_field_is_classification($field)
 function metadata_expand_field($field)
 {
 	$obj = metadata_get_field_metadata($field);
-	return (empty($obj) ? $field : $obj->description);
+	return (empty($obj) ? $field : (empty($obj->description) ? $field : $obj->description));
 }
 
 

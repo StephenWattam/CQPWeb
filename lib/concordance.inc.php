@@ -57,11 +57,8 @@ require("../lib/cqp.inc.php");
 cqpweb_startup_environment();
 
 /* Load user macros! */
-user_macro_loadall($username);
+user_macro_loadall($User->username);
 
-//not needed - we have $User
-///* download all user settings */
-//$user_settings = get_all_user_settings($username);
 
 
 

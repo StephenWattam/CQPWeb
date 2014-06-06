@@ -30,14 +30,14 @@
 
 function printquery_history()
 {
-	global $username;
+	global $User;
 	global $default_history_per_page;
 	global $corpus_sql_name;
 	
 	if (isset($_GET['historyView']))
 		$view = $_GET['historyView'];
 	else
-		$view = ( (boolean)get_user_setting($username, 'cqp_syntax') ? 'cqp' : 'simple');
+		$view = ( (boolean)get_user_setting($User->username, 'cqp_syntax') ? 'cqp' : 'simple');
 	
 
 	if (isset($_GET['beginAt']))
@@ -52,10 +52,10 @@ function printquery_history()
 
 
 	/* variable for superuser usage */
-	if (isset($_GET['showUser']) && user_is_superuser($username))
+	if (isset($_GET['showUser']) && $User->is_admin())
 		$user_to_show = $_GET['showUser'];
 	else
-		$user_to_show = $username;
+		$user_to_show = $User->username;
 
 
 	/* create sql query and set options */
@@ -102,7 +102,7 @@ function printquery_history()
 	
 
 
-	if (user_is_superuser($username))
+	if ($User->is_admin())
 	{
 		/* there will be a delete column */
 		$delete_lines = true;
@@ -342,7 +342,7 @@ function printquery_history()
 
 function printquery_catqueries()
 {
-	global $username;
+	global $User;
 	global $corpus_sql_name;
 	global $default_history_per_page;
 	
@@ -356,10 +356,10 @@ function printquery_catqueries()
 
 
 	/* variable for superuser usage */
-	if (isset($_GET['showUser']) && user_is_superuser($username))
+	if (isset($_GET['showUser']) && $User-is_admin())
 		$user_to_show = $_GET['showUser'];
 	else
-		$user_to_show = $username;
+		$user_to_show = $User->username;
 
 
 	if ($user_to_show == '__ALL')
@@ -367,7 +367,7 @@ function printquery_catqueries()
 	else
 		$current_string = "Currently showing history for user <b>&ldquo;$user_to_show&rdquo;</b>";
 	
-	$usercolumn = (($user_to_show == '__ALL') && user_is_superuser($username));
+	$usercolumn = (($user_to_show == '__ALL') && $User->is_admin());
 
 	if (isset($_GET['beginAt']))
 		$begin_at = $_GET['beginAt'];
@@ -381,7 +381,7 @@ function printquery_catqueries()
 
 
 	/* form for admin controls */
-	if (user_is_superuser($username))
+	if ($User->is_admin())
 	{
 		?>
 		<table class="concordtable" width="100%">
@@ -623,8 +623,9 @@ function printquery_catqueries()
 
 function printquery_savedqueries()
 {
+	global $User;
+	
 	global $default_history_per_page;
-	global $username;
 	global $corpus_sql_name;
 
 
@@ -639,10 +640,10 @@ function printquery_savedqueries()
 		$per_page = $default_history_per_page;
 
 
-	if (isset($_GET['showUser']) && user_is_superuser($username))
+	if (isset($_GET['showUser']) && $User->is_admin)
 		$user_to_show = $_GET['showUser'];
 	else
-		$user_to_show = $username;
+		$user_to_show = $User->username;
 
 	if ($user_to_show == '__ALL')
 	{
@@ -656,7 +657,7 @@ function printquery_savedqueries()
 
 
 	/* form for admin controls */
-	if (user_is_superuser($username))
+	if ($User->is_admin)
 	{
 		?>
 		<table class="concordtable" width="100%">
@@ -1068,18 +1069,18 @@ function printquery_uploadquery()
 
 function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_unsaved = true, $show_filesize = true)
 {
-	global $username;
+	global $User;
 	global $corpus_sql_name;
 	
 	if ($user_to_show == NULL)
-		$user_to_show = $username;
+		$user_to_show = $User->username;
 
 	
 	/* create sql query and set options */
 	$sql_query = "select query_name, user, save_name, hits, file_size, saved, date_of_saving, hits_left
 		from saved_queries where corpus = '$corpus_sql_name' ";
 		
-	if (($user_to_show == '__ALL') && user_is_superuser($username))
+	if (($user_to_show == '__ALL') && $User->is_admin())
 		$usercolumn = true;
 	else
 	{
@@ -1095,7 +1096,7 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 	$sql_query .= ' order by date_of_saving DESC';
 
 	/* only allow superusers to see file size */		
-	if (!user_is_superuser($username))
+	if (!$User->is_admin())
 		$show_filesize = false;
 
 	$result = do_mysql_query($sql_query);

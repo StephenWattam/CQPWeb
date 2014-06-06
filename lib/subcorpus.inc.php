@@ -45,8 +45,8 @@
  */
 function create_subcorpus_list($subcorpus_name, $text_list)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 
 	$text_list = alphabetise_textlist($text_list);
 	$whereclause = translate_textlist_to_where($text_list);
@@ -64,14 +64,14 @@ function create_subcorpus_list($subcorpus_name, $text_list)
 	$sql_query = "DELETE FROM saved_subcorpora 
 		WHERE subcorpus_name = '$subcorpus_name'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	do_mysql_query($sql_query);
 
 	$text_list = mysql_real_escape_string($text_list);
 	
 	$sql_query = "INSERT INTO saved_subcorpora (subcorpus_name, corpus, user, text_list, numfiles, numwords)
 		values 
-		('$subcorpus_name', '$corpus_sql_name', '$username', '$text_list', '$numfiles', '$numwords')";
+		('$subcorpus_name', '$corpus_sql_name', '{$User->username}', '$text_list', '$numfiles', '$numwords')";
 	do_mysql_query($sql_query);
 }
 
@@ -82,8 +82,8 @@ function create_subcorpus_list($subcorpus_name, $text_list)
 /** Creates a subcorpus from restrictions formatted as SQL "where" clause */
 function create_subcorpus_restrictions($subcorpus_name, $restrictions)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 
 	$sql_query = "SELECT count(*), sum(words) FROM text_metadata_for_$corpus_sql_name 
 		WHERE $restrictions";
@@ -96,7 +96,7 @@ function create_subcorpus_restrictions($subcorpus_name, $restrictions)
 	$sql_query = "DELETE FROM saved_subcorpora 
 		WHERE subcorpus_name = '$subcorpus_name'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	do_mysql_query($sql_query);
 	
 	$subcorpus_name = mysql_real_escape_string($subcorpus_name);
@@ -104,7 +104,7 @@ function create_subcorpus_restrictions($subcorpus_name, $restrictions)
 	
 	$sql_query = "INSERT INTO saved_subcorpora (subcorpus_name, corpus, user, restrictions, numfiles, numwords)
 		values 
-		('$subcorpus_name', '$corpus_sql_name', '$username', '$restrictions', '$numfiles', '$numwords')";
+		('$subcorpus_name', '$corpus_sql_name', '{$User->username}', '$restrictions', '$numfiles', '$numwords')";
 	do_mysql_query($sql_query);
 }
 
@@ -112,8 +112,8 @@ function create_subcorpus_restrictions($subcorpus_name, $restrictions)
 
 function create_subcorpus_query($subcorpus_name, $qname)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 	global $cqp;
 
 	/* check the connection to CQP */
@@ -170,13 +170,13 @@ function create_subcorpus_invert($subcorpus_name, $subcorpus_to_invert)
 
 function subcorpus_change_restrictions_to_list($subcorpus_name)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 
 	$sql_query = "select * from saved_subcorpora
 		WHERE subcorpus_name = '$subcorpus_name'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)
@@ -196,7 +196,7 @@ function subcorpus_change_restrictions_to_list($subcorpus_name)
 	$sql_query = "update saved_subcorpora set restrictions = '', text_list = '$list'
 		WHERE subcorpus_name = '$subcorpus_name'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	do_mysql_query($sql_query);
 }
 
@@ -259,8 +259,8 @@ function subcorpus_add_texts($subcorpus, $text_array)
  */
 function subcorpus_alter_text_list($subcorpus, $new_list)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 
 	$subcorpus = mysql_real_escape_string($subcorpus);
 	
@@ -277,7 +277,7 @@ function subcorpus_alter_text_list($subcorpus, $new_list)
 		SET restrictions = NULL, text_list = '$new_list', numfiles = $numfiles, numwords = $numwords 
 		WHERE subcorpus_name = '$subcorpus'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	do_mysql_query($sql_query);
 }
 
@@ -287,15 +287,15 @@ function subcorpus_alter_text_list($subcorpus, $new_list)
  */
 function subcorpus_get_text_list($subcorpus)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 	
 	$subcorpus = mysql_real_escape_string($subcorpus);
 			
 	$sql_query = "select restrictions, text_list from saved_subcorpora
 		WHERE subcorpus_name = '$subcorpus'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)
@@ -337,15 +337,15 @@ function subcorpus_get_text_list($subcorpus)
  */
 function subcorpus_based_on_restrictions($subcorpus)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 	
 	$subcorpus = mysql_real_escape_string($subcorpus);
 
 	$sql_query = "select restrictions, text_list from saved_subcorpora
 		WHERE subcorpus_name = '$subcorpus'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)
@@ -379,15 +379,15 @@ function subcorpus_based_on_restrictions($subcorpus)
  */
 function subcorpus_sizeof($subcorpus)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 	
 	$subcorpus = mysql_real_escape_string($subcorpus);
 	
 	$sql_query = "select numwords, numfiles from saved_subcorpora
 		WHERE subcorpus_name = '$subcorpus'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)
@@ -418,11 +418,11 @@ function subcorpus_sizeof_update($subcorpus)
  */ 
 function get_list_of_subcorpora()
 {
-	global $username;
+	global $User;
 	global $corpus_sql_name;
 
 	$result = do_mysql_query("select subcorpus_name from saved_subcorpora 
-								where user='$username' and corpus='$corpus_sql_name'");
+								where user='{$User->username}' and corpus='$corpus_sql_name'");
 	for ($list = array() ; false !== ($r = mysql_fetch_row($result)) ; )
 		$list[] = $r[0];
 	
@@ -434,36 +434,32 @@ function get_list_of_subcorpora()
 /* freq tables as well */
 function delete_subcorpus($subcorpus_name)
 {
-	global $username;
+	global $User;
 	global $corpus_sql_name;
 
 	/* delete any queries that use this subcorpus */
 	$sql_query = "select query_name from saved_queries  
 		where subcorpus = '$subcorpus_name'
 		and corpus = '$corpus_sql_name' 
-		and user = '$username'
+		and user = '{$User->username}'
 		";
 	$result = do_mysql_query($sql_query);
 	
 	while ( ($r = mysql_fetch_row($result)) !== false)
 		delete_cached_query($r[0]);
 		
-	unset($result);
-
 
 	/* delete any DBs based on this subcorpus */
 	$sql_query = "select dbname from saved_dbs  
 		where subcorpus = '$subcorpus_name'
 		and corpus = '$corpus_sql_name' 
-		and user = '$username'
+		and user = '{$User->username}'
 		";
 	$result = do_mysql_query($sql_query);
 	
 	while ( ($r = mysql_fetch_row($result)) !== false)
 		delete_db($r[0]);
 		
-	unset($result);
-	
 
 	/* delete the freqtables for this subcorpus, if it has them */
 	if ( ($freqtable_record = check_freqtable_subcorpus($subcorpus_name)) == false )
@@ -477,7 +473,7 @@ function delete_subcorpus($subcorpus_name)
 	$sql_query = "delete from saved_subcorpora  
 		where subcorpus_name = '$subcorpus_name'
 		and corpus = '$corpus_sql_name' 
-		and user = '$username'
+		and user = '{$User->username}'
 		LIMIT 1";
 	do_mysql_query($sql_query);
 }
@@ -508,8 +504,8 @@ function translate_restrictions_to_text_list($restrictions)
 function load_subcorpus_to_cqp($subcorpus)
 {
 	global $Config;
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 	global $instance_name;
 
 	if (! is_string($subcorpus))
@@ -519,7 +515,7 @@ function load_subcorpus_to_cqp($subcorpus)
 	$sql_query = "select restrictions, text_list from saved_subcorpora
 		WHERE subcorpus_name = '$subcorpus'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)
@@ -715,8 +711,8 @@ function untranslate_restrictions_definition_string($restrictions)
 /* this function shouldn't be needed any more 
 function save_last_restrictions_as_subcorpus($restrictions)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 
 	$sql_query = "SELECT count(*), sum(words) FROM text_metadata_for_$corpus_sql_name 
 		WHERE $restrictions";
@@ -729,14 +725,14 @@ function save_last_restrictions_as_subcorpus($restrictions)
 	$sql_query = "DELETE FROM saved_subcorpora 
 		WHERE subcorpus_name = '__last_restrictions'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	do_mysql_query($sql_query);
 	
 	$restrictions = mysql_real_escape_string($restrictions);
 	
 	$sql_query = "INSERT INTO saved_subcorpora (subcorpus_name, corpus, user, restrictions, numfiles, numwords)
 		values 
-		('__last_restrictions', '$corpus_sql_name', '$username', '$restrictions', '$numfiles', '$numwords')";
+		('__last_restrictions', '$corpus_sql_name', '{$User->username}', '$restrictions', '$numfiles', '$numwords')";
 	do_mysql_query($sql_query);
 }
 */
@@ -745,13 +741,13 @@ function save_last_restrictions_as_subcorpus($restrictions)
 
 function reload_last_restrictions()
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 
 	$sql_query = "SELECT restrictions from saved_subcorpora
 		WHERE subcorpus_name = '__last_restrictions'
 		AND corpus = '$corpus_sql_name'
-		AND user = '$username'";
+		AND user = '{$User->username}'";
 	$result = do_mysql_query($sql_query);
 	$row = mysql_fetch_row($result);
 

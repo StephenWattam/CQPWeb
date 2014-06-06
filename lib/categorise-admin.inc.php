@@ -133,7 +133,7 @@ cqpweb_shutdown_environment();
 function categorise_create_query()
 {
 	global $Config;
-	global $username;
+	global $User;
 	global $corpus_sql_name;
 
 	/* get values from $_GET */
@@ -166,7 +166,7 @@ function categorise_create_query()
 	}
 	
 	/* make sure no catquery of that name already exists */
-	$result = do_mysql_query("select query_name from saved_queries where user = '$username' and save_name = '$savename'");
+	$result = do_mysql_query("select query_name from saved_queries where user = '{$User->username}' and save_name = '$savename'");
 	if (mysql_num_rows($result) > 0)
 	{
 		categorise_enter_categories('name_exists');
@@ -223,7 +223,7 @@ function categorise_create_query()
 	
 	/* and update it */
 	$query_record['query_name'] = $newqname;
-	$query_record['user'] = $username;
+	$query_record['user'] = $User->username;
 	$query_record['saved'] = 2;
 	/* note that saved = "2" indicates a categorised query */
 	$query_record['save_name'] = $savename;
@@ -247,7 +247,7 @@ function categorise_create_query()
 
 	/* create a record in saved_catqueries that links the query and the db */
 	$sql_query = "insert into saved_catqueries (catquery_name, user, corpus, dbname, category_list) 
-					values ('$newqname', '$username', '$corpus_sql_name', '$dbname', '$cat_list')";
+					values ('$newqname', '{$User->username}', '$corpus_sql_name', '$dbname', '$cat_list')";
 	do_mysql_query($sql_query);
 
 	header("Location: concordance.php?qname=$newqname&program=categorise&uT=y");
@@ -292,7 +292,7 @@ function categorise_update()
 function categorise_separate()
 {
 	global $Config;
-	global $username;
+	global $User;
 	global $cqp;
 	global $corpus_sql_name;
 	
@@ -376,7 +376,7 @@ function categorise_separate()
 			save_name
 			) values (
 			'$newqname',
-			'$username',
+			'{$User->username}',
 			'$corpus_sql_name',
 			'{$query_record['query_mode']}',
 			'".mysql_real_escape_string($query_record['simple_query'])."',

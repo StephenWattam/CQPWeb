@@ -58,6 +58,7 @@ $privilege_type_descriptions = array(
 	PRIVILEGE_TYPE_CORPUS_FULL       => "Full access to corpus",
 	PRIVILEGE_TYPE_CORPUS_NORMAL     => "Normal access to corpus",
 	PRIVILEGE_TYPE_CORPUS_RESTRICTED => "Restricted access to corpus",
+	PRIVILEGE_TYPE_FREQLIST_CREATE   => "Permission to build frequency list"
 );
 /* some functions define alternative mapper hashes for their own purposes, note! */
 
@@ -189,6 +190,9 @@ if (!isset($mysql_utf8_set_required))
 	
 /* the next defaults are for tweaks to the system -- not so much critical! */
 
+if (!isset($hide_experimental_features))
+	$hide_experimental_features = false;
+
 if (!isset($css_path_for_homepage))
 	$css_path_for_homepage = "css/CQPweb.css";
 
@@ -197,9 +201,6 @@ if (!isset($css_path_for_adminpage))
 
 if (!isset($css_path_for_userpage))
 	$css_path_for_userpage = "../css/CQPweb-green.css";
-
-if (!isset($hide_experimental_features))
-	$hide_experimental_features = false;
 
 if (!isset($homepage_use_corpus_categories))
 	$homepage_use_corpus_categories = false;
@@ -226,8 +227,7 @@ if (php_sapi_name() == 'cli')
 
 
 
-/* This is not a default - it cleans up the input, so we can be sure the root
- * URL ends in a slash. */
+/* This is not a default - it cleans up the input, so we can be sure the root URL ends in a slash. */
 if (isset($cqpweb_root_url))
 	$cqpweb_root_url = rtrim($cqpweb_root_url, '/') . '/';
 

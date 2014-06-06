@@ -180,8 +180,8 @@ function delete_user($user)
 	/* unjoin all groups */
 	do_mysql_query("delete from user_memberships where user_id = $id");
 
-	/* when we have user privileges, we'll need to delete them as well... */
-	// TODO
+	/* delete user privilege grants */
+	do_mysql_query("delete from user_grants_to_users where user_id = $id");
 	
 	/* delete uploaded files (and directory) */
 	$d = $Config->dir->upload . '/' . $user;
@@ -948,8 +948,10 @@ function apply_custom_group_regex($group, $regex)
 	The privilege table consists of "verbs" and "objects".
 	
 	The "verb" consists of an integer constant explaining what kind of access privilege
-	this is. The "object" is expressed as an array of entities to what the privilege
-	applies. All "object" arrays are encodable as strings, which are what is stored in the
+	this is. The "object" is expressed as an array of entities to which the privilege
+	applies (or, in some cases, as a simplex variable). 
+	
+	All "object" arrays are encodable as strings, which are what is stored in the
 	database in the `scope` field. The "verb" is stored in the `type` field using the 
 	correct constant.
 
@@ -1000,6 +1002,19 @@ function apply_custom_group_regex($group, $regex)
 	The string representation of this in the DB is the strings in question concatenated together and
 	separated by ~ .
 	
+	Privileges of type PRIVILEGE_TYPE_FREQLIST_CREATE
+	-------------------------------------------------
+	
+	This privilege enables a user to build frequency lists up to a certain size (while working
+	within any corpus).
+	
+	This applies currently only to subcorpus frequency list creation; in future, it might apply
+	to collocation frquency list creation as well (the latter currently keys off a pair
+	of global variables set via the configuration file).
+	
+	The "object" of this kind of privilege is an integer. Its string representation is that integer,
+	as a string. (Simples!)
+	
 */
 
 /**
@@ -1018,7 +1033,11 @@ function encode_privilege_scope_to_string($type, $object)
 			$c = cqpweb_handle_enforce($c);
 		return implode('~', $object);
 		
-	/* TODO Add more privileges here as the system develops. */
+	case PRIVILEGE_TYPE_FREQLIST_CREATE:
+		/* "object" is an integer */
+		return (string)$object;
+		
+	/* Add more privileges here as the system develops. */
 	
 	default:
 		exiterror_general("Critical error: invalid privilege type constant encountered!", __FILE__, __LINE__);
@@ -1040,7 +1059,11 @@ function decode_privilege_scope_from_string($type, $string)
 		/* "object" is an array of corpus names... */
 		return explode ('~', $string);
 
-	/* TODO Add more privileges here as the system develops. */
+	case PRIVILEGE_TYPE_FREQLIST_CREATE:
+		/* "object" is a single integer */
+		return (int)$string;
+		
+	/* Add more privileges here as the system develops. */
 
 	default:
 		exiterror_general("Critical error: invalid privilege type constant encountered!", __FILE__, __LINE__);
@@ -1048,8 +1071,7 @@ function decode_privilege_scope_from_string($type, $string)
 }
 
 /**
- * Encodes a complex value that is the "object" of a privilege "verb" into
- * a string for the database.
+ * Produces an HTML representation of a complex value that is the "object" of a privilege "verb".
  */
 function print_privilege_scope_as_html($type, $object)
 {
@@ -1064,8 +1086,12 @@ function print_privilege_scope_as_html($type, $object)
 		$s = (count($object) > 1 ? '<b>Corpora:</b> ' : '<b>Corpus:</b> ');
 		$s .= implode(', ', $object);
 		return $s;
-		
-	/* TODO Add more privileges here as the system develops. */
+
+	case PRIVILEGE_TYPE_FREQLIST_CREATE:
+		/* "object" is a single integer */
+		return number_format($object) . ' tokens';
+			
+	/* Add more privileges here as the system develops. */
 	
 	default:
 		exiterror_general("Critical error: invalid privilege type constant encountered!", __FILE__, __LINE__);
@@ -1107,16 +1133,26 @@ function create_corpus_default_privileges($corpus)
 	foreach(array_keys($mapper) as $type)
 	{
 		/* does a privilege exist which has this type and scope over just this corpus? */ 
-		if (false !== check_privilege_by_content($type, array($corpus)))
-			;
-		else
+		if (false === check_privilege_by_content($type, array($corpus)))
 			add_new_privilege($type, array($corpus), $mapper[$type] . " for corpus [$corpus]");
 	}
 	return true;
 }
 
-function create_all_corpora_default_privileges()
+function create_all_default_privileges()
 {
+	/* create default privileges for freqlists of 1 million, 10 million, 25 million, and 100 million. */
+	$text = 'Frequency lists for subcorpora up to';
+	if (false === check_privilege_by_content(PRIVILEGE_TYPE_FREQLIST_CREATE, 1000000))
+		add_new_privilege(PRIVILEGE_TYPE_FREQLIST_CREATE, 1000000,   "$text one million tokens.");
+	if (false === check_privilege_by_content(PRIVILEGE_TYPE_FREQLIST_CREATE, 10000000))
+		add_new_privilege(PRIVILEGE_TYPE_FREQLIST_CREATE, 10000000,  "$text ten million tokens.");
+	if (false === check_privilege_by_content(PRIVILEGE_TYPE_FREQLIST_CREATE, 25000000))
+		add_new_privilege(PRIVILEGE_TYPE_FREQLIST_CREATE, 25000000,  "$text 25 million tokens.");
+	if (false === check_privilege_by_content(PRIVILEGE_TYPE_FREQLIST_CREATE, 100000000))
+		add_new_privilege(PRIVILEGE_TYPE_FREQLIST_CREATE, 100000000, "$text 100 million tokens.");
+
+	/* create default privileges for each extant corpus */
 	foreach(list_corpora() as $c)
 		create_corpus_default_privileges($c);
 }
@@ -1129,10 +1165,8 @@ function delete_privilege($id)
 	$id = (int) $id;
 	
 	/* delete all grants of this privilege; then delete the privilege itself. */
-	
 	do_mysql_query("delete from user_grants_to_users  where privilege_id = $id");
 	do_mysql_query("delete from user_grants_to_groups where privilege_id = $id");
-	
 	do_mysql_query("delete from user_privilege_info where id = $id");
 }
 

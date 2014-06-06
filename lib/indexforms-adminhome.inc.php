@@ -1898,6 +1898,14 @@ function printquery_privilegeadmin()
 				</ul>
 				Generating default privileges creates these three privileges for each corpus on the system,
 				if those privileges do not exist already. Existing privileges are not affected.
+				<br/>&nbsp;<br/>
+				In addition, four levels of privilege are generated for frequency-list creation.
+				Users can only build frequency lists for subcorpora if they have a privilege that
+				covers a subcorpus of that size. The automatically-created levels are one, ten, 
+				twenty-five and one hundred million tokens. 
+				<br/>&nbsp;<br/>
+				(At least one such privilege should be granted to the "everybody" group, 
+				or some users may not be able to create frequency lists at all.)  
 				<br/>&nbsp;
 			</td>
 		</tr>
@@ -1930,7 +1938,7 @@ function printquery_privilegeadmin()
 			<tr>
 				<td class="concordgeneral" colspan="2" align="center">
 					&nbsp;<br/>
-					<input type="submit" value="Generate default privileges for all corpora" />
+					<input type="submit" value="Generate all default privileges" />
 					<br/>&nbsp;
 				</td>
 			</tr>
@@ -3009,8 +3017,7 @@ function printquery_cachecontrol()
 	
 	// TODO no file queries = entry in DB, bbut no file on disk. 
 	// less vital to sort these out. dno't worry about for now.
-	// create an array now but don't worry about displaqy.
-php_execute_time_unlimit();
+	// create an array now but don't worry about display.
 
 	
 	/* list saved queries */
@@ -3167,7 +3174,6 @@ php_execute_time_unlimit();
 				
 			}
 		}
-		
 		
 		?>
 

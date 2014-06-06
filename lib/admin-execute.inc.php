@@ -209,7 +209,7 @@ switch($_GET['admFunction'])
 		$_GET['function'] = 'apply_custom_group_regex';
 		$_GET['args'] = $_GET['group'] . '#' . $_GET['regex'];
 		$_GET['locationAfter'] = 'index.php?thisF=groupMembership&uT=y';
-var_dump($_GET);
+//var_dump($_GET);
 		require('../lib/execute.inc.php');
 		exit();
 
@@ -217,7 +217,7 @@ var_dump($_GET);
 	case 'generateDefaultPrivileges':
 		if ($_GET['corpus'] == '~~all~~')
 		{
-			$_GET['function'] = 'create_all_corpora_default_privileges';
+			$_GET['function'] = 'create_all_default_privileges';
 			$_GET['args'] = '';
 		}
 		else

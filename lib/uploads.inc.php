@@ -41,7 +41,7 @@
 function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $temp_path, $error_code, $user_upload = false)
 {
 	global $Config;
-	global $username;
+	global $User;
 
 	/* Check for upload errors; convert back to int: execute.inc.php may have turned it to a string */
 	switch ($error_code = (int)$error_code )
@@ -57,9 +57,9 @@ function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $t
 	
 	/* We've checked the global restriction, now check the restriction for ordinary users 
 	 * (only superusers can upload REALLY BIG files).
-	 * 		TODO make this variable - a user setting? Or a constant? 
-	 * 		Actually, no make it conifgurable  by superuser even if not peruser*/
-	if (!user_is_superuser($username))
+	 * 		TODO make this variable - a user privilege
+	 */
+	if (!$User->is_admin())
 	{
 		/* normal user limit is 2MB */
 		if ($file_size > 2097152)
@@ -71,14 +71,14 @@ function uploaded_file_to_upload_area($original_name, $file_type, $file_size, $t
 	{	
 		if (!is_dir("{$Config->dir->upload}/usr"))
 			mkdir("{$Config->dir->upload}/usr", 0775);
-		if (!is_dir("{$Config->dir->upload}/usr/$username"))
-			mkdir("{$Config->dir->upload}/usr/$username", 0775);
+		if (!is_dir("{$Config->dir->upload}/usr/{$User->username}"))
+			mkdir("{$Config->dir->upload}/usr/{$User->username}", 0775);
 	}
 	
 	/* find a new name - a file that does not exist */
 	for ($filename = basename($original_name); 1 ; $filename = '_' . $filename)
 	{
-		$new_path = $Config->dir->upload . '/' . ($user_upload ? "usr/$username/" : '' ) . "$filename";
+		$new_path = $Config->dir->upload . '/' . ($user_upload ? "usr/{$User->username}/" : '' ) . "$filename";
 		if ( ! file_exists($new_path) )
 			break;
 	}

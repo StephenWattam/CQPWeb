@@ -67,12 +67,13 @@ function check_cwb_freq_index($corpus_name)
 function make_cwb_freq_index()
 {
 	global $Config;
+	global $User;
+	
 	global $corpus_sql_name;
 	global $corpus_cqp_name;
-	global $username;
 	
 	/* only superusers are allowed to do this! */
-	if (! user_is_superuser($username))
+	if (! $User->is_admin())
 		return;
 	
 	/* disallow this function for corpora with only one text */
@@ -299,8 +300,8 @@ function make_cwb_freq_index()
  */
 function get_freq_index_postitionlist_for_subsection($subcorpus = 'no_subcorpus', $restriction = 'no_restriction')
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 	
 	/* Check whether the specially-indexed cwb per-file freqlist corpus exists */
 	if ( ! check_cwb_freq_index($corpus_sql_name) )
@@ -325,7 +326,7 @@ function get_freq_index_postitionlist_for_subsection($subcorpus = 'no_subcorpus'
 		$sql_query = "select * from saved_subcorpora where subcorpus_name = '"
 			. mysql_real_escape_string($subcorpus) . "' 
 			and corpus = '$corpus_sql_name'
-			and user   = '$username'";
+			and user   = '{$User->username}'";
 		$result = do_mysql_query($sql_query);
 		if (mysql_num_rows($result) < 1)
 			exiterror_arguments($subcorpus, 'This subcorpus doesn\'t appear to exist!');

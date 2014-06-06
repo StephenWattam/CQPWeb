@@ -168,8 +168,8 @@ function qname_unique($qname)
 function cache_query($qname, $cqp_query, $restrictions, $subcorpus, $postprocess, 
 	$num_of_solutions, $num_of_texts, $simple_query, $qmode, $link=NULL)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 
 	/* check existence of the file */
 	if (!cqp_file_exists($qname))
@@ -196,7 +196,7 @@ function cache_query($qname, $cqp_query, $restrictions, $subcorpus, $postprocess
 		subcorpus, postprocess, time_of_query, hits, hit_texts,
 		simple_query, query_mode, file_size, saved )
 		values
-		( '$qname', '$username', '$corpus_sql_name', '$cqp_query', '$restrictions', 
+		( '$qname', '{$User->username}', '$corpus_sql_name', '$cqp_query', '$restrictions', 
 		'$subcorpus', $postprocess, '$time_now', '$num_of_solutions', '$num_of_texts', 
 		'$simple_query', '$qmode', '$file_size', 0 )
 		";
@@ -589,12 +589,14 @@ function clear_cache($protect_user_saved = true)
  */
 function save_name_in_use($save_name)
 {
+	global $User;
+	
 	global $corpus_sql_name;
-	global $username;
+
 	$save_name = mysql_real_escape_string($save_name);
 	
 	$result = do_mysql_query("select query_name from saved_queries 
-								where corpus = '$corpus_sql_name' and user = '$username' and save_name = '$save_name'");
+								where corpus = '$corpus_sql_name' and user = '{$User->username}' and save_name = '$save_name'");
 	
 	return (mysql_num_rows($result) > 0);
 }
@@ -678,8 +680,8 @@ function catquery_find_dbname($qname)
  */
 function history_insert($instance_name, $cqp_query, $restrictions, $subcorpus, $simple_query, $qmode)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 
 	$escaped_cqp_query = mysql_real_escape_string($cqp_query);
 	$escaped_restrictions = mysql_real_escape_string($restrictions);
@@ -688,7 +690,7 @@ function history_insert($instance_name, $cqp_query, $restrictions, $subcorpus, $
 	
 	$sql_query = "insert into query_history (instance_name, user, corpus, cqp_query, restrictions, 
 		subcorpus, hits, simple_query, query_mode) 
-		values ('$instance_name', '$username', '$corpus_sql_name', '$escaped_cqp_query', '$escaped_restrictions', 
+		values ('$instance_name', '{$User->username}', '$corpus_sql_name', '$escaped_cqp_query', '$escaped_restrictions', 
 		'$escaped_subcorpus', -3, '$escaped_simple_query', '$qmode')";
 
 	do_mysql_query($sql_query);

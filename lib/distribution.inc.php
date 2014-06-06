@@ -162,7 +162,7 @@ if ($download_mode)
 		ORDER BY db.text_id";
 	$result = do_mysql_query($sql_query);	
 
-	$da = get_user_linefeed($username);
+	$da = get_user_linefeed($User->username);
 	
 	$description = distribution_header_line($query_record, $db_record);
 	$description = preg_replace('/&([lr]dquo|quot);/', '"', $description);

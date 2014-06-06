@@ -73,7 +73,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 		$da = strtr($da, "da", "\r\n");
 	}
 	else
-		$da = get_user_linefeed($username);
+		$da = get_user_linefeed($User->username);
 
 	/* now on to the descriptor for the table... */
 
@@ -227,7 +227,7 @@ else
 	/* enable the user setting to be auto-selected for linebreak type */
 	$da_selected = array('d' => '', 'a' => '', 'da' => '');
 	if ($User->linefeed == 'au')
-		$User->linefeed = guess_user_linefeed($username);
+		$User->linefeed = guess_user_linefeed($User->username);
 	$da_selected[$User->linefeed] = ' selected="selected" ';
 	
 	

@@ -50,14 +50,16 @@
 function corpus_make_freqtables()
 {
 	global $Config;
+	global $User;
+	
 	global $corpus_sql_name;
 	global $corpus_sql_collation;
 	global $corpus_cqp_name;
-	global $username;
+
 	global $cqp;
 	
 	/* only superusers are allowed to do this! */
-	if (! user_is_superuser($username))
+	if (! $User->is_admin())
 		return;
 	
 	/* list of attributes on which to make frequency tables */
@@ -172,11 +174,12 @@ function corpus_make_freqtables()
 function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 'no_restriction')
 {
 	global $Config;
+	global $User;
+	
 	global $corpus_sql_name;
 	global $corpus_sql_collation;
 	global $corpus_cqp_name;
 	global $instance_name;
-	global $username;
 	global $cqp;
 	
 	/* this clause implements the override (get_freq_index_postitionlist_for_subsection does this too
@@ -312,7 +315,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 		) values (
 			'$freqtables_base_name',
 			'$corpus_sql_name',
-			'$username',
+			'{$User->username}',
 			'" . mysql_real_escape_string($restriction) . "',
 			'$subcorpus',
 			$thistime,
@@ -332,11 +335,10 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 
 	
 	/* return as an assoc array a copy of what has just gone into saved_freqtables */
-	/* most of this will never be used, but data management is key */
 	return array (
 		'freqtable_name' => $freqtables_base_name,
 		'corpus' => $corpus_sql_name,
-		'user' => $username,
+		'user' => $User->username,
 		'restrictions' => $restriction,
 		'subcorpus' => $subcorpus,
 		'create_time' => $thistime,
@@ -463,15 +465,15 @@ function check_freqtable_restriction($restrictions)
  * Returns the record (associative array) of the freqtable cluster for the subcorpus
  * OR returns false. 
  * 
- * If $with_username_check is true, only a freqtable for a subcorpus owned by the current 
+ * If $with_user_check is true, only a freqtable for a subcorpus owned by the current 
  * user will be returned. If false, it will look for freqtables of subcorpora owned by other users too.
  */
-function check_freqtable_subcorpus($subcorpus_name, $with_user_name_check = true)
+function check_freqtable_subcorpus($subcorpus_name, $with_user_check = true)
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 	
-	$userline = ($with_user_name_check ? "and user = '$username'" : '');
+	$userline = ($with_user_check ? "and user = '{$User->username}'" : '');
 	
 	$subcorpus_name = mysql_real_escape_string($subcorpus_name);
 	
@@ -623,10 +625,10 @@ function unpublicise_this_corpus_freqtable()
 
 function publicise_freqtable($name, $switch_public_on = true)
 {
-	global $username;
+	global $User;
 
 	/* only superusers are allowed to do this! */
-	if (! user_is_superuser($username))
+	if (! $User->is_admin())
 		return;
 
 	$name = mysql_real_escape_string($name);
@@ -693,10 +695,10 @@ function list_public_whole_corpus_freqtables()
 function list_freqtabled_subcorpora()
 {
 	global $corpus_sql_name;
-	global $username;
+	global $User;
 
 	$sql_query = "select subcorpus from saved_freqtables 
-		where corpus = '$corpus_sql_name' and user = '$username' and subcorpus != 'no_subcorpus'";
+		where corpus = '$corpus_sql_name' and user = '{$User->username}' and subcorpus != 'no_subcorpus'";
 	$result = do_mysql_query($sql_query);
 
 	$list = array();
@@ -715,12 +717,12 @@ function list_freqtabled_subcorpora()
 function get_subcorpus_freqtable($subcorpus)
 {
 	global $corpus_sql_name;
-	global $username;
+	global $User;
 	
 	$subcorpus = mysql_real_escape_string($subcorpus);
 	
 	$sql_query = "select freqtable_name from saved_freqtables 
-		where corpus = '$corpus_sql_name' and user = '$username' and subcorpus = '$subcorpus'";
+		where corpus = '$corpus_sql_name' and user = '{$User->username}' and subcorpus = '$subcorpus'";
 	$result = do_mysql_query($sql_query);
 	
 	if (mysql_num_rows($result) < 1)

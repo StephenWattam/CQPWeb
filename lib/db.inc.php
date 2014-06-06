@@ -59,11 +59,11 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 	// would be better to have 3 params: db_type, query_record, and extra_info = NULL. 
 	
 	global $Config;
+	global $User;
+	
 	global $cqp;
 	global $corpus_sql_name;
 	global $corpus_cqp_name;
-	
-	global $username;
 	
 	global $colloc_db_premium;
 	
@@ -104,7 +104,8 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 
 	/* get this user's distribution db size limit from their username details */
-	$table_max = get_user_setting($username, 'max_dbsize');
+	$table_max = get_user_setting($User->username, 'max_dbsize');
+	// TODO replace with a call to the user object that interrogates privileges.
 
 
 	$num_of_rows = $cqp->querysize($qname);
@@ -200,7 +201,7 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 			db_size
 		) VALUES (
 			'$dbname', 
-			'$username',
+			'{$User->username}',
 			" . time() . ",
 			'" . mysql_real_escape_string($cqp_query) . "',
 			'" . mysql_real_escape_string($restrictions) . "',

@@ -28,11 +28,12 @@
 
 function printquery_search()
 {
+	global $User;
+	
 	global $corpus_sql_name;
 	global $corpus_uses_case_sensitivity;
 
 	global $default_per_page;
-	global $username;
 	
 	if (isset($_GET['insertString']))
 		$insertString = $_GET['insertString'];
@@ -112,7 +113,7 @@ function printquery_search()
 							<option value="500"<?php  if ($default_per_page == 500)  echo ' selected="selected"';?>>500</option>
 							<option value="1000"<?php if ($default_per_page == 1000) echo ' selected="selected"';?>>1000</option>
 							<?php
-							if (user_is_superuser($username))
+							if ($User->is_admin())
 								echo '<option value="all">show all</option>';
 							?>
 
@@ -150,7 +151,7 @@ function printquery_search()
 							/* including the last set of restrictions used */
 							
 							$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
-								where corpus = '$corpus_sql_name' and user = '$username' order by subcorpus_name";
+								where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
 							$result = do_mysql_query($sql_query);
 	
 							while (($row = mysql_fetch_assoc($result)) != false)
@@ -200,8 +201,9 @@ function printquery_search()
 
 function printquery_restricted()
 {
+	global $User;
+	
 	global $default_per_page;
-	global $username;
 	global $corpus_uses_case_sensitivity;
 	
 	if (isset($_GET['insertString']))
@@ -282,10 +284,10 @@ function printquery_restricted()
 						<option value="500"<?php if ($default_per_page == 500) echo ' selected="selected"';?>>500</option>
 						<option value="1000<?php if ($default_per_page == 1000) echo ' selected="selected"';?>">1000</option>
 						<?php
-						/* this option is currently restricted to superusers, but  */
-						/* perhaps I should invent a category of "power users" who */
-						/* can be trusted not to misuse features like this  ????   */
-						if (user_is_superuser($username))
+						/* this option is currently restricted to superusers, but  *
+						 * perhaps I should invent a category of "power users" who *
+						 * can be trusted not to misuse features like this  ????   */
+						if ($User->is_admin())
 							echo '<option value="all">show all</option>';
 						?>
 					</select>

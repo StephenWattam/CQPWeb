@@ -803,14 +803,15 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 function run_postprocess_collocation($cache_record, &$descriptor)
 {
 	global $Config;
+	global $User;
+
 	global $instance_name;
 	global $cqp;
-	global $username;
 	
 	
 	// TODO: could the following be part of an "unsave" function????
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
-	$cache_record['user'] = $username;
+	$cache_record['user'] = $User->username;
 	$cache_record['saved'] = 0;
 	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
@@ -863,14 +864,14 @@ function run_postprocess_collocation($cache_record, &$descriptor)
 function run_postprocess_sort($cache_record, &$descriptor)
 {
 	global $Config;
+	global $User;
 	global $instance_name;
 	global $cqp;
-	global $username;
 
 	$orig_cache_record = $cache_record;
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
-	$cache_record['user'] = $username;
+	$cache_record['user'] = $User->username;
 	$cache_record['saved'] = 0;
 	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
@@ -935,13 +936,13 @@ function run_postprocess_randomise($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $username;
+	global $User;
 	
 
 	$old_qname = $cache_record['query_name'];	
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
-	$cache_record['user'] = $username;
+	$cache_record['user'] = $User->username;
 	$cache_record['saved'] = 0;
 	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
@@ -977,13 +978,13 @@ function run_postprocess_unrandomise($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $username;
+	global $User;
 	
 
 	$old_qname = $cache_record['query_name'];	
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
-	$cache_record['user'] = $username;
+	$cache_record['user'] = $User->username;
 	$cache_record['saved'] = 0;
 	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
@@ -1019,12 +1020,12 @@ function run_postprocess_thin($cache_record, &$descriptor)
 {
 	global $instance_name;
 	global $cqp;
-	global $username;
+	global $User;
 
 	$old_qname = $cache_record['query_name'];	
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
-	$cache_record['user'] = $username;
+	$cache_record['user'] = $User->username;
 	$cache_record['saved'] = 0;
 	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
@@ -1067,14 +1068,14 @@ function run_postprocess_item($cache_record, &$descriptor)
 	global $Config;
 	global $instance_name;
 	global $cqp;
-	global $username;
+	global $User;
 
 	$old_qname = $cache_record['query_name'];	
 	$orig_cache_record = $cache_record;
 
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
-	$cache_record['user'] = $username;
+	$cache_record['user'] = $User->username;
 	$cache_record['saved'] = 0;
 	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
@@ -1133,17 +1134,15 @@ function run_postprocess_item($cache_record, &$descriptor)
 function run_postprocess_dist($cache_record, &$descriptor)
 {
 	global $Config;
+	global $User;
 	global $instance_name;
 	global $cqp;
-	global $username;
 
 	$old_qname = $cache_record['query_name'];	
 	$orig_cache_record = $cache_record;
 
-
-
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
-	$cache_record['user'] = $username;
+	$cache_record['user'] = $User->username;
 	$cache_record['saved'] = 0;
 	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
@@ -1200,9 +1199,9 @@ function run_postprocess_dist($cache_record, &$descriptor)
 function run_postprocess_text($cache_record, &$descriptor)
 {
 	global $Config;
+	global $User;
 	global $instance_name;
 	global $cqp;
-	global $username;
 
 	$old_qname = $cache_record['query_name'];	
 	$orig_cache_record = $cache_record;
@@ -1210,7 +1209,7 @@ function run_postprocess_text($cache_record, &$descriptor)
 
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
-	$cache_record['user'] = $username;
+	$cache_record['user'] = $User->username;
 	$cache_record['saved'] = 0;
 	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();
@@ -1260,14 +1259,15 @@ function run_postprocess_text($cache_record, &$descriptor)
 function run_postprocess_custom($cache_record, &$descriptor)
 {
 	global $Config;
+	global $User;
+
 	global $instance_name;
 	global $cqp;
-	global $username;
 
 	$old_qname = $cache_record['query_name'];	
 
 	$cache_record['query_name'] = $new_qname = qname_unique($instance_name);
-	$cache_record['user'] = $username;
+	$cache_record['user'] = $User->username;
 	$cache_record['saved'] = 0;
 	$cache_record['save_name'] = NULL;
 	$cache_record['time_of_query'] = time();

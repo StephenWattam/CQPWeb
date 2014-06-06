@@ -271,11 +271,11 @@ function print_sc_define_metadata()
 /* this function ENDS the create form */
 function print_sc_define_query()
 {
+	global $User;
 	global $corpus_sql_name;
-	global $username;
 	
 	$sql_query = $sql_query = "select query_name, save_name from saved_queries 
-		where corpus = '$corpus_sql_name' and user = '$username' and saved = 1";
+		where corpus = '$corpus_sql_name' and user = '{$User->username}' and saved = 1";
 	
 	$result = do_mysql_query($sql_query);
 	
@@ -488,7 +488,7 @@ function print_sc_define_filenames()
 
 function print_sc_define_invert()
 {
-	global $username;
+	global $User;
 	global $corpus_sql_name;
 	
 	?>
@@ -526,25 +526,33 @@ function print_sc_define_invert()
 
 
 	$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
-		where corpus = '$corpus_sql_name' and user = '$username' order by subcorpus_name";
+		where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
 	$result = do_mysql_query($sql_query);
 
-
+	/* we cache the result so that we can for Last Restrictions to be first. */ 
+	$allrows = array();
 	while (($row = mysql_fetch_assoc($result)) != false)
 	{
-		// TODO: alter this so Last restrictions is always at the top (non-urgent)
+		if ($row['subcorpus_name'] == '__last_restrictions')
+			$allrows[-1] = $row;
+		else
+			$allrows[] = $row;
+	}
+	ksort($allrows);
+	foreach($allrows as $row)
+	{
 		echo '<tr>';
 		
 		echo '<td class="concordgrey"><center><input name="subcorpusToInvert" type="radio" '
-			. 'value="' . $row['subcorpus_name'] . '" '
-			. ( $_GET['subcorpusToInvert'] == $row['subcorpus_name'] ? 'checked="checked" ' : '') 
-			. '/></center></td>';
+			, 'value="' , $row['subcorpus_name'] , '" '
+			, ( $_GET['subcorpusToInvert'] == $row['subcorpus_name'] ? 'checked="checked" ' : '') 
+			, '/></center></td>'
+			;
 		
 		if ($row['subcorpus_name'] == '__last_restrictions')
 			echo '<td class="concordgeneral">Last restrictions</td>';
 		else
-			echo '<td class="concordgeneral">'
-			. $row['subcorpus_name'] . '</td>';
+			echo '<td class="concordgeneral">', $row['subcorpus_name'], '</td>';
 		
 		echo '<td class="concordgeneral"><center>' . number_format((float)$row['numfiles']) 
 			. '</center></td>'
@@ -614,7 +622,6 @@ function print_sc_showsubcorpora()
 {
 	global $User;
 	global $default_history_per_page;	/* the same variable used for query history is used here */
-	global $collocation_disallow_cutoff;
 	global $corpus_sql_name;
 
 	if ($User->is_admin())
@@ -635,8 +642,6 @@ function print_sc_showsubcorpora()
 			<th class="concordtable">Delete</th>
 		</tr>
 		<?php
-		
-
 
 		$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
 			where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
@@ -644,9 +649,18 @@ function print_sc_showsubcorpora()
 				
 		$subcorpora_with_freqtables = list_freqtabled_subcorpora();
 
+		/* we cache the result so that we can for Last Restrictions to be first. */ 
+		$allrows = array();
 		while (($row = mysql_fetch_assoc($result)) != false)
 		{
-			// TODO: alter this so Last restrictions is always at the top (non-urgent)
+			if ($row['subcorpus_name'] == '__last_restrictions')
+				$allrows[-1] = $row;
+			else
+				$allrows[] = $row;
+		}
+		ksort($allrows);
+		foreach($allrows as $row)
+		{
 			echo '<tr>';
 			if ($row['subcorpus_name'] == '__last_restrictions')
 				echo '<td class="concordgeneral">Last restrictions</td>';
@@ -670,10 +684,11 @@ function print_sc_showsubcorpora()
 				echo 'Available';
 			else
 			{
-// TODO we use $collocation_disallow_cutoff but it should really be a more generalised "freq list user build" cutoff
-				if ($row['numwords'] >= $collocation_disallow_cutoff)
-					echo '<a class="menuItem" " onmouseover="return escape(\'Cannot compile frequency tables for this subcorpus ,'
-						, ' as it is too big\')">Cannot compile</a>';
+				if ($row['numwords'] >= $User->max_freqlist())
+					echo '<a class="menuItem" " onmouseover="return escape(\'Cannot compile frequency tables for this subcorpus,'
+						, ' as it is too big (your limit: <b>'
+						, number_format($User->max_freqlist())
+						, '</b> tokens)\')">Cannot compile</a>';
 				else
 					echo '<a class="menuItem" href="freqtable-compile.php?compileSubcorpus=' 
 						, $row['subcorpus_name']
@@ -859,7 +874,6 @@ function print_sc_addtexts()
 
 function print_sc_view_and_edit()
 {
-	global $username;
 	global $default_history_per_page;
 	global $corpus_sql_name;
 	
@@ -1014,7 +1028,7 @@ function print_sc_view_and_edit()
 
 function print_sc_list_of_files()
 {
-	global $username;
+	global $User;
 	global $corpus_sql_name;
 
 	global $list_of_texts_to_show_in_form;
@@ -1034,7 +1048,7 @@ function print_sc_list_of_files()
 	
 	
 	$sql_query = "select subcorpus_name from saved_subcorpora
-		where corpus = '$corpus_sql_name' and user = '$username' order by subcorpus_name";
+		where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
 	$result = do_mysql_query($sql_query);
 	$subcorpus_options = "\n";
 	while ( ($r= mysql_fetch_row($result)) != false)

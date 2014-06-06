@@ -65,10 +65,35 @@ cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP );
 $qname = safe_qname_from_get();
 
 
+/* 
+ * This script has two "programs", "sort" and "normal" (tested by $sortprogram === false).
+ * 
+ * $sortprogram == false
+ * =====================
+ * 
+ * This is the most comonly used mode. The breakdown that is needed is of the node.
+ * We have to use a sort-database, and create it if one does not exist.
+ * 
+ * $sortprogram == true
+ * ====================
+ * 
+ * This is the more specialised mode. It arises if the "breakdown..." option is called from
+ * a concordance screen *which has the sort control active* (and, thus, a sort of some kind applied).
+ * 
+ * By default, this breaks-down the sort position. BUT there is a control that allows you to
+ * switch to sorting on the node **OF THE SORTED QUERY**. 
+ * 
+ * So, if the sort includes a filter, that same filter will be applied.
+ * 
+ * $sortprogram needs a $dbname to be passed through
+ * (OR, can we pull out the parameters from the query's postp string? 
+ * then search db by parameters, build the SQL and apply.)
+ * (OR, create a new sort-db to match the *sorted* query? -- no./ wasteful of cache space.
+ */
 
 /* if the "program equals sort" thing has been passed through from concordance, 
  * switch into the mode where we use the existing sort position. */
-if (isset($_GET['program']) && empty($_GET['concBreakdownAt']) && $_GET['program'] == 'sort')
+if (isset($_GET['program']) && $_GET['program'] == 'sort')
 {
 	$sortprogram = true;
 	$_GET['concBreakdownAt'] = 'sort';
@@ -129,7 +154,7 @@ else
 if (isset($_GET['pp']))
 	$per_page = prepare_per_page($_GET['pp']);   /* filters out any invalid options */
 else
-	$per_page = $default_per_page;
+	$per_page = $default_per_page; // TODO in $Config ? or $User? or $Corpus?
 /* note use of same variables as used in a concordance */
 
 
@@ -150,10 +175,8 @@ $primary_annotation = get_corpus_metadata('primary_annotation');
 
 
 if (empty($primary_annotation) && $breakdown_of != 'words')
-{
 	exiterror_general('You cannot do a frequency breakdown based on annotation, ' 
 		. 'because no primary annotation is specified for this corpus.');
-}
 
 
 
@@ -183,9 +206,9 @@ if ($db_record === false)
 }
 else
 {
+	$is_new_db = false;
 	$dbname = $db_record['dbname'];
 	touch_db($dbname);
-	$is_new_db = false;
 }
 /* this dbname & its db_record can be globalled by print functions in the script */
 
@@ -232,7 +255,7 @@ list($db_tokens_total, $db_types_total) = mysql_fetch_row(do_mysql_query($sql_qu
 
 /* create the description */
 
-$description = (  ? 'Solutions include ' :  );
+//$description = (  ? 'Solutions include ' :  );
 
 if ('node' == $sql_position)
 	$description = "At this position (, there are " 
@@ -376,7 +399,7 @@ else
 			
 			<?php
 			
-			for ( $i = (($page_no-1)*$per_page)+1 ; ($r=mysql_fetch_object($result)) !== false; $i++)
+			for ( $i = (($page_no-1)*$per_page)+1 ; ($r=mysql_fetch_object($result)) !== false ; $i++ )
 			{
 				$percent = round(($r->sum / $db_tokens_total)*100, 2);
 				
@@ -431,8 +454,8 @@ cqpweb_shutdown_environment();
 
 function freqbreakdown_write_download(&$result, $description, $total_for_percent)
 {
-	global $username;
-	$da = get_user_linefeed($username);
+	global $User;
+	$da = get_user_linefeed($User->username);
 	$description = preg_replace('/&[lr]dquo;/', '"', $description);
 	$description = preg_replace('/<\/?em>/', '', $description);
 	$description = str_replace('<br/>', $da, $description);

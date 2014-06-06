@@ -104,6 +104,8 @@ define('PRIVILEGE_TYPE_CORPUS_NORMAL',         2);
 define('PRIVILEGE_TYPE_CORPUS_FULL',           3);
 /* note that the above 4 definitions create a greater-than/less-than sequence. Intentionally so. */
 
+define('PRIVILEGE_TYPE_FREQLIST_CREATE',       4);
+
 
 
 
@@ -234,14 +236,15 @@ class CQPwebEnvUser
 	
 	/** full array of privileges (db objects) available to this user (individually or via group) */
 	public $privileges;
- 
+	
 	public function __construct()
 	{
 		global $Config;
-		
-// TODO temp code. Delete when global username no longer needed.
-global $username;
 
+		/* 
+		 * Now, let us get the username ... 
+		 */
+		
 		/* if this environment is in a CLI script, count us as being logged in as the first admin user */ 
 		if (PHP_SAPI == 'cli')
 		{
@@ -279,19 +282,38 @@ global $username;
 			
 			/* import database fields as object members. */
 			foreach ( ((array)get_user_info($username)) as $k => $v)
-				if (!isset($this->$k))
-					$this->$k = $v;
+				$this->$k = $v;
 			/* will also import $username --> $User->username which is canonical way to acces it. */
-			/* the "if isset" above is a bit paranoid on my part. Can probably dispose of it later..... TODO */
 		}
 		
 		/* finally: look for a full list of privileges that this user has. */
-		$this->privileges = ($this->logged_in ? get_collected_user_privileges($username) : array());	
+		$this->privileges = ($this->logged_in ? get_collected_user_privileges($username) : array());
 	}
 	
 	public function is_admin()
 	{
 		return ( PHP_SAPI=='cli' || ($this->logged_in && user_is_superuser($this->username)) );
+	}
+	
+	/**
+	 * Returns the size, in tokens, of the largest sub-corpus for which this user
+	 * allowed to create frequency lists.
+	 */
+	public function max_freqlist()
+	{
+		static $max = NULL;
+		if (! is_null($max) )
+			return $max;
+		
+		/* we begin with a ridiculously low value, so that any privilege will be higher */
+		$max = 1000;
+
+		foreach($this->privileges as $p)
+			if ($p->type == PRIVILEGE_TYPE_FREQLIST_CREATE)
+				if ($p->scope_object > $max)
+					$max = $p->scope_object;
+		
+		return $max;
 	}
 }
 

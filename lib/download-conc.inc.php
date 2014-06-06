@@ -70,7 +70,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 	case 'copypaste':
 
 		/* linebreak */
-		$da = get_user_linefeed($username);
+		$da = get_user_linefeed($User->username);
 		
 		/* handles or values? */
 		$category_handles_only = true;
@@ -109,7 +109,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 	case 'filemaker':
 	
 		/* linebreak */
-		$da = get_user_linefeed($username);
+		$da = get_user_linefeed($User->username);
 		
 		/* handles or values? */
 		$category_handles_only = true;
@@ -154,7 +154,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 			$da = strtr($da, "da", "\r\n");
 		}
 		else
-			$da = get_user_linefeed($username);
+			$da = get_user_linefeed($User->username);
 
 		
 		/* handles or values? */
@@ -293,7 +293,7 @@ if ( isset($_GET['downloadGo']) && $_GET['downloadGo'] === 'yes')
 		
 		/* print the rest of the header */
 		
-		echo "Processed for <$username> at <", url_absolutify(''), '>', $da, $da;
+		echo "Processed for <{$User->username}> at <", url_absolutify(''), '>', $da, $da;
 		echo "Order of tab-delimited text:$da";
 		echo "1. Number of hit$da";
 		echo "2. Text ID$da";
@@ -482,7 +482,7 @@ else
 	/* enable the user setting to be auto-selected for linebreak type */
 	$da_selected = array('d' => '', 'a' => '', 'da' => '');
 	if ($User->linefeed == 'au')
-		$User->linefeed = guess_user_linefeed($username);
+		$User->linefeed = guess_user_linefeed($User->username);
 	$da_selected[$User->linefeed] = ' selected="selected" ';
 	
 	/* before anything else */

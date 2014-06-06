@@ -69,10 +69,6 @@ require("../lib/cqp.inc.php");
 
 cqpweb_startup_environment();
 
-//not needed as we now have $User!
-///* download all user settings */
-//
-//$user_settings = get_all_user_settings($username);
 
 
 

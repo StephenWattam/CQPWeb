@@ -235,7 +235,6 @@ END_OF_CEQL_QUERY
 
 function process_simple_query($query, $case_sensitive)
 {
-	global $username;
 	global $corpus_sql_name;
 	global $instance_name;
 	

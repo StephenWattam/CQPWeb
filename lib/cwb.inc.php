@@ -128,10 +128,10 @@ function cwb_corpus_exists($corpus_name)
 function cwb_uncreate_corpus($corpus_name)
 {
 	global $Config;
-	global $username;
+	global $User;
 	
 	/* only superusers are allowed to do this! */
-	if (! user_is_superuser($username))
+	if (! $User->is_admin())
 		return;
 
 	$dir_to_delete = "{$Config->dir->index}/$corpus_name";

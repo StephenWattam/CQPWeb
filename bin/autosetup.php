@@ -55,7 +55,7 @@ echo "\nNow finalising setup for this installation of CQPweb....\n";
 /* create partial environment */
 
 include ('../lib/config.inc.php');
-/* a hack to make debug printing & mysql connection work */
+/* Create only those config values needed to make mysql connection work */
 $Config = new stdClass();
 $Config->print_debug_messages = false;
 $Config->mysql_link = $mysql_link;
@@ -67,8 +67,9 @@ $Config->mysql_utf8_set_required = $mysql_utf8_set_required;
 
 
 connect_global_mysql();
-/* these are the values needed for username creation */
+/* another partial environment! -- these are the values needed for user account creation */
 $Config = new stdClass();
+$Config->print_debug_messages = false;
 $Config->default_calc_stat = $default_calc_stat;
 $Config->default_colloc_minfreq = $default_colloc_minfreq;
 $Config->default_colloc_range = $default_colloc_range;
