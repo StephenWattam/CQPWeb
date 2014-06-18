@@ -884,6 +884,8 @@ function print_keyword_line_plaintext($data, $line_number, $da, $corpus_size)
 			. number_format(1000000*($data->freq2)/$corpus_size[2] , 2, '.', '') 
 			. "\t$plusminus\t" 
 			. round($data->sortstat, 2);
+	if (isset($data->extrastat))
+		$string .= ( 'CONFINTERVAL' == $data->extrastat ? (round($data->CI_lower, 2).', '.round($data->CI_upper, 2)) : round($data->extrastat, 2) ) ;
 	$string .= $da;
 	
 	return $string;
@@ -906,7 +908,7 @@ function keywords_write_download($att_desc, $description, &$result, $corpus_size
 
 	if (substr($description, 0, 3) == 'Key' || substr($description, 0, 4) == 'Lock')
 	{
-		echo " 1\t\tFreq 1 (per mill)\tFreq 2\tFreq 2 (per mill)\t+/-";
+		echo " 1\tFreq 1 (per mill)\tFreq 2\tFreq 2 (per mill)\t+/-";
 		if ( 'extrastat' == mysql_field_name($result, mysql_num_fields($result)-1) )
 			echo "\tStat 1.\tStat 2.";
 		else
