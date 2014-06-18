@@ -175,7 +175,7 @@ function upgrade_3_1_7()
 	} 
 	
 	/* do the very last DB change! */
-	do_mysql_query("update system_info set value = '3.1.4' where setting_name = 'db_version'");	
+	do_mysql_query("update system_info set value = '3.1.8' where setting_name = 'db_version'");	
 }
 
 /* 3.1.4->3.1.5 */
