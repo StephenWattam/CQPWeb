@@ -63,171 +63,47 @@ cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP );
 
 
 $qname = safe_qname_from_get();
-
-
-/* 
- * This script has two "programs", "sort" and "normal" (tested by $sortprogram === false).
- * 
- * $sortprogram == false
- * =====================
- * 
- * This is the most comonly used mode. The breakdown that is needed is of the node.
- * We have to use a sort-database, and create it if one does not exist.
- * 
- * $sortprogram == true
- * ====================
- * 
- * This is the more specialised mode. It arises if the "breakdown..." option is called from
- * a concordance screen *which has the sort control active* (and, thus, a sort of some kind applied).
- * 
- * By default, this breaks-down the sort position. BUT there is a control that allows you to
- * switch to sorting on the node **OF THE SORTED QUERY**. 
- * 
- * So, if the sort includes a filter, that same filter will be applied.
- * 
- * $sortprogram needs a $dbname to be passed through
- * (OR, can we pull out the parameters from the query's postp string? 
- * then search db by parameters, build the SQL and apply.)
- * (OR, create a new sort-db to match the *sorted* query? -- no./ wasteful of cache space.
- */
-
-/* if the "program equals sort" thing has been passed through from concordance, 
- * switch into the mode where we use the existing sort position. */
-if (isset($_GET['program']) && $_GET['program'] == 'sort')
-{
-	$sortprogram = true;
-	$_GET['concBreakdownAt'] = 'sort';
-}
-else
-	$sortprogram = false;
-
-
-/* the root of the SQL fieldname for the thing we are breaking down */
-
-switch (isset ($_GET['concBreakdownAt']) ? $_GET['concBreakdownAt'] : 'node')
-{
-case 'node':
-	/* break down the query hit itself */ 
-	$sql_position = 'node';
-	break;
-
-case 'sort':
-	/* use the current sort position : flag for later extraction from postprocess string */
-	$sql_position = '~EXTRACT~FROM~SORT~RECORD~';
-	break;
-
-default:
-	/* detect a specified position */
-	if (0 < preg_match('/^(before|after)\d+$/', $_GET['concBreakdownAt']))
-		$sql_position = $_GET['concBreakdownAt'];
-	else
-		$sql_position = 'node';
-	break;
-}
-
-// TODO need also to put the breakdown position into the description string
-
-
-switch (isset ($_GET['concBreakdownOf']) ? $_GET['concBreakdownOf'] : 'words')
-{
-case 'annot':
-case 'both':
-	$breakdown_of = $_GET['concBreakdownOf'];
-	break;
-default:
-	$breakdown_of = 'words';
-	break;
-}
-
-
-/* do we want a nice HTML table or a downloadable table? */
-$download_mode = (isset($_GET['tableDownloadMode']) && $_GET['tableDownloadMode'] == 1);
-
-
-/* per page and page numbers */
-
-if (isset($_GET['pageNo']))
-	$_GET['pageNo'] = $page_no = prepare_page_no($_GET['pageNo']);
-else
-	$page_no = 1;
-
-if (isset($_GET['pp']))
-	$per_page = prepare_per_page($_GET['pp']);   /* filters out any invalid options */
-else
-	$per_page = $default_per_page; // TODO in $Config ? or $User? or $Corpus?
-/* note use of same variables as used in a concordance */
-
-
-$limit_string = ($download_mode ? '' : ("LIMIT ". ($page_no-1) * $per_page . ', ' . $per_page));
-
-
-
-
-
-
-
-
-
-$att_desc = get_corpus_annotations();	
-$att_desc['word'] = 'Word';
-
-$primary_annotation = get_corpus_metadata('primary_annotation');
-
-
-if (empty($primary_annotation) && $breakdown_of != 'words')
-	exiterror_general('You cannot do a frequency breakdown based on annotation, ' 
-		. 'because no primary annotation is specified for this corpus.');
-
-
-
-
-/* does a db for the sort exist? */
-
-/* first get all the info about the query in one handy package */
-
+/* now get all the info about the query in one handy package */
 $query_record = check_cache_qname($qname);
 if ($query_record === false)
 	exiterror_general("The specified query $qname was not found in cache!", __FILE__, __LINE__);
 
 
-/* now, search the db list for a db whose parameters match those of the query
- * named as qname; if it doesn't exist, we need to create one */
-$db_record = check_dblist_parameters('sort', $query_record['cqp_query'],
-				$query_record['restrictions'], $query_record['subcorpus'],
-				$query_record['postprocess']);
+/* $sql_position == the root of the SQL fieldname for the thing we are breaking down */
+$int_position = (int)(isset ($_GET['concBreakdownAt']) ? $_GET['concBreakdownAt'] : '0');
+$sql_position = sqlise_integer_position($int_position);
 
-if ($db_record === false)
+
+
+/* what attribute are we breaking down? */
+switch (isset ($_GET['concBreakdownOf']) ? $_GET['concBreakdownOf'] : 'words')
 {
-	$is_new_db = true;
-	
-	$dbname = create_db('sort', $qname, $query_record['cqp_query'], $query_record['restrictions'], 
-				$query_record['subcorpus'], $query_record['postprocess']);
-	$db_record = check_dblist_dbname($dbname);
-}
-else
-{
-	$is_new_db = false;
-	$dbname = $db_record['dbname'];
-	touch_db($dbname);
-}
-/* this dbname & its db_record can be globalled by print functions in the script */
-
-
-
-/* now that we have the query record, we can finalise the SQL position, 
- * and then set up the info array that we will use later in the script... */
-
-if ($sql_position == '~EXTRACT~FROM~SORT~RECORD~')
-{
-	// TODO stick here some kind of detection of the comand to breakdown contents of sort position.
+case 'annot':
+case 'both':
+	$primary_annotation = get_corpus_metadata('primary_annotation');
+	$breakdown_of = $_GET['concBreakdownOf'];
+	if (empty($primary_annotation))
+		exiterror_general('You cannot do a frequency breakdown based on annotation, ' 
+			. 'because no primary annotation is specified for this corpus.');
+	break;
+case 'p_att':
+	// TODO this is really just a placeholder for a requested feature.... 
+	exiterror_general("Frequency breakdown of a specific annotation is not yet available, sorry.");
+default:
+	/* inc. case 'words' */
+	$breakdown_of = 'words';
+	break;
 }
 
+
+
+/* we can now set up the info relating to the above in the following array... */
 $breakdown_of_info = array(
-	'words' => array('desc'=>'words only',               
+	'words' => array('desc'=>'words',               
 					'sql_label'=> "$sql_position",
 					'sql_groupby'=> "$sql_position"
 					),
-	'annot' => array('desc'=>'annotation only',
+	'annot' => array('desc'=>'annotation',
 					'sql_label'=> "tag$sql_position",
 					'sql_groupby'=> "tag$sql_position"
 				   ),
@@ -239,40 +115,69 @@ $breakdown_of_info = array(
 
 
 
+/* do we want a nice HTML table or a downloadable table? */
+$download_mode = (isset($_GET['tableDownloadMode']) && $_GET['tableDownloadMode'] == 1);
+
+
+
+/* per page and page numbers */
+if (isset($_GET['pageNo']))
+	$_GET['pageNo'] = $page_no = prepare_page_no($_GET['pageNo']);
+else
+	$page_no = 1;
+
+if (isset($_GET['pp']))
+	$per_page = prepare_per_page($_GET['pp']);   /* filters out any invalid options */
+else
+	$per_page = $default_per_page; // TODO in $Config ? or $User? or $Corpus?
+/* note use of same variables as used in a concordance */
+
+/* but of course if this is a text download, all the above is totally ignored. */
+$limit_string = ($download_mode ? '' : ("LIMIT ". ($page_no-1) * $per_page . ', ' . $per_page));
+
+
+
+
+
+/* does a db for the sort exist? 
+ * 
+ * Search the db list for a db whose parameters match those of the query
+ * named as qname; if it doesn't exist, we need to create one 
+ */
+$db_record = check_dblist_parameters('sort', $query_record['cqp_query'],
+				$query_record['restrictions'], $query_record['subcorpus'],
+				$query_record['postprocess']);
+/*
+ * Note that this ensures that sorted queries will get a second sort DB created.... 
+ * that way, if there has been a sort-thin, it will be applied here.
+ * 
+ * This is somewhat wasteful of space for the case in which we have sorted, but not filtered,
+ * before applying frequency-breakdown. However, the gain in simplicity of implementation is worth it.
+ */
+
+if ($db_record === false)
+{
+		$is_new_db = true;
+		
+		$dbname = create_db('sort', $qname, $query_record['cqp_query'], $query_record['restrictions'], 
+					$query_record['subcorpus'], $query_record['postprocess']);
+		$db_record = check_dblist_dbname($dbname);
+}
+else
+{
+	$is_new_db = false;
+	$dbname = $db_record['dbname'];
+	touch_db($dbname);
+}
+/* this dbname & its db_record can be globalled by print functions in the script */
+
+
 /* find out how big the db is: types and tokens */
-$sql_query = "select count({$breakdown_of_info[$breakdown_of]['sql_label']}) as tokens, 
-	count(distinct({$breakdown_of_info[$breakdown_of]['sql_label']})) as types 
-	from $dbname";
+$sql_query = "select count({$breakdown_of_info[$breakdown_of]['sql_label']})           as tokens, 
+					 count(distinct({$breakdown_of_info[$breakdown_of]['sql_label']})) as types 
+			  from $dbname";
 list($db_tokens_total, $db_types_total) = mysql_fetch_row(do_mysql_query($sql_query));
 
-
-
-
-
-// TODO no this bit won't work because it DOES NOT incorporate the thinning criteria of the sort.
-// it really needs to key off +++ALL++ the sort parameters, if they're present.
-
-
-/* create the description */
-
-//$description = (  ? 'Solutions include ' :  );
-
-if ('node' == $sql_position)
-	$description = "At this position (, there are " 
-		. number_format((float)$db_types_total) . " different types and " 
-		. number_format((float)$db_tokens_total) . " tokens." 
-		. " for &ldquo;{$query_record['cqp_query']}&rdquo;. ";
-else
-	$description = "'At position ' . stringise_sql_position($sql_position) . ', there are ' " 
-		. number_format((float)$db_types_total) . " different types and " 
-		. number_format((float)$db_tokens_total) . " tokens." 
-		. " for &ldquo;{$query_record['cqp_query']}&rdquo;. ";
-
-/* Add the description of the query ... */
-$description .= '(' . create_solution_heading($query_record, false) . '.)';
-
-/* finally add the description of what we're displaying. */
-$description .= "<br/>Showing breakdown of {$breakdown_of_info[$breakdown_of]['desc']}.";
 
 
 
@@ -282,9 +187,28 @@ $sql_query = "select {$breakdown_of_info[$breakdown_of]['sql_label']} as n,
 	from $dbname group by {$breakdown_of_info[$breakdown_of]['sql_groupby']} 
 	order by sum desc
 	$limit_string";
-
 $result = do_mysql_query($sql_query);
 
+
+
+
+/* Build the description of what we're displaying. */
+$query_heading = create_solution_heading($query_record, true);
+
+$sing_type = (1 == $db_types_total ? '' : 's');
+
+$breakdown_heading 
+	= "Showing frequency breakdown of {$breakdown_of_info[$breakdown_of]['desc']} in this query"
+	. ('node' == $sql_position ? ', at the query node' : ', at position ' . stringise_integer_position($int_position) ) 
+	. '; there ' . ($sing_type!='s' ? 'is ' : 'are ') 
+	. number_format((float)$db_types_total) . " different type$sing_type and " 
+	. number_format((float)$db_tokens_total) . " tokens at this concordance position.";
+
+
+
+/* 
+ * Time to print the result: we have three options: no display, display HTML, downlaod plaintext
+ */
 if (mysql_num_rows($result) < 1)
 {
 	/* normal cause of this: we have overflowed the page number. */
@@ -297,7 +221,7 @@ if (mysql_num_rows($result) < 1)
 }
 else if ($download_mode)
 {
-	freqbreakdown_write_download($result, $description, $db_tokens_total);
+	freqbreakdown_write_download($result, "$query_heading.<br/><br/>$breakdown_heading<br/>", $db_tokens_total);
 }
 else
 {
@@ -334,35 +258,56 @@ else
 
 	$return_option = ($sql_position=='node' 
 					  ? '<option value="concBreakdownNodeSort">Show hits sorted by node</option>'
-					  : '<option value="concBreakdownPositionSort">Show hits sorted on position XXXXX</option>' /// TODO
+					  : '<option value="concBreakdownPositionSort">Show hits sorted on position '
+					  		. stringise_integer_position($int_position). '</option>'
 					 );
+	
+	switch($breakdown_of)
+	{
+	case 'words':
+		$breakdown_of_options 
+				=  '<option value="concBreakdownWords" selected="selected">Frequency breakdown of words only</option>
+					<option value="concBreakdownAnnot">Frequency breakdown of annotation only</option>
+					<option value="concBreakdownBoth" >Frequency breakdown of words and annotation</option>';
+		break;
+	case 'annot':
+		$breakdown_of_options 
+				=  '<option value="concBreakdownWords">Frequency breakdown of words only</option>
+					<option value="concBreakdownAnnot" selected="selected">Frequency breakdown of annotation only</option>
+					<option value="concBreakdownBoth" >Frequency breakdown of words and annotation</option>';
+		break;
+	case 'both':	
+		$breakdown_of_options 
+				=  '<option value="concBreakdownWords">Frequency breakdown of words only</option>
+					<option value="concBreakdownAnnot">Frequency breakdown of annotation only</option>
+					<option value="concBreakdownBoth" selected="selected" >Frequency breakdown of words and annotation</option>';
+		break;
+	}
 	
 	$freq_breakdown_controls = '
 		<form action="redirect.php" method="get">
-			<td class="concordgrey" align="center">
-				<select name="redirect">
-					<option value="concBreakdownWords">Frequency breakdown of words only</option>
-					<option value="concBreakdownAnnot">Frequency breakdown of annotation only</option>
-					<option value="concBreakdownBoth">Frequency breakdown of words and annotation</option>
-					<option value="concBreakdownDownload">Download whole frequency breakdown table</option>
-					' . $return_option . '
-					<option value="newQuery" selected="selected">New query</option>
-				</select>
-				<input type="submit" value="Go!"/>
-
-			</td>
-			<td class="concordgrey" align="center">
+			<td class="concordgrey">
+				Breakdown position: 
 				<select name="concBreakdownAt">
 					' . print_sort_position_options(integerise_sql_position($sql_position)) . '
 				</select>
+			</td>
+			<td class="concordgrey">
+				<select name="redirect">
+					' . $breakdown_of_options . '
+					<option value="concBreakdownDownload">Download frequency breakdown table (for ' . $breakdown_of_info[$breakdown_of]['desc'] . ')</option>
+					' . $return_option . '
+					<option value="newQuery">New query</option>
+				</select>
 
 				' . url_printinputs(array(
-					array('tableDownloadMode', ''), array('redirect', ''), array('uT', ''), array('qname', $qname)
+						array('concBreakdownAt', ''), array('tableDownloadMode', ''), array('redirect', ''), array('uT', ''), array('qname', $qname)
 					) ) 
 				. '
 
+				<input type="submit" value="Go!"/>
+
 			</td>
-			<input type="hidden" name="redirect" value="breakdown" />
 			<input type="hidden" name="uT" value="y"/>
 		</form>
 		';
@@ -381,7 +326,10 @@ else
 	
 		<table class="concordtable" width="100%">
 			<tr>
-				<th colspan="6" class="concordtable"><?php echo $description ?></th>
+				<th colspan="6" class="concordtable"><?php echo $query_heading; ?></th>
+			</tr>
+			<tr>
+				<th colspan="6" class="concordtable"><?php echo $breakdown_heading; ?></th>
 			</tr>
 			<tr>
 
@@ -419,7 +367,7 @@ else
 					$iT = urlencode($m[2]);
 					break;
 				}
-				$link = "concordance.php?qname=$qname&newPostP=item&newPostP_itemForm=$iF&newPostP_itemTag=$iT&uT=y";
+				$link = "concordance.php?qname=$qname&newPostP=item&newPostP_itemPosition=$int_position&newPostP_itemForm=$iF&newPostP_itemTag=$iT&uT=y";
 				
 				echo "\n<tr>\n"
 					, "\t<td class=\"concordgrey\">$i</td>\n"
@@ -452,45 +400,3 @@ cqpweb_shutdown_environment();
 
 
 
-function freqbreakdown_write_download(&$result, $description, $total_for_percent)
-{
-	global $User;
-	$da = get_user_linefeed($User->username);
-	$description = preg_replace('/&[lr]dquo;/', '"', $description);
-	$description = preg_replace('/<\/?em>/', '', $description);
-	$description = str_replace('<br/>', $da, $description);
-	
-	header("Content-Type: text/plain; charset=utf-8");
-	header("Content-disposition: attachment; filename=concordance_frequency_breakdown.txt");
-
-	echo "$description$da";
-	echo "__________________$da$da";
-	echo "No.\tSearch result\tNo. of occurrences\tPercent";
-	echo "$da$da";
-
-	
-	for ( $i = 1 ; ($r = mysql_fetch_row($result)) !== false; $i++)
-	{
-		$percent = round(($r[1] / $total_for_percent)*100, 2);
-		echo "$i\t{$r[0]}\t{$r[1]}\t$percent$da";
-	}
-}
-
-
-function integerise_sql_position($sql_position)
-{
-	if ( $sql_position == 'node' )
-		return 0;
-	
-	$sign = (false !== strpos($sql_position, 'before') ? 1 : -1);
-	
-	/* failsafe to node ==> 0 */
-	if (1 > preg_match('/^(before|after)(\d+)/', $sql_position, $m)) 
-		return 0;
-	
-	return ($m[1]==='before' ? -1 : 1) * (int)$m[2] ;
-}
-
-
-
-?>

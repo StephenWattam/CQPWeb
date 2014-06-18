@@ -76,7 +76,7 @@ if  (!extension_loaded('mysql'))
 /**
  * Creates a global connection to a CQP child process.
  */
-function connect_global_cqp()
+function connect_global_cqp($corpus = NULL)
 {
 	global $Config;
 	global $cqp;
@@ -89,7 +89,10 @@ function connect_global_cqp()
 	/* set CQP's temporary directory */
 	$cqp->execute("set DataDirectory '{$Config->dir->cache}'");
 	/* select corpus */
-	$cqp->set_corpus($corpus_cqp_name);
+	if (! empty ($corpus))
+		$cqp->set_corpus($corpus);
+	else if (! empty ($corpus_cqp_name))
+		$cqp->set_corpus($corpus_cqp_name);
 	/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
 	
 	if ($Config->print_debug_messages)
@@ -822,7 +825,8 @@ function url_printinputs($changes = "Nope!")
 		}
 		else
 			$string .= '<input type="hidden" name="' . $key . '" value="' 
-				. htmlspecialchars($val, ENT_QUOTES, 'UTF-8') . '" />';
+				. htmlspecialchars($val, ENT_QUOTES, 'UTF-8') . '" />
+				';
 
 		/* note: should really be htmlspecialchars($val, ENT_QUOTES, UTF-8, false)
 		 * etc. BUT the last parameter (whcih turns off the effect on existing entities)
@@ -837,7 +841,8 @@ function url_printinputs($changes = "Nope!")
 		foreach ($changes as &$c)
 			if ($c[0] !== '' && $c[1] !== '')
 				$extra .= '<input type="hidden" name="' . $c[0] . '" value="' 
-					. htmlspecialchars($c[1], ENT_QUOTES, 'UTF-8') . '" />';
+					. htmlspecialchars($c[1], ENT_QUOTES, 'UTF-8') . '" />
+					';
 		$string = $extra . $string;
 	}
 	return $string;

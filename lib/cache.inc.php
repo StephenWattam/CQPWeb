@@ -242,11 +242,15 @@ function check_cache_qname($qname)
 
 
 
-/* checks the cache for a query that matches the specified parameters */
-/* DOESN'T check qname at all; returns one of the following: */
-/* FALSE                if query with that name not found */
-/* an ASSOCIATIVE ARRAY containing the SQL record (for printing, etc.) if the query was found */
-/* if "postprocess" is not specified as a parameter, it assumes NULL is sought */
+/**
+ * Checks the cache for a query that matches the specified parameters.
+ * 
+ * DOESN'T check qname at all; returns one of the following:
+ * (i) FALSE, if a query with those parameters was not found.
+ * (ii) an ASSOCIATIVE ARRAY containing the SQL record (for printing, etc.) if a matching query was found.
+ *
+ * If "postprocess" is not specified as a parameter, it is assumed that the postprocess field should be NULL.
+ */
 function check_cache_parameters($cqp_query, $restrictions, $subcorpus, $postprocess = '')
 {
 	global $corpus_sql_name;

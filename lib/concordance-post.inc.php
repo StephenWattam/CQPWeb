@@ -64,7 +64,7 @@
 		tagfilter=the regex filter applied for primary-att of collocate, if any
 	
 	sort[position~thin_tag~thin_tag_inv~thin_str~thin_str_inv]
-		position=the position of the sort, in format +2, -1, +3, etc. Maximum: +/- 5.
+		position=the position of the sort, in format 2, -1, 3, etc. + = right. - = left. Maximum: +/- 5.
 		thin_tag=the tag that the sorted position must have (full string, not regex); or '.*' if any tag is allowed
 		thin_tag_inv=1 if the specified tag is to be *excluded*, otherwise 0
 		thin_str=the string that the sorted position must begin with (full string, not regex); or '.*' if any wordform is allowed
@@ -96,8 +96,10 @@
 		Note: this postprocess is always done by categorise-admin.inc.php, never here (so, no functions 
 		or cases for it); all this library needs ot do is render it properly
 	
-	item[form~tag]
-		EITHER of these can be an empty string.
+	item[position~form~tag]
+		position=the position of the sort, in format 2, -1, 3, etc. + = right. - = left. Maximum: +/- 5.
+		(node-based item breakdown comes via the "normal" version of Frequency Breakdown; in that case position must be 0.)
+		EITHER of the specifiers can be an empty string.
 		
 	custom[class]
 		The name of the class that did the postprocessing is stored here. The class will be queried for
@@ -157,6 +159,7 @@ class POSTPROCESS {
 	public $sort_thinning_sql_where;
 	
 	/* variables for item-thinning */
+	public $item_position;
 	public $item_form;
 	public $item_tag;
 	
@@ -241,13 +244,13 @@ class POSTPROCESS {
 			$this->sort_thin_tag = mysql_real_escape_string($_GET['newPostP_sortThinTag']);
 			if (empty($this->sort_thin_tag))
 				$this->sort_thin_tag = '.*';
-			$this->sort_thin_tag_inv = (bool)$_GET['newPostP_sortThinTagInvert'];
+			$this->sort_thin_tag_inv = (isset($_GET['newPostP_sortThinTagInvert']) ? (bool)$_GET['newPostP_sortThinTagInvert'] : false);
 				
 
 			$this->sort_thin_str = mysql_real_escape_string($_GET['newPostP_sortThinString']);
 			if (empty($this->sort_thin_str))
 				$this->sort_thin_str = '.*';
-			$this->sort_thin_str_inv = (bool)$_GET['newPostP_sortThinStringInvert'];
+			$this->sort_thin_str_inv = (isset($_GET['newPostP_sortThinStringInvert']) ? (bool)$_GET['newPostP_sortThinStringInvert'] : false);
 			
 			/* note that either the tag or the stirng used to restrict could include punctuation */
 			/* or UTF8 characters: so only mysql sanitation is done for these two things. */
@@ -300,6 +303,15 @@ class POSTPROCESS {
 			
 		case 'item':
 			$this->postprocess_type = 'item';
+			
+			/* We have to have this variable */
+			if ( ! isset( $_GET['newPostP_itemPosition']	) )
+			{
+				$this->i_parsed_ok = false;
+				return;
+			}
+			$this->item_position = (int) $_GET['newPostP_itemPosition'];
+			
 			/* we only need one out of form and tag */
 			if ( empty($_GET['newPostP_itemForm']) && empty($_GET['newPostP_itemTag']))
 			{
@@ -441,7 +453,7 @@ class POSTPROCESS {
 			break;
 
 		case 'item':
-			$string_to_work_on .= "~~item[$this->item_form~$this->item_tag]";
+			$string_to_work_on .= "~~item[$this->item_position~$this->item_form~$this->item_tag]";
 			break;
 		
 		case 'dist':
@@ -612,6 +624,7 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 		else if ($this->sort_position == 0)
 		{
 			$sort_position_sql = 'node';
+			// TODO shouldn't tjhis use the corpus collation?
 			$extra_sort_pos_sql = ", after1 COLLATE utf8_general_ci"
 				. ", after2 COLLATE utf8_general_ci"
 				. ", after3 COLLATE utf8_general_ci"
@@ -704,8 +717,10 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 		
 		$this->sort_thinning_sql_where = '';
 		
+		$pos = sqlise_integer_position($this->item_position);
+		
 		if (! empty($this->item_form))
-			$this->sort_thinning_sql_where .= "where node = '$this->item_form' " ;
+			$this->sort_thinning_sql_where .= "where $pos = '$this->item_form' " ;
 		
 		if (! empty($this->item_tag))
 		{
@@ -713,7 +728,7 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 				$this->sort_thinning_sql_where .= 'where';
 			else
 				$this->sort_thinning_sql_where .= 'and';
-			$this->sort_thinning_sql_where .= " tagnode = '$this->item_tag' ";
+			$this->sort_thinning_sql_where .= " tag$pos = '$this->item_tag' ";
 		}
 
 		return "SELECT beginPosition, endPosition
@@ -721,8 +736,6 @@ function colloc_tagclause_from_filter($dbname, $att_for_calc, $primary_annotatio
 			$this->sort_thinning_sql_where
 			ORDER BY beginPosition  ";
 			//TODO: would refnumber be better than beginPosition? investigate
-			
-
 	}
 	
 	function dist_set_dbname($orig_query_record)
@@ -1534,13 +1547,17 @@ function postprocess_string_to_description($postprocess_string, $hits_string)
 			break;
 		
 		case 'item':
-			$description .= "reduced with frequency list to  ";
-			if (empty ($args[0]))
-				$description .= 'tag: <em>' . $args[1] . '</em> ';
-			else if (empty($args[1]))
-				$description .= 'word: <em>' . $args[0] . '</em> ';
+			$description .= "reduced to results where ";
+			if (0 == $args[0])
+				$description .= 'query node matches ';
 			else
-				$description .= 'word-tag combination: <em>' . $args[0] . '_' . $args[1] . '</em> ';
+				$description .= 'concordance position <em>' . stringise_integer_position($args) . '</em> matches ';
+			if (empty ($args[1]))
+				$description .= 'tag: <em>' . $args[2] . '</em> ';
+			else if (empty($args[2]))
+				$description .= 'word: <em>' . $args[1] . '</em> ';
+			else
+				$description .= 'word-tag combination: <em>' . $args[1] . '_' . $args[2] . '</em> ';
 			$description .= '(' . number_format((float)$hit_array[$i]) . ' hits)';
 			$i++;
 			break;

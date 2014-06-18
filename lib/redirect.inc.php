@@ -252,14 +252,23 @@ if (isset($_GET['redirect']))
 		require("../lib/breakdown.inc.php");
 		break;
 
+	case 'concBreakdownDownload':
+		unset($_GET['concBreakdownDownload']);
+		$_GET['tableDownloadMode'] = 1;
+		require("../lib/breakdown.inc.php");
+		break;
+
+	case 'concBreakdownPositionSort':
+		$_GET['newPostP_sortPosition'] = $_GET['concBreakdownAt'];
+		/* all rest is shared with node-sort, so fall through.... */
+			
 	case 'concBreakdownNodeSort':
-		$qname = $_GET['qname'];
-		unset($_GET);
-		$_GET['qname'] = $qname;
-			/* nb no sanitisation needed, will be done by the Concordance program */
+		/* nb no sanitisation of qname needed, will be done by the Concordance program */
 		$_GET['program'] = 'sort';
 		$_GET['newPostP'] = 'sort';
-		$_GET['newPostP_sortPosition'] = 0;
+		/* this  cvhecks the above...  */
+		if (empty($_GET['newPostP_sortPosition']))
+			$_GET['newPostP_sortPosition'] = 0;
 		$_GET['newPostP_sortThinTag'] = '';
 		$_GET['newPostP_sortThinTagInvert'] = 0;
 		$_GET['newPostP_sortThinString'] = '';
@@ -269,12 +278,10 @@ if (isset($_GET['redirect']))
 		unset($qname);
 		require("../lib/concordance.inc.php");
 		break;
-	
-	case 'concBreakdownDownload':
-		unset($_GET['concBreakdownDownload']);
-		$_GET['tableDownloadMode'] = 1;
-		break;
 
+
+
+	
 
 	/* from download-conc */
 

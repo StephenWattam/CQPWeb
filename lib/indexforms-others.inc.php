@@ -41,15 +41,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
 function printquery_who()
 {
 ?>
@@ -170,7 +161,11 @@ function printquery_latest()
 	<ul>
 		<li>
 		<b>Version 3.1.8</b>, 2014-xx-xx<br/>&nbsp;<br/>
-		Updated frequency breakdown to enable breakdown of sort position of a sorted query.
+		Added new feature: adjust individual user permissions on creation of frequency lists for subcorpora.
+		<br/>&nbsp;<br/>
+		Updated frequency breakdown to enable breakdown of any concordance position within 5 tokens (as well as the node).
+		<br/>&nbsp;<br/>
+		Fixed keyword download bug (no confidence interval prinout).
 		<br/>&nbsp;<br/>
 		Fixed critical cache leak bug.
 		<br/>&nbsp;<br/>

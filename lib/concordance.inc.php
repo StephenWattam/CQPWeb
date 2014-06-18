@@ -179,7 +179,8 @@ else
 }
 
 
-/* $postprocess describes all the postprocesses applied to a query; it 
+/* 
+ * Variable $postprocess describes all the postprocesses applied to a query; it 
  * always starts as an empty string, but it may be added to later by new-postprocess,
  * or an existing postprocessor string may be loaded from memory. 
  */
@@ -191,8 +192,7 @@ if (isset($_GET['newPostP']) && $_GET['newPostP'] !== '')
 {
 	$new_postprocess = new POSTPROCESS();
 	if ($new_postprocess->parsed_ok() == false)
-		exiterror_parameter('The parameters for query postprocessing could not be loaded!', 
-			__FILE__, __LINE__);
+		exiterror_parameter('The parameters for query postprocessing could not be loaded!');
 	unset($_GET['pageNo']);
 	/* so that we know it will go to page 1 of the postprocessed query */
 }
@@ -203,7 +203,7 @@ if (isset($_GET['newPostP']) && $_GET['newPostP'] !== '')
 /* RENDERING VARIABLES */
 /* ******************* */
 
-/* In a multi-page concordance: which page to display. */
+/* In a multi-page concordance: which page to display. Note: parsed value overwrites GET. */
 if (isset($_GET['pageNo']))
 	$_GET['pageNo'] = $page_no = prepare_page_no($_GET['pageNo']);
 else
@@ -271,7 +271,6 @@ else
 	switch($_GET['program'])
 	{
 	case 'collocation':	/* does this actually do anything? */
-	//case 'distribution':
 	case 'sort':
 	case 'lookup':
 	case 'categorise':
@@ -467,8 +466,7 @@ if ($run_new_query && ! $new_postprocess && ! $User->conc_corpus_order)
 	/* no need to check whether it parsed correctly, cos we know it did! */
 	// TODO is the above comment actually true? the POSTPROCESS constructor does not seem to abort on 
 	// bad parse. It just sets i_parsed_ok to false.
-	$page_no = 1;
-	unset($_GET['pageNo']);
+	$_GET['pageNo'] = $page_no = 1;
 	/* so that we know the display will go to page 1 of the postprocessed query */
 }
 
@@ -478,9 +476,9 @@ if ($run_new_query && ! $new_postprocess && ! $User->conc_corpus_order)
 
 
 
-/* ---------------------------------------------------------- */
-/* START OF MAIN CHUNK THAT RUNS THE QUERY AND GETS SOLUTIONS */
-/* ---------------------------------------------------------- */
+/* ---------------------------------------------------------- *
+ * START OF MAIN CHUNK THAT RUNS THE QUERY AND GETS SOLUTIONS *
+ * ---------------------------------------------------------- */
 if ($run_new_query)
 {
 	/* if we are here, it is a brand new query -- not saved or owt like that. Ergo: */
@@ -527,6 +525,7 @@ if ($run_new_query)
 	/* finally, create a query cache record. This array can be passed to functions that require
 	 * a big bag o' info about the query (e.g. postprocess functions, the heading creator) */
 	$cache_record = array(	'query_name' => $qname,
+							'corpus' => $corpus_sql_name,
 							'simple_query' => $simple_query,
 							'cqp_query' => $cqp_query,
 							'query_mode' => $qmode,
@@ -557,9 +556,9 @@ if ($history_inserted)
 
 
 
-/* ----------------------- */
-/* START OF POSTPROCESSING */
-/* ----------------------- */
+/* ----------------------- *
+ * START OF POSTPROCESSING *
+ * ----------------------- */
 
 if ($new_postprocess)
 {
@@ -595,7 +594,7 @@ if ($new_postprocess)
 		
 		$cache_record = $post_function($cache_record, $new_postprocess);
 		/* the postprocess functions all re-set cr['postprocess'] and cr['hits_left'] etc.
-		 * in the new query that is created; also touches the time and setas the new query to unsaved. */
+		 * in the new query that is created; also touches the time and sets the new query to unsaved. */
 		$qname = $cache_record['query_name'];
 				
 		/* and, because this means we are dealing with a query new-created in cache... */
@@ -712,14 +711,19 @@ if ($count_hits_then_cease)
 	exit();
 }
 
+
 $control_row = print_control_row();
-echo $control_row;
-
-
 
 if ($program == "sort")
-	echo print_sort_control($primary_tag_handle, $cache_record['postprocess']);
-
+{
+	/* if the query being displayed is sorted, then we need to put the sort position 
+	 * into the control row, and we also need a second control row for the sort. */#
+	$sort_pos_recall = 0;
+	$sort_control_row = print_sort_control($primary_tag_handle, $cache_record['postprocess'], $sort_pos_recall);
+	echo add_sortposition_to_control_row($control_row, $sort_pos_recall), $sort_control_row;
+}
+else
+	echo $control_row;
 
 
 

@@ -303,7 +303,7 @@ function populate_corpus_cqp_positions($corpus)
 	else
 	{
 		$cqp_was_set = false;
-		connect_global_cqp();
+		connect_global_cqp(strtoupper($corpus));
 	}
 
 	$cqp->execute("A = <text> [] expand to text");

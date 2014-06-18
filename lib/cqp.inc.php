@@ -810,16 +810,12 @@ class CQP
 		$e = NULL;
 		$error_strings = array();
 
-		/* is there anything on the child STDERR? */
-		$ready = stream_select($r=array($this->handle[2]), $w, $e, 0);
-
-		/* read all available lines from CQP's stderr stream */
-		while ($ready > 0 && count($error_strings) < 1024)
-		{	
-			$error_strings[] = trim(fgets($this->handle[2]), "\r\n");
-			
-			/* check stream again before reiterating */
-			$ready = stream_select($r=array($this->handle[2]), $w, $e, 0);
+		/* as long as there is anything on the child STDERR, read up to 1024 lines from CQP's stderr stream */
+		while (0 < ($ready = stream_select($r=array($this->handle[2]), $w, $e, 0))  &&  count($error_strings) < 1024)
+		{
+			$estr = trim(fgets($this->handle[2]));
+			if (!empty($estr))
+				$error_strings[] = $estr;
 		}
 
 		if (count($error_strings) > 0)

@@ -84,6 +84,93 @@ function prepare_query_mode($s, $strict = true)
 
 
 
+function freqbreakdown_write_download(&$result, $description, $total_for_percent)
+{
+	global $User;
+	$da = get_user_linefeed($User->username);
+	$description = preg_replace('/&[lr]dquo;/', '"', $description);
+	$description = preg_replace('/<\/?em>/', '', $description);
+	$description = str_replace('<br/>', $da, $description);
+	
+	header("Content-Type: text/plain; charset=utf-8");
+	header("Content-disposition: attachment; filename=concordance_frequency_breakdown.txt");
+
+	echo "$description$da";
+	echo "__________________$da$da";
+	echo "No.\tSearch result\tNo. of occurrences\tPercent";
+	echo "$da$da";
+
+	
+	for ( $i = 1 ; ($r = mysql_fetch_row($result)) !== false; $i++)
+	{
+		$percent = round(($r[1] / $total_for_percent)*100, 2);
+		echo "$i\t{$r[0]}\t{$r[1]}\t$percent$da";
+	}
+}
+
+
+/**
+ * Translates a MySQL sort database field-name(*) to an integer sort position.
+ * 
+ * (* - not including the "tag", i.e. just node, beforeX, afterX)
+ */
+function integerise_sql_position($sql_position)
+{
+	if ( $sql_position == 'node' )
+		return 0;
+	
+	/* failsafe to node ==> 0 */
+	if (1 > preg_match('/^(before|after)(\d+)/', $sql_position, $m)) 
+		return 0;
+	
+	return ($m[1]==='before' ? -1 : 1) * (int)$m[2] ;
+}
+
+
+/**
+ * Translates an integer sort position to the equivalent MySQL sort database field-name.
+ * 
+ * @see integerise_sql_position
+ */
+function sqlise_integer_position($int_position)
+{
+	$ip = (int) $int_position;
+	
+	switch (true)
+	{
+	case (0 == $ip):
+		return "node";
+	case (0 >  $ip):
+		return 'after' . abs($ip);
+	case (0 <  $ip):
+		return 'before' . abs($ip);
+	}
+}
+
+/**
+ * Translates an integer sort position to a string suitable to print in the UI.
+ * 
+ * @see integerise_sql_position
+ */
+function stringise_integer_position($int_position)
+{
+	global $corpus_main_script_is_r2l;
+	
+	$ip = (int) $int_position;
+	
+	if ($ip == 0)
+		return "at the node";
+	
+	$sign = ($ip < 0 ? -1 : 1);	
+	
+	if ($corpus_main_script_is_r2l)
+		return abs ($ip) . ($sign == -1 ? ' before the node' : ' after the node');
+	else
+		return abs ($ip) . ($sign == -1 ?  ' to the Left' : ' to the Right'); 
+}
+
+
+
 
 /** returns an array: [0] == number of words searched, [1] == number of files searched */
 // TODO end use of globals
@@ -312,7 +399,8 @@ function print_control_row()
 			array('uT', ''), array('viewMode', "$reverseViewMode"), array('qname', $qname)
 			));
 		
-		$final_string .= '<input type="hidden" name="uT" value="y"/></form>';
+		$final_string .= '<input type="hidden" name="uT" value="y"/>
+				</form>';
 	}
 	
 
@@ -342,18 +430,21 @@ function print_control_row()
 		$randomButtonText = 'Show in corpus order';
 	}
 		
-	$final_string .= "<form action='concordance.php' method='get'>
-		<td align=\"center\" width=\"20%\" class=\"concordgrey\" nowrap=\"nowrap\">&nbsp;";
-	
-	$final_string .= '<input type="submit" value="' . $randomButtonText . '"/>';
-	
-	$final_string .= '&nbsp;</td>';	
+	$final_string .= "
+		<form action=\"concordance.php\" method=\"get\">
+			<td align=\"center\" width=\"20%\" class=\"concordgrey\" nowrap=\"nowrap\">
+				&nbsp;<input type=\"submit\" value=\"$randomButtonText\"/>&nbsp;
+			</td>
+			";	
 
 	$final_string .= url_printinputs(array(
 		array('uT', ''), array('qname', $qname), array('newPostP', $newPostP_value)
 		));
 
-	$final_string .= '<input type="hidden" name="uT" value="y"/></form>';
+	$final_string .= '
+					<input type="hidden" name="uT" value="y"/>
+		</form>
+		';
 
 
 	/* -------------------------- */
@@ -369,9 +460,7 @@ function print_control_row()
 		unset($obj);
 	}
 	
-	$final_string .= '<form action="redirect.php" method="get"><td class="concordgrey" nowrap="nowrap">&nbsp;';
-		
-	$final_string .= '
+	$final_string .= '<form action="redirect.php" method="get"><td class="concordgrey" nowrap="nowrap">&nbsp;
 		<select name="redirect">	
 			<option value="newQuery" selected="selected">New query</option>
 			<option value="thin">Thin...</option>
@@ -385,21 +474,35 @@ function print_control_row()
 			' . $custom_options . '
 		</select>
 		&nbsp;
-		<input type="submit" value="Go!"/>';
+		<input type="submit" value="Go!"/>
+		';
 	
 	$final_string .= url_printinputs(array(
 		array('uT', ''), array('redirect', ''), array('qname', $qname)
 		));
 	
 	$final_string .= '<input type="hidden" name="uT" value="y"/>&nbsp;</td></form>';
-	
-	
-	
+
 	
 	/* finish off and return */
 	$final_string .= '</tr>';
 
 	return $final_string;
+}
+
+
+/**
+ * Alters a control row string so that it contains the sort position in such a way
+ * that it can be successfully passed through to breakdown.inc.php
+ */
+function add_sortposition_to_control_row($html, $sort_pos)
+{	
+	/* NOTE: this string **must** match the hidden input generate by print_control_row() */
+	$search = '<input type="hidden" name="uT" value="y"/>';
+	
+	$add = '<input type="hidden" name="concBreakdownAt" value="' . $sort_pos . '"/>';
+	
+	return str_replace($search, $add.$search, $html);
 }
 
 
@@ -476,7 +579,7 @@ function print_sort_position_options($current_position = 0)
 
 
 
-function print_sort_control($primary_annotation, $postprocess_string)
+function print_sort_control($primary_annotation, $postprocess_string, &$sort_position_out)
 {
 	/* get current sort settings : from the current query's postprocess string */
 	/* ~~sort[position~thin_tag~thin_tag_inv~thin_str~thin_str_inv] */
@@ -540,6 +643,9 @@ function print_sort_control($primary_annotation, $postprocess_string)
 				array('newPostP_sortThinTagInvert', ''),
 				array('newPostP_sortPosition', ''),
 				) );
+
+	/* stash sort position in an out parameter... */
+	$sort_position_out = $current_settings_position;
 
 	/* all is now set up so we are ready to return the final string */
 	return '
