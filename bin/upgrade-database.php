@@ -50,7 +50,7 @@ require ('../bin/cli-lib.php');
 /* VARS THAT NEED UPDATING EVERY TIME A NEW VERSION IS PILED ON */
 
 		/* the most recent database version: ie the last version whose release involved a DB change */
-		$last_changed_version = '3.1.5';
+		$last_changed_version = '3.1.8';
 		
 		/* 
 		 * versions where there is no change. Array of old_version => version that followed. 
@@ -142,6 +142,40 @@ function upgrade_db_version_from($oldv)
 		$func = 'upgrade_' . str_replace('.','_',$oldv);
 		$func();
 	}
+}
+
+/* 3.1.7->3.1.8 */
+function upgrade_3_1_7()
+{
+	/* database format has not changed, but format of the postprocess string HAS. 
+	 * So perform surgery on the saved-queries table to update it.
+	 * 
+	 * WARNING: if any new-format queries (using the new "item" postprocess)
+	 * have been carried out between the code being updated and this script being run, 
+	 * they will be corrupted by the oepration of this script.
+	 */
+	$count = 0;
+	$result = do_mysql_query("select query_name, postprocess from saved_queries where postprocess like 'item[%' or postprocess like '%~~item[%'");
+	while (false !== ($o = mysql_fetch_object($result)))
+	{
+		$new_pp = preg_replace('/^item\[/', 'item[0~', $o->postprocess);
+		$new_pp = preg_replace('/~~item\[/', '~~item[0~', $o->postprocess);
+		$new_pp = mysql_real_escape_string($new_pp);
+		do_mysql_query("UPDATE saved_queries set postprocess = '$new_pp' where query_name = '{$o->query_name}'");
+		$count++;
+	}	
+	echo "The format of $count cached queries has been updated to reflect changes in Frequency Breakdown in v3.1.8.\n\n";
+	 
+	/* delete databases associated with "item" postprocesses. */
+	$result = do_mysql_query("select dbname from saved_dbs where postprocess like 'item[%' or postprocess like '%~~item[%'");
+	while (false !== ($o = mysql_fetch_object($result)))
+	{
+		do_mysql_query("DROP TABLE IF EXISTS {$o->dbname}");
+		do_mysql_query("DELETE FROM saved_dbs where dbname = '{$o->dbname}'");
+	} 
+	
+	/* do the very last DB change! */
+	do_mysql_query("update system_info set value = '3.1.4' where setting_name = 'db_version'");	
 }
 
 /* 3.1.4->3.1.5 */
