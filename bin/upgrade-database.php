@@ -144,6 +144,23 @@ function upgrade_db_version_from($oldv)
 	}
 }
 
+
+/* --------------------------------------------------------------------------------------------------------- */
+
+
+/* 3.1.8->3.1.9 */
+function upgrade_3_1_8()
+{
+	$sql = array(
+	);
+	foreach ($sql as $q)
+		do_mysql_query($q);
+
+	
+	/* do the very last DB change! */
+	do_mysql_query("update system_info set value = '3.1.9' where setting_name = 'db_version'");
+}
+
 /* 3.1.7->3.1.8 */
 function upgrade_3_1_7()
 {

@@ -33,5 +33,28 @@
 
 
 
+// startup
+
+
+// print page head
+
+
+
+
+/// call body function
+
+
+
+
+
+// end page and shutdown
+
+
+
+
+
+
+
+
 
 ?>

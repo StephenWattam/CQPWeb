@@ -97,10 +97,7 @@ function lookup_feature_matrix_id($corpus, $user, $savename)
  */
 function get_feature_matrix($corpus, $user, $savename)
 {
-	if (false === ($id = lookup_feature_matrix_id($corpus, $user, $savename)))
-		return false;
-	
-	return get_feature_matrix_by_id($id);
+	// TODO
 }
 
 
@@ -148,9 +145,10 @@ function build_feature_matrix()
  * Returns a string containing an instruction to run in R
  * that will create the feature matrix desired as an R matrix.
  * 
- * @param object_name  Name that you want the resulting R variable to have, e.g. "feature.matrix".
+ * @param $id  ID of the feature matrix you want to gety a string for.
+ * TODO -- or, better to pass in a DB object? 
  */
-function get_feature_matrix_r_import($object_name)
+function get_feature_matrix_r_import($id)
 {
 	//TODO	
 	
