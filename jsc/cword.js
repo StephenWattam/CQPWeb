@@ -21,12 +21,18 @@
  */
 
 
-/* create global variables for c_word checking */
-var c_word_error_block;
-var c_word_error_showing = false;
+/**
+ * This file enables the use of c_word checking on forms in the page.
+ * 
+ * TODO : translate to less wordy / quirks-prone jQuery.
+ */
 
-window.onload = function()
+
+$(document).ready (function()
 {
+	/* create global variables for c_word checking */
+	c_word_error_block = null;
+	c_word_error_showing = false;
 
 	/* setup for c_word-checking */
 	c_word_error_block = document.createElement("div");
@@ -50,7 +56,7 @@ window.onload = function()
 	c_word_error_block.style.backgroundColor = "cyan";
 	c_word_error_block.style.fontFamily = "Verdana,Arial";
 	c_word_error_block.style.fontSize = "x-small";
-}
+});
 
 
 
@@ -96,6 +102,10 @@ function check_c_word(element)
 	}
 }
 
+
+/**
+ * Function used by the cword module. 
+ */
 function get_element_bottom_left_corner_coords(element)
 {
 	/* the x axis doesn't get a start */
