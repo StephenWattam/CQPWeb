@@ -546,26 +546,27 @@ function printquery_managemeta()
 					if ($xml_annotation == 'text_id')
 						continue;
 						
-					echo "\n\n<tr>";
-					echo '<td class="concordgeneral">'
-						. '<input name="createMetadataFromXmlUse_'
-						. $xml_annotation
-						. '" type="checkbox" value="1" /> '
-						. '</td>';
-					echo '<td class="concordgeneral">' . $xml_annotation . '</td>';
+					echo "\n\n<tr>"
+						, '<td class="concordgeneral">'
+						, '<input name="createMetadataFromXmlUse_'
+						, $xml_annotation
+						, '" type="checkbox" value="1" /> '
+						, '</td>'
+						, '<td class="concordgeneral">' . $xml_annotation . '</td>';
 					echo '<td class="concordgeneral">' 
-						. '<input name="createMetadataFromXmlDescription_' 
-						. $xml_annotation
-						. '" type="text" /> '
-						. '</td>';
+						, '<input name="createMetadataFromXmlDescription_' 
+						, $xml_annotation
+						, '" type="text" /> '
+						, '</td>';
 					echo '<td class="concordgeneral" align="center"><select name="isClassificationField_'
-						. $xml_annotation
-						. '"><option value="1" selected="selected">Classification</option>'
-						. '<option value="0">Free text</option></select></td>';
+						, $xml_annotation
+						, '"><option value="1" selected="selected">Classification</option>'
+						, '<option value="0">Free text</option></select></td>';
 					echo '<td class="concordgeneral" align="center">'
-						. '<input type="radio" name="primaryClassification" value="'
-						. $xml_annotation 
-						. '"/></td>';
+						, '<input type="radio" name="primaryClassification" value="'
+						, $xml_annotation 
+						/* nb this form, unlike t'other, has primaryClassification as a handle, not a row ix */
+						, '"/></td>';
 					echo "</tr>\n\n\n";
 				}
 				

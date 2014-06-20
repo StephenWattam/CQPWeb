@@ -378,10 +378,9 @@ switch($_GET['admFunction'])
 		$create_text_metadata_for_info['corpus'] = $_GET['corpus'];
 		$create_text_metadata_for_info['filename'] = "___createMetadataFromXml_{$_GET['corpus']}";
 		$create_text_metadata_for_info['file_should_be_deleted'] = true;
-		$create_text_metadata_for_info['primary_classification'] = $_GET['primaryClassification'];
-		$create_text_metadata_for_info['fields'] = array(false);
+		$create_text_metadata_for_info['fields'] = array(0=>false);
 		/* note the dummy value for [fields][0], becaue reading from here starts at 1 */
-
+		$i = 1;
 		foreach($_GET as $k => &$v)
 		{
 			if ( substr($k, 0, 24) != 'createMetadataFromXmlUse')
@@ -394,11 +393,15 @@ switch($_GET['admFunction'])
 			
 			$field_list[] = $handle;
 			
-			$create_text_metadata_for_info['fields'][] = array(
+			$create_text_metadata_for_info['fields'][$i] = array(
 					'handle' => $handle,
 					'description' => $_GET["createMetadataFromXmlDescription_$handle"],
 					'classification' => (bool)$_GET["isClassificationField_$handle"]
 				);
+			if (isset($_GET['primaryClassification']) && $_GET['primaryClassification'] == $handle)
+				$create_text_metadata_for_info['primary_classification'] = $i;
+				/* info object needs int index into array, but this form provides a handle */
+			++$i;
 		}
 		$create_text_metadata_for_info['field_count'] = count($create_text_metadata_for_info['fields']);
 		$create_text_metadata_for_info['do_automatic_metadata_setup'] = (bool) $_GET['createMetadataRunFullSetupAfter'];

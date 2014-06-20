@@ -743,6 +743,7 @@ function printquery_savedqueries()
 // TODO move this function?
 function printquery_analysecorpus()
 {
+	global $Corpus;
 	global $User;
 	global $corpus_sql_name;
 	 
@@ -785,6 +786,35 @@ function printquery_analysecorpus()
 	</table>
 	
 	
+	<!-- begin saved feature matrix list block -->
+	<table id="featureMatrixList" class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">
+				Saved feature matrices
+			</th>
+		</tr>
+		
+		<?php
+		
+		$list = list_feature_matrices($corpus_sql_name, $User->username);
+
+		if (empty($list))
+			echo '<tr><td class="concordgrey">&nbsp;<br>You have no saved features matrices.<br>&nbsp;</td></tr>';
+		else
+		{
+		foreach($list as $fm)
+		{
+			
+			
+		}
+		}
+
+		?>
+		
+	</table>
+	
+	
+
 	<!-- begin feature matrix control block -->
 	<form id="featureMatrixDesign" action="" method="get" style="display:hidden">
 		

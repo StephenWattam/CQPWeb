@@ -28,6 +28,9 @@
  */
 
 
+/*
+ * The setup function.
+ */
 $(document).ready (function()
 {
 	/* create global variables for c_word checking */
