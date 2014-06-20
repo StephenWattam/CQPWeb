@@ -828,6 +828,23 @@ function printquery_showmatrix()
 		?>
 		
 	</table>
+	
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">Analyse feature matrix</th>
+		</tr>
+		<form action="analyse.php" method="get">
+			<tr>
+				<td class="concordgeneral" align="center">
+					&nbsp;<br>
+					<input type="submit" value="Perform Multidimensional Analysis" />
+					<br>&nbsp;
+				</td>
+			</tr>
+		<input type="hidden" name="matrix" value="<?php echo $matrix->id; ?>" />
+		<input type="hidden" name="uT" value="y" />
+		</form>
+	</table>
 
 	<table class="concordtable" width="100%">
 		<tr>
@@ -932,14 +949,22 @@ function printquery_analysecorpus()
 					, (empty($fm->subcorpus) ? '(whole corpus)' : $fm->subcorpus)
 					, '</td>'
 					, '<td class="concordgeneral">' , $fm->unit , '</td>'
-					, '<td class="concordgeneral">' , date($fm->unit, DATE_RSS) , '</td>'
+					, '<td class="concordgeneral">' , date(DATE_RFC1036, $fm->create_time) , '</td>'
 					, '<td class="concordgeneral" align="center">' 
-					, '<a class="menuItem" href="index.php?thisQ=analyseCorpus&showMatrix='
-					, $fm->id
-					, '&uT=y">[View/Analyse]</a>' 
+						, '<a class="menuItem" href="index.php?thisQ=analyseCorpus&showMatrix='
+						, $fm->id
+						, '&uT=y">[View/Analyse]</a>' 
 					, '</td>'
-					, '<td class="concordgeneral" align="center">' , '[Download]' , '</td>'
-					, '<td class="concordgeneral" align="center">' , '[Delete]' , '</td>'
+					, '<td class="concordgeneral" align="center">' 
+						, '<a class="menuItem" href="redirect.php?redirect=downloadFeatureMatrix&matrix='
+						, $fm->id
+						, '&uT=y">[Download]</a>'
+					, '</td>'
+					, '<td class="concordgeneral" align="center">' 
+						, '<a class="menuItem" href="redirect.php?redirect=deleteFeatureMatrix&matrix='
+						, $fm->id
+						, '&uT=y">[Delete]</a>'
+					, '</td>'
 					, "</tr>\n\t\t" 
 					;
 				
@@ -1133,9 +1158,7 @@ function printquery_analysecorpus()
 				</td>
 			</tr>
 		</table>
-		<input type="hidden" name="" value="" ?
-		
-		
+		<input type="hidden" name="redirect" value="buildFeatureMatrix" />
 		<input type="hidden" name="uT" value="y" />
 	</form>
 	<!-- end feature matrix control block -->

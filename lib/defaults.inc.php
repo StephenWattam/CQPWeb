@@ -39,7 +39,7 @@
 
 
 /* php stubs in each corpus directory; we can't make this constant, but it should be treated as if it was! */ 
-$cqpweb_script_files = array( 'api', 'collocation', 'concordance', 'context',
+$cqpweb_script_files = array('analyse', 'api', 'collocation', 'concordance', 'context',
 						'distribution', 'execute', 'freqlist',
 						'freqtable-compile', 'help', 'index',
 						'keywords', 'redirect', 'subcorpus-admin',

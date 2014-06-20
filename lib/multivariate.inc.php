@@ -135,26 +135,70 @@ function feature_matrix_id_to_tablename($id)
  * 
  * Note this function *does not* populate the actual database table that contains the matrix. 
  * 
+ * Nor does it add any rows to the variables table.
+ * 
  * @return the ID number of the saved feature matrix we have just created.
  */
-function create_feature_matrix()
+function save_feature_matrix_info($savename, $user, $corpus, $subcorpus, $unit)
 {
+	$savename = mysql_real_escape_string($savename);
+	$user = mysql_real_escape_string($user);
+	$corpus = mysql_real_escape_string($corpus);
+	/* different cos might be NULL */
+	if (empty($subcorpus))
+		$subcorpus = 'NULL';
+	else
+		$subcorpus = '\'' . mysql_real_escape_string($subcorpus) . '\'';
+	$unit = mysql_real_escape_string($unit);
 	
+	$t = time();
 	
-	// straight after the bit where we create the _info table row do this:
-	$id = get_mysql_insert_id();
-	
-	return $id;
+	do_mysql_query("insert into saved_matrix_info
+						(savename, user, corpus, subcorpus, unit, create_time)
+					values
+						('$savename', '$user', '$corpus', $subcorpus, '$unit', $t)");
+
+	return get_mysql_insert_id();
 }
 
-function add_feature_to_matrix()
+/**
+ * Creates a feature table entry linked to the specified matric.
+ * 
+ * @param $feature_spec An stdClass containing the following members:
+ * 	TODO document tjhis.
+ * 
+ * @return the ID number of the newly created feature table entry.
+ */
+function add_feature_to_matrix($matrix_id, $feature_spec)
 {
-	
-	
-	
+	/* safety! */
+	$matrix_id = (int)$matrix_id;
+	// TODO.
+// how the spec is created.	
+//			$o->type = 'from-saved-query';
+//			$o->qname = $v;
+//			$o->label = $record['save_name'];
+//			$o->source_info = 'Query = ';
+//			$o->source_info .= (empty($record['simple_query']) ? $record['cqp_query'] : $record['simple_query']);
+	switch($feature_spec->type)
+	{
+		/* actually, maybe we don't need cases. Might just be the same - use source infor and label.*/
+	case 'from-saved-query':
+		$label = mysql_real_escape_string($feature_spec->label);
+		$info  = mysql_real_escape_string($feature_spec->source_info);
+		
+		do_mysql_query("insert into saved_matrix_features (matrix_id, label, source_info) 
+							values ($matrix_id, '$label', '$info')");
+		
+		break;
+	// TODO more.
+	default:
+		exiterror("Unrecognised type of feature could nto be created.");
+		break;	
+	}
 }
 
-function get_feature_matrix_create_statement()
+function make_feature_matrix_create_statement()
 {
 	
 	
@@ -172,11 +216,58 @@ function populate_feature_matrix()
  * @param $id  ID of the feature matrix you want to gety a string for.
  * TODO -- or, better to pass in a DB object? 
  */
-function get_feature_matrix_r_import($id)
+function get_feature_matrix_r_import($rface, $id, $desired_object_name)
 {
-	//TODO	
+	//TODO
+	$id = (int) $id;
 	
+	$result = do_mysql_query("select label from saved_matrix_features where matrix_id = $id");
+	$label_array = array();
+	while (false !== ($r = mysql_fetch_row($result)))
+		$label_array[] = '`'. $r[0] . '`';
+	
+	$labels = implode(',', $label_array);
+	
+	$obj_id_list = array();
+	
+	$result = do_mysql_query("select obj_id, $labels from " . feature_matrix_id_to_tablename($id));
+	while (false !== ($r = mysql_fetch_object($result)))
+	{
+		$cmd = $r->obj_id . ' <- c(';
+		$obj_id_list[] = $r->obj_id;
+		foreach($label_array as $l)
+		{
+			$l = str_replace('`','', $l);
+			$cmd .= $r->$l . ",";
+		}
+		$cmd = rtrim($cmd, ',');
+		$cmd .= ')';
+		$rface->execute($cmd);
+	}
+	
+
+	
+	$rface->execute("$desired_object_name <- data.frame(t(cbind( " . implode(',', $obj_id_list) . ")))");
+	$rface->execute("names_vec = c(" . str_replace("`", "'", $labels) . "')");
+	$rface->execute("names($desired_object_name) <- names_vec");
 }
+
+
+
+/**
+ * Get feature matrix as text table(usualyy for download).
+ */
+function print_feature_matrix_as_text_table($id)
+{
+	$s = '';
+	
+	// TODO - stuff.
+//	$result = do_mysql_query("select * from " . 
+	
+	return $s;
+}
+
+
 
 
 /**

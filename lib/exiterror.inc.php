@@ -201,6 +201,15 @@ function exiterror_general($errormessage, $script=NULL, $line=NULL)
 	exiterror_endpage();
 }
 
+/**
+ * Shorthand for exiterror_general.
+ */
+function exiterror($errormessage, $script=NULL, $line=NULL)
+{
+	exiterror_general($errormessage, $script, $line);
+}
+
+
 
 /**
  * Variation on general error function specifically for failed login.

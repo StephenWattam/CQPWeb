@@ -28,8 +28,7 @@
 function dbname_unique($dbname)
 {
 	if (! is_string($dbname))
-		exiterror_arguments($dbname, 'dbname_unique() requires a string as argument $dbname!',
-			__FILE__, __LINE__);
+		exiterror_arguments($dbname, 'dbname_unique() requires a string as argument $dbname!');
 	
 	while (1)
 	{
@@ -261,7 +260,8 @@ function db_commands($dbname, $db_type, $qname)
 			key(refnumber),
 			key(text_id)
 			) CHARACTER SET utf8 COLLATE utf8_bin";
-			/* note the use of a binary collation for distribution DBs, since
+			/* 
+			 * note the use of a binary collation for distribution DBs, since
 			 * they always contain text_ids, not word or tag material.
 			 */
 		break;
