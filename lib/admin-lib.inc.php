@@ -1404,6 +1404,16 @@ function cqpweb_mysql_recreate_tables()
 			`create_time` int(11) default NULL,
 			primary key(`id`)
 	) CHARACTER SET utf8 COLLATE utf8_bin";
+	
+	
+	$create_statements['saved_matrix_features'] = 
+		"CREATE TABLE `saved_matrix_features` (
+			`id` int NOT NULL AUTO_INCREMENT,
+			`matrix_id` int NOT NULL,
+			`label` varchar(255) NOT NULL,
+			`source_info` varchar(255) default NULL,
+			primary key(`id`)
+	) CHARACTER SET utf8 COLLATE utf8_bin";
 
 
 	$create_statements['saved_freqtables'] =

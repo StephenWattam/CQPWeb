@@ -332,6 +332,14 @@ if (isset($_GET['redirect']))
 
 
 
+	/* from various forms & controls in the corpus-analysis system... */
+	
+	case '':
+		$_GET['multivariateAction'] = $redirect_script_redirector;
+		require("../lib/multivariate-admin.inc.php");
+		break;
+		
+
 
 
 

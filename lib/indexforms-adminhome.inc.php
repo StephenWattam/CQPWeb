@@ -2938,23 +2938,7 @@ function printquery_tableview()
 		
 		$result = do_mysql_query($sql_string);
 		
-		/* print column headers */
-		echo '<table class="concordtable"><tr>';
-		for ( $i = 0 ; $i < mysql_num_fields($result) ; $i++ )
-			echo "<th class='concordtable'>" . mysql_field_name($result, $i)
-				. "</th>";
-		echo '</tr>';
-		
-		/* print rows */
-		while ( ($row = mysql_fetch_row($result)) != FALSE )
-		{
-			echo "<tr>";
-			foreach ($row as $r)
-				echo "<td class='concordgeneral'>$r</td>\n";
-			echo "</tr>\n";	
-		}
-		
-		echo '</table>';
+		echo print_mysql_result_dump($result);
 	}
 	else
 	{

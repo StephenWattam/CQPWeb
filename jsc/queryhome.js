@@ -30,15 +30,25 @@
 
 function analysis_switch_tool()
 {
-	/* if an analysis tool is visible, hide it. */
-	if (current_analysis_tool)
-		current_analysis_tool.slideUp("slow");
+	var new_tool = $("#analysisToolChoice").val();
 
-	/* get the new analysis tool */
-	current_analysis_tool = $("#" + $("#analysisToolChoice").val());
+	var callback = function()
+	{
+		/* get the new analysis tool */
+		current_analysis_tool = $("#" + new_tool);
 	
-	/* and make it appear */
-	current_analysis_tool.slideDown("slow");
+		/* and make it appear */
+		current_analysis_tool.slideDown("slow");
+	};
+
+	/* if an analysis tool is visible, hide it. Then callback the reveal of the new tool. */
+	if (current_analysis_tool)
+	{
+		if (new_tool != current_analysis_tool.attr('id'))
+			current_analysis_tool.fadeOut("slow", callback);
+	}
+	else
+		callback();
 }
 
 

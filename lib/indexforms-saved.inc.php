@@ -741,84 +741,217 @@ function printquery_savedqueries()
 
 
 // TODO move this function?
+function printquery_showmatrix()
+{
+	global $corpus_sql_name;
+	global $User;
+	
+	/* note that this function is always called via printquery_analysecorpus() */
+	
+	$matrix = get_feature_matrix( $_GET['showMatrix'] );
+	
+	if (false === $matrix)
+		exiterror_general("Could not retrieve any information on the specified matrix!");
+	
+	if (!$User->is_admin())
+		if ( $User->username != $matrix->user )
+			exiterror_general("The specified matrix does not belong to this user account!");
+	
+	if ( $corpus_sql_name != $matrix->corpus )
+		exiterror_general("The specified matrix is not associated with this corpus!");
+	
+	$variable_list  = feature_matrix_list_variables($matrix->id);
+	$object_names   = feature_matrix_list_objects($matrix->id);
+	
+	$tablename = feature_matrix_id_to_tablename($matrix->id);
+	
+	?>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="2">Analyse corpus: Viewing feature matrix control</th>
+		</tr>
+		<tr>
+			<td class="concordgrey">Name:</td>
+			<td class="concordgeneral"><?php echo cqpweb_htmlspecialchars($matrix->savename); ?></td>
+		</tr>	
+		<tr>
+			<td class="concordgrey">Uses subcorpus:</td>
+			<td class="concordgeneral">
+				<?php echo empty($matrix->subcorpus) ? 'Whole corpus' : $matrix->subcorpus; ?>
+			</td>
+		</tr>	
+
+		<tr>
+			<td class="concordgrey">Data objects are units of:</td>
+			<td class="concordgeneral"><?php echo $matrix->unit; ?></td>
+		</tr>	
+
+		<tr>
+			<td class="concordgrey">Date created:</td>
+			<td class="concordgeneral"><?php echo date($matrix->create_time); ?></td>
+		</tr>	
+
+		<tr>
+			<td class="concordgrey">Number of variables (columns):</td>
+			<td class="concordgeneral"><?php echo count($variable_list); ?></td>
+		</tr>	
+
+		<tr>
+			<td class="concordgrey">Number of data objects (rows):</td>
+			<td class="concordgeneral"><?php echo count($object_names); ?></td>
+		</tr>
+	</table>	
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="2">Feature matrix variable list</th>
+		</tr>
+		<tr>
+			<th class="concordtable">Variable label</th>
+			<th class="concordtable">Source of variable</th>
+		</tr>
+		
+		<?php
+		
+		if (empty($variable_list))
+			echo "\n\t\t<tr>"
+				, '<td class="concordgrey" colspan="2">&nbsp;<br>No variables found; data may be corrupted.<br>&nbsp;</td>'
+				, "</tr>\n" 
+				;
+		else
+			foreach($variable_list as $v)
+				echo "\n\t\t<tr>"
+					, '<td class="concordgeneral">' , $v->label , '</td>'
+					, '<td class="concordgeneral">' , cqpweb_htmlspecialchars($v->source_info) , '</td>'
+					, "</tr>\n" 
+					;
+		?>
+		
+	</table>
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">Full matrix content</th>
+		</tr>
+	</table>
+
+	<?php 
+	
+	echo print_mysql_result_dump(do_mysql_query("select * from $tablename")); 
+
+	/* that separate table is closed off in that function, so no need for more HTML here. */
+	
+	// TODO jQuery to make all this appear / disappear as necessary
+	// TODO a way of getting back to the matrix list
+	// TODO a way of getting back to the main analysis menu
+}
+
+
+// TODO move this function?
 function printquery_analysecorpus()
 {
 	global $Corpus;
 	global $User;
 	global $corpus_sql_name;
-	 
+	
+	if (! empty($_GET['showMatrix']))
+	{
+		printquery_showmatrix();
+		return;
+	}
+	
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
 			<th class="concordtable" colspan="3">Analyse corpus</th>
 		</tr>
 		<tr>
-			<td class="concordgrey" colspan="3">
+			<td class="concorderror" colspan="3">
 				&nbsp;<br>
 				This page contains controls for advanced corpus analysis functions.
+				<b>WARNING</b>: currently under development. You have been warned.
 				<br>&nbsp;
 			</td>
 		</tr>
 		<tr>
 			<th class="concordtable" colspan="3">Select analysis</th>
 		</tr>
-		<form>
-			<tr>
-				<td class="concordgrey" width="33.3%">
-					&nbsp;<br>
-					Choose an option for corpus analysis:
-					<br>&nbsp;
-				</td>
-				<td class="concordgeneral" align="center" width="33.3%">
-					<select id="analysisToolChoice">
-						<!-- values match the ID of the hideable element they refer to -->
-						<option value="featureMatrixDesign" selected="selected">Design feature matrix for multivariate analysis</option>
-						<option value="featureMatrixList"                      >View existing feature matrix analyses</option>
-						<!-- More options will be added here later. -->
-						<!-- Also: interface to corpus analysis plugins will be added here. -->
-					</select>
-				</td>
-				<td class="concordgeneral" align="center" width="33.3%">
-					<input type="button" id="analysisToolChoiceGo" value="Show analysis controls" />
-				</td>
-			</tr>
-		</form>
+		<tr>
+			<td class="concordgrey" width="33.3%">
+				&nbsp;<br>
+				Choose an option for corpus analysis:
+				<br>&nbsp;
+			</td>
+			<td class="concordgeneral" align="center" width="33.3%">
+				<select id="analysisToolChoice">
+					<!-- values match the ID of the hideable element they refer to -->
+					<option value="featureMatrixDesign" selected="selected">Design feature matrix for multivariate analysis</option>
+					<option value="featureMatrixList"                      >View existing feature matrix analyses</option>
+					<!-- More options will be added here later. -->
+					<!-- Also: interface to corpus analysis plugins will be added here. -->
+				</select>
+			</td>
+			<td class="concordgeneral" align="center" width="33.3%">
+				<input type="button" id="analysisToolChoiceGo" value="Show analysis controls" />
+			</td>
+		</tr>
 	</table>
 	
 	
 	<!-- begin saved feature matrix list block -->
 	<table id="featureMatrixList" class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable">
+			<th class="concordtable" colspan="7">
 				Saved feature matrices
 			</th>
+		</tr>
+		<tr>
+			<th class="concordtable">Name</th>
+			<th class="concordtable">Subcorpus</th>
+			<th class="concordtable">Object unit</th>
+			<th class="concordtable">Date created</th>
+			<th class="concordtable" colspan="3">Actions</th>
 		</tr>
 		
 		<?php
 		
+		// TODO add N features, N objects to the display?
+		
+		
 		$list = list_feature_matrices($corpus_sql_name, $User->username);
 
 		if (empty($list))
-			echo '<tr><td class="concordgrey">&nbsp;<br>You have no saved features matrices.<br>&nbsp;</td></tr>';
+			echo '<tr><td class="concordgrey" colspan="7">'
+				, '&nbsp;<br>You have no saved features matrices.<br>&nbsp;</td></tr>'
+				;
 		else
-		{
-		foreach($list as $fm)
-		{
-			
-			
-		}
-		}
-
+			foreach($list as $fm)
+				echo '<tr>'
+					, '<td class="concordgeneral">' , cqpweb_htmlspecialchars($fm->savename), '</td>'
+					, '<td class="concordgeneral">'
+					, (empty($fm->subcorpus) ? '(whole corpus)' : $fm->subcorpus)
+					, '</td>'
+					, '<td class="concordgeneral">' , $fm->unit , '</td>'
+					, '<td class="concordgeneral">' , date($fm->unit, DATE_RSS) , '</td>'
+					, '<td class="concordgeneral" align="center">' 
+					, '<a class="menuItem" href="index.php?thisQ=analyseCorpus&showMatrix='
+					, $fm->id
+					, '&uT=y">[View/Analyse]</a>' 
+					, '</td>'
+					, '<td class="concordgeneral" align="center">' , '[Download]' , '</td>'
+					, '<td class="concordgeneral" align="center">' , '[Delete]' , '</td>'
+					, "</tr>\n\t\t" 
+					;
+				
 		?>
-		
+
 	</table>
 	
 	
 
 	<!-- begin feature matrix control block -->
-	<form id="featureMatrixDesign" action="" method="get" style="display:hidden">
+	<form id="featureMatrixDesign" action="redirect.php" method="get">
 		
-
 		<table class="concordtable" width="100%">
 			<tr>
 				<th class="concordtable" colspan="2">Design feature matrix for multivariate analysis</th>
@@ -842,8 +975,10 @@ function printquery_analysecorpus()
 				</td>
 				<td class="concordgeneral">
 					At the moment, the only choice is "text".
+					<!--
 					Howeve,r in the future, we might want ot make it possibl;e to use other elvels of XML in the ciorpus
 					e.g. utterance, paragraph, chapter, etc·
+					-->
 				</td>
 			</tr>
 			<tr>
@@ -940,6 +1075,7 @@ function printquery_analysecorpus()
 		</table>
 		
 		<table class="concordtable" width="100%">
+		<!--
 			<tr>
 				<th class="concordtable" colspan="2">Select features (based on query permutation)</th>
 			</tr>
@@ -973,11 +1109,12 @@ function printquery_analysecorpus()
 					<p>Other statistical features can be defined via the saved-query feature function: e.g. lexical density.</p>
 				</td>
 			</tr>
+			-->
 			
 			<tr>
 				<td class="concordgrey" width="50%">Enter a name for this new feature matrix:</td>
 				<td class="concordgeneral" width="50%">
-					<!-- TODO add check on characters here -->
+					<!-- Does not need to be a handle. Can be anything. -->
 					<input type="text" name="matrixName" />
 				</td>
 			</tr>
@@ -987,13 +1124,18 @@ function printquery_analysecorpus()
 				<td class="concordgeneral" align="center" colspan="2">
 					<input type="submit" value="Build feature matrix database!" />
 					
+					<!--
 					<p>
 						The action above takes us to a new screen where the matrix already exists, and we then have
 						the options for factor analysis.
 					</p>
+					-->
 				</td>
 			</tr>
 		</table>
+		<input type="hidden" name="" value="" ?
+		
+		
 		<input type="hidden" name="uT" value="y" />
 	</form>
 	<!-- end feature matrix control block -->

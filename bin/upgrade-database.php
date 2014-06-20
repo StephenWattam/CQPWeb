@@ -162,7 +162,13 @@ function upgrade_3_1_8()
            `create_time` int(11) default NULL,
            primary key(`id`)
          ) CHARACTER SET utf8 COLLATE utf8_bin",
-		
+		"CREATE TABLE `saved_matrix_features` (
+            `id` int NOT NULL AUTO_INCREMENT,
+            `matrix_id` int NOT NULL,
+            `label` varchar(255) NOT NULL,
+            `source_info` varchar(255) default NULL,
+            primary key(`id`)
+          ) CHARACTER SET utf8 COLLATE utf8_bin"
 	);
 	foreach ($sql as $q)
 		do_mysql_query($q);

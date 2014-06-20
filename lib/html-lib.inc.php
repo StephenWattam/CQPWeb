@@ -271,4 +271,31 @@ HERE;
 }
 
 
-?>
+/**
+ * Dumps out a reasonably-nicely-formatted representation of an
+ * arbitrary MySQL query result.
+ * 
+ * For debug purposes, or for when we have not yet written the code for a nicer layout.
+ * 
+ * @param $result  A result resource returned by do_mysql_query().  
+ */ 
+function print_mysql_result_dump($result)
+{
+	/* print column headers */
+	$table = "\n\n<!-- MYSQL RESULT DUMP -->\n\n" . '<table class="concordtable" width="100%"><tr>';
+	for ( $i = 0 ; $i < mysql_num_fields($result) ; $i++ )
+		$table .= "<th class='concordtable'>" . mysql_field_name($result, $i) . "</th>";
+	$table .= '</tr>';
+	
+	/* print rows */
+	while ( ($row = mysql_fetch_row($result)) !== false )
+	{
+		$table .= "<tr>";
+		foreach ($row as $r)
+			$table .= "<td class='concordgeneral' align='center'>$r</td>\n";
+		$table .= "</tr>\n";
+	}
+	
+	$table .= "</table>\n\n";	
+	return $table;
+}

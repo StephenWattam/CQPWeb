@@ -63,6 +63,7 @@ require_once('../lib/metadata.inc.php');
 require_once('../lib/concordance-lib.inc.php');
 require_once('../lib/colloc-lib.inc.php');
 require_once('../lib/xml.inc.php');
+require_once('../lib/multivariate.inc.php');
 
 /* especially, include the functions for each type of query */
 require('../lib/indexforms-queries.inc.php');

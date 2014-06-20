@@ -68,10 +68,10 @@ function list_feature_matrices($corpus = NULL, $user = NULL)
 	{
 		$where = ' where corpus = \'' . mysql_real_escape_string($corpus) . '\' ';
 		if (!empty($user))
-			$where = ' and user = \'' . mysql_real_escape_string($user) . '\' ';	
+			$where .= ' and user = \'' . mysql_real_escape_string($user) . '\' ';	
 	}
 	
-	$result = do_mysql_query("select * from saved_matrix_info $where order by save_name asc");	
+	$result = do_mysql_query("select * from saved_matrix_info $where order by savename asc");	
 	
 	while (false !== ($o = mysql_fetch_object($result)))
 		$list[$o->id] = $o;
@@ -98,34 +98,25 @@ function delete_feature_matrix($id)
 	do_mysql_query("delete from saved_matrix_info where id = $id");
 }
 
-/**
- * Translates a feature matrix description to an ID number.
- * Returns false if no matching entry found. 
- */
-function lookup_feature_matrix_id($corpus, $user, $savename)
-{
-	//TODO
-	
-}
+///**
+// * Translates a feature matrix description to an ID number.
+// * Returns false if no matching entry found. 
+// */
+//function lookup_feature_matrix_id($corpus, $user, $savename)
+//{
+//	//TODO
+//	
+//}
 
-/**
- * Gets a DB object corresponding to the specified properties.
- * Returns false if no matching entry found.
- */
-function get_feature_matrix($corpus, $user, $savename)
-{
-	// TODO
-}
 
 
 /**
  * Gets a DB object corresponding to the specified feature matrix.
  * Returns false if no matching entry found.
  */
-function get_feature_matrix_by_id($id)
+function get_feature_matrix($id)
 {
-	$id = (int) $id;
-	$o = mysql_fetch_object(do_mysql_query("TODO where id = $id")); 	//TODO
+	return mysql_fetch_object(do_mysql_query("select * from saved_matrix_info where id = " . (int) $id));
 }
 
 
@@ -135,7 +126,7 @@ function get_feature_matrix_by_id($id)
  */
 function feature_matrix_id_to_tablename($id)
 {
-	//TODO
+	return 'featmatrix_' . str_pad(base_convert(dechex($id), 16, 36), 10, "0", STR_PAD_LEFT);
 	
 }
 
@@ -146,9 +137,8 @@ function feature_matrix_id_to_tablename($id)
  * 
  * @return the ID number of the saved feature matrix we have just created.
  */
-function build_feature_matrix()
+function create_feature_matrix()
 {
-	//TODO
 	
 	
 	// straight after the bit where we create the _info table row do this:
@@ -157,6 +147,23 @@ function build_feature_matrix()
 	return $id;
 }
 
+function add_feature_to_matrix()
+{
+	
+	
+	
+}
+
+function get_feature_matrix_create_statement()
+{
+	
+	
+}
+
+function populate_feature_matrix()
+{
+	
+}
 
 /**
  * Returns a string containing an instruction to run in R
@@ -173,14 +180,20 @@ function get_feature_matrix_r_import($id)
 
 
 /**
- * Lists all the data objects in a given feature matrix.
+ * Lists all the variables in a given feature matrix.
  *
- * @return  An array of strings (variable labels)
+ * @return  An array of database objects (representing variables from the feature matrix).
  */
 function feature_matrix_list_variables($id)
 {
-	//TODO
+	$result = do_mysql_query("select * from saved_matrix_features where matrix_id = ". (int) $id);
 	
+	$list = array();
+	
+	while (false !== ($o = mysql_fetch_object($result)))
+		$list[] = $o;
+
+	return $list;	
 }
 
 /**
@@ -190,8 +203,15 @@ function feature_matrix_list_variables($id)
  */
 function feature_matrix_list_objects($id)
 {
-	//TODO
+	// TODO -- correct field name??????????
+	$result = do_mysql_query("select obj_id from " . feature_matrix_id_to_tablename($id));
 	
+	$list = array();
+	
+	while (false !== ($r = mysql_fetch_row($result)))
+		$list[] = $r[0];
+	
+	return $list;
 }
 
 
