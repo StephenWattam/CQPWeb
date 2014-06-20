@@ -46,27 +46,45 @@
  * Returns an array consisting of stdClass objects, each of which
  * contains the MySQL fields for a single saved feature matrix.
  * 
+ * The array is ordered alphabetically by savename, but the ID numbers of the matrices are
+ * also available (given as array keys).
+ * 
  * @param corpus  If not an empty value, only feature matrices from the given corpus will be returned.
  *                Default: empty (all corpora).
  * @param user    If not an empty value, only feature matrices belonging to the given user will be returned.
  *                Default: empty (all users).
+ * @return        Array containing object list.
  */
 function list_feature_matrices($corpus = NULL, $user = NULL)
 {
 	$list = array();
 	
-	//TODO
+	if (empty($corpus))
+	{
+		if (!empty($user))
+			$where = ' where user = \'' . mysql_real_escape_string($user) . '\' ';
+	}
+	else
+	{
+		$where = ' where corpus = \'' . mysql_real_escape_string($corpus) . '\' ';
+		if (!empty($user))
+			$where = ' and user = \'' . mysql_real_escape_string($user) . '\' ';	
+	}
+	
+	$result = do_mysql_query("select * from saved_matrix_info $where order by save_name asc");	
+	
+	while (false !== ($o = mysql_fetch_object($result)))
+		$list[$o->id] = $o;
 	
 	return $list;
 }
+
 
 /**
  * Delete a specified feature matrix - identified by unique integer ID.
  */
 function delete_feature_matrix($id)
 {
-	//TODO
-	
 	$id = (int)$id;
 	
 	/* first, delete the actual data table. */
@@ -74,11 +92,10 @@ function delete_feature_matrix($id)
 	do_mysql_query("drop table if exists $table");
 	
 	/* now, delete all the rows containing information about this fm's variables. */
-	//TODO
-	
+	do_mysql_query("delete from saved_matrix_features where matrix_id = $id");
 	
 	/* finally, delete the database row itself. */
-	do_mysql_query("delete from TODO where id = $id");		//TODO
+	do_mysql_query("delete from saved_matrix_info where id = $id");
 }
 
 /**

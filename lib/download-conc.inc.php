@@ -485,240 +485,228 @@ else
 		$User->linefeed = guess_user_linefeed($User->username);
 	$da_selected[$User->linefeed] = ' selected="selected" ';
 	
-	/* before anything else */
-	header('Content-Type: text/html; charset=utf-8');
+	echo print_html_header("$corpus_title -- CQPweb Concordance Download", $Config->css_path, array('cword'));
+
 	?>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<?php
-echo '<title>' . $corpus_title . ' -- CQPweb Concordance Download</title>';
-echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>
-<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-</head>
-<body>
-<table class="concordtable" width="100%">
-	<tr>
-		<th class="concordtable" colspan="2">Download concordance</th>
-	</tr>
-	<tr>
-		<td class="concordgeneral" colspan="2" align="center">
-			&nbsp;<br/>
-			<form action="redirect.php" method="get">
-				<input type="submit" 
-					value="Download with typical settings for copy-paste into Word, Excel etc." />
-				<br/>
-				<input type="hidden" name="redirect" value="download-conc" />
-				<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-				<input type="hidden" name="downloadGo" value="yes" />
-				<input type="hidden" name="downloadTypical" value="copypaste" />
-				<input type="hidden" name="uT" value="y" />
-			</form>
-			<form action="redirect.php" method="get">
-				&nbsp;<br/>
-				<input type="submit" 
-					value="Download with typical settings for FileMaker Pro" />
-				<br/>&nbsp;
-				<input type="hidden" name="redirect" value="download-conc" />
-				<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-				<input type="hidden" name="downloadGo" value="yes" />
-				<input type="hidden" name="downloadTypical" value="filemaker" />
-				<input type="hidden" name="uT" value="y" />
-			</form>
-		</td>
-	</tr>
-	<form action="redirect.php" method="get">
+	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable" colspan="2">Detailed output options</th>
-		</tr>
-		<tr>
-			<td class="concordgrey" colspan="2" align="center">
-				&nbsp;<br/>
-				Formatting options
-				<br/>&nbsp;
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgeneral" width="50%">
-				Choose operating system on which you will be working with the file:
-			</td>
-			<td class="concordgeneral">
-				<select name="downloadLinebreak">
-					<option value="d"  <?php echo $da_selected['d']; ?>>Macintosh (OS 9 and below)</option>
-					<option value="da" <?php echo $da_selected['da'];?>>Windows</option>
-					<option value="a"  <?php echo $da_selected['a']; ?>>UNIX (incl. OS X)</option>
-				</select>
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgeneral">Print short handles or full values for text categories:</td>
-			<td class="concordgeneral">
-				<select name="downloadFullMeta">
-					<option selected="selected" value="full">full values</option>
-					<option value="handles">short handles</option>
-				</select>
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgeneral">Mark query results as <b>&lt;&lt;&lt; result &gt;&gt;&gt;</b>: </td>
-			<td class="concordgeneral">
-				<select name="downloadResultAnglebrackets">
-					<option value="1">Yes</option>
-					<option value="0" selected="selected">No</option>
-				</select>
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgeneral">Size of context: </td>
-			<td class="concordgeneral">
-				<select name="downloadContext">
-					<option value="1">1 words each way</option>
-					<option value="2">2 words each way</option>
-					<option value="3">3 words each way</option>
-					<option value="4">4 words each way</option>
-					<option value="5">5 words each way</option>
-					<option value="6">6 words each way</option>
-					<option value="7">7 words each way</option>
-					<option value="8">8 words each way</option>
-					<option value="9">9 words each way</option>
-					<option value="10" selected="selected">10 words each way</option>
-					<?php
-					if ($max_extended_context >= 50) 
-						echo '<option value="50">50 words each way</option>';
-					?> 
-				</select>
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgeneral">Download both tagged and untagged version of your results: </td>
-			<td class="concordgeneral">
-				<select name="downloadTaggedAndUntagged">
-					<option value="1" selected="selected">Yes</option>
-					<option value="0">No</option>
-				</select>
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgeneral">Write information about table columns at the beginning of file:</td>
-			<td class="concordgeneral">
-				<select name="downloadHeadType">
-					<option value="NULL">No</option>
-					<option value="tabs" selected="selected">Yes - column headings</option>
-					<option value="list">Yes - printer-friendly list</option>
-				</select>
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgeneral">Format of output - KWIC or line:</td>
-			<td class="concordgeneral">
-				<select name="downloadViewMode">
-					<option value="kwic" selected="selected">KWIC</option>
-					<option value="line">Line</option>
-				</select>
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgeneral">Include corpus positions (required for re-import)</td>
-			<td class="concordgeneral">
-				<select name="downloadPositions">
-					<option value="1" selected="selected">Yes</option>
-					<option value="0">No</option>
-				</select>
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgeneral">Include URL to context display</td>
-			<td class="concordgeneral">
-				<select name="downloadURL">
-					<option value="1" selected="selected">Yes</option>
-					<option value="0">No</option>
-				</select>
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgeneral">Enter name for the downloaded file:</td>
-			<td class="concordgeneral">
-				<input type="text" name="downloadFilename" value="concordance" />
-			</td>
-		</tr>
-		
-		<tr>
-			<td class="concordgrey" colspan="2" align="center">
-				&nbsp;<br/>
-				Please tick the text metadata categories that you want to include in your download:
-				<br/>&nbsp;
-			</td>
-		</tr>
-		<tr>
-			<td class="concordgeneral">Method:</td>
-			<td class="concordgeneral">
-				<select name="downloadMetaMethod">
-					<option value="all"                       >Download all text metadata</option>
-					<option value="allclass"                  >Download classification-type metadata only</option>
-					<option value="ticked" selected="selected">Download text metadata ticked below</option>
-				</select>
-			</td>
-		</tr>
-		<tr>
-			<td class="concordgeneral">Select from available text metadata:
-			<td class="concordgeneral">
-				<?php	
-				foreach ( metadata_list_fields() as $field )
-					echo "\n\t\t\t\t<input type=\"checkbox\" name=\"downloadMeta_"
-						, $field
-						, '" value="1" />'
-						, metadata_expand_field($field)
-						, "<br/>";
-				?>
-				
-			</td>
+			<th class="concordtable" colspan="2">Download concordance</th>
 		</tr>
 		<tr>
 			<td class="concordgeneral" colspan="2" align="center">
 				&nbsp;<br/>
-				<input type="submit" value="Download with settings above" />
-				<br/>&nbsp;
+				<form action="redirect.php" method="get">
+					<input type="submit" 
+						value="Download with typical settings for copy-paste into Word, Excel etc." />
+					<br/>
+					<input type="hidden" name="redirect" value="download-conc" />
+					<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+					<input type="hidden" name="downloadGo" value="yes" />
+					<input type="hidden" name="downloadTypical" value="copypaste" />
+					<input type="hidden" name="uT" value="y" />
+				</form>
+				<form action="redirect.php" method="get">
+					&nbsp;<br/>
+					<input type="submit" 
+						value="Download with typical settings for FileMaker Pro" />
+					<br/>&nbsp;
+					<input type="hidden" name="redirect" value="download-conc" />
+					<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+					<input type="hidden" name="downloadGo" value="yes" />
+					<input type="hidden" name="downloadTypical" value="filemaker" />
+					<input type="hidden" name="uT" value="y" />
+				</form>
 			</td>
 		</tr>
-		<input type="hidden" name="redirect" value="download-conc" />
-		<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-		<input type="hidden" name="downloadGo" value="yes" />
-		<input type="hidden" name="downloadTypical" value="NULL" />
-		<input type="hidden" name="uT" value="y" />
-	</form>
-
-	<tr>
-		<th class="concordtable" colspan="2">Switch download type</th>
-	</tr>
-	<form action="redirect.php" method="get">
+		<form action="redirect.php" method="get">
+			<tr>
+				<th class="concordtable" colspan="2">Detailed output options</th>
+			</tr>
+			<tr>
+				<td class="concordgrey" colspan="2" align="center">
+					&nbsp;<br/>
+					Formatting options
+					<br/>&nbsp;
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgeneral" width="50%">
+					Choose operating system on which you will be working with the file:
+				</td>
+				<td class="concordgeneral">
+					<select name="downloadLinebreak">
+						<option value="d"  <?php echo $da_selected['d']; ?>>Macintosh (OS 9 and below)</option>
+						<option value="da" <?php echo $da_selected['da'];?>>Windows</option>
+						<option value="a"  <?php echo $da_selected['a']; ?>>UNIX (incl. OS X)</option>
+					</select>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgeneral">Print short handles or full values for text categories:</td>
+				<td class="concordgeneral">
+					<select name="downloadFullMeta">
+						<option selected="selected" value="full">full values</option>
+						<option value="handles">short handles</option>
+					</select>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgeneral">Mark query results as <b>&lt;&lt;&lt; result &gt;&gt;&gt;</b>: </td>
+				<td class="concordgeneral">
+					<select name="downloadResultAnglebrackets">
+						<option value="1">Yes</option>
+						<option value="0" selected="selected">No</option>
+					</select>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgeneral">Size of context: </td>
+				<td class="concordgeneral">
+					<select name="downloadContext">
+						<option value="1">1 words each way</option>
+						<option value="2">2 words each way</option>
+						<option value="3">3 words each way</option>
+						<option value="4">4 words each way</option>
+						<option value="5">5 words each way</option>
+						<option value="6">6 words each way</option>
+						<option value="7">7 words each way</option>
+						<option value="8">8 words each way</option>
+						<option value="9">9 words each way</option>
+						<option value="10" selected="selected">10 words each way</option>
+						<?php
+						if ($max_extended_context >= 50) 
+							echo '<option value="50">50 words each way</option>';
+						?> 
+					</select>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgeneral">Download both tagged and untagged version of your results: </td>
+				<td class="concordgeneral">
+					<select name="downloadTaggedAndUntagged">
+						<option value="1" selected="selected">Yes</option>
+						<option value="0">No</option>
+					</select>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgeneral">Write information about table columns at the beginning of file:</td>
+				<td class="concordgeneral">
+					<select name="downloadHeadType">
+						<option value="NULL">No</option>
+						<option value="tabs" selected="selected">Yes - column headings</option>
+						<option value="list">Yes - printer-friendly list</option>
+					</select>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgeneral">Format of output - KWIC or line:</td>
+				<td class="concordgeneral">
+					<select name="downloadViewMode">
+						<option value="kwic" selected="selected">KWIC</option>
+						<option value="line">Line</option>
+					</select>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgeneral">Include corpus positions (required for re-import)</td>
+				<td class="concordgeneral">
+					<select name="downloadPositions">
+						<option value="1" selected="selected">Yes</option>
+						<option value="0">No</option>
+					</select>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgeneral">Include URL to context display</td>
+				<td class="concordgeneral">
+					<select name="downloadURL">
+						<option value="1" selected="selected">Yes</option>
+						<option value="0">No</option>
+					</select>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgeneral">Enter name for the downloaded file:</td>
+				<td class="concordgeneral">
+					<input type="text" name="downloadFilename" value="concordance" />
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="concordgrey" colspan="2" align="center">
+					&nbsp;<br/>
+					Please tick the text metadata categories that you want to include in your download:
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">Method:</td>
+				<td class="concordgeneral">
+					<select name="downloadMetaMethod">
+						<option value="all"                       >Download all text metadata</option>
+						<option value="allclass"                  >Download classification-type metadata only</option>
+						<option value="ticked" selected="selected">Download text metadata ticked below</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral">Select from available text metadata:
+				<td class="concordgeneral">
+					<?php	
+					foreach ( metadata_list_fields() as $field )
+						echo "\n\t\t\t\t<input type=\"checkbox\" name=\"downloadMeta_"
+							, $field
+							, '" value="1" />'
+							, metadata_expand_field($field)
+							, "<br/>";
+					?>
+					
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="2" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Download with settings above" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<input type="hidden" name="redirect" value="download-conc" />
+			<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+			<input type="hidden" name="downloadGo" value="yes" />
+			<input type="hidden" name="downloadTypical" value="NULL" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+	
 		<tr>
-			<td class="concordgeneral" colspan="2" align="center">
-				&nbsp;<br/>
-				<input type="submit" value="Download query as plain-text tabulation" />
-				<br/>&nbsp;
-			</td>
+			<th class="concordtable" colspan="2">Switch download type</th>
 		</tr>
-		<input type="hidden" name="redirect" value="download-tab" />
-		<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-		<input type="hidden" name="uT" value="y" />
-	</form>
-</table>
-<?php echo print_html_footer(); ?>
-</body>
-</html>
+		<form action="redirect.php" method="get">
+			<tr>
+				<td class="concordgeneral" colspan="2" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Download query as plain-text tabulation" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<input type="hidden" name="redirect" value="download-tab" />
+			<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+	</table>
 	<?php
-
+	
+	echo print_html_footer();
 
 	/*
 	 * should we have the functionality to allow an annotation OTHER THAN the primary attribute
@@ -735,4 +723,3 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 cqpweb_shutdown_environment();
 
 
-?>

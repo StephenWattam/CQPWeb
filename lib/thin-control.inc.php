@@ -48,32 +48,10 @@ cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-?>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<?php
-echo '<title>' . $corpus_title . ' -- CQPweb Thinning Options</title>';
-echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>
-<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-</head>
-<body>
-
-
-<?php
-
-
 
 /* check parameters - only one we really need is qname */
 
 $qname = safe_qname_from_get();
-
-
-
-
 
 /* get the query record so we can find out how many hits we are thinning */
 $query_record = check_cache_qname($qname);
@@ -87,7 +65,14 @@ $num_of_hits_text = '(current no. of instances: ' . number_format((float)$hits) 
 // TODO check: can't this just be got via $User->tjhin_default_reproducible ??
 $reproducible_is_selected = get_user_setting($User->username, 'thin_default_reproducible');
 
-/* now print the options form */
+
+/*
+ * render interface
+ */
+
+echo print_html_header($corpus_title . ' -- CQPweb Thinning Options', $Config->css_path, array('cword'));
+
+
 ?>
 
 

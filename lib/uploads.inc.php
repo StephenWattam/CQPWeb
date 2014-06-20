@@ -227,6 +227,10 @@ function uploaded_file_view($filename)
 	
 	$data = htmlspecialchars($data);
 	
+	/*
+	 * Note, it is purposeful that we are not using the write HTML function,
+	 * because the idea is to keep the HTML very simple (no JavaScript, etc.). 
+	 */
 	header('Content-Type: text/html; charset=utf-8');
 	?>
 	<html>

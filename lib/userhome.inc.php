@@ -48,14 +48,11 @@ cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT
 
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
 /* thisQ: the query whose interface page is to be displayed on the right-hand-side. */
 $thisQ = ( isset($_GET["thisQ"]) ? $_GET["thisQ"] : 'welcome' );
 
 
-echo print_html_header('CQPweb User Page', $Config->css_path, array('cqpweb-clientside'));
+echo print_html_header('CQPweb User Page', $Config->css_path, array('cword'));
 
 
 /* ******************* *

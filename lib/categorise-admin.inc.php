@@ -464,27 +464,13 @@ function categorise_add_new_value()
 /** categorise-admin: this function prints a page with a simple form for a new categorisation value to be entered */
 function categorise_enter_new_value()
 {
-	global $css_path;
+	global $Config;
 
 	$qname = safe_qname_from_get();
 
-
-	/* before anything else */
-	header('Content-Type: text/html; charset=utf-8');
-
+	echo print_html_header('Categorise Query -- CQPweb', $Config->css_path, array('cword'));
 
 	?>
-	<html>
-	<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title>Categorise Query -- CQPweb</title>
-	<?php
-	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-	?>
-	<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-	
-	</head>
-	<body>
 	<form action="redirect.php" method="get">
 		<table class="concordtable" width="100%">
 			<tr>
@@ -498,7 +484,7 @@ function categorise_enter_new_value()
 					Current categories:
 					<br/>&nbsp;
 				</td>
-				<td class="concordgeneral" >
+				<td class="concordgeneral">
 					<em>
 						<?php echo implode(', ', catquery_list_categories($qname)); ?>
 					</em>
@@ -545,13 +531,10 @@ function categorise_enter_new_value()
  */
 function categorise_enter_categories($error = NULL)
 {
-	global $css_path;
+	global $Config;
 
 	$qname = safe_qname_from_get();
 
-
-	/* before anything else */
-	header('Content-Type: text/html; charset=utf-8');
 
 	/* if an error is specified, an error message is printed at the top, and the values from GET are re-printed */
 	switch($error)
@@ -579,17 +562,10 @@ function categorise_enter_categories($error = NULL)
 			break;	
 	}
 
+	echo print_html_header('Categorise Query -- CQPweb', $Config->css_path)
+
 	?>
-	<html>
-	<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title>Categorise Query -- CQPweb</title>
-	<?php
-	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-	?>
-	
-	</head>
-	<body>
+
 	<form action="redirect.php" method="get">
 		<table class="concordtable" width="100%">
 			<tr>

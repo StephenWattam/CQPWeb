@@ -71,7 +71,7 @@ $thisF = ( isset($_GET["thisF"]) ? $_GET["thisF"] : 'showCorpora' );
 
 
 
-echo print_html_header('CQPweb Admin Control Panel', $Config->css_path, array('cqpweb-clientside', 'corpus-name-highlight', 'attribute-embiggen'));
+echo print_html_header('CQPweb Admin Control Panel', $Config->css_path, array('cword', 'corpus-name-highlight', 'attribute-embiggen'));
 
 ?>
 

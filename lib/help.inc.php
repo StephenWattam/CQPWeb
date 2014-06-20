@@ -62,33 +62,15 @@ require ("../lib/exiterror.inc.php");
 cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST);
 
 
-
-
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
-
-?>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<?php
-echo '<title>' . $corpus_title . ' -- CQPweb</title>';
-echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>
-<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-</head>
-<body>
-
-<?php
+echo print_html_header($corpus_title . ' -- CQPweb', $Config->css_path);
 
 
 
-
-
-/* ******************* */
-/* PRINT SIDE BAR MENU */
-/* ******************* */
+/* 
+ * *******************
+ * PRINT SIDE BAR MENU
+ * ******************* 
+ */
 
 // TTD: add tool tips using onmouseOver
 

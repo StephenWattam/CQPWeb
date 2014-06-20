@@ -41,35 +41,9 @@ require("../lib/concordance-lib.inc.php");
 cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-?>
-<html>
-<head>
-<?php
-echo '<title>' . $corpus_title . ' -- CQPweb Collocation Options</title>';
-echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>
-<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-<script type="text/javascript" src="../jsc/colloc-options.js"></script> 
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-</head>
-<body>
-
-
-<?php
-
-
-
 /* check parameters - only one we really need is qname */
 
 $qname = safe_qname_from_get();
-
-
-
-
-
 
 
 
@@ -78,14 +52,11 @@ $qname = safe_qname_from_get();
 // also, later, thinning etc.
 $query_record = check_cache_qname($qname);
 if ($query_record === false)
-	exiterror_general("The specified query $qname was not found in cache!", __FILE__, __LINE__);
+	exiterror_general("The specified query $qname was not found in cache!");
 
 
 
-
-
-
-
+echo print_html_header("$corpus_title -- CQPweb Collocation Options", $Config->css_path, array('cword', 'colloc-options'));
 
 /* now print the options form */
 ?>

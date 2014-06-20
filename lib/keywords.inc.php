@@ -710,7 +710,7 @@ if ($download_mode)
 }
 else
 {
-	echo print_html_header($corpus_title, $Config->css_path, array('cqpweb-clientside'));
+	echo print_html_header($corpus_title, $Config->css_path);
 
 	?>
 	<table class="concordtable" width="100%">

@@ -59,18 +59,16 @@ require("../lib/cqp.inc.php");
 
 cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
 
-/* ------------------------------- */
-/* initialise variables from $_GET */
-/* and perform initial fiddling    */
-/* ------------------------------- */
+/* ------------------------------- *
+ * initialise variables from $_GET *
+ * and perform initial fiddling    *
+ * ------------------------------- */
 
 
 
-/* this script takes all of the GET parameters from concrdance.php */
-/* but only qname is absolutely critical, the rest just get passed */
+/* this script takes all of the GET parameters from concordance.php,
+ * but only qname is absolutely critical, the rest just get passed */
 
 $qname = safe_qname_from_get();
 	
@@ -183,21 +181,9 @@ if ($download_mode)
 else
 {
 	/* begin HTML output */
-	?>
-	<html>
-	<head>
-	<?php
-	echo '<title>' . $corpus_title . ' -- CQPweb showing distribution of query solutions</title>';
-	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-	?>
-	<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-	<script type="text/javascript" src="../jsc/cqpweb-distTableSort.js"></script> 
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	
-	</head>
-	<body>
-	
-	<?php
+	echo print_html_header("$corpus_title -- CQPweb showing distribution of query solutions", 
+	                       $Config->css_path, 
+	                       array('cword', ''));
 	
 	/* -------------------------------- *
 	 * print upper table - control form * 

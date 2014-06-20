@@ -152,6 +152,17 @@ function upgrade_db_version_from($oldv)
 function upgrade_3_1_8()
 {
 	$sql = array(
+		"CREATE TABLE `saved_matrix_info` (
+           `id` int NOT NULL AUTO_INCREMENT,
+           `savename` varchar(255),
+           `user` varchar(255) default NULL,
+           `corpus` varchar(255) NOT NULL default '',
+           `subcorpus` varchar(255) default NULL,
+           `unit` varchar(255) default NULL,
+           `create_time` int(11) default NULL,
+           primary key(`id`)
+         ) CHARACTER SET utf8 COLLATE utf8_bin",
+		
 	);
 	foreach ($sql as $q)
 		do_mysql_query($q);

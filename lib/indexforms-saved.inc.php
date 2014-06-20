@@ -745,9 +745,7 @@ function printquery_analysecorpus()
 {
 	global $User;
 	global $corpus_sql_name;
-	
-	
-	// TODO add jQuery to this form so that it changes the display below the top table, depending on the option.  
+	 
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -767,28 +765,28 @@ function printquery_analysecorpus()
 			<tr>
 				<td class="concordgrey" width="33.3%">
 					&nbsp;<br>
-					Choose the type of analysis you want to perform:
+					Choose an option for corpus analysis:
 					<br>&nbsp;
 				</td>
 				<td class="concordgeneral" align="center" width="33.3%">
-					<select>
-						<option value="designFM" selected="selected">Design feature matrix for multivariate analysis</option>
-						<option value="savedFMs"                    >View existing feature matrix analyses</option>
+					<select id="analysisToolChoice">
+						<!-- values match the ID of the hideable element they refer to -->
+						<option value="featureMatrixDesign" selected="selected">Design feature matrix for multivariate analysis</option>
+						<option value="featureMatrixList"                      >View existing feature matrix analyses</option>
 						<!-- More options will be added here later. -->
 						<!-- Also: interface to corpus analysis plugins will be added here. -->
 					</select>
 				</td>
 				<td class="concordgeneral" align="center" width="33.3%">
-					<input type="button" value="Show analysis controls" />
+					<input type="button" id="analysisToolChoiceGo" value="Show analysis controls" />
 				</td>
 			</tr>
 		</form>
 	</table>
 	
-	<!-- TODO, add jQuery affecting the below. */
 	
 	<!-- begin feature matrix control block -->
-	<form>
+	<form id="featureMatrixDesign" action="" method="get" style="display:hidden">
 		
 
 		<table class="concordtable" width="100%">
@@ -957,7 +955,7 @@ function printquery_analysecorpus()
 			
 			<tr>
 				<td class="concordgeneral" align="center" colspan="2">
-					<input type="button" value="Build feature matrix database!" />
+					<input type="submit" value="Build feature matrix database!" />
 					
 					<p>
 						The action above takes us to a new screen where the matrix already exists, and we then have

@@ -79,7 +79,7 @@ foreach ( array('left', 'right') as $side)
 
 
 
-echo print_html_header('CQPweb Main Page', $Config->css_path, array('cqpweb-clientside'));
+echo print_html_header('CQPweb Main Page', $Config->css_path);
 
 ?>
 

@@ -510,22 +510,10 @@ else
 
 
 	/* ok, all select-option dropdowns have been dynamically generated : now, write it! */
-	
-	/* before anything else */
-	// TODO switch to using the HTML-lib function
-	header('Content-Type: text/html; charset=utf-8');
+
+	echo print_html_header("$corpus_title -- CQPweb collocation results", $Config->css_path, array('cword'));	
+
 	?>
-	<html>
-	<head>
-	<?php
-	echo '<title>' . $corpus_title . ' -- CQPweb collocation results</title>';
-	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-	?>
-	<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	
-	</head>
-	<body>
 	
 	<table class="concordtable" width="100%">
 		<form action="redirect.php" method="get">

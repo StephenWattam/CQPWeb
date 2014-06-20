@@ -101,14 +101,10 @@ $thisQ = ( isset($_GET["thisQ"]) ? $_GET["thisQ"] : 'search' );
 
 
 
-
-
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
 /* strip tags of the header, cos HTML is allowed here... */
-echo print_html_header(strip_tags($Corpus->corpus_title . $Config->searchpage_corpus_name_suffix), $Config->css_path, array('cqpweb-clientside'));
-
+echo print_html_header(strip_tags($Corpus->corpus_title . $Config->searchpage_corpus_name_suffix), 
+                       $Config->css_path, 
+                       array('modal', 'cword', 'queryhome'));
 
 
 ?>

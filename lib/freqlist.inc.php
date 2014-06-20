@@ -284,20 +284,12 @@ if ($download_mode)
 }
 else
 {
-	header('Content-Type: text/html; charset=utf-8');
 	/* writing HTML begins here! */
+
+	echo print_html_header($corpus_title . ' -- view CQPweb frequency list', $Config->css_path);
+
 	?>
-	<html>
-	<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<?php
-	echo '<title>' . $corpus_title . ' -- view CQPweb frequency list</title>';
-	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-	?>
-	<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-	
-	</head>
-	<body>
+
 	<table class="concordtable" width="100%">
 		<tr>
 			<th class="concordtable" colspan="4">

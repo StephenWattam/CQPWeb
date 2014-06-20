@@ -111,30 +111,6 @@ if ($context_size < $initial_extended_context)
 
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
-?>
-
-
-<html>
-<head>
-	<?php
-	echo '<title>' . $corpus_title . ' -- CQPweb showing extra context</title>';
-	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-	?>
-	<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-</head>
-<body>
-
-<?php
-
-
-
-
-
 $primary_tag_handle = get_corpus_metadata('primary_annotation');
 
 $cqp->execute("set Context $context_size words");
@@ -239,7 +215,12 @@ $bdo_tag2 = ($corpus_main_script_is_r2l ? '</bdo>' : '');
 
 
 
-/* print everything */
+/*
+ * and we are READY to RENDER .... !
+ */
+
+echo print_html_header("$corpus_title -- CQPweb query extended context", $Config->css_path);
+
 
 
 ?>
@@ -308,9 +289,9 @@ cqpweb_shutdown_environment();
 
 
 
-/* ------------- */
-/* END OF SCRIPT */
-/* ------------- */
+/* ------------- *
+ * END OF SCRIPT *
+ * ------------- */
 
 /* Function that puts tags back into ltr order... */
 

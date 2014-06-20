@@ -1392,6 +1392,19 @@ function cqpweb_mysql_recreate_tables()
 			key (`user`)
 	) CHARACTER SET utf8 COLLATE utf8_general_ci";
 	
+	
+	$create_statements['saved_matrix_info'] =
+		"CREATE TABLE `saved_matrix_info` (
+			`id` int NOT NULL AUTO_INCREMENT,
+			`savename` varchar(255),
+			`user` varchar(255) default NULL,
+			`corpus` varchar(255) NOT NULL default '',
+			`subcorpus` varchar(255) default NULL,
+			`unit` varchar(255) default NULL,
+			`create_time` int(11) default NULL,
+			primary key(`id`)
+	) CHARACTER SET utf8 COLLATE utf8_bin";
+
 
 	$create_statements['saved_freqtables'] =
 		"CREATE TABLE `saved_freqtables` (

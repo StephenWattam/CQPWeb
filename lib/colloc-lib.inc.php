@@ -583,6 +583,8 @@ function run_script_for_solo_collocation()
 	/* note, this function is really just a moved-out-of-the-way chunk of the script */
 	/* it assumes all the globals of collocation.inc.php and won't run anywhere else */
 	
+	global $Config;
+	
 	global $statistic;
 	global $soloform;
 	global $tag_filter;
@@ -594,7 +596,6 @@ function run_script_for_solo_collocation()
 	global $primary_annotation;
 	
 	global $corpus_title;
-	global $css_path;
 	global $corpus_main_script_is_r2l;
 	/* bdo tags ensure that l-to-r goes back to normal after an Arabic (etc) string */
 	$bdo_tag1 = ($corpus_main_script_is_r2l ? '<bdo dir="ltr">' : '');
@@ -631,18 +632,10 @@ function run_script_for_solo_collocation()
 	else
 		$basis_point = 'the current subcorpus';
 	
-	header('Content-Type: text/html; charset=utf-8');
-	?>
-	<html>
-	<head>
-	<?php
-	echo '<title>' . $corpus_title . ' -- CQPweb collocation results</title>';
-	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-	?>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	echo print_html_header($corpus_title . ' -- CQPweb collocation results', $Config->css_path)
 	
-	</head>
-	<body>
+	?>
+
 	<table class="concordtable" width="100%">
 		<tr>
 

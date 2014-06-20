@@ -195,9 +195,13 @@ function print_html_header($title, $css_url, $js_scripts = false)
 
 	$js_path = ($Config->run_location == RUN_LOCATION_MAINHOME ? 'jsc' : '../jsc');
 
-	if (! empty($js_scripts))
-		foreach ($js_scripts as $js)
-			$s .= "\t<script type=\"text/javascript\" src=\"$js_path/$js.js\"></script>\n";
+	if (empty($js_scripts))
+		$js_scripts = array('jquery', 'always');
+	else
+		array_unshift($js_scripts, 'jquery', 'always');
+	
+	foreach ($js_scripts as $js)
+		$s .= "\t<script type=\"text/javascript\" src=\"$js_path/$js.js\"></script>\n";
 	
 	$s .= "</head>\n<body>\n";
 	

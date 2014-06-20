@@ -269,113 +269,106 @@ END;
 	 * -------------------------------------------------- */
 	
 	/* before anything else */
-	header('Content-Type: text/html; charset=utf-8');
+	
+	echo print_html_header($corpus_title . ' -- CQPweb tabulate query', $Config->css_path, array('cword'));
+	
 	?>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<?php
-echo '<title>' . $corpus_title . ' -- CQPweb Tabulate Query</title>';
-echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>
-<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-</head>
-<body>
-<table class="concordtable" width="100%">
-	<tr>
-		<th class="concordtable" colspan="9">Download Query Tabulation</th>
-	</tr>
-	<tr>
-		<td class="concordgrey" colspan="9">
 
-		<p>&nbsp;</p>
-		
-		<p>A "Tabulation" is a plain-text table containing, for each result in a query, a series of related items of data from the underlying corpus index.</p>
-		
-		<p>Each column contains one particular item of data, specified for either a given position or for a range of positions, relative to the query result.</p>
-		
-		<p>You can select a commonly-used tabulation, or define the contents of each column, using the controls below.</p> 
-		
-		<p>
-			For technical details of Tabulation, see 
-			<a href="http://cwb.sourceforge.net/files/CQP_Tutorial/node39.html" target="_blank">the CQP tutorial section 6.3</a>.
-		</p> 
-		
-		<p>&nbsp;</p>
-		
-		</td>
-	</tr>
-
-	<tr>
-		<th class="concordtable" colspan="9">Frequently-used tabulations</th>
-	</tr>
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable" colspan="9">Download Query Tabulation</th>
+		</tr>
+		<tr>
+			<td class="concordgrey" colspan="9">
 	
-	<tr>
-		<td class="concordgeneral" colspan="9" align="center">
-
-			&nbsp;<br/>
-			<form action="redirect.php" method="get">
-				<input type="submit" 
-					value="Table with first word of each hit" />
-				<br/>
-				<input type="hidden" name="redirect" value="download-tab" />
-				<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-				<input type="hidden" name="downloadGo" value="yes" />
-				<input type="hidden" name="tabSpecial" value="FirstWordOnly" />
-				<input type="hidden" name="uT" value="y" />
-			</form>
-			<form action="redirect.php" method="get">
-				<input type="submit" 
-					value="Table of all words (use for multi-word queries)" />
-				<br/>
-				<input type="hidden" name="redirect" value="download-tab" />
-				<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-				<input type="hidden" name="downloadGo" value="yes" />
-				<input type="hidden" name="tabSpecial" value="FullHitWordOnly" />
-				<input type="hidden" name="uT" value="y" />
-			</form>
-			<form action="redirect.php" method="get">
-				<input type="submit" 
-					value="Table with corpus position of first word of each hit" />
-				<br/>
-				<input type="hidden" name="redirect" value="download-tab" />
-				<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-				<input type="hidden" name="downloadGo" value="yes" />
-				<input type="hidden" name="tabSpecial" value="FirstCposOnly" />
-				<input type="hidden" name="uT" value="y" />
-			</form>
-			<form action="redirect.php" method="get">
-				<input type="submit" 
-					value="Table with corpus position and all tags of initial word" />
-				<br/>
-				<input type="hidden" name="redirect" value="download-tab" />
-				<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-				<input type="hidden" name="downloadGo" value="yes" />
-				<input type="hidden" name="tabSpecial" value="FirstCposAndTags" />
-				<input type="hidden" name="uT" value="y" />
-			</form>
-		</td>
-	</tr>
-	<tr>
-		<th class="concordtable" colspan="9">Specify custom tabulation</th>
-	</tr>	
-	<tr>
-		<th class="concordtable" rowspan="2">Col. no.</th>
-		<th class="concordtable" colspan="2">Begin at</th>
-		<th class="concordtable" colspan="2">End at</th>
-		<th class="concordtable" rowspan="2">Attribute</th>
-		<th class="concordtable" colspan="2">Normalise?</th>
-	</tr>
-	<tr>
-		<th class="concordtable" width="8%">Anchor</th>
-		<th class="concordtable" width="8%">Offset</th>
-		<th class="concordtable" width="8%">Anchor</th>
-		<th class="concordtable" width="8%">Offset</th>
-		<th class="concordtable" width="8%">Case</th>
-		<th class="concordtable" width="8%">Diacritics</th>
-	</tr>
+			<p>&nbsp;</p>
+			
+			<p>A "Tabulation" is a plain-text table containing, for each result in a query, a series of related items of data from the underlying corpus index.</p>
+			
+			<p>Each column contains one particular item of data, specified for either a given position or for a range of positions, relative to the query result.</p>
+			
+			<p>You can select a commonly-used tabulation, or define the contents of each column, using the controls below.</p> 
+			
+			<p>
+				For technical details of Tabulation, see 
+				<a href="http://cwb.sourceforge.net/files/CQP_Tutorial/node39.html" target="_blank">the CQP tutorial section 6.3</a>.
+			</p> 
+			
+			<p>&nbsp;</p>
+			
+			</td>
+		</tr>
 	
-	<form action="redirect.php" method="get">
+		<tr>
+			<th class="concordtable" colspan="9">Frequently-used tabulations</th>
+		</tr>
+		
+		<tr>
+			<td class="concordgeneral" colspan="9" align="center">
+	
+				&nbsp;<br/>
+				<form action="redirect.php" method="get">
+					<input type="submit" 
+						value="Table with first word of each hit" />
+					<br/>
+					<input type="hidden" name="redirect" value="download-tab" />
+					<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+					<input type="hidden" name="downloadGo" value="yes" />
+					<input type="hidden" name="tabSpecial" value="FirstWordOnly" />
+					<input type="hidden" name="uT" value="y" />
+				</form>
+				<form action="redirect.php" method="get">
+					<input type="submit" 
+						value="Table of all words (use for multi-word queries)" />
+					<br/>
+					<input type="hidden" name="redirect" value="download-tab" />
+					<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+					<input type="hidden" name="downloadGo" value="yes" />
+					<input type="hidden" name="tabSpecial" value="FullHitWordOnly" />
+					<input type="hidden" name="uT" value="y" />
+				</form>
+				<form action="redirect.php" method="get">
+					<input type="submit" 
+						value="Table with corpus position of first word of each hit" />
+					<br/>
+					<input type="hidden" name="redirect" value="download-tab" />
+					<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+					<input type="hidden" name="downloadGo" value="yes" />
+					<input type="hidden" name="tabSpecial" value="FirstCposOnly" />
+					<input type="hidden" name="uT" value="y" />
+				</form>
+				<form action="redirect.php" method="get">
+					<input type="submit" 
+						value="Table with corpus position and all tags of initial word" />
+					<br/>
+					<input type="hidden" name="redirect" value="download-tab" />
+					<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+					<input type="hidden" name="downloadGo" value="yes" />
+					<input type="hidden" name="tabSpecial" value="FirstCposAndTags" />
+					<input type="hidden" name="uT" value="y" />
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable" colspan="9">Specify custom tabulation</th>
+		</tr>	
+		<tr>
+			<th class="concordtable" rowspan="2">Col. no.</th>
+			<th class="concordtable" colspan="2">Begin at</th>
+			<th class="concordtable" colspan="2">End at</th>
+			<th class="concordtable" rowspan="2">Attribute</th>
+			<th class="concordtable" colspan="2">Normalise?</th>
+		</tr>
+		<tr>
+			<th class="concordtable" width="8%">Anchor</th>
+			<th class="concordtable" width="8%">Offset</th>
+			<th class="concordtable" width="8%">Anchor</th>
+			<th class="concordtable" width="8%">Offset</th>
+			<th class="concordtable" width="8%">Case</th>
+			<th class="concordtable" width="8%">Diacritics</th>
+		</tr>
+		
+		<form action="redirect.php" method="get">
 	
 		<?php
 		
@@ -422,112 +415,110 @@ echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
 			}
 		?>
 
-		<!-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ -->
-
-		<!--
+			<!-- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ -->
+	
+			<!--
+			<tr>
+				<th class="concordtable" colspan="9">General options for download</th>
+			</tr>
+			-->
+			<tr>
+	
+				<td class="concordgeneral" colspan="5">
+					&nbsp;<br/>
+					Choose operating system on which you will be working with the file:
+					<br/>&nbsp;
+				</td>
+				<td class="concordgeneral" colspan="4">
+					&nbsp;<br/>
+					<select name="downloadLinebreak">
+						<option value="d"  <?php echo $da_selected['d']; ?>>Macintosh (OS 9 and below)</option>
+						<option value="da" <?php echo $da_selected['da'];?>>Windows</option>
+						<option value="a"  <?php echo $da_selected['a']; ?>>UNIX (incl. OS X)</option>
+					</select>
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="5">
+					&nbsp;<br/>
+					Enter name for the downloaded file:
+					<br/>&nbsp;
+				</td>
+				<td class="concordgeneral" colspan="4">
+					&nbsp;<br/>
+					<input type="text" name="downloadFilename" value="tabulation" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td class="concordgeneral" colspan="9" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Download query tabulation with settings above" />
+					<br/>&nbsp;
+				</td>
+			<input type="hidden" name="redirect" value="download-tab" />
+			<input type="hidden" name="downloadGo" value="yes" />
+			<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+			<input type="hidden" name="uT" value="y" />
+			</tr>
+		</form>
+	
+	</table>
+	
+	<table class="concordtable" width="100%">
 		<tr>
-			<th class="concordtable" colspan="9">General options for download</th>
+			<th class="concordtable" colspan="3">I need more output columns!</th>
 		</tr>
-		-->
+		<form action="redirect.php" method="get">
+			<tr>
+				<td class="concordgeneral">
+					Do you need more tabulation columns? Use this control:
+				</td>
+				<td class="concordgeneral">						
+					I want a tabulation with (up to) 
+					<select name="columnCount">
+						<option>9</option>
+						<option>10</option>
+						<option>11</option>
+						<option>12</option>
+						<option>14</option>
+						<option>16</option>
+						<option>20</option>
+					</select>
+					columns!
+				</td>
+				<td class="concordgeneral">
+					<input type="submit" value="Create bigger form!" />
+				</td>
+			</td>
+			<input type="hidden" name="redirect" value="download-tab" />
+			<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+	</table>
+	
+	
+	<table class="concordtable" width="100%">
 		<tr>
-
-			<td class="concordgeneral" colspan="5">
-				&nbsp;<br/>
-				Choose operating system on which you will be working with the file:
-				<br/>&nbsp;
-			</td>
-			<td class="concordgeneral" colspan="4">
-				&nbsp;<br/>
-				<select name="downloadLinebreak">
-					<option value="d"  <?php echo $da_selected['d']; ?>>Macintosh (OS 9 and below)</option>
-					<option value="da" <?php echo $da_selected['da'];?>>Windows</option>
-					<option value="a"  <?php echo $da_selected['a']; ?>>UNIX (incl. OS X)</option>
-				</select>
-				<br/>&nbsp;
-			</td>
+			<th class="concordtable">Switch download type</th>
 		</tr>
-		<tr>
-			<td class="concordgeneral" colspan="5">
-				&nbsp;<br/>
-				Enter name for the downloaded file:
-				<br/>&nbsp;
-			</td>
-			<td class="concordgeneral" colspan="4">
-				&nbsp;<br/>
-				<input type="text" name="downloadFilename" value="tabulation" />
-				<br/>&nbsp;
-			</td>
-		</tr>
-		<tr>
-			<td class="concordgeneral" colspan="9" align="center">
-				&nbsp;<br/>
-				<input type="submit" value="Download query tabulation with settings above" />
-				<br/>&nbsp;
-			</td>
-		<input type="hidden" name="redirect" value="download-tab" />
-		<input type="hidden" name="downloadGo" value="yes" />
-		<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-		<input type="hidden" name="uT" value="y" />
-		</tr>
-	</form>
-
-</table>
-
-<table class="concordtable" width="100%">
-	<tr>
-		<th class="concordtable" colspan="3">I need more output columns!</th>
-	</tr>
-	<form action="redirect.php" method="get">
-		<tr>
-			<td class="concordgeneral">
-				Do you need more tabulation columns? Use this control:
-			</td>
-			<td class="concordgeneral">						
-				I want a tabulation with (up to) 
-				<select name="columnCount">
-					<option>9</option>
-					<option>10</option>
-					<option>11</option>
-					<option>12</option>
-					<option>14</option>
-					<option>16</option>
-					<option>20</option>
-				</select>
-				columns!
-			</td>
-			<td class="concordgeneral">
-				<input type="submit" value="Create bigger form!" />
-			</td>
-		</td>
-		<input type="hidden" name="redirect" value="download-tab" />
-		<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-		<input type="hidden" name="uT" value="y" />
-	</form>
-</table>
-
-
-<table class="concordtable" width="100%">
-	<tr>
-		<th class="concordtable">Switch download type</th>
-	</tr>
-	<form action="redirect.php" method="get">
-		<tr>
-			<td class="concordgeneral" align="center">
-				&nbsp;<br/>
-				<input type="submit" value="Download query as plain-text concordance" />
-				<br/>&nbsp;
-			</td>
-		</tr>
-		<input type="hidden" name="redirect" value="download-conc" />
-		<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
-		<input type="hidden" name="uT" value="y" />
-	</form>
-</table>
-<?php echo print_html_footer(); ?>
-</body>
-</html>
+		<form action="redirect.php" method="get">
+			<tr>
+				<td class="concordgeneral" align="center">
+					&nbsp;<br/>
+					<input type="submit" value="Download query as plain-text concordance" />
+					<br/>&nbsp;
+				</td>
+			</tr>
+			<input type="hidden" name="redirect" value="download-conc" />
+			<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
+			<input type="hidden" name="uT" value="y" />
+		</form>
+	</table>
 	<?php
-
+	
+	echo print_html_footer();
 
 } /* end of the huge determining if-else */
 
@@ -537,5 +528,3 @@ cqpweb_shutdown_environment();
 
 /* end of script */
 
-
-?>

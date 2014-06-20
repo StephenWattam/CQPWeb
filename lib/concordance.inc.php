@@ -658,9 +658,9 @@ if ($page_no > $num_of_pages)
 
 
 
-/* ----------------------- */
-/* DISPLAY THE CONCORDANCE */
-/* ----------------------- */
+/* ----------------------- *
+ * DISPLAY THE CONCORDANCE *
+ * ----------------------- */
 
 
 /* if program is word-lookup,. we don't display here - we go straight to freqlist. */
@@ -673,25 +673,9 @@ if ($program == 'lookup')
 }
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
+/* begin HTML page.... */
 
-
-?>
-<html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<?php
-		echo '<title>' . $corpus_title . ' -- CQPweb Concordance</title>';
-		echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-		?>
-		<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-
-	</head>
-	<body>
-
-<?php
-
+echo print_html_header("$corpus_title -- CQPweb Concordance", $Config->css_path);
 
 
 /* print table headings && control lines */

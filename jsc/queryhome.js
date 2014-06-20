@@ -30,14 +30,15 @@
 
 function analysis_switch_tool()
 {
-	var 
-
 	/* if an analysis tool is visible, hide it. */
 	if (current_analysis_tool)
-	{
-		current_analysis_tool.
-	}
+		current_analysis_tool.slideUp("slow");
 
+	/* get the new analysis tool */
+	current_analysis_tool = $("#" + $("#analysisToolChoice").val());
+	
+	/* and make it appear */
+	current_analysis_tool.slideDown("slow");
 }
 
 
@@ -48,13 +49,20 @@ function analysis_switch_tool()
  */
 $(document).ready (function() {
 
-	/* Setup the corpus analysis interface. */
+	/* Setup the corpus analysis interface, if we have that form. */
 	if ($("#analysisToolChoiceGo").length > 0)
 	{
-		window.current_analysis tool = null;
-		$("#analysisToolChoiceGo") = switch_analysis_tool;
+		window.current_analysis_tool = null;
+		$("#analysisToolChoiceGo").click(analysis_switch_tool);
 
+		/* now hide all the forms */
+		$("#featureMatrixList").hide();
+		$("#featureMatrixDesign").hide();
+
+		/* greyouts on form submit... */
+		$("#featureMatrixDesign").submit(function () { greyout_and_throbber(); return true; });
 	}
+
 
 } );
 

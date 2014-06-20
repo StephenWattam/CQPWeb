@@ -65,11 +65,7 @@ function exiterror_beginpage($page_title = NULL, $page_heading_message = NULL)
 		echo "\n\n";
 	}
 	else
-	{
-		header('Content-Type: text/html; charset=utf-8');
-		
 		echo print_html_header($page_title, $Config->css_path);
-	}
 	?>
 	<table class="concordtable" width="100%">
 		<tr>

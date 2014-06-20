@@ -58,10 +58,6 @@ else
 
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
-
 switch ($this_script_mode)
 {
 case 'save_error':
@@ -243,24 +239,10 @@ default:
 /* ---------- */
 
 
-
 function print_savename_top()
 {
-	global $css_path;
-	?>
-	
-	<html>
-	<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<?php
-	echo '<title>CQPweb Save Query</title>';
-	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-	?>
-	<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-	
-	</head>
-	<body>
-	<?php
+	global $Config;
+	echo print_html_header('CQPweb Save Query', $Config->css_path, array('cword'));
 }
 
 function print_savename_page()
@@ -310,20 +292,8 @@ function print_savename_page()
 
 function print_replacesavename_top()
 {
-	global $css_path;
-	?>
-	
-	<html>
-	<head>
-	<?php
-	echo '<title>CQPweb Rename Saved Query</title>';
-	echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-	?>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	
-	</head>
-	<body>
-	<?php
+	global $Config;
+	echo print_html_header('CQPweb Rename Saved Query', $Config->css_path);
 }
 
 function print_replacesavename_page()

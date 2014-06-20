@@ -320,7 +320,7 @@ else
 	
 	/* now, put it all together into a pretty HTML page! */
 	
-	echo print_html_header($corpus_title . ' -- CQPweb Query Frequency Breakdown', $css_path, array('cqpweb=clientside'));
+	echo print_html_header($corpus_title . ' -- CQPweb Query Frequency Breakdown', $Config->css_path);
 	
 	?>
 	

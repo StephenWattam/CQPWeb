@@ -25,9 +25,6 @@
 
 
 
-/* before anything else */
-header('Content-Type: text/html; charset=utf-8');
-
 
 /* initialise variables from settings files  */
 require('../lib/environment.inc.php');
@@ -45,62 +42,38 @@ cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
 
 
-?>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<?php
-echo '<title>' . $corpus_title . ': viewing text metadata -- CQPweb </title>';
-echo '<link rel="stylesheet" type="text/css" href="' . $css_path . '" />';
-?>
-<script type="text/javascript" src="../jsc/cqpweb-clientside.js"></script> 
-</head>
-<body>
 
-<?php
-
-
-/* download the information */
-
-
-	
 /* initialise variables from $_GET */
 
-if (! isset($_GET["text"]) )
-{
-	echo "<p class='errormessage'>View text metadata: No text specified! Please reload CQPweb.
-		</p></body></html>";
-	exit();
-}
+if (empty($_GET["text"]) )
+	exiterror_general("No text was specified for metadata-view! Please reload CQPweb.");
 else 
-	$text_id = mysql_real_escape_string($_GET["text"]);
+	$text_id = cqpweb_handle_enforce($_GET["text"]);
 	
 
-$result = do_mysql_query("SELECT * from text_metadata_for_$corpus_sql_name 
-	where text_id = '$text_id'");
+$result = do_mysql_query("SELECT * from text_metadata_for_$corpus_sql_name where text_id = '$text_id'");
 
 if (mysql_num_rows($result) < 1)
-{
-	// TODO use a proper exiterror_ call here, and also elsewhere in this file.
-	?>
-	<p class="errormessage">
-		The database doesn't appear to contain any metadata for text <?php echo $text_id; ?>!
-	</p></body></html> 
-	<?php
-	exit(1);
-}
-
-
-echo 
-'<table class="concordtable" width="100%">
-	<tr>
-		<th colspan="2" class="concordtable">';
-echo "Metadata for text <em>$text_id</em>
-		</th>
-	</tr>";
-
+	exiterror_general("The database doesn't appear to contain any metadata for text $text_id.");
 
 $metadata = mysql_fetch_row($result);
+
+
+/*
+ * Render!
+ */
+
+echo print_html_header($corpus_title . ': viewing text metadata -- CQPweb', $Config->css_path);
+
+?>
+
+<table class="concordtable" width="100%">
+	<tr>
+		<th colspan="2" class="concordtable">Metadata for text <em><?php echo $text_id; ?></em></th>
+	</tr>
+
+<?php
+
 $n = count($metadata);
 
 for ( $i = 0 ; $i < $n ; $i++ )
