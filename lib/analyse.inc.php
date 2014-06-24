@@ -25,7 +25,7 @@
 /**
  * @file
  * 
- * page scripting the interface for cotrpus analysis. 
+ * page scripting the interface for corpus analysis. 
  * 
  * Currently only allows multivariate analysis, but hopefully will allow
  * others later, including custom analysis.
@@ -77,20 +77,17 @@ cqpweb_startup_environment();
  * proof of concept code runnign factor analysis in R.
  */
 $r = new RFace();
-$r->set_debug(true);
-
+//$r->set_debug(true);
+ob_implicit_flush(true);
 //import data
 $fm_id = (int) $_GET['matrix'];
-get_feature_matrix_r_import($r, $fm_id, 'mydata');
-
+insert_feature_matrix_to_r($r, $fm_id, 'mydata');
 $op ='';
 
 foreach (array(2,3,4,5) as $i)
 {
 	$r->execute("out = factanal(mydata, $i, rotation=\"varimax\")");
-	$op1 .= implode( '\n', $r->execute("print(out, digits = 2, sort = TRUE)"));
-	$op2 .= implode( '\n', $r->read("out", "verbatim"));
-	
+	$op .= "\n\n\n" . implode( "\n", $r->execute("print(out, digits = 2, sort = TRUE)"));
 }
 
 
@@ -106,20 +103,7 @@ Factor Analysis Output for 2 to 5 factors
 =========================================
 
 
-<?php echo $op1 ?>
-
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-################################################################################################
-
-
-
-<?php echo $op2 ?>
-
-
-
-
-
+<?php echo $op; ?>
 
 
 </pre>

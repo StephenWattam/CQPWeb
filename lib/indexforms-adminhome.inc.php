@@ -3003,6 +3003,8 @@ function printquery_cachecontrol()
 	// less vital to sort these out. dno't worry about for now.
 	// create an array now but don't worry about display.
 
+php_execute_time_unlimit();
+
 	
 	/* list saved queries */
 	$result = do_mysql_query("select query_name from saved_queries");

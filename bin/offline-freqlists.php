@@ -75,7 +75,6 @@ if (isset($argv[1]) && is_dir ("../$argv[1]"))
 else if (!file_exists('settings.inc.php'))
 	exit("\nNo corpus specified to run freqlist setup for?\n");
 
-
 cqpweb_startup_environment();
 
 /* keep a note of when we started */
@@ -93,7 +92,7 @@ $corpus = $corpus_sql_name; /* code below was copied from subroutine with argume
 
 
 echo "About to run the function populating corpus CQP positions...\n\n";
-populate_corpus_cqp_positions();
+populate_corpus_cqp_positions($corpus);
 echo "Done populating corpus CQP positions.\n\n";
 
 /* if there are any classifications... */

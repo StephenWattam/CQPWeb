@@ -582,7 +582,6 @@ function run_script_for_solo_collocation()
 {
 	/* note, this function is really just a moved-out-of-the-way chunk of the script */
 	/* it assumes all the globals of collocation.inc.php and won't run anywhere else */
-	
 	global $Config;
 	
 	global $statistic;
@@ -604,12 +603,10 @@ function run_script_for_solo_collocation()
 	$soloform_sql = mysql_real_escape_string($soloform);
 	$soloform_html = cqpweb_htmlspecialchars($soloform);
 
-
 	foreach ($statistic as $s => $info)
 	{
 		// TODO the create stat function ought to handle the escaping of the soloform.
 		$sql_query = create_statistic_sql_query($s, $soloform_sql);
-
 		$result = mysql_query($sql_query);
 				
 		$row = mysql_fetch_assoc($result);
@@ -621,6 +618,7 @@ function run_script_for_solo_collocation()
 			$statistic[$s]['value'] = round($row['significance'], 3);
 	
 	}
+
 	/* this lot don't need doing on every iteration; they pick up their values from its last loop */
 	$observed_to_show = number_format((float)$row['observed']);
 	$observed_for_calc = $row['observed'];

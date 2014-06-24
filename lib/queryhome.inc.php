@@ -155,7 +155,7 @@ echo print_menurow_index('savedQs', 'Saved queries');
 echo print_menurow_index('categorisedQs', 'Categorised queries');
 echo print_menurow_index('uploadQ', 'Upload a query');
 /* TODO: this is only for admin users while under development */
-if ($User->is_admin())
+//if ($User->is_admin())
 	echo print_menurow_index('analyseCorpus', 'Analyse corpus');
 echo print_menurow_index('subcorpus', 'Create/edit subcorpora');
 

@@ -50,7 +50,7 @@ require ('../bin/cli-lib.php');
 /* VARS THAT NEED UPDATING EVERY TIME A NEW VERSION IS PILED ON */
 
 		/* the most recent database version: ie the last version whose release involved a DB change */
-		$last_changed_version = '3.1.8';
+		$last_changed_version = '3.1.9';
 		
 		/* 
 		 * versions where there is no change. Array of old_version => version that followed. 

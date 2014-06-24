@@ -205,7 +205,6 @@ else
 	$solomode = false;
 
 
-
 /* and a purely display-related variable */
 if (isset($_GET['beginAt']) )
 	$begin_at = abs((int) $_GET['beginAt']);
@@ -672,7 +671,7 @@ else
 		
 		$att_for_calc_tt_show = strtr($row[$att_for_calc], array("'"=>"\'", '"'=>'&quot;'));
 		
-		$solo = "<a href=\"collocation.php?collocSolo=" . $row[$att_for_calc] . '&'
+		$solo = "<a href=\"collocation.php?collocSolo=" . urlencode($row[$att_for_calc]) . '&'
 			. url_printget(array(array('collocSolo', '')))
 			. "\" onmouseover=\"return escape('Show detailed info on <B>"
 			. $att_for_calc_tt_show . "</B>')\">{$row[$att_for_calc]}</a>";

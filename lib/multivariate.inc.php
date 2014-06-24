@@ -216,9 +216,8 @@ function populate_feature_matrix()
  * @param $id  ID of the feature matrix you want to gety a string for.
  * TODO -- or, better to pass in a DB object? 
  */
-function get_feature_matrix_r_import($rface, $id, $desired_object_name)
+function insert_feature_matrix_to_r($rface, $id, $desired_object_name)
 {
-	//TODO
 	$id = (int) $id;
 	
 	$result = do_mysql_query("select label from saved_matrix_features where matrix_id = $id");
@@ -229,7 +228,8 @@ function get_feature_matrix_r_import($rface, $id, $desired_object_name)
 	$labels = implode(',', $label_array);
 	
 	$obj_id_list = array();
-	
+
+	/* NB, this assumes that object IDs are OK R object identifiers */
 	$result = do_mysql_query("select obj_id, $labels from " . feature_matrix_id_to_tablename($id));
 	while (false !== ($r = mysql_fetch_object($result)))
 	{
@@ -245,10 +245,8 @@ function get_feature_matrix_r_import($rface, $id, $desired_object_name)
 		$rface->execute($cmd);
 	}
 	
-
-	
 	$rface->execute("$desired_object_name <- data.frame(t(cbind( " . implode(',', $obj_id_list) . ")))");
-	$rface->execute("names_vec = c(" . str_replace("`", "'", $labels) . "')");
+	$rface->execute("names_vec = c(" . str_replace("`", "'", $labels) . ")");
 	$rface->execute("names($desired_object_name) <- names_vec");
 }
 
