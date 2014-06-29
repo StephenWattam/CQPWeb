@@ -95,9 +95,8 @@ function output_analysis_factanal()
 	
 	if ( (!isset($_GET['matrix'])) || $_GET['matrix'] === '')
 		exiterror("No feature matrix was specified for the analysis.");
-	
-	$fm_id = (int) $_GET['matrix'];
-	$matrix = get_feature_matrix($fm_id);
+	if (false === ($matrix = get_feature_matrix((int) $_GET['matrix'])))
+		exiterror("The specified feature matrix does not exist on the system.");		
 	
 	// TODO put here the check for the minimum number fo features in the matrix.
 
@@ -114,11 +113,13 @@ function output_analysis_factanal()
 		// TODO make rotation type an "advanced" option on the query page 
 		// (advanced options to be hidden behind a JavaScript button of course)
 		$r->execute("out = factanal(mydata, $i, rotation=\"varimax\")");
+		// TODO arguments to pritn - do I want them to be thus?
+		// digits = 2 probably correct, but sort=TRUE??????
 		$op[$i] = implode( "\n", $r->execute("print(out, digits = 2, sort = TRUE)"));
 	}
 	
 	
-	
+	/* ready to render */
 	
 	echo print_html_header($corpus_title, $Config->css_path, array('modal'));
 	
@@ -137,6 +138,7 @@ function output_analysis_factanal()
 				&nbsp;<br>
 				<b>This function is currently under development</b>. So far, all you can do is
 				view the raw output of the factor analysis from R (shown below).
+				<br>&nbsp;<br>
 				The analysis is currently performed for the range 2 to 7 factors.
 				<br>&nbsp;
 			</td>
@@ -145,6 +147,12 @@ function output_analysis_factanal()
 	<?php
 	
 	foreach($op as $i => $solution)
+	{
+		// TODO - evenutally, solution will become an stdClass whose members correspond
+		// to those of the R object (or, at least, which use regexen to slice up the print() output.)
+		//
+		// We can then insert formatting around and between the different bits (e.g. to render the tables
+		// as actual HTML tables.
 		echo "\n\t\t<tr>"
 			, "\n\t\t\t<th class=\"concordtable\">Factor Analysis Output for $i factors</th>"
 			, "\n\t\t</tr>\n\t\t<tr>"
@@ -153,6 +161,7 @@ function output_analysis_factanal()
 			, $solution
 			, "\n</pre>\n\t\t\t</td>\n\t\t</tr>\n"
 			;
+	}
 
 	echo "\n</table>\n";
 	
