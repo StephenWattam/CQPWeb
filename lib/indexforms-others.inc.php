@@ -160,7 +160,21 @@ function printquery_latest()
 	
 	<ul>
 		<li>
-		<b>Version 3.1.8</b>, 2014-xx-xx<br/>&nbsp;<br/>
+		<b>Version 3.1.10</b>, 2014-xx-yy<br/>&nbsp;<br/>
+		
+		<br/>&nbsp;<br/>
+		
+		<br/>&nbsp;</li>
+
+		<li>
+		<b>Version 3.1.9</b>, 2014-06-20<br/>&nbsp;<br/>
+		Added new feature: factor analysis of a feature matrix derived from saved queries.
+		<br/>&nbsp;<br/>
+		Reorganised the JavaScript code to allow for a more user-friendly interface. 
+		<br/>&nbsp;</li>
+
+		<li>
+		<b>Version 3.1.8</b>, 2014-06-16<br/>&nbsp;<br/>
 		Added new feature: adjust individual user permissions on creation of frequency lists for subcorpora.
 		<br/>&nbsp;<br/>
 		Updated frequency breakdown to enable breakdown of any concordance position within 5 tokens (as well as the node).

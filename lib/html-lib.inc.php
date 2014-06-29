@@ -129,6 +129,8 @@ function print_html_footer($link = 'help')
 	global $User;
 	
 	/* javascript location diverter */
+	// TODO - we can get rid of the diverter if the wz_tooltip is rewritten and integrated into the JS
+	// that goes in the page header (which would be better).
 	$diverter = '../';
 	
 	// TODO there must be much better uses for the central link now...

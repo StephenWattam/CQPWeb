@@ -213,6 +213,11 @@ function populate_feature_matrix()
  * Returns a string containing an instruction to run in R
  * that will create the feature matrix desired as an R matrix.
  * 
+ * Note that the function assumes a blank workspace that it can
+ * do what it likes to.
+ * TODO -- modify so that it can operate in a workspace that may already
+ * contain objects with the names it wants to use. 
+ * 
  * @param $id  ID of the feature matrix you want to gety a string for.
  * TODO -- or, better to pass in a DB object? 
  */

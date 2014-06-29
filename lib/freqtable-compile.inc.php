@@ -33,9 +33,9 @@
 // call it subcorpusFunction=freqtable
 // that would save a bundle of overhead.
 
-/* ------------ */
-/* BEGIN SCRIPT */
-/* ------------ */
+/* ------------ *
+ * BEGIN SCRIPT *
+ * ------------ */
 
 /* initialise variables from settings files  */
 require('../lib/environment.inc.php');

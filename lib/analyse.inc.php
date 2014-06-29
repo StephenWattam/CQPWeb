@@ -52,70 +52,110 @@ require('../lib/cwb.inc.php');
 require('../lib/cqp.inc.php');
 
 
-// startup
 cqpweb_startup_environment();
 
-// print page head
+
+//temp shortcut -- will eventually be a switch on a parameter here
+output_analysis_factanal();
 
 
-
-
-/// call body function
-
-
-
-
-
-// end page and shutdown
-
-
-// note needs 10 features.
-
-/*
- * SCRATCH CODE -- TRYING IT OUT
- * 
- * proof of concept code runnign factor analysis in R.
- */
-$r = new RFace();
-//$r->set_debug(true);
-ob_implicit_flush(true);
-//import data
-$fm_id = (int) $_GET['matrix'];
-insert_feature_matrix_to_r($r, $fm_id, 'mydata');
-$op ='';
-
-foreach (array(2,3,4,5) as $i)
-{
-	$r->execute("out = factanal(mydata, $i, rotation=\"varimax\")");
-	$op .= "\n\n\n" . implode( "\n", $r->execute("print(out, digits = 2, sort = TRUE)"));
-}
-
-
-?>
-<html>
-<head>
-
-</head>
-<body>
-<pre>
-
-Factor Analysis Output for 2 to 5 factors
-=========================================
-
-
-<?php echo $op; ?>
-
-
-</pre>
-
-</body>
-
-</html>
-
-
-<?php
-
+/* shutdown and end script */
 cqpweb_shutdown_environment();
 
-//TODO many, mnay things.
+/*
+ * =============
+ * END OF SCRIPT
+ * =============
+ * 
+ * (separate function for different analyses follow)
+ * 
+ */ 
+
+
+
+/**
+ * User interface function for factor analysis.
+ * 
+ * TODO an as-text version?
+ * TODO tidy up all the HTML.
+ */
+function output_analysis_factanal()
+{
+	global $Corpus;
+	global $Config;
+	global $corpus_title;
+	
+
+	// TODO - using R's factanal() manually, work out the minimum bnumber of features needed for factor analysis.
+	// Then check the matrix for this number of features and print an error message if absent.
+	
+
+
+	/* get matrix info object */	
+	
+	if ( (!isset($_GET['matrix'])) || $_GET['matrix'] === '')
+		exiterror("No feature matrix was specified for the analysis.");
+	
+	$fm_id = (int) $_GET['matrix'];
+	$matrix = get_feature_matrix($fm_id);
+	
+	// TODO put here the check for the minimum number fo features in the matrix.
+
+
+	/* import the matrix to R in raw form */
+	$r = new RFace();
+	insert_feature_matrix_to_r($r, $matrix->id, 'mydata');
+	
+	$op = array();
+	
+	// TODO maybe parameterise the "max number of factors" as an "advanced" option on the query page 
+	foreach (array(2,3,4,5,6,7) as $i)
+	{
+		// TODO make rotation type an "advanced" option on the query page 
+		// (advanced options to be hidden behind a JavaScript button of course)
+		$r->execute("out = factanal(mydata, $i, rotation=\"varimax\")");
+		$op[$i] = implode( "\n", $r->execute("print(out, digits = 2, sort = TRUE)"));
+	}
+	
+	
+	
+	
+	echo print_html_header($corpus_title, $Config->css_path, array('modal'));
+	
+	
+	?>
+
+	<table class="concordtable" width="100%">
+		<tr>
+			<th class="concordtable">
+				Analyse Corpus: Factor Analysis of Feature Matrix
+				&ldquo;<?php echo $matrix->savename; ?>&rdquo; 
+			</th>
+		</tr>
+		<tr>
+			<td class="concorderror">
+				&nbsp;<br>
+				<b>This function is currently under development</b>. So far, all you can do is
+				view the raw output of the factor analysis from R (shown below).
+				The analysis is currently performed for the range 2 to 7 factors.
+				<br>&nbsp;
+			</td>
+		</tr>
+		
+	<?php
+	
+	foreach($op as $i => $solution)
+		echo "\n\t\t<tr>"
+			, "\n\t\t\t<th class=\"concordtable\">Factor Analysis Output for $i factors</th>"
+			, "\n\t\t</tr>\n\t\t<tr>"
+			, "\n\t\t\t<td class=\"concordgeneral\">"
+			, "\n<pre>\n"
+			, $solution
+			, "\n</pre>\n\t\t\t</td>\n\t\t</tr>\n"
+			;
+
+	echo "\n</table>\n";
+	
+	echo print_html_footer();
+}
 

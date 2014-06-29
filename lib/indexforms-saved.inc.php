@@ -640,7 +640,7 @@ function printquery_savedqueries()
 		$per_page = $default_history_per_page;
 
 
-	if (isset($_GET['showUser']) && $User->is_admin)
+	if (isset($_GET['showUser']) && $User->is_admin())
 		$user_to_show = $_GET['showUser'];
 	else
 		$user_to_show = $User->username;
@@ -657,7 +657,7 @@ function printquery_savedqueries()
 
 
 	/* form for admin controls */
-	if ($User->is_admin)
+	if ($User->is_admin())
 	{
 		?>
 		<table class="concordtable" width="100%">
