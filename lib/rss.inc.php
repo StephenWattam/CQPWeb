@@ -30,16 +30,16 @@
  */
 
 require('../lib/environment.inc.php');
-
 include("../lib/library.inc.php");
 include("../lib/exiterror.inc.php");
 
 
-/*
- * Important note, we do not use the normal startup function, because we don't actually require the 
- * whole environment here. This page NEVER uses a user logon, and it ONLY uses the MySQL connection. 
- */
-connect_global_mysql();
+
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST, RUN_LOCATION_RSS);
+
+/* switch to text-mode errors, as they will  be sent out in an XML file */
+$Config->debug_messages_textonly = true;
+
 
 /* setup RSS variables
  *
@@ -58,6 +58,7 @@ if (!isset($rss_description))
 if (!isset($rss_feed_title))
 	$rss_feed_title = 'CQPweb System Messages';
 
+// TODO, the above need moving into the Config object.
 
 /* use output buffering because we want to serve as quick-and-easily as possible */
 ob_start();
@@ -67,7 +68,8 @@ header('Content-Type: text/xml; charset=utf-8');
 
 /* this is to prevent ? > or < ? being dealt with as PHP delimiters;
  * that shouldn't happen as PHP is supposed to interleave with XML,
- * but in (at least) some versions, this is not working out right. */
+ * but in (at least) some versions, this is not working out right. 
+ */
 echo '<' , '?xml version="1.0" ?' , '>';
 
 ?>
@@ -117,7 +119,7 @@ ITEM_COMPLETE;
 }
 
 
-disconnect_global_mysql();
+cqpweb_shutdown_environment();
 
 ?>
 </channel>

@@ -70,6 +70,7 @@ define('RUN_LOCATION_MAINHOME',                1);
 define('RUN_LOCATION_ADM',                     2);
 define('RUN_LOCATION_USR',                     3);
 define('RUN_LOCATION_CLI',                     4);
+define('RUN_LOCATION_RSS',                     5);
 
 
 /* 
@@ -214,6 +215,7 @@ class CQPwebEnvConfig
 		case RUN_LOCATION_MAINHOME:     $this->css_path = $this->css_path_for_homepage;     break;
 		case RUN_LOCATION_ADM:          $this->css_path = $this->css_path_for_adminpage;    break;
 		case RUN_LOCATION_USR:          $this->css_path = $this->css_path_for_userpage;     break;
+		case RUN_LOCATION_RSS:          /* no CSS path needed */                            break;
 		/* 
 		 * tacit default: RUN_LOCATION_CORPUS, where the $Corpus object takes responsibility for
 		 * setting the global $Config css_path appropriately. 
@@ -338,6 +340,7 @@ class CQPwebEnvCorpus
 	{
 		/* first: try to identify the corpus. */
 		// dirty hack. TODO to be scrubbed once the settings are not in global scope. Deduce from URL instead.
+		// or, pass in as parameter from the startup function?
 		global $corpus_sql_name;
 		$this->name = $corpus_sql_name;
 		if (!empty($this->name))

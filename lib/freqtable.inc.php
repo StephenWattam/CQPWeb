@@ -257,7 +257,7 @@ function subsection_make_freqtables($subcorpus = 'no_subcorpus', $restriction = 
 	/* set up temporary table for subcorpus frequencies */
 	$sql_query = "CREATE TABLE `$temp_table` ( `freq` int(11) NOT NULL default 0";
 	foreach ($attribute as $att)
-		$sql_query .= ", `$att` varchar(210) NOT NULL default ''"; //TODO why 210?
+		$sql_query .= ", `$att` varchar(255) NOT NULL default ''";
 	foreach ($attribute as $att)
 		$sql_query .= ", key(`$att`)";
 	$sql_query .= ") CHARACTER SET utf8 COLLATE $corpus_sql_collation";
