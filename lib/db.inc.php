@@ -115,9 +115,12 @@ function create_db($db_type, $qname, $cqp_query, $restrictions, $subcorpus, $pos
 
 
 	if ($num_of_rows > $table_max)
+	{
+		unregister_db_process();
 		exiterror_general("The action you have requested uses up a lot of diskspace.\n"
 			. "Your limit is currently set to $table_max instances.\n"
 			. "Please contact your system administrator if you need access to the information you requested.");
+	}
 
 
 	/* name for a file containing table with result of tabulation command*/
@@ -684,9 +687,9 @@ function register_db_process($dbname, $process_type, $process_id = '___THIS_SCRI
 
 
 /** Declares a process run by the current script complete; removes it from the list of db processes */
-function unregister_db_process($process_id = '___THIS_SCRIPT')
+function unregister_db_process($process_id = false)
 {
-	if ($process_id == '___THIS_SCRIPT')
+	if ($process_id === false)
 		$process_id = getmypid();
 	else
 		$process_id = (int)$process_id;
