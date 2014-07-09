@@ -2720,6 +2720,34 @@ function printquery_systemdiagnostics()
 	case 'general':
 		//TODO
 		return;
+	
+	
+	case 'dbVersion':
+		?>
+		<table class="concordtable" width="100%">
+			<tr>
+				<th class="concordtable">
+					Database version check
+				</th>
+			</tr>
+			<tr>
+				<td class="concordgeneral">
+					&nbsp;<br/>
+					The system database is at version <?php echo get_db_version(); ?>. 
+					<br/>&nbsp;<br/>
+					CQPweb's code is at version <?php echo CQPWEB_VERSION; ?>. 
+					<br/>&nbsp;<br/>
+					It is normal for the database version to be a little behind the code. 
+					But if there is a major mismatch between the two, you may run into trouble.
+					<br/>&nbsp;<br/>
+					If in doubt, run the <b>upgrade-databse</b> script (see system adminisatrator's manual for detail).
+					<br/>&nbsp;<br/>
+				</td>
+			</tr>
+		</table>
+		<?php
+		return;
+		
 		
 	case 'phpStubs':
 		global $cqpweb_script_files;
@@ -2797,7 +2825,8 @@ function printquery_systemdiagnostics()
 			<th class="concordtable">
 				CQPweb system diagnostics
 			</th>
-		</tr>
+		</tr>	
+		
 		<tr>
 			<td class="concordgrey">
 				&nbsp;<br/>
@@ -2836,6 +2865,23 @@ function printquery_systemdiagnostics()
 					<br/>
 					<input type="hidden" name="thisF" value="systemDiagnostics"/>
 					<input type="hidden" name="runDiagnostic" value="phpStubs"/>
+					<input type="hidden" name="uT" value="y" />
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<th class="concordtable">
+				Check database version
+			</th>
+		</tr>
+		<tr>
+			<td class="concordgeneral" align="center" colspan="3">
+				<form action="index.php" method="get">
+					<br/>
+					<input type="submit" value="Find out if the system database is out-of-sync with the CQPweb code" />
+					<br/>
+					<input type="hidden" name="thisF" value="systemDiagnostics"/>
+					<input type="hidden" name="runDiagnostic" value="dbVersion"/>
 					<input type="hidden" name="uT" value="y" />
 				</form>
 			</td>

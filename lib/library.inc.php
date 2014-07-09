@@ -193,6 +193,14 @@ function disconnect_global_mysql()
 }
 
 
+function get_db_version()
+{
+	list($version) = mysql_fetch_row(do_mysql_query('select value from system_info where setting_name = "db_version"'));
+	return $version;
+}
+
+
+
 
 
 

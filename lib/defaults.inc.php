@@ -223,6 +223,8 @@ if (!isset($debug_messages_textonly))
 if (php_sapi_name() == 'cli')
 	$debug_messages_textonly = true;
 
+if (!isset($all_users_see_backtrace))
+	$all_users_see_backtrace = false;
 
 
 

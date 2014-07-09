@@ -85,11 +85,7 @@ $Config->mysql_webuser = $mysql_webuser;
 $Config->mysql_server = $mysql_server;
 
 
-connect_global_mysql();
-
-
-
-//cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI);
+/* instead of cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP , RUN_LOCATION_CLI); ....... */
 connect_global_mysql();
 
 
@@ -128,7 +124,13 @@ disconnect_global_mysql();
 exit;
 
 
+
+
+
 /* --------------------------------------------------------------------------------------------------------- */
+
+
+
 
 
 function upgrade_db_version_from($oldv)
@@ -477,11 +479,7 @@ function upgrade_3_0_16()
 	do_mysql_query("update system_info set value = '3.1.0' where setting_name = 'db_version'");
 }
 
-function get_db_version()
-{
-	list($version) = mysql_fetch_row(do_mysql_query('select value from system_info where setting_name = "db_version"'));
-	return $version;
-}
+
 
 
 

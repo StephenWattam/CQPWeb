@@ -106,16 +106,16 @@ function exiterror_printlines($lines)
  */
 function exiterror_endpage($backlink = false)
 {
-	global $debug_messages_textonly;
+	global $Config;
+	global $User;
 	
 	/* print the PHP back trace */
-	global $User;
-	if (isset($User) && $User->is_admin())
+	if ( (isset($User) && $User->is_admin()) || $Config->all_users_see_backtrace)
 	{
 		$backtrace = debug_backtrace();
-		unset($backtrace[0]); /* because we don't cal about the call to *this* function */
+		unset($backtrace[0]); /* because we don't care about the call to *this* function */
 		
-		if ($debug_messages_textonly)
+		if ($Config->debug_messages_textonly)
 		{
 			echo "\n\nPHP debugging backtrace\n=======================\n";
 			
@@ -135,8 +135,9 @@ function exiterror_endpage($backlink = false)
 			<?php
 		}
 	}
-	
-	if ( ! $debug_messages_textonly)
+
+	/* print the backlink, if requested. */	
+	if ( ! $Config->debug_messages_textonly)
 	{
 		if ($backlink)
 		{

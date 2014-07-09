@@ -850,6 +850,9 @@ function update_group_info($group, $new_description, $new_regex)
 
 function add_user_to_group($user, $group, $expiry_time = 0)
 {
+	/* do not add user to group if user is already a member */
+	if (user_is_group_member($user, $group))
+		return;
 	assert_not_reserved_group($group);
 	$g = group_name_to_id($group);
 	$u = user_name_to_id($user);
