@@ -112,12 +112,12 @@ if (! $incoming_qname_specified )
 	if (isset($_GET['theData']))
 		$theData = prepare_query_string($_GET['theData']);
 	else
-		exiterror_parameter('The content of the query was not specified!', __FILE__, __LINE__);
+		exiterror_parameter('The content of the query was not specified!');
 
 	if (isset($_GET['qmode']))
 		$qmode = prepare_query_mode($_GET['qmode'], true);
 	else
-		exiterror_parameter('No query mode was specified!', __FILE__, __LINE__);
+		exiterror_parameter('No query mode was specified!');
 }
 else
 {
@@ -355,10 +355,10 @@ if ( $incoming_qname_specified )
 
 		/* check the now-compulsory variables */
 		if ($theData == NULL)
-			exiterror_parameter('The content of the query was not specified!', __FILE__, __LINE__);	
+			exiterror_parameter('The content of the query was not specified (and the named query was not in cache)!');	
 
 		if ($qmode == NULL)
-			exiterror_parameter('No query mode was specified!', __FILE__, __LINE__);
+			exiterror_parameter('No query mode was specified (and the named query was not in cache)!');
 	}
 	else
 	{

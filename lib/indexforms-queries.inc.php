@@ -239,8 +239,8 @@ function printquery_restricted()
 	</tr>
 
 	<form action="concordance.php" accept-charset="UTF-8" method="get"> 
-	<tr><td class="concordgeneral" colspan="3">
-	
+	<tr>
+		<td class="concordgeneral" colspan="3">
 	
 			&nbsp;<br/>
 			
@@ -250,26 +250,28 @@ function printquery_restricted()
 			&nbsp;<br/>
 			
 			<table>	
-				<tr><td class="basicbox">Query mode:</td>
+				<tr>
+					<td class="basicbox">Query mode:</td>
 				
-				<td class="basicbox">
-					<select name="qmode">
-						<option value="cqp"<?php if ($select_qmode == 'cqp') echo ' selected="selected"';?>>
-							CQP syntax
-						</option>
-						<option value="sq_nocase"<?php if ($select_qmode == 'sq_nocase') echo ' selected="selected"';?>>
-							Simple query (ignore case)
-						</option>
-						<option value="sq_case"<?php if ($select_qmode == 'sq_case') echo ' selected="selected"';?>>
-							Simple query (case-sensitive)
-						</option>
-					</select>
-					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-					<a href="../doc/Simple_query_language.pdf"
-						onmouseover="return escape('How to compose a search using the Simple Query language')">
-						Simple query language syntax
-					</a>
-				</td></tr>
+					<td class="basicbox">
+						<select name="qmode">
+							<option value="cqp"<?php if ($select_qmode == 'cqp') echo ' selected="selected"';?>>
+								CQP syntax
+							</option>
+							<option value="sq_nocase"<?php if ($select_qmode == 'sq_nocase') echo ' selected="selected"';?>>
+								Simple query (ignore case)
+							</option>
+							<option value="sq_case"<?php if ($select_qmode == 'sq_case') echo ' selected="selected"';?>>
+								Simple query (case-sensitive)
+							</option>
+						</select>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a target="_blank" href="../doc/cqpweb-simple-syntax-help.pdf"
+							onmouseover="return escape('How to compose a search using the Simple Query language')">
+							Simple query language syntax
+						</a>
+					</td>
+				</tr>
 			
 				<tr><td class="basicbox">Number of hits per page:</td>
 				
