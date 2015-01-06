@@ -216,7 +216,7 @@ echo print_menu_aboutblock();
 </table>
 
 		</td>
-		<td valign="top">
+		<td width="100%" valign="top">
 		
         <h1 class="page-title"><?php echo $Corpus->corpus_title?></h1>
 

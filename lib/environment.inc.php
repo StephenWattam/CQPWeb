@@ -208,19 +208,28 @@ class CQPwebEnvConfig
 		unset($this->cwb_datadir);
 		$this->dir->registry = $this->cwb_registry;
 		unset($this->cwb_registry);
-		
+
+
 		/* CSS action based on run_location */
 		switch ($this->run_location)
 		{
 		case RUN_LOCATION_MAINHOME:     $this->css_path = $this->css_path_for_homepage;     break;
 		case RUN_LOCATION_ADM:          $this->css_path = $this->css_path_for_adminpage;    break;
 		case RUN_LOCATION_USR:          $this->css_path = $this->css_path_for_userpage;     break;
-		case RUN_LOCATION_RSS:          /* no CSS path needed */                            break;
-		/* 
-		 * tacit default: RUN_LOCATION_CORPUS, where the $Corpus object takes responsibility for
-		 * setting the global $Config css_path appropriately. 
-		 */
+        case RUN_LOCATION_RSS:          /* no CSS path needed */                            break;
+        case RUN_LOCATION_CORPUS:
+
+            if(!isset($css_path) || empty($css_path))
+                $this->css_path = $this->css_path_for_userpage;
+
+            /* 
+             * tacit default: RUN_LOCATION_CORPUS, where the $Corpus object takes responsibility for
+             * setting the global $Config css_path appropriately (
+             */
+            break;
 		}
+        
+        
 	}
 }
 
@@ -364,14 +373,6 @@ class CQPwebEnvCorpus
 				$this->$k = $v;
 			
 	
-			/* some settings then transfer to $Config */
-			global $Config;
-			if (isset($this->css_path))
-			{
-				$Config->css_path = $this->css_path;
-				unset($this->css_path);
-			}
-		
 			/* import database fields as object members. */
 			$result = do_mysql_query("select * from corpus_info where corpus = '$this->name'");
 			foreach (mysql_fetch_assoc($result) as $k => $v)

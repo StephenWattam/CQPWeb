@@ -140,7 +140,7 @@ echo print_menurow('Main menu', '../', false, 'Go to the main homepage for this 
 </table>
 
 		</td>
-		<td valign="top">
+		<td width="100%" valign="top">
 		
             <h1 class="page-title">CQPweb Admin Control Panel</h1>
 

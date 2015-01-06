@@ -52,7 +52,6 @@ class corpus_install_info
 
 	public $corpus_info_mysql_insert;
 	
-	public $css_url;
 	public $description;
 	
 	public $p_attributes;
@@ -89,7 +88,7 @@ class corpus_install_info
 			exiterror_general("That corpus name is invalid." 
 				. "You must specify a corpus name using only letters, numbers and underscore");		
 		if (substr($this->corpus_cwb_name, -6) == '__freq')
-			exiterror_general('Error: Corpus CWB names cannot end in __freq!!');
+			exiterror_general('Error: Corpus CWB names cannot end in __freq!');
 		
 		/* other basic parameters */
 		$this->script_is_r2l = ( isset($_GET['corpus_scriptIsR2L']) && $_GET['corpus_scriptIsR2L'] === '1' );
@@ -236,27 +235,6 @@ class corpus_install_info
 			$this->s_attributes[] = 'text:0+id';
 
 		
-		/* ******************* */
-
-		if ($_GET['cssCustom'] == 1)
-		{
-			/* escape single quotes in the address because it will be embedded in a single-quoted string */ 
-			$this->css_url = addcslashes($_GET['cssCustomUrl'], "'");
-			/* only a silly URL would have ' in it anyway, so this is for safety */
-			// TODO poss XSS vulnerability - as this URL is sent back to the client eventually. 
-			// Is there *any* way to make this safe? (Assuming an attacker has gained access to this form)
-			// Probably not. Might be better to make external-url-for-css something that can only be done
-			// by manual editing of the settings file. 
-		}
-		else
-		{
-			/* we assume no single quotes in names of builtin CSS files */ 
-			$this->css_url = "../css/{$_GET['cssBuiltIn']}";
-			if (! is_file($this->css_url))
-				$this->css_url = '';
-		}
-		
-		/* ******************* */
 		
 		
 		
@@ -539,7 +517,6 @@ function install_create_settings_file($filepath, $info)
 		. "\$corpus_title = '{$info->description}';\n"
 		. "\$corpus_sql_name = '{$info->corpus_mysql_name}';\n"
 		. "\$corpus_cqp_name = '" . strtoupper($info->corpus_cwb_name) . "';\n"
-		. "\$css_path = '{$info->css_url}';\n"
 		. ($info->script_is_r2l ? "\$corpus_main_script_is_r2l = true;\n" : '')
 		. '?>';
 	file_put_contents($filepath, $data);

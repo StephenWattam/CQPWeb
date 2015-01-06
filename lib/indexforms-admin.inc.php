@@ -151,7 +151,7 @@ function printquery_corpusoptions()
 			<tr>
 				<td class="concordgrey" align="center">
 					Stylesheet address
-					(<a href="<?php echo $settings->get_css_path(); ?>">click here to view</a>):
+					(<a href="<?php echo $settings->get_css_path(); ?>" target="_blank">download</a>):
 				</td>
 				<td class="concordgeneral" align="center">
 					<input type="text" name="args" value="<?php echo $settings->get_css_path(); ?>" />

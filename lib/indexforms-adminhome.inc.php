@@ -241,7 +241,6 @@ function printquery_installcorpus_indexed()
 					<br/>&nbsp;
 				</td>
 			</tr>
-		<?php printquery_installcorpus_stylesheetrows(); ?>
 		</table>
 				
 		<table class="concordtable" width="100%">
@@ -522,7 +521,6 @@ function printquery_installcorpus_unindexed()
 		</table>
 		
 		<table class="concordtable" width="100%">
-		<?php printquery_installcorpus_stylesheetrows(); ?>
 		</table>
 				
 		<table class="concordtable" width="100%">
@@ -577,45 +575,6 @@ function printquery_installcorpusdone()
 			</td>
 		</tr>
 	</table>
-	<?php
-}
-
-function printquery_installcorpus_stylesheetrows()
-{
-	?>
-	
-			<tr>
-				<th colspan="2" class="concordtable">Select a stylesheet</th>
-			</tr>
-			<tr>
-				<td class="concordgeneral" align="left">
-					<input type="radio" name="cssCustom" value="0" checked="checked"/>
-					Choose a built in stylesheet:
-				</td>
-				<td class="concordgeneral" align="left">
-					<select name="cssBuiltIn">
-						<?php
-							$list = scandir('../css');
-							foreach($list as &$l)
-							{
-								if (substr($l, -4) !== '.css')
-									continue;
-								else
-									echo "<option>$l</option>";
-							}
-						?>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<td class="concordgeneral" align="left">
-					<input type="radio" name="cssCustom" value="1" />
-					Use the stylesheet at this URL:
-				</td>
-				<td class="concordgeneral" align="left">
-					<input type="text" maxlength="255" name="cssCustomUrl" />
-				</td>
-			</tr>
 	<?php
 }
 
