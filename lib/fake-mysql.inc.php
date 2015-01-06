@@ -62,8 +62,11 @@ function mysql_connect($server = NULL, $username = NULL, $password = NULL)
 		$username = ini_get("mysqli.default_user");
 	if ($server === NULL)
 		$password = ini_get("mysqli.default_pw");
-	
-	$obj = mysqli_connect($server, $username, $password);
+
+    $conn = mysqli_init();
+    mysqli_options($conn, MYSQLI_OPT_LOCAL_INFILE, true);    
+    mysqli_real_connect($conn, $server, $username, $password);
+    $obj = $conn;
 	
 	if (mysqli_connect_error() === NULL)
 	{
@@ -330,8 +333,8 @@ function mysql_num_fields($result)
 function mysql_field_name($result, $field_offset)
 {
 	$info = mysqli_fetch_field_direct($result, $field_offset);
-	if (isset( $info['name'] ))
-		return $info['name'];
+	if (isset( $info->name ))
+		return $info->name;
 	else
 		return false;	
 }
