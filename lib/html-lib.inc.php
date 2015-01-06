@@ -42,22 +42,39 @@
  *
  * This is the version for the normal user-facing index.
  */
-function print_menurow_index($link_handle, $link_text)
-{
+function print_menurow_index($link_handle, $link_text) {
+
 	global $thisQ;
 	return print_menurow_backend($link_handle, $link_text, $thisQ, 'thisQ');
 }
-function print_menurow_backend($link_handle, $link_text, $current_query, $http_varname)
-{
-	$s = "\n<tr>\n\t<td class=\"";
-	if ($current_query != $link_handle)
-		$s .= "concordgeneral\">\n\t\t<a class=\"menuItem\""
-			. " href=\"index.php?$http_varname=$link_handle&uT=y\">";
-	else 
-		$s .= "concordgrey\">\n\t\t<a class=\"menuCurrentItem\">";
-	$s .= "$link_text</a>\n\t</td>\n</tr>\n";
-	return $s;
+function print_menurow_backend($link_handle, $link_text, $current_query, $http_varname) {
+
+    $s = print_menurow($link_text, "index.php?$http_varname=$link_handle&uT=y", $current_query == $link_handle);
+    return $s;
 }
+
+function print_menurow($link_text, $href, $selected = false, $mouseover = false, $new_window = false){
+
+    # Construct header with optional class if selected
+    $s = "<tr><td class=\"menu-item";
+    if($selected){
+        $s .= " selected";
+    }
+    $s .= "\">";
+    
+    # Write link.  TODO: include mouseover text
+    $s .= "<a class=\"menuItem\" href=\"$href\"";
+    if($mouseover)
+        $s .= " onmouseover=\"return escape('" . addcslashes($mouseover, "'") . "');\"";
+    if($new_window)
+        $s .= " target=\"_blank\"";
+    $s .= ">$link_text</a>";
+    $s .= "</td></tr>";
+
+    return $s;
+}
+
+
 /**
  * Creates a table row for the index-page left-hand-side menu, which is either a link,
  * or a greyed-out entry if the variable specified as $current_query is equal to
@@ -88,29 +105,13 @@ function print_menurow_heading($label)
  */
 function print_menu_aboutblock()
 {
-	return  print_menurow_heading('About CQPweb') . 
-		<<<HERE
+	return  print_menurow_heading('About CQPweb') 
 
-<tr>
-	<td class="concordgeneral">
-		<a class="menuItem" href="../"
-			onmouseover="return escape('Go to the main homepage for this CQPweb server')">
-			CQPweb main menu
-		</a>
-	</td>
-</tr>
-<tr>
-	<td class="concordgeneral">
-		<a class="menuItem" target="_blank" href="http://www.youtube.com/playlist?list=PL2XtJIhhrHNQgf4Dp6sckGZRU4NiUVw1e"
-			onmouseover="return escape('CQPweb video tutorials (on YouTube)')">
-			Video tutorials
-		</a>
-	</td>
-</tr>
-HERE
+        . print_menurow('Video tutorials', 'http://www.youtube.com/playlist?list=PL2XtJIhhrHNQgf4Dp6sckGZRU4NiUVw1e', false, 'CQPweb video tutorials', true)
+        . print_menurow('Main menu', '../', false, 'Go to the main homepage for this CQPweb server')
 
 		// TODO change manual link above. Is not good,. REplace with link to "Open Help Ssytem"
-		. print_menurow_index('who_the_hell', 'Who did it?')
+		. print_menurow_index('who_the_hell', 'Contributors')
 		. print_menurow_index('latest', 'Latest news')
 		. print_menurow_index('bugs', 'Report bugs');
 }
@@ -132,41 +133,28 @@ function print_html_footer($link = 'help')
 	// TODO - we can get rid of the diverter if the wz_tooltip is rewritten and integrated into the JS
 	// that goes in the page header (which would be better).
 	$diverter = '../';
-	
-	// TODO there must be much better uses for the central link now...
-	// since the adm link was only needed when mainhome could not be logged in.
-	
-	if ($link == 'help')
-	{
-		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
-			<a class="cqpweb_copynote_link" href="help.php" target="_NEW">Corpus and tagset help</a>
-		</td>';
-	}
-	else
-	{
-		$help_cell = '<td align="center" class="cqpweb_copynote" width="33%">
-			&nbsp;
-		</td>';
-	}
-	
-	?>
-	<hr/>
-	<table class="concordtable" width="100%">
-		<tr>
-			<td align="left" class="cqpweb_copynote" width="33%">
-				CQPweb v<?php echo CQPWEB_VERSION; ?> &#169; 2008-2014
-			</td>
-			<?php echo $help_cell; ?>  
-			<td align="right" class="cqpweb_copynote" width="33%">
-				<?php
-				if (!$User->logged_in)
-					echo 'You are not logged in';
-				else
-					echo "You are logged in as user [{$User->username}]";
-				?>
-			</td>
-		</tr>
-	</table>
+
+?>    
+    <div class="footer">
+        <span class="footer-item">
+            CQPweb v<?php echo CQPWEB_VERSION; ?> &#169; 2008-2014
+        </span>
+
+
+    <?php 
+        if ($link == 'help') { ?>
+            <span class="footer-item">
+                <a class="cqpweb_copynote_link" href="help.php" target="_NEW">Corpus and tagset help</a>
+                </span> <?php
+        }
+		
+        if ($User->logged_in) { ?>
+            <span class="footer-item">
+            You are logged in as <?php echo $User->username ?>
+            </span> <?php
+        }
+    ?>
+
 	<script language="JavaScript" type="text/javascript" src="<?php echo $diverter; ?>jsc/wz_tooltip.js">
 	</script>
 	</body>

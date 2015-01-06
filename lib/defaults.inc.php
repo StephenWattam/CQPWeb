@@ -197,10 +197,10 @@ if (!isset($css_path_for_homepage))
 	$css_path_for_homepage = "css/CQPweb.css";
 
 if (!isset($css_path_for_adminpage))
-	$css_path_for_adminpage = "../css/CQPweb-red.css";
+	$css_path_for_adminpage = "../css/CQPweb.css";
 
 if (!isset($css_path_for_userpage))
-	$css_path_for_userpage = "../css/CQPweb-green.css";
+	$css_path_for_userpage = "../css/CQPweb.css";
 
 if (!isset($homepage_use_corpus_categories))
 	$homepage_use_corpus_categories = false;

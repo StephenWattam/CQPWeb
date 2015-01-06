@@ -83,14 +83,10 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 
 ?>
 
+<h1 class="page-title"><?php echo $logo_divs, $homepage_welcome_message; ?></h1>
 
 <table class="concordtable" width="100%">
 
-	<tr>
-		<th colspan="3" class="concordtable">
-			<?php echo $logo_divs, $homepage_welcome_message; ?>
-		</th>
-	</tr>
 	<tr>
 	<?php
 
@@ -123,7 +119,7 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 				<p>&nbsp;</p>
 			
 				<p align="center" style="font-size:large">
-					Welcome back to the CQPweb server<?php echo $personalise; ?>.<br/>You are logged in to the system.
+                    You are logged in as <?php echo $User->username ?>.
 				</p>
 
 				<p>&nbsp;</p>
@@ -144,11 +140,11 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 						</td>
 						<td class="basicbox">
 							<ul>
-								<li><a href="usr/index.php?thisQ=corpusAccess&uT=y">Your corpus access privileges</a></li>
+								<li><a href="usr/index.php?thisQ=corpusAccess&uT=y">Corpus access privileges</a></li>
 								<?php if ($User->is_admin()) echo "<li><a href=\"adm\">Admin control panel</a></li>\n"; ?>
-								<li><a href="usr/index.php?thisQ=userDetails&uT=y">Your user account details</a></li>
+								<li><a href="usr/index.php?thisQ=userDetails&uT=y">User account details</a></li>
 								<!-- <li><a href="">Open help system</a></li>  -->
-								<li><a href="usr/redirect.php?redirect=userLogout&uT=y">Log out of CQPweb</a></li>
+								<li><a href="usr/redirect.php?redirect=userLogout&uT=y">Log out</a></li>
 							</ul>
 						</td>
 					</tr>
@@ -176,7 +172,7 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 	?>
 	<tr>
 		<th colspan="3" class="concordtable">
-			Corpora available on this server (<a href="usr/index.php?thisQ=corpusAccess&uT=y">click here to view your own corpus access privileges</a>)
+			Corpora available on this server (<a href="usr/index.php?thisQ=corpusAccess&uT=y">view access privileges</a>)
 		</th>
 	</tr>
 <?php

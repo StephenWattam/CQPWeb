@@ -125,12 +125,6 @@ echo print_html_header(strip_tags($Corpus->corpus_title . $Config->searchpage_co
 
 ?>
 <table class="concordtable" width="100%">
-	<tr>
-		<th class="concordtable"><a class="menuHeaderItem">Menu</a></th>
-	</tr>
-</table>
-
-<table class="concordtable" width="100%">
 
 <?php
 echo print_menurow_heading('Corpus queries');
@@ -164,28 +158,18 @@ echo print_menurow_heading('Corpus info');
 /* note that most of this section is links-out, so we can't use the print-row function */
 
 /* SHOW CORPUS METADATA */
-echo "<tr>\n\t<td class=\"";
-if ($thisQ != "corpusMetadata")
-	echo "concordgeneral\">\n\t\t<a class=\"menuItem\" " 
-		. "href=\"index.php?thisQ=corpusMetadata&uT=y\" "
-		. "onmouseover=\"return escape('View CQPweb\'s database of information about this corpus')\">";
-else 
-	echo "concordgrey\">\n\t\t<a class=\"menuCurrentItem\">";
-echo "View corpus metadata</a>\n\t</td>\n</tr>";
+echo print_menurow_index('corpusMetadata', 'View corpus metadata');
 
 
 /* print a link to a corpus manual, if there is one */
-$sql_query = "select external_url from corpus_info "
-	. "where corpus = '$corpus_sql_name' and external_url IS NOT NULL";
+$sql_query = "select external_url from corpus_info where corpus = '$corpus_sql_name' and external_url IS NOT NULL";
 $result = do_mysql_query($sql_query);
-if (mysql_num_rows($result) < 1)
-	echo '<tr><td class="concordgeneral"><a class="menuCurrentItem">Corpus documentation</a></tr></td>';
-else
+if (mysql_num_rows($result) >= 1)
 {
 	$row = mysql_fetch_row($result);
-	echo '<tr><td class="concordgeneral"><a target="_blank" class="menuItem" href="'
-		. $row[0] . '" onmouseover="return escape(\'Info on ' . addcslashes($corpus_title, '\'')
-		. ' on the web\')">' . 'Corpus documentation</a></td></tr>';
+
+    # FIXME: 'currently viewing' will never be set to true below.  This is a small bug.
+    print_menurow('Corpus documentation', $row[0], false, "Info on $corpus_title", true);
 }
 
 
@@ -211,15 +195,7 @@ while (($row = mysql_fetch_assoc($result)) != false)
 if ($User->is_admin())
 {
 	echo print_menurow_heading('Admin tools');
-	?>
-
-	<tr>
-		<td class="concordgeneral">
-			<a class="menuItem" href="../adm">Admin control panel</a>
-		</td>
-	</tr>
-	<?php
-	
+	echo print_menurow('Admin control panel', '../adm');
 	echo print_menurow_index('corpusSettings', 'Corpus settings');
 	echo print_menurow_index('userAccess', 'Manage access');
 	echo print_menurow_index('manageMetadata', 'Manage metadata');
@@ -242,13 +218,7 @@ echo print_menu_aboutblock();
 		</td>
 		<td valign="top">
 		
-<table class="concordtable" width="100%">
-	<tr>
-		<th class="concordtable"><a class="menuHeaderItem">
-		<?php echo $Corpus->corpus_title . $Config->searchpage_corpus_name_suffix; ?>
-		</a></th>
-	</tr>
-</table>
+        <h1 class="page-title"><?php echo $Corpus->corpus_title?></h1>
 
 
 
