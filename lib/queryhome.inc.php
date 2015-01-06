@@ -124,7 +124,7 @@ echo print_html_header(strip_tags($Corpus->corpus_title . $Config->searchpage_co
  * ******************* */
 
 ?>
-<table class="concordtable" width="100%">
+<table class="menu" width="100%">
 
 <?php
 echo print_menurow_heading('Corpus queries');

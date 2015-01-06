@@ -90,7 +90,7 @@ echo print_html_header('CQPweb Admin Control Panel', $Config->css_path, array('c
 /* ******************* */
 
 ?>
-<table class="concordtable" width="100%">
+<table class="menu" width="100%">
 
 <?php
 echo print_menurow_heading('Corpora');

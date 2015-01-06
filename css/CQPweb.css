@@ -231,6 +231,10 @@ td.menu-item {
     padding: 3px;
 }
 
+table.menu {
+    width: 200px;
+}
+
 /* different types of link */
 /* first, for left-navigation in the main query screen */
 a.menuItem {
