@@ -1060,7 +1060,7 @@ function print_sc_list_of_files()
 
 	?>
 	<table class="concordtable" width="100%">
-		<form action="subcorpus-admin.php" method="get">
+		<form action="subcorpus-admin.php" method="post">
 			<tr>
 				<th class="concordtable" colspan="5">Create and edit subcorpora</th>
 			</tr>
@@ -1094,7 +1094,12 @@ function print_sc_list_of_files()
 							</td>
 							<td class="basicbox">
 								<input type="checkbox" name="processFileListAddAll" 
-									value="<?php echo $form_full_list_idcode; ?>" 
+                                    value="<?php echo $form_full_list_idcode; ?>" 
+                                    <?php
+                                        if(count($text_list) > 1000) {
+                                            echo 'checked="checked"';
+                                        }
+                                    ?>
 								/>
 								include all texts
 							</td>
@@ -1115,10 +1120,15 @@ function print_sc_list_of_files()
 			</tr>
 	<?php
 
-	if (! empty($text_list))
-	{
+    if (count($text_list) > 1000){
+        echo '<tr>';
+        echo '<td class="concordgrey" align="center" colspan="5">' . count($text_list) . ' results omitted due to size of corpus.  Use "include all texts" above.</td>';
+        echo '</tr>';
+    }
+    else if (! empty($text_list))
+    {
 		foreach($text_list as &$text)
-		{
+        {
 			$meta = metadata_of_text($text);
 			
 			echo '
