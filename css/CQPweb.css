@@ -255,6 +255,17 @@ div#loadingnoJS {
     cursor: n-resize;
 }
 
+td#headLogo {
+    text-align: center;
+    font-family: serif;
+    text-transform: uppercase;
+}
+
+td#headLogo img {
+    margin: 15px 0;
+}
+
+
 div.menu {
     width: 200px;
 }

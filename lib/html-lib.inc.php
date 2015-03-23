@@ -138,6 +138,8 @@ function print_admin_menu(){
     echo ('<div class="menu">');
     echo ('<table width="100%" id="menuTable">');
 
+    echo ('<tr><td id="headLogo"><img src="../images/head.png"/></td></tr>');
+
     print_places_menu();
 
     echo print_menurow_heading('Corpora');
@@ -207,6 +209,7 @@ function print_menu(){
     echo ('<div class="menu">');
     echo ('<table width="100%" id="menuTable">');
 
+    echo ('<tr><td id="headLogo"><img src="../images/head.png"/></td></tr>');
 
     print_places_menu();
 
