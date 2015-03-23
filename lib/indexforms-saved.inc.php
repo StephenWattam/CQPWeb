@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -33,12 +33,12 @@ function printquery_history()
 	global $User;
 	global $default_history_per_page;
 	global $corpus_sql_name;
-	
+
 	if (isset($_GET['historyView']))
 		$view = $_GET['historyView'];
 	else
 		$view = ( (boolean)get_user_setting($User->username, 'cqp_syntax') ? 'cqp' : 'simple');
-	
+
 
 	if (isset($_GET['beginAt']))
 		$begin_at = $_GET['beginAt'];
@@ -68,7 +68,7 @@ function printquery_history()
 		$usercolumn = true;
 		$current_string = 'Currently showing history for all users';
 		break;
-	
+
 	case '__SYNERR':
 		/* I have forgotten why column_count is so high here - you see, it is not used if an admin user is plugged in */
 		$column_count = 9;
@@ -76,14 +76,14 @@ function printquery_history()
 		$usercolumn = true;
 		$current_string = 'Currently showing history of queries with a syntax error';
 		break;
-		
+
 	case '__RUNNING':
 		$sql_query = "select * from query_history where corpus = '$corpus_sql_name' and hits = -3 order by date_of_query DESC";
 		$column_count = 9;
 		$usercolumn = true;
 		$current_string = 'Currently showing history of incompletely-run queries';
 		break;
-	
+
 	default:
 		$sql_query = "select instance_name, date_of_query, restrictions, subcorpus, cqp_query, simple_query, query_mode, hits
 			from query_history where corpus = '$corpus_sql_name' and user = '$user_to_show' order by date_of_query DESC";
@@ -95,11 +95,11 @@ function printquery_history()
 
 
 	$result = do_mysql_query($sql_query);
-	
+
 	$linkChangeView = "&nbsp;&nbsp;&nbsp;&nbsp;(<a href=\"index.php?"
-		. url_printget(array(array('historyView', ( ($view == 'simple') ? 'cqp' : 'simple' )))) 
+		. url_printget(array(array('historyView', ( ($view == 'simple') ? 'cqp' : 'simple' ))))
 		. '">Show ' . ( ($view == 'simple') ? 'in CQP syntax' : 'as Simple Query' ) . '</a>)';
-	
+
 
 
 	if ($User->is_admin())
@@ -107,7 +107,7 @@ function printquery_history()
 		/* there will be a delete column */
 		$delete_lines = true;
 		$column_count++;
-	
+
 		/* version giving superuser access to everything */
 		?>
 		<table class="concordtable" width="100%">
@@ -128,23 +128,23 @@ function printquery_history()
 								<option value="__RUNNING">Show incompletely-run queries</option>
 								<option value="__SYNERR">Show queries with a syntax error</option>
 					<?php
-					
-					$temp_sql_query = "SELECT distinct(user) FROM query_history  
+
+					$temp_sql_query = "SELECT distinct(user) FROM query_history
 										where corpus = '$corpus_sql_name' order by user";
 					$temp_result = do_mysql_query($temp_sql_query);
-				
+
 					while ($r = mysql_fetch_row($temp_result))
 						echo '<option value="' . $r[0] . '">' . $r[0] . '</option>';
 					unset($temp_result);
-					
+
 					?>
 							</select>
 							</td>
 							<td class="basicbox"><input type="submit" value="Show history"/></td>
-						</tr>	
+						</tr>
 						<tr>
 							<td class="basicbox">Number of records per page</td>
-							<td class="basicbox">	
+							<td class="basicbox">
 								<select name="pp">
 									<option value="10"   <?php if ($per_page == 10)   echo 'selected="selected"'; ?>>10</option>
 									<option value="50"   <?php if ($per_page == 50)   echo 'selected="selected"'; ?>>50</option>
@@ -166,7 +166,7 @@ function printquery_history()
 					<!-- this input ALWAYS comes last -->
 					<input type="hidden" name="uT" value="y"/>
 					</form>
-					
+
 				</td>
 			</tr>
 		</table>
@@ -181,11 +181,11 @@ function printquery_history()
 			<tr>
 				<th colspan="<?php echo $column_count; ?>" class="concordtable">Query history</th>
 			</tr>
-		<?php	
+		<?php
 	}
-	
-	
-	
+
+
+
 	?>
 		<tr>
 			<th class="concordtable">No.</th>
@@ -195,7 +195,7 @@ function printquery_history()
 			<th class="concordtable">Hits</th>
 			<th class="concordtable">Date</th>
 			<?php if ($delete_lines) echo '<th class="concordtable">Delete</th>'; ?>
-			
+
 		</tr>
 
 	<?php
@@ -205,10 +205,10 @@ function printquery_history()
 
 	$toplimit = $begin_at + $per_page;
 	$alt_toplimit = mysql_num_rows($result);
-	
+
 	if (($alt_toplimit + 1) < $toplimit)
 		$toplimit = $alt_toplimit + 1;
-	
+
 
 	for ( $i = 1 ; $i < $toplimit ; $i++ )
 	{
@@ -217,54 +217,54 @@ function printquery_history()
 			break;
 		if ($i < $begin_at)
 			continue;
-		
+
 		echo "<tr>\n<td class='concordgeneral' align='center'>$i</td>";
 		if ($usercolumn)
 			echo "<td class='concordgeneral' align='center'>" . $row['user'] . '</td>';
-		
+
 		if ( $view == 'simple' && $row['simple_query'] != "" )
-			echo '<td class="concordgeneral"><a href="index.php?thisQ=search&insertString=' 
+			echo '<td class="concordgeneral"><a href="index.php?thisQ=search&insertString='
 				. urlencode($row['simple_query']) . '&insertType=' . $row['query_mode'] . '&uT=y"'
-				. ' onmouseover="return escape(\'Insert query string into query window\')">' 
+				. ' onmouseover="return escape(\'Insert query string into query window\')">'
 				. htmlspecialchars($row['simple_query']) . '</a>'
 				. ($row['query_mode'] == 'sq_case' ? " (case sensitive)" : "") . '</td>';
 		else
-			echo '<td class="concordgeneral"><a href="index.php?thisQ=search&insertString=' 
-				. urlencode($row['cqp_query']) . '&insertType=' 
+			echo '<td class="concordgeneral"><a href="index.php?thisQ=search&insertString='
+				. urlencode($row['cqp_query']) . '&insertType='
 				. ( $view == 'simple' ? $row['query_mode'] : 'cqp' ) . '&uT=y"'
-				. ' onmouseover="return escape(\'Insert query string into query window\')">' 
+				. ' onmouseover="return escape(\'Insert query string into query window\')">'
 				. htmlspecialchars($row['cqp_query']) . '</a></td>';
 
 		if ($row['subcorpus'] != 'no_subcorpus')
 
 			echo '<td class="concordgeneral">Subcorpus:<br/><a href="index.php?thisQ=search&insertString='
-				. urlencode(($view == 'simple' && $row['simple_query'] != "") ? $row['simple_query'] : $row['cqp_query']) 
-				. '&insertType=' . ( $view == 'simple' ? $row['query_mode'] : 'cqp' ) 
+				. urlencode(($view == 'simple' && $row['simple_query'] != "") ? $row['simple_query'] : $row['cqp_query'])
+				. '&insertType=' . ( $view == 'simple' ? $row['query_mode'] : 'cqp' )
 				. '&insertSubcorpus=' . $row['subcorpus'] . '&uT=y"'
 				. ' onmouseover="return escape(\'Insert query string and textual restrictions into query window\')">'
 				. $row['subcorpus']
 				. '</a></td>';
 		else if ($row['restrictions'] != 'no_restriction')
 			echo '<td class="concordgeneral"><a href="index.php?thisQ=restrict&insertString='
-				. urlencode(($view == 'simple' && $row['simple_query'] != "") ? $row['simple_query'] : $row['cqp_query']) 
-				. '&insertType=' . ( $view == 'simple' ? $row['query_mode'] : 'cqp' ) 
+				. urlencode(($view == 'simple' && $row['simple_query'] != "") ? $row['simple_query'] : $row['cqp_query'])
+				. '&insertType=' . ( $view == 'simple' ? $row['query_mode'] : 'cqp' )
 				. '&insertRestrictions=' . urlencode($row['restrictions']) . '&uT=y"'
 				. ' onmouseover="return escape(\'Insert query string and textual restrictions into query window\')">'
-				. 'Textual restrictions</a>:<br/>' 
+				. 'Textual restrictions</a>:<br/>'
 				. str_replace('; ', '; <br/>', translate_restrictions_to_prose($row['restrictions']))
 				. '</td>';
 		else
-			echo '<td class="concordgeneral">-</td>';	
+			echo '<td class="concordgeneral">-</td>';
 
-		
+
 		switch($row['hits'])
 		{
 		/* maybe add links to explanations? (-3 and -1) */
 		case -3:
 			echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
-				. "theData=" . urlencode($row['cqp_query']) 
+				. "theData=" . urlencode($row['cqp_query'])
 				. "&simpleQuery=" . urlencode($row['simple_query'])
-				. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+				. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">"
 				. "Run error</a></td>";
 				break;
 		case -1:
@@ -273,28 +273,28 @@ function printquery_history()
 		default:
 			if ($row['subcorpus'] != 'no_subcorpus')
 				echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
-					. "theData=" . urlencode($row['cqp_query']) 
+					. "theData=" . urlencode($row['cqp_query'])
 					. "&del=begin&t=subcorpus~{$row['subcorpus']}&del=end"
 					. "&simpleQuery=" . urlencode($row['simple_query'])
-					. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+					. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">"
 					. $row['hits'] . "</a></td>";
 			else if ($row['restrictions'] != 'no_restriction')
 				echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
-					. "theData=" . urlencode($row['cqp_query']) 
+					. "theData=" . urlencode($row['cqp_query'])
 					. "&simpleQuery=" . urlencode($row['simple_query'])
 					. '&' . untranslate_restrictions_definition_string($row['restrictions'])
-					. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+					. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">"
 					. $row['hits'] . "</a></td>";
 			else
 				echo "<td class='concordgeneral' align='center'><a href=\"concordance.php?"
-					. "theData=" . urlencode($row['cqp_query']) 
+					. "theData=" . urlencode($row['cqp_query'])
 					. "&simpleQuery=" . urlencode($row['simple_query'])
-					. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">" 
+					. "&qmode=cqp&uT=y\" onmouseover=\"return escape('Recreate query result')\">"
 					. $row['hits'] . "</a></td>";
 			break;
 		}
 		echo "<td class='concordgeneral' align='center'>" . $row['date_of_query'] . "</td>";
-		
+
 		if ($delete_lines)
 		{
 			echo '<td class="concordgeneral" align="center"><a class="menuItem" href="execute.php'
@@ -304,7 +304,7 @@ function printquery_history()
 		}
 		echo "\n</tr>\n";
 	}
-	
+
 	echo '</table>';
 
 	$navlinks = '<table class="concordtable" width="100%"><tr><td class="basicbox" align="left';
@@ -320,14 +320,14 @@ function printquery_history()
 	if ($begin_at > 1)
 		$navlinks .= '</a>';
 	$navlinks .= '</td><td class="basicbox" align="right';
-	
+
 	if (mysql_num_rows($result) > $i)
 		$navlinks .=  '"><a href="index.php?' . url_printget(array(array('beginAt', "$i + 1")));
 	$navlinks .= '">[Older queries] &gt;&gt;';
 	if (mysql_num_rows($result) > $i)
 		$navlinks .= '</a>';
 	$navlinks .= '</td></tr></table>';
-	
+
 	echo $navlinks;
 
 }
@@ -345,7 +345,7 @@ function printquery_catqueries()
 	global $User;
 	global $corpus_sql_name;
 	global $default_history_per_page;
-	
+
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -366,7 +366,7 @@ function printquery_catqueries()
 		$current_string = 'Currently showing history for all users';
 	else
 		$current_string = "Currently showing history for user <b>&ldquo;$user_to_show&rdquo;</b>";
-	
+
 	$usercolumn = (($user_to_show == '__ALL') && $User->is_admin());
 
 	if (isset($_GET['beginAt']))
@@ -399,23 +399,23 @@ function printquery_catqueries()
 							<select name="showUser">
 								<option value="__ALL" selected="selected">all users</option>
 					<?php
-					
-					$temp_sql_query = "SELECT distinct(user) FROM saved_catqueries 
+
+					$temp_sql_query = "SELECT distinct(user) FROM saved_catqueries
 											where corpus = '$corpus_sql_name' order by user";
 					$temp_result = do_mysql_query($temp_sql_query);
 
 					while ($r = mysql_fetch_row($temp_result))
 						echo '<option value="' . $r[0] . '">' . $r[0] . '</option>';
 					unset($temp_result);
-					
+
 					?>
 							</select>
 							</td>
 							<td class="basicbox"><input type="submit" value="Show history"/></td>
-						</tr>	
+						</tr>
 						<tr>
 							<td class="basicbox">Number of records per page</td>
-							<td class="basicbox">	
+							<td class="basicbox">
 								<select name="pp">
 									<option value="10"   <?php if ($per_page == 10)   echo 'selected="selected"'; ?>>10</option>
 									<option value="50"   <?php if ($per_page == 50)   echo 'selected="selected"'; ?>>50</option>
@@ -437,7 +437,7 @@ function printquery_catqueries()
 					<!-- this input ALWAYS comes last -->
 					<input type="hidden" name="uT" value="y"/>
 					</form>
-					
+
 				</td>
 			</tr>
 		</table>
@@ -452,29 +452,29 @@ function printquery_catqueries()
 				<th colspan="1" class="concordtable">Categorised queries</th>
 			</tr>
 		</table>
-		<?php	
+		<?php
 	}
-	
-	
+
+
 	/* now it's time to look up the categorised queries */
 
-	
-	/* 
-	 * the saved_catqueries table does not contain the actual info, for that we need to look up the savename etc. 
+
+	/*
+	 * the saved_catqueries table does not contain the actual info, for that we need to look up the savename etc.
 	 * from the main query cache
 	 */
 	$user_clause = ($usercolumn ? '' : " user='$user_to_show' and ");
-	$result = do_mysql_query("select catquery_name, category_list, dbname from saved_catqueries 
+	$result = do_mysql_query("select catquery_name, category_list, dbname from saved_catqueries
 								where $user_clause corpus='$corpus_sql_name'");
 
 	$catqueries_to_show = array();
 
 	for ( $i = 1 ; true ; $i++ )
 	{
-		/* note, this loop includes some hefty mysql-ing 
+		/* note, this loop includes some hefty mysql-ing
 		 * BUT it is not expected that the number of
 		 * entries in the saved_catqueries table will be large
-		 */ 
+		 */
 		if ( ($row = mysql_fetch_row($result)) === false)
 			break;
 		/* so we don't have to run the SQL query below unless 'tis needed */
@@ -484,7 +484,7 @@ function printquery_catqueries()
 		/* find out how many rows have been assigned a value */
 		$inner_result = do_mysql_query("select count(*) from {$row[2]} where category is not NULL");
 		list($n) = mysql_fetch_row($inner_result);
-		
+
 		/* assemble the info for this categorised query line */
 		$catqueries_to_show[$i] = array(
 			'qname' => $row[0],
@@ -492,13 +492,13 @@ function printquery_catqueries()
 			'query_record' => check_cache_qname($row[0]),
 			'number_categorised' => $n
 			);
-		$catqueries_to_show[$i]['number_of_hits'] 
+		$catqueries_to_show[$i]['number_of_hits']
 			= (empty($catqueries_to_show[$i]['query_record']['hits_left']) ? $catqueries_to_show[$i]['query_record']['hits'] : array_pop(explode('~', $catqueries_to_show[$i]['query_record']['hits_left'])));
 	}
 
 
 	/* set this up as a variable, so it doesn't have to be used every time */
-	$action_form_begin = 
+	$action_form_begin =
 		'<form action="redirect.php" method="get">
 			<td class="concordgeneral">
 				<select name="categoriseAction">
@@ -510,7 +510,7 @@ function printquery_catqueries()
 			</td>
 			<input type="hidden" name="redirect" value="categorise"/>
 			<input type="hidden" name="qname" value="';
-	
+
 	$action_form_end = '"/>
 			<input type="hidden" name="uT" value="y"/>
 		</form>
@@ -535,10 +535,10 @@ function printquery_catqueries()
 
 	$toplimit = $begin_at + $per_page;
 	$alt_toplimit = mysql_num_rows($result);
-	
+
 	if (($alt_toplimit + 1) < $toplimit)
 		$toplimit = $alt_toplimit + 1;
-	
+
 
 	for ( $i = 1 ; $i < $toplimit ; $i++ )
 	{
@@ -547,49 +547,49 @@ function printquery_catqueries()
 
 		/* no. */
 		echo "<tr>\n<td class='concordgeneral' align='center'>$i</td>";
-		
+
 		/* user */
 		if ($usercolumn)
-			echo "<td class='concordgeneral' align='center'>" 
-				. $catqueries_to_show[$i]['query_record']['user'] 
+			echo "<td class='concordgeneral' align='center'>"
+				. $catqueries_to_show[$i]['query_record']['user']
 				. '</td>';
-		
+
 		/* Name of set */
 		if (!empty($catqueries_to_show[$i]['query_record']['save_name']))
 			$print_name = $catqueries_to_show[$i]['query_record']['save_name'];
 		else
 			$print_name = $catqueries_to_show[$i]['qname'];
-		
+
 		echo '<td class="concordgeneral"><a href="concordance.php?program=categorise&qname='
-			. $catqueries_to_show[$i]['qname'] 
+			. $catqueries_to_show[$i]['qname']
 			. '&uT=y" onmouseover="return escape(\'View or amend category assignments\')">'
 			. $print_name . '</a></td>';
 
 		/* categories */
 		echo '<td class="concordgeneral" align="center">' . implode(', ', $catqueries_to_show[$i]['catlist'])
 			. '</td>';
-		
+
 		/* number of hits */
-		echo '<td class="concordgeneral" align="center">' . $catqueries_to_show[$i]['number_of_hits'] 
+		echo '<td class="concordgeneral" align="center">' . $catqueries_to_show[$i]['number_of_hits']
 			. '</td>';
-		
+
 		/* number and % of hits categorised */
-		echo '<td class="concordgeneral" align="center"><center>' . $catqueries_to_show[$i]['number_categorised'] 
+		echo '<td class="concordgeneral" align="center"><center>' . $catqueries_to_show[$i]['number_categorised']
 			. ' ('
 			. round(100*$catqueries_to_show[$i]['number_categorised']/$catqueries_to_show[$i]['number_of_hits'], 0)
 			. '%)</td>';
-		
+
 		/* date of saving */
-		echo '<td class="concordgeneral" align="center">' . $catqueries_to_show[$i]['query_record']['date_of_saving'] 
+		echo '<td class="concordgeneral" align="center">' . $catqueries_to_show[$i]['query_record']['date_of_saving']
 			. '</td>';
-		
+
 		/* actions */
 		echo $action_form_begin . $catqueries_to_show[$i]['qname'] . $action_form_end;
-		
+
 		echo '</tr>';
 
 	}
-	
+
 	echo '</table>';
 
 	$navlinks = '<table class="concordtable" width="100%"><tr><td class="basicbox" align="left';
@@ -605,14 +605,14 @@ function printquery_catqueries()
 	if ($begin_at > 1)
 		$navlinks .= '</a>';
 	$navlinks .= '</td><td class="basicbox" align="right';
-	
+
 	if (mysql_num_rows($result) > $i)
 		$navlinks .=  '"><a href="index.php?' . url_printget(array(array('beginAt', "$i + 1")));
 	$navlinks .= '">[Older categorised queries] &gt;&gt;';
 	if (mysql_num_rows($result) > $i)
 		$navlinks .= '</a>';
 	$navlinks .= '</td></tr></table>';
-	
+
 	echo $navlinks;
 
 }
@@ -624,7 +624,7 @@ function printquery_catqueries()
 function printquery_savedqueries()
 {
 	global $User;
-	
+
 	global $default_history_per_page;
 	global $corpus_sql_name;
 
@@ -675,24 +675,24 @@ function printquery_savedqueries()
 							<select name="showUser">
 								<option value="__ALL" selected="selected">all users</option>
 					<?php
-					
-					$temp_sql_query = "SELECT distinct(user) FROM saved_queries where saved = 1 
+
+					$temp_sql_query = "SELECT distinct(user) FROM saved_queries where saved = 1
 										and corpus = '$corpus_sql_name' order by user";
 					$temp_result = do_mysql_query($temp_sql_query);
-				
+
 
 					while (($r = mysql_fetch_row($temp_result)) !== false)
 						echo '<option value="' . $r[0] . '">' . $r[0] . '</option>';
 					unset($temp_result);
-					
+
 					?>
 							</select>
 							</td>
 							<td class="basicbox"><input type="submit" value="Show history"/></td>
-						</tr>	
+						</tr>
 						<tr>
 							<td class="basicbox">Number of records per page</td>
-							<td class="basicbox">	
+							<td class="basicbox">
 								<select name="pp">
 									<option value="10"   <?php if ($per_page == 10)   echo 'selected="selected"'; ?>>10</option>
 									<option value="50"   <?php if ($per_page == 50)   echo 'selected="selected"'; ?>>50</option>
@@ -714,7 +714,7 @@ function printquery_savedqueries()
 					<!-- this input ALWAYS comes last -->
 					<input type="hidden" name="uT" value="y"/>
 					</form>
-					
+
 				</td>
 			</tr>
 		</table>
@@ -729,7 +729,7 @@ function printquery_savedqueries()
 				<th colspan="1" class="concordtable">Saved queries</th>
 			</tr>
 		</table>
-		<?php	
+		<?php
 	}
 
 
@@ -745,26 +745,26 @@ function printquery_showmatrix()
 {
 	global $corpus_sql_name;
 	global $User;
-	
+
 	/* note that this function is always called via printquery_analysecorpus() */
-	
+
 	$matrix = get_feature_matrix( $_GET['showMatrix'] );
-	
+
 	if (false === $matrix)
 		exiterror_general("Could not retrieve any information on the specified matrix!");
-	
+
 	if (!$User->is_admin())
 		if ( $User->username != $matrix->user )
 			exiterror_general("The specified matrix does not belong to this user account!");
-	
+
 	if ( $corpus_sql_name != $matrix->corpus )
 		exiterror_general("The specified matrix is not associated with this corpus!");
-	
+
 	$variable_list  = feature_matrix_list_variables($matrix->id);
 	$object_names   = feature_matrix_list_objects($matrix->id);
-	
+
 	$tablename = feature_matrix_id_to_tablename($matrix->id);
-	
+
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -773,34 +773,34 @@ function printquery_showmatrix()
 		<tr>
 			<td class="concordgrey">Name:</td>
 			<td class="concordgeneral"><?php echo cqpweb_htmlspecialchars($matrix->savename); ?></td>
-		</tr>	
+		</tr>
 		<tr>
 			<td class="concordgrey">Uses subcorpus:</td>
 			<td class="concordgeneral">
 				<?php echo empty($matrix->subcorpus) ? 'Whole corpus' : $matrix->subcorpus; ?>
 			</td>
-		</tr>	
+		</tr>
 
 		<tr>
 			<td class="concordgrey">Data objects are units of:</td>
 			<td class="concordgeneral"><?php echo $matrix->unit; ?></td>
-		</tr>	
+		</tr>
 
 		<tr>
 			<td class="concordgrey">Date created:</td>
 			<td class="concordgeneral"><?php echo date($matrix->create_time); ?></td>
-		</tr>	
+		</tr>
 
 		<tr>
 			<td class="concordgrey">Number of variables (columns):</td>
 			<td class="concordgeneral"><?php echo count($variable_list); ?></td>
-		</tr>	
+		</tr>
 
 		<tr>
 			<td class="concordgrey">Number of data objects (rows):</td>
 			<td class="concordgeneral"><?php echo count($object_names); ?></td>
 		</tr>
-	</table>	
+	</table>
 
 	<table class="concordtable" width="100%">
 		<tr>
@@ -810,25 +810,25 @@ function printquery_showmatrix()
 			<th class="concordtable">Variable label</th>
 			<th class="concordtable">Source of variable</th>
 		</tr>
-		
+
 		<?php
-		
+
 		if (empty($variable_list))
 			echo "\n\t\t<tr>"
 				, '<td class="concordgrey" colspan="2">&nbsp;<br>No variables found; data may be corrupted.<br>&nbsp;</td>'
-				, "</tr>\n" 
+				, "</tr>\n"
 				;
 		else
 			foreach($variable_list as $v)
 				echo "\n\t\t<tr>"
 					, '<td class="concordgeneral">' , $v->label , '</td>'
 					, '<td class="concordgeneral">' , cqpweb_htmlspecialchars($v->source_info) , '</td>'
-					, "</tr>\n" 
+					, "</tr>\n"
 					;
 		?>
-		
+
 	</table>
-	
+
 	<table class="concordtable" width="100%">
 		<tr>
 			<th class="concordtable">Analyse feature matrix</th>
@@ -852,12 +852,12 @@ function printquery_showmatrix()
 		</tr>
 	</table>
 
-	<?php 
-	
-	echo print_mysql_result_dump(do_mysql_query("select * from $tablename")); 
+	<?php
+
+	echo print_mysql_result_dump(do_mysql_query("select * from $tablename"));
 
 	/* that separate table is closed off in that function, so no need for more HTML here. */
-	
+
 	// TODO jQuery to make all this appear / disappear as necessary
 	// TODO a way of getting back to the matrix list
 	// TODO a way of getting back to the main analysis menu
@@ -870,13 +870,13 @@ function printquery_analysecorpus()
 	global $Corpus;
 	global $User;
 	global $corpus_sql_name;
-	
+
 	if (! empty($_GET['showMatrix']))
 	{
 		printquery_showmatrix();
 		return;
 	}
-	
+
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -913,8 +913,8 @@ function printquery_analysecorpus()
 			</td>
 		</tr>
 	</table>
-	
-	
+
+
 	<!-- begin saved feature matrix list block -->
 	<table id="featureMatrixList" class="concordtable" width="100%">
 		<tr>
@@ -929,12 +929,12 @@ function printquery_analysecorpus()
 			<th class="concordtable">Date created</th>
 			<th class="concordtable" colspan="3">Actions</th>
 		</tr>
-		
+
 		<?php
-		
+
 		// TODO add N features, N objects to the display?
-		
-		
+
+
 		$list = list_feature_matrices($corpus_sql_name, $User->username);
 
 		if (empty($list))
@@ -950,38 +950,38 @@ function printquery_analysecorpus()
 					, '</td>'
 					, '<td class="concordgeneral">' , $fm->unit , '</td>'
 					, '<td class="concordgeneral">' , date(DATE_RFC1036, $fm->create_time) , '</td>'
-					, '<td class="concordgeneral" align="center">' 
+					, '<td class="concordgeneral" align="center">'
 						, '<a class="menuItem" href="index.php?thisQ=analyseCorpus&showMatrix='
 						, $fm->id
-						, '&uT=y">[View/Analyse]</a>' 
+						, '&uT=y">[View/Analyse]</a>'
 					, '</td>'
-					, '<td class="concordgeneral" align="center">' 
+					, '<td class="concordgeneral" align="center">'
 						, '<a class="menuItem" href="redirect.php?redirect=downloadFeatureMatrix&matrix='
 						, $fm->id
 						, '&uT=y">[Download]</a>'
 					, '</td>'
-					, '<td class="concordgeneral" align="center">' 
+					, '<td class="concordgeneral" align="center">'
 						, '<a class="menuItem" href="redirect.php?redirect=deleteFeatureMatrix&matrix='
 						, $fm->id
 						, '&uT=y">[Delete]</a>'
 					, '</td>'
-					, "</tr>\n\t\t" 
+					, "</tr>\n\t\t"
 					;
-				
+
 		?>
 
 	</table>
-	
-	
+
+
 
 	<!-- begin feature matrix control block -->
 	<form id="featureMatrixDesign" action="redirect.php" method="get">
-		
+
 		<table class="concordtable" width="100%">
 			<tr>
 				<th class="concordtable" colspan="2">Design feature matrix for multivariate analysis</th>
 			</tr>
-			
+
 			<tr>
 				<td class="concordgrey" colspan="2">
 					&nbsp;<br>
@@ -990,7 +990,7 @@ function printquery_analysecorpus()
 					<br>&nbsp;
 				</td>
 			</tr>
-	
+
 			<tr>
 				<th class="concordtable" colspan="2">Select unit of analysis</th>
 			</tr>
@@ -1017,18 +1017,18 @@ function printquery_analysecorpus()
 				</td>
 				<td class="concordgeneral">
 					<select name="labelMethod">
-						<option value="id"  selected="selected">Use &ldquo;id&rdquo; attributes, if available (recommended!)</option> 
-						<option value="n"                      >Use &ldquo;n&rdquo; attributes, if available</option> 
+						<option value="id"  selected="selected">Use &ldquo;id&rdquo; attributes, if available (recommended!)</option>
+						<option value="n"                      >Use &ldquo;n&rdquo; attributes, if available</option>
 						<option value="seq"                    >Assign a number to each object in order (fallback method)</option>
 					</select>
-				</td> 
+				</td>
 			</tr>
 			<tr>
 				<th class="concordtable" colspan="2">Select texts<!--or, units more generally --></th>
 			</tr>
 			<tr>
 				<td class="concordgrey" width="50%">
-					Select a subcorpus or the full corpus. 
+					Select a subcorpus or the full corpus.
 					<br>
 					Only the texts in the subcorpus you select will be included in the corpus.
 					<!--
@@ -1043,21 +1043,21 @@ function printquery_analysecorpus()
 						$sql_query = "select subcorpus_name, numfiles from saved_subcorpora
 							where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
 						$result = do_mysql_query($sql_query);
-						
+
 						while (false !== ($sc = mysql_fetch_object($result)))#
 							echo "\n\t\t\t\t\t\t<option value=\"{$sc->subcorpus_name}\">"
-								, "Subcorpus &ldquo;" , $sc->subcorpus_name , "&rdquo; (", $sc->numfiles , " texts)" 
+								, "Subcorpus &ldquo;" , $sc->subcorpus_name , "&rdquo; (", $sc->numfiles , " texts)"
 								, "</option>"
 								;
-						
-						
+
+
 						?>
-						
+
 					</select>
 				</td>
 			</tr>
 		</table>
-			
+
 		<table class="concordtable" width="100%">
 			<tr>
 				<th class="concordtable" colspan="4">Select features (from saved queries)</th>
@@ -1067,19 +1067,19 @@ function printquery_analysecorpus()
 					Use the tickboxes below to select the saved queries you want to include as features.
 				</td>
 			</tr>
-			
+
 			<tr>
 				<th class="concordtable">Use?</th>
 				<th class="concordtable">Name</th>
 				<th class="concordtable">No. of hits</th>
 				<th class="concordtable">Date</th>
 			</tr>
-			
+
 			<?php
-			
+
 			$sql_query = "select query_name, save_name, date_of_saving, hits, hits_left
-				from saved_queries where corpus = '$corpus_sql_name' and user = '{$User->username}'  and saved = 1";			
-			
+				from saved_queries where corpus = '$corpus_sql_name' and user = '{$User->username}'  and saved = 1";
+
 			$result = do_mysql_query($sql_query);
 
 			for ($i = 0 ; false !== ($q = mysql_fetch_object($result)) ; ++$i)
@@ -1098,7 +1098,7 @@ function printquery_analysecorpus()
 			}
 			?>
 		</table>
-		
+
 		<table class="concordtable" width="100%">
 		<!--
 			<tr>
@@ -1107,22 +1107,22 @@ function printquery_analysecorpus()
 			<tr>
 				<td class="concordgeneral">
 					This is for features whose value can only be deuced by mathemtaical manipulation of more than one saved query.
-					Typical example: where a feature is equalo to (search for soemthing ) minus (search for something elsE) 
+					Typical example: where a feature is equalo to (search for soemthing ) minus (search for something elsE)
 				</td>
 			</tr>
-			
+
 			<tr>
 				<th class="concordtable" colspan="2">Select additional features</th>
 			</tr>
 			<tr>
 				<td class="concordgeneral">
 					This is for features whose value can only be deuced by mathemtaical manipulation of more than one saved query.
-					Typical example: where a feature is equalo to (search for soemthing ) minus (search for something elsE) 
-					
+					Typical example: where a feature is equalo to (search for soemthing ) minus (search for something elsE)
+
 					<p>
 						Allow extra features to be added that are not queries. The list of these is:
 					</p>
-					
+
 					<ul>
 						<li>Standardised type-token ratio</li>
 						<li>Type-token ratio</li>
@@ -1130,12 +1130,12 @@ function printquery_analysecorpus()
 						<li>Average sub-unit length (as indicated by any XML element: s, p)</li>
 						<li>Lexical density</li>
 					</ul>
-					
+
 					<p>Other statistical features can be defined via the saved-query feature function: e.g. lexical density.</p>
 				</td>
 			</tr>
 			-->
-			
+
 			<tr>
 				<td class="concordgrey" width="50%">Enter a name for this new feature matrix:</td>
 				<td class="concordgeneral" width="50%">
@@ -1143,12 +1143,12 @@ function printquery_analysecorpus()
 					<input type="text" name="matrixName" />
 				</td>
 			</tr>
-			
-			
+
+
 			<tr>
 				<td class="concordgeneral" align="center" colspan="2">
 					<input type="submit" value="Build feature matrix database!" />
-					
+
 					<!--
 					<p>
 						The action above takes us to a new screen where the matrix already exists, and we then have
@@ -1164,28 +1164,28 @@ function printquery_analysecorpus()
 	<!-- end feature matrix control block -->
 
 	<?php
-	
+
 	/*
 	Here is what will be on the controls for a saved feature matrix.
-	
+
 	(1) Export feature matrix.
-		- as a plain-text file for offline analysis 
-	
+		- as a plain-text file for offline analysis
+
 	(2) Configure factor analysis.
 		Anything that is not a pre-calculated statistic (avg word lenghtr etc.)
 		is normalised by dividing by text length.
-		
-	
+
+
 	THE KMO test - code is in the HTML file I downloaded from the web,
-	
+
 	it requires the ginv function from the MASS library, but full code for ginv()
 	is available in the MASS manual.
-	
+
 	Have an option to do it.
-	
-	
+
+
 	*/
-	
+
 }
 
 
@@ -1202,7 +1202,7 @@ function printquery_uploadquery()
 		</tr>
 		<form action="upload-query.php" method="POST" enctype="multipart/form-data">
 			<tr>
-				<td class="concordgrey">
+				<td class="concordgeneral">
 					&nbsp;<br/>
 					Select file for upload:
 					<br/>&nbsp;
@@ -1214,7 +1214,7 @@ function printquery_uploadquery()
 				</td>
 			</tr>
 			<tr>
-				<td class="concordgrey">
+				<td class="concordgeneral">
 					&nbsp;<br/>
 					Enter a name for the new saved query:
 					<br/>&nbsp;
@@ -1232,7 +1232,7 @@ function printquery_uploadquery()
 					<br/>&nbsp;
 				</td>
 			</tr>
-			<input type="hidden" name="uT" value="y" />			
+			<input type="hidden" name="uT" value="y" />
 		</form>
 		<tr>
 			<td colspan="2" class="concordgrey">
@@ -1247,7 +1247,7 @@ function printquery_uploadquery()
 					<li>Normally, you would use (a subset of the) lines from a previously-exported query.</li>
 					<li>Your query will be generated within <em>the current corpus only</em>.</li>
 					<li>
-						The name of the saved query can only contain letters, numbers and the underscore 
+						The name of the saved query can only contain letters, numbers and the underscore
 						character ("_"); it cannot contain any spaces.
 					</li>
 				</ul>
@@ -1264,15 +1264,15 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 {
 	global $User;
 	global $corpus_sql_name;
-	
+
 	if ($user_to_show == NULL)
 		$user_to_show = $User->username;
 
-	
+
 	/* create sql query and set options */
 	$sql_query = "select query_name, user, save_name, hits, file_size, saved, date_of_saving, hits_left
 		from saved_queries where corpus = '$corpus_sql_name' ";
-		
+
 	if (($user_to_show == '__ALL') && $User->is_admin())
 		$usercolumn = true;
 	else
@@ -1285,16 +1285,16 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 	else
 		$sql_query .= " and saved != 2";
 		/* saved != 2 excludes categorised queries */
-	
+
 	$sql_query .= ' order by date_of_saving DESC';
 
-	/* only allow superusers to see file size */		
+	/* only allow superusers to see file size */
 	if (!$User->is_admin())
 		$show_filesize = false;
 
 	$result = do_mysql_query($sql_query);
 
-	
+
 	$s = '
 	<table class="concordtable" width="100%">
 		<tr>
@@ -1305,16 +1305,16 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 			' . ($show_filesize ? '<th class="concordtable">File size</th>' : '') . '
 			<th class="concordtable">Date</th>
 			<th class="concordtable">Rename</th>
-			<th class="concordtable">Delete</th>	
+			<th class="concordtable">Delete</th>
 		</tr>
 	';
 
 	$toplimit = $begin_at + $per_page;
 	$alt_toplimit = mysql_num_rows($result);
-	
+
 	if (($alt_toplimit + 1) < $toplimit)
 		$toplimit = $alt_toplimit + 1;
-	
+
 	if ($toplimit == 1)
 		$s .= '<tr><td class="concordgrey" colspan="' . ($usercolumn ? '8' : '7') . '" align="center">
 				&nbsp;<br/>No saved queries were found.<br/>&nbsp;
@@ -1327,17 +1327,17 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 			break;
 		if ($i < $begin_at)
 			continue;
-		
+
 		$s .= "<tr>\n<td class='concordgeneral'><center>$i</center></td>";
-		
+
 		if ($usercolumn)
 			$s .=  "<td class='concordgeneral'><center>" . $row['user'] . '</center></td>';
-		
+
 		if ($row['save_name'] != '')
 			$print_name = $row['save_name'];
 		else
 			$print_name = $row['query_name'];
-		
+
 		$s .= '<td class="concordgeneral"><a href="concordance.php?qname='
 			. $row['query_name'] . '&uT=y" onmouseover="return escape(\'Show query solutions\')">'
 			. $print_name . '</a></td>';
@@ -1346,26 +1346,26 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 			$hits_print = number_format((float)array_pop($temp_array = explode('~', $row['hits_left'])));
 		else
 			$hits_print = number_format((float)$row['hits']);
-		
+
 		$s .= '<td class="concordgeneral"><center>' . $hits_print . '</center></td>';
-		
+
 		if ($show_filesize)
 			$s .= "<td class='concordgeneral'><center>" . round(($row['file_size']/1024), 1) . ' Kb</center></td>';
-			
-		
+
+
 		$s .= '<td class="concordgeneral"><center>' . $row['date_of_saving'] . '</center></td>';
-		
+
 		$temp_gets = url_printget(array(array('redirect', ''), array('saveScriptmode', ''), array('qname', '')));
-		
+
 		if ($row['saved'] == "1")
-			$s .= '<td class="concordgeneral"><center>' 
+			$s .= '<td class="concordgeneral"><center>'
 				. '<a class="menuItem" href="redirect.php?redirect=saveHits&saveScriptMode=get_save_rename&qname='
 				. $row['query_name'] . '&' . $temp_gets . '" onmouseover="return escape(\'Rename this saved query\')">'
 				. '[rename]</a></center></td>';
 		else
 			$s .= '<td class="concordgeneral"><center>-</center></td>';
 
-		$s .= '<td class="concordgeneral"><center>' 
+		$s .= '<td class="concordgeneral"><center>'
 			. '<a class="menuItem" href="redirect.php?redirect=saveHits&saveScriptMode=delete_saved&qname='
 			. $row['query_name'] . '&' . $temp_gets . '" onmouseover="return escape(\'Delete this saved query\')">'
 			. '[x]</a></center></td>';
@@ -1373,7 +1373,7 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 			';
 		unset($temp_gets);
 	}
-	
+
 	$s .= "</table>\n\n\n";
 
 	$navlinks = '<table class="concordtable" width="100%"><tr><td class="basicbox" align="left';
@@ -1389,14 +1389,14 @@ function print_cache_table($begin_at, $per_page, $user_to_show = NULL, $show_uns
 	if ($begin_at > 1)
 		$navlinks .= '</a>';
 	$navlinks .= '</td><td class="basicbox" align="right';
-	
+
 	if (mysql_num_rows($result) > $i)
 		$navlinks .=  '"><a href="index.php?' . url_printget(array(array('beginAt', "$i + 1")));
 	$navlinks .= '">[Older queries] &gt;&gt;';
 	if (mysql_num_rows($result) > $i)
 		$navlinks .= '</a>';
 	$navlinks .= "</td></tr></table>\n\n\n";
-		
+
 	return $s . $navlinks;
 }
 

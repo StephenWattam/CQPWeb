@@ -6,36 +6,36 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 
-/** 
+/**
  * @file
- * 
- * This file contains the code that renders 
- * various search screens and other front-page stuff 
+ *
+ * This file contains the code that renders
+ * various search screens and other front-page stuff
  * (basically everything you access from the mainpage side-menu).
  *
  *
  * The main paramater for forms that access this script:
  *
  * thisQ - specify the type of query you want to pop up
- * 
+ *
  * Each different thisQ effectively runs a separate interface.
- * Some of the forms etc. that are created lead to other parts of 
+ * Some of the forms etc. that are created lead to other parts of
  * CQPweb; some, if they're easy to process, are dealt with here.
  */
 
@@ -95,7 +95,7 @@ if ($User->is_admin())
 
 /* thisQ: the query whose interface page is to be displayed on the right-hand-side. */
 $thisQ = ( isset($_GET["thisQ"]) ? $_GET["thisQ"] : 'search' );
-	
+
 /* NOTE: some particular printquery_.* functions will demand other $_GET variables */
 
 
@@ -103,8 +103,8 @@ $thisQ = ( isset($_GET["thisQ"]) ? $_GET["thisQ"] : 'search' );
 
 
 /* strip tags of the header, cos HTML is allowed here... */
-echo print_html_header(strip_tags($Corpus->corpus_title . $Config->searchpage_corpus_name_suffix), 
-                       $Config->css_path, 
+echo print_html_header(strip_tags($Corpus->corpus_title . $Config->searchpage_corpus_name_suffix),
+                       $Config->css_path,
                        array('modal', 'cword', 'queryhome'));
 
 
@@ -118,7 +118,7 @@ echo print_html_header(strip_tags($Corpus->corpus_title . $Config->searchpage_co
 
 		</td>
 		<td width="100%" valign="top">
-		
+
         <h1 class="page-title"><?php echo $Corpus->corpus_title?></h1>
 
 
@@ -164,7 +164,7 @@ case 'history':
 case 'savedQs':
 	printquery_savedqueries();
 	break;
-	
+
 case 'categorisedQs':
 	printquery_catqueries();
 	break;
@@ -172,7 +172,7 @@ case 'categorisedQs':
 case 'uploadQ':
 	printquery_uploadquery();
 	break;
-	
+
 case 'subcorpus':
 	printquery_subcorpus();
 	break;
@@ -229,7 +229,7 @@ case 'cachedFrequencyLists':
 case 'who_the_hell':
 	printquery_who();
 	break;
-	
+
 case 'latest':
 	printquery_latest();
 	break;

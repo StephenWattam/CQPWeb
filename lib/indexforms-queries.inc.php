@@ -68,11 +68,7 @@ function printquery_search()
 
 		<form action="concordance.php" accept-charset="UTF-8" method="get">
 
-			&nbsp;<br/>
-
-			<textarea name="theData" rows="5" cols="65" style="font-size: 16px;"
-				><?php if (isset($insertString)) echo prepare_query_string($insertString); ?></textarea>
-			&nbsp;<br/>
+			<textarea id="queryField" name="theData"><?php if (isset($insertString)) echo prepare_query_string($insertString); ?></textarea>
 			&nbsp;<br/>
 
 			<table>
@@ -244,11 +240,7 @@ function printquery_restricted()
 	<tr>
 		<td class="concordgeneral" colspan="3">
 
-			&nbsp;<br/>
-
-			<textarea name="theData" rows="5" cols="65" style="font-size: 16px;"
-				><?php if (isset($insertString)) echo prepare_query_string($insertString); ?></textarea>
-			&nbsp;<br/>
+			<textarea id="queryField" name="theData"><?php if (isset($insertString)) echo prepare_query_string($insertString); ?></textarea>
 			&nbsp;<br/>
 
 			<table>
@@ -1101,26 +1093,31 @@ function printquery_corpusmetadata()
 	$num_rows = mysql_num_rows($result_textfields);
 	?>
 		<tr>
-			<td rowspan="<?php echo $num_rows; ?>" class="concordgrey">
+			<td valign="top" class="concordgrey">
 				The database stores the following information for each text in the corpus:
-			</td>
-	<?php
-	$i = 1;
-	while (($metadata = mysql_fetch_row($result_textfields)) != false)
-	{
-		echo '<td class="concordgeneral">';
-		echo metadata_expand_field($metadata[0]);
-		echo '</td></tr>';
-		if (($i) < $num_rows)
-			echo '<tr>';
-		$i++;
-	}
-	if ($i == 1)
-		echo '<td class="concordgeneral">There is no text-level metadata for this corpus.</td></tr>';
-	?>
+            </td>
+            <td class="concordgeneral">
+        <?php
+        echo '<ul>';
+
+        if ($num_rows > 0) {
+            while (($metadata = mysql_fetch_row($result_textfields)) != false)
+            {
+                echo '<li>';
+                echo metadata_expand_field($metadata[0]);
+                echo '</li>';
+            }
+        } else {
+
+            echo "No text-level metadata exists for this corpus.";
+        }
+        echo '</ul>';
+    ?>
+        </td>
+        </tr>
 		<tr>
-			<td class="concordgrey">The <b>primary</b> classification of texts is based on:</td>
-			<td class="concordgeneral">
+			<td valign="top" class="concordgrey">The <b>primary</b> classification of texts is based on:</td>
+			<td valign="top" class="concordgeneral">
 				<?php
 				echo (empty($metadata_fixed['primary_classification_field'])
 					? 'A primary classification scheme for texts has not been set.'
@@ -1135,45 +1132,47 @@ function printquery_corpusmetadata()
 	$num_rows = mysql_num_rows($result_annotations);
 	?>
 		<tr>
-			<td rowspan="<?php echo $num_rows; ?>" class="concordgrey">
+			<td valign="top" class="concordgrey">
 				Words in this corpus are annotated with:
-			</td>
-	<?php
-	$i = 1;
-	while (($annotation = mysql_fetch_assoc($result_annotations)) != false)
-	{
-		echo '<td class="concordgeneral">';
-		if ($annotation['description'] != "")
-		{
-			echo $annotation['description'];
+            </td>
+            <td class="concordgeneral">
+<?php
+        if ($num_rows > 0){
+            echo '<ul>';
+            while (($annotation = mysql_fetch_assoc($result_annotations)) != false)
+            {
+                echo "<li>";
+                if ($annotation['description'] != "")
+                {
+                    echo $annotation['description'];
 
-			/* while we're looking at the description, save it for later if this
-			 * is the primary annotation */
-			if ($primary_annotation_string == $annotation['handle'])
-				$primary_annotation_string  = $annotation['description'];
-		}
-		else
-			echo $annotation['handle'];
-		if ($annotation['tagset'] != "")
-		{
-			echo ' (';
-			if ($annotation['external_url'] != "")
-				echo '<a target="_blank" href="' . $annotation['external_url']
-					. '">' . $annotation['tagset'] . '</a>';
-			else
-				echo $annotation['tagset'];
-			echo ')';
-		}
+                    /* while we're looking at the description, save it for later if this
+                     * is the primary annotation */
+                    if ($primary_annotation_string == $annotation['handle'])
+                        $primary_annotation_string  = $annotation['description'];
+                }
+                else
+                    echo $annotation['handle'];
+                if ($annotation['tagset'] != "")
+                {
+                    echo ' (';
+                    if ($annotation['external_url'] != "")
+                        echo '<a target="_blank" href="' . $annotation['external_url']
+                        . '">' . $annotation['tagset'] . '</a>';
+                    else
+                        echo $annotation['tagset'];
+                    echo ')';
+                }
 
-		echo '</td></tr>';
-		if (($i) < $num_rows)
-			echo '<tr>';
-		$i++;
-	}
-	/* if there were no annotations.... */
-	if ($i == 1)
-		echo '<td class="concordgeneral">There is no word-level annotation in this corpus.</td></tr>';
-	?>
+                echo '</li>';
+            }
+            echo '</ul>';
+        } else {
+            echo "No word-level metadata available for this corpus";
+        }
+?>
+            </td>
+        </tr>
 		<tr>
 			<td class="concordgrey">The <b>primary</b> tagging scheme is:</td>
 			<td class="concordgeneral">

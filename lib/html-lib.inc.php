@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,11 +25,11 @@
 
 /**
  * @file
- * 
+ *
  * A file full of functions that generate handy bits of HTML.
- * 
+ *
  * ALL functions in this library *retuirn* a string rather than echoing it.
- * 
+ *
  * So, the return value can be echoed (to browser), or stuffed into a variable.
  */
 
@@ -61,7 +61,7 @@ function print_menurow($link_text, $href, $selected = false, $mouseover = false,
         $s .= " selected";
     }
     $s .= "\">";
-    
+
     # Write link.  TODO: include mouseover text
     $s .= "<a class=\"menuItem\" href=\"$href\"";
     if($mouseover)
@@ -100,12 +100,12 @@ function print_menurow_heading($label)
 
 /**
  * Print the "about CQPweb" block that appears at the bottom of the menu for both queryhome and userhome.
- * 
- * Returns string (does not echo automatically!) 
+ *
+ * Returns string (does not echo automatically!)
  */
 function print_menu_aboutblock()
 {
-	return  print_menurow_heading('About CQPweb') 
+	return  print_menurow_heading('About CQPweb')
 
         . print_menurow('Video tutorials', 'http://www.youtube.com/playlist?list=PL2XtJIhhrHNQgf4Dp6sckGZRU4NiUVw1e', false, 'CQPweb video tutorials', true)
         . print_menurow('Main menu', '../', false, 'Go to the main homepage for this CQPweb server')
@@ -175,7 +175,7 @@ function print_menu(){
    note for future: "Restrict query by text" vs "Restrict quey by XML"
    OR: Restrict query (by XXXX) to be part of the configuration in the DB?
    with a row for every XXXX that is an XML in the db that has been set up
-   for restricting-via? 
+   for restricting-via?
    and the normal "Restricted query" is jut a special case for text / text_id
 
    OR: just have "Restricted query" and open up sub-options when that is clicked on?
@@ -253,33 +253,33 @@ function print_menu(){
 // TODO make this RETURN rather than ECHO
 /**
  * Creates a page footer for CQPweb.
- * 
- * Pass in the string "admin" for an admin-logon link. 
+ *
+ * Pass in the string "admin" for an admin-logon link.
  * Default link is to a help page.
- */ 
+ */
 function print_html_footer($link = 'help')
 {
 	global $User;
-	
+
 	/* javascript location diverter */
 	// TODO - we can get rid of the diverter if the wz_tooltip is rewritten and integrated into the JS
 	// that goes in the page header (which would be better).
 	$diverter = '../';
 
-?>    
+?>
     <div class="footer">
         <span class="footer-item">
-            CQPweb v<?php echo CQPWEB_VERSION; ?> &#169; 2008-2014
+            CQPweb (SAMUELS fork) v<?php echo CQPWEB_VERSION; ?>
         </span>
 
 
-    <?php 
+    <?php
         if ($link == 'help') { ?>
             <span class="footer-item">
                 <a class="cqpweb_copynote_link" href="help.php" target="_NEW">Corpus and tagset help</a>
                 </span> <?php
         }
-		
+
         if ($User->logged_in) { ?>
             <span class="footer-item">
             You are logged in as <?php echo $User->username ?>
@@ -304,10 +304,10 @@ function print_html_footer($link = 'help')
 function print_html_header($title, $css_url, $js_scripts = false)
 {
 	global $Config;
-	
+
 	/* also set the generic header (will only be sent when the header is echo'd, though) */
     header('Content-Type: text/html; charset=utf-8');
-	
+
 	$s = "<!DOCTYPE html><html>\n<head>\n\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" >\n";
 
 	$s .= "\t<title>$title</title>\n";
@@ -321,37 +321,37 @@ function print_html_header($title, $css_url, $js_scripts = false)
 		$js_scripts = array('jquery', 'always');
 	else
 		array_unshift($js_scripts, 'jquery', 'always');
-	
+
 	foreach ($js_scripts as $js)
 		$s .= "\t<script type=\"text/javascript\" src=\"$js_path/$js.js\"></script>\n";
-	
+
 	$s .= "</head>\n<body>\n";
-	
+
 	return $s;
 }
 
 /**
- * The login form is used in more than one place, so this function 
+ * The login form is used in more than one place, so this function
  * puts the code in just one place.
  */
 function print_login_form($location_after = false)
 {
 	global $Config;
-	
+
 	if ($Config->run_location == RUN_LOCATION_USR)
-		$pathbegin = '';	
+		$pathbegin = '';
 	else if ($Config->run_location == RUN_LOCATION_MAINHOME)
 		$pathbegin = 'usr/';
 	else
 		/* in a corpus, or in adm */
 		$pathbegin = '../usr/';
-	
+
 	/* pass through a location after, if one was given */
-	$input_location_after = (empty($location_after) 
-								? '' 
+	$input_location_after = (empty($location_after)
+								? ''
 								: '<input type="hidden" name="locationAfter" value="'.cqpweb_htmlspecialchars($location_after).'" />'
 								);
-		
+
 	return <<<HERE
 
 				<form action="{$pathbegin}redirect.php" method="POST">
@@ -396,11 +396,11 @@ HERE;
 /**
  * Dumps out a reasonably-nicely-formatted representation of an
  * arbitrary MySQL query result.
- * 
+ *
  * For debug purposes, or for when we have not yet written the code for a nicer layout.
- * 
- * @param $result  A result resource returned by do_mysql_query().  
- */ 
+ *
+ * @param $result  A result resource returned by do_mysql_query().
+ */
 function print_mysql_result_dump($result)
 {
 	/* print column headers */
@@ -408,7 +408,7 @@ function print_mysql_result_dump($result)
 	for ( $i = 0 ; $i < mysql_num_fields($result) ; $i++ )
 		$table .= "<th class='concordtable'>" . mysql_field_name($result, $i) . "</th>";
 	$table .= '</tr>';
-	
+
 	/* print rows */
 	while ( ($row = mysql_fetch_row($result)) !== false )
 	{
@@ -417,7 +417,7 @@ function print_mysql_result_dump($result)
 			$table .= "<td class='concordgeneral' align='center'>$r</td>\n";
 		$table .= "</tr>\n";
 	}
-	
-	$table .= "</table>\n\n";	
+
+	$table .= "</table>\n\n";
 	return $table;
 }

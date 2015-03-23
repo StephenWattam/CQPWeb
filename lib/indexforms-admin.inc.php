@@ -2269,23 +2269,23 @@ function printquery_showcache()
 
 	$return_to_url = urlencode('index.php?' . url_printget());
 
-	echo '<th width="50%" class="concordtable">'
+	echo '<th width="50%" class="concordgeneral">'
 		. '<a onmouseover="return escape(\'This function affects <b>all</b> corpora in the CQPweb database\')"'
 		. 'href="execute.php?function=delete_cache_overflow&locationAfter='
 		. $return_to_url
 		. '&uT=y">Delete cache overflow</a></th>';
 
-	echo '<th width="50%" class="concordtable">Discard old query history<br/>(function removed)</th>';
+	echo '<th width="50%" class="concordgeneral">Discard old query history<br/>(function removed)</th>';
 
 	echo '</tr> <tr>';
 
-	echo '<th width="50%" class="concordtable">'
+	echo '<th width="50%" class="concordgeneral">'
 		. '<a onmouseover="return escape(\'This function affects <b>all</b> corpora in the CQPweb database\')"'
 		. 'href="execute.php?function=clear_cache&locationAfter='
 		. $return_to_url
 		. '&uT=y">Clear entire cache<br/>(but keep saved queries)</a></th>';
 
-	echo '<th width="50%" class="concordtable">'
+	echo '<th width="50%" class="concordgeneral">'
 		. '<a onmouseover="return escape(\'This function affects <b>all</b> corpora in the CQPweb database\')"'
 		. 'href="execute.php?function=clear_cache&args=0&locationAfter='
 		. $return_to_url
