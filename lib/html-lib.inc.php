@@ -396,11 +396,6 @@ function print_html_footer($link = 'help')
 {
 	global $User;
 
-	/* javascript location diverter */
-	// TODO - we can get rid of the diverter if the wz_tooltip is rewritten and integrated into the JS
-	// that goes in the page header (which would be better).
-	$diverter = '../';
-
 ?>
     <div class="footer">
         <span class="footer-item">
@@ -422,7 +417,7 @@ function print_html_footer($link = 'help')
         }
     ?>
 
-	<script language="JavaScript" type="text/javascript" src="<?php echo $diverter; ?>jsc/wz_tooltip.js">
+	<script language="JavaScript" type="text/javascript" src="../jsc/wz_tooltip.js">
 	</script>
 	</body>
 </html>
@@ -462,6 +457,8 @@ function print_html_header($title, $css_url, $js_scripts = false)
 
 	$s .= "</head>\n<body>\n";
 
+    $s .= '<div id="loadingnoJS" onclick="$(this).fadeOut();">CQPWeb is Loading... <span style="font-size: smaller">(click to hide)</span></div>';
+
 	return $s;
 }
 
@@ -479,7 +476,10 @@ function print_login_form($location_after = false)
 		/* in a corpus, or in adm */
 		$pathbegin = '../usr/';
 
-	/* pass through a location after, if one was given */
+    /* pass through a location after, if one was given
+     *
+     * FIXME: this is a security problem
+     * */
 	$input_location_after = (empty($location_after)
 								? ''
 								: '<input type="hidden" name="locationAfter" value="'.cqpweb_htmlspecialchars($location_after).'" />'

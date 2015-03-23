@@ -240,6 +240,21 @@ td.menu-item {
     padding: 3px;
 }
 
+div#loadingnoJS {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    width: 100%;
+    padding: 10px 10px;
+    background: white;
+    opacity: 0.8;
+    border-bottom: solid 1px #777;
+    box-shadow: 2px 2px 3px #777;
+    text-align: center;
+    cursor: n-resize;
+}
+
 div.menu {
     width: 200px;
 }
@@ -293,7 +308,7 @@ div#showMenu {
 
     background: white;
     border-radius: 0 0 6px 0;
-    opacity: 80%;
+    opacity: 0.8;
     font-size: 12pt;
     text-decoration: none;
     border-bottom: solid 1px #333;
