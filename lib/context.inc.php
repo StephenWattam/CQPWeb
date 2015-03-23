@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -63,7 +63,7 @@ cqpweb_startup_environment();
 /* this script takes all of the GET parameters from concrdance.php */
 /* but only qname is absolutely critical, the rest just get passed */
 $qname = safe_qname_from_get();
-	
+
 /* all scripts that pass on $_GET['theData'] have to do this, to stop arg passing adding slashes */
 if (isset($_GET['theData']))
 	$_GET['theData'] = prepare_query_string($_GET['theData']);
@@ -118,7 +118,7 @@ if ($visualise_gloss_in_context)
 	$cqp->execute("show +word +$visualise_gloss_annotation ");
 else
 	$cqp->execute('show +word ' . (empty($primary_tag_handle) ? '' : "+$primary_tag_handle "));
-$cqp->execute("set PrintStructures \"text_id\""); 
+$cqp->execute("set PrintStructures \"text_id\"");
 $cqp->execute("set LeftKWICDelim '--%%%--'");
 $cqp->execute("set RightKWICDelim '--%%%--'");
 
@@ -137,14 +137,14 @@ $text_id = $m[1];
 $cqp_line = preg_replace("/\A\s*\d+: <text_id \w+>:/", '', $kwic[0]);
 
 /* divide up the CQP line */
-list($kwic_lc, $kwic_match, $kwic_rc) = preg_split("/--%%%--/", $cqp_line);	
+list($kwic_lc, $kwic_match, $kwic_rc) = preg_split("/--%%%--/", $cqp_line);
 
 /* just in case of unwanted spaces (there will deffo be some on the left) ... */
 $kwic_rc = trim($kwic_rc);
 $kwic_lc = trim($kwic_lc);
 $kwic_match = trim($kwic_match);
 
-/* create arrays of words from the incoming variables: split at space */	
+/* create arrays of words from the incoming variables: split at space */
 $lc = split(' ', $kwic_lc);
 $rc = split(' ', $kwic_rc);
 $node = split(' ', $kwic_match);
@@ -156,14 +156,14 @@ $nodeCount = count($node);
 
 //$word_extraction_pattern = (empty($primary_tag_handle) ? false : '/\A(.*)\/(.*?)\z/');
 
-$line_breaker = ($corpus_main_script_is_r2l 
-							? "</bdo>\n<br/>&nbsp;<br/>\n<bdo dir=\"rtl\">" 
+$line_breaker = ($corpus_main_script_is_r2l
+							? "</bdo>\n<br/>&nbsp;<br/>\n<bdo dir=\"rtl\">"
 							: '<br/>&nbsp;<br/>
 				');
 
 /* left context string */
 $lc_string = '';
-for ($i = 0; $i < $lcCount; $i++) 
+for ($i = 0; $i < $lcCount; $i++)
 {
 	list($word, $tag) = extract_cqp_word_and_tag($lc[$i]);
 
@@ -178,10 +178,10 @@ for ($i = 0; $i < $lcCount; $i++)
 	if (preg_match('/\A[.?!\x{0964}]\Z/u', $word) || $word == '...'  )
 		$lc_string .= $line_breaker;
 }
-	
+
 /* node string */
 $node_string = '';
-for ($i = 0; $i < $nodeCount; $i++) 
+for ($i = 0; $i < $nodeCount; $i++)
 {
 	list($word, $tag) = extract_cqp_word_and_tag($node[$i]);
 
@@ -194,10 +194,10 @@ for ($i = 0; $i < $nodeCount; $i++)
 
 /* rc string */
 $rc_string = "";
-for ($i = 0; $i < $rcCount; $i++) 
+for ($i = 0; $i < $rcCount; $i++)
 {
 	list($word, $tag) = extract_cqp_word_and_tag($rc[$i]);
-	
+
 	$rc_string .= $word . ( $show_tags ? bdo_tags_on_tag($tag) : '' ) . ' ';
 
 	/* break line if this word is an end of sentence punctuation */
@@ -224,6 +224,16 @@ echo print_html_header("$corpus_title -- CQPweb query extended context", $Config
 
 
 ?>
+
+
+<!-- Container table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
+
+
+
 <table class="concordtable" width="100%">
 	<tr>
 		<th colspan="2" class="concordtable">
@@ -237,7 +247,7 @@ echo print_html_header("$corpus_title -- CQPweb query extended context", $Config
 					<option value="fileInfo" selected="selected">
 						File info for text <?php echo $text_id; ?>
 					</option>
-					<?php 
+					<?php
 					if ($context_size < $max_extended_context)
 						echo '<option value="moreContext">More context</option>';
 					if ($context_size > $initial_extended_context)
@@ -251,14 +261,14 @@ echo print_html_header("$corpus_title -- CQPweb query extended context", $Config
 			</td>
 		<input type="hidden" name="text" value="<?php echo $text_id; ?>" />
 		<?php echo url_printinputs(array(
-			array('text', ""), 
+			array('text', ""),
 			array('contextSize', "$context_size"),
 			array('redirect', "")
-			)); ?> 
+			)); ?>
 		</form>
-		
-		
-		
+
+
+
 		<form action="context.php" method="get">
 			<td width="50%" align="center" class="concordgrey">
 				&nbsp;
@@ -266,22 +276,25 @@ echo print_html_header("$corpus_title -- CQPweb query extended context", $Config
 				&nbsp;
 			</td>
 		<input type="hidden" name="tagshow" value="<?php echo $reverseTag; ?>" />
-		<?php echo url_printinputs(array(array('tagshow', ""))); ?> 
+		<?php echo url_printinputs(array(array('tagshow', ""))); ?>
 		</form>
 	</tr>
-	
+
 	<tr>
 		<td colspan="2" class="concordgeneral">
 		<p class="query-match-context" align="<?php echo ($corpus_main_script_is_r2l ? 'right' : 'left'); ?>">
 		<?php echo $bdo_tag1 . $lc_string . '<b>' . $node_string . '</b>' . $rc_string . $bdo_tag2; ?>
 		</p>
 	</tr>
-	
+
 </table>
 
 <?php
 
 
+
+    echo '<!-- end of container table -->';
+    echo '</td> </tr> </table>';
 
 echo print_html_footer();
 
@@ -298,9 +311,9 @@ cqpweb_shutdown_environment();
 function bdo_tags_on_tag($tag)
 {
 	//TODO this should be "ion_context", but right now  extract_cqp_word_and_tag only uses $visualise_gloss_in_concordance
-	//so let's keep things consistent. 
+	//so let's keep things consistent.
 	global $visualise_gloss_in_concordance;
-	
+
 	return '_<bdo dir="ltr">' . ($visualise_gloss_in_concordance ? $tag : substr($tag, 1)) . '</bdo>';
 }
 ?>

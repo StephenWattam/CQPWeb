@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -41,7 +41,7 @@ if ($Config->homepage_use_corpus_categories)
 {
 	/* get a list of categories */
 	$categories = list_corpus_categories();
-	
+
 	/* how many categories? if only one, it is either uncategorised or a single assigned cat: ergo don't use cats */
 	$n = count($categories);
 	if ($n < 2)
@@ -62,7 +62,7 @@ foreach ( array('left', 'right') as $side)
 	if (empty($Config->$addresses))
 		continue;
 	if (false !== strpos($Config->$addresses, "\t"))
-		list ($img_url, $link_url) = explode("\t", $Config->$addresses, 2);	
+		list ($img_url, $link_url) = explode("\t", $Config->$addresses, 2);
 	else
 	{
 		$img_url = $Config->$addresses;
@@ -100,11 +100,11 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 		else
 			$personalise = ', ' . cqpweb_htmlspecialchars($User->realname);
 
-/* TODO: once we have the title in database, pull it here */ 
+/* TODO: once we have the title in database, pull it here */
 		$result = do_mysql_query("select corpus from query_history where user='{$User->username}' order by date_of_query desc");
-		
+
 		$recent_corpora = array();
-		
+
 		while (count($recent_corpora) < 6 && false !== ($o = mysql_fetch_object($result)))
 		{
 			foreach($recent_corpora as $rc)
@@ -115,15 +115,15 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 		?>
 		<tr>
 			<td colspan="3" class="concordgeneral">
-			
+
 				<p>&nbsp;</p>
-			
+
 				<p align="center" style="font-size:large">
                     You are logged in as <?php echo $User->username ?>.
 				</p>
 
 				<p>&nbsp;</p>
-				
+
 				<table class="basicbox" style="margin:auto" width="40%">
 					<tr>
 						<th width="50%" class="basicbox">Recently-used corpora</th>
@@ -149,13 +149,13 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 						</td>
 					</tr>
 				</table>
-				
+
 			</td>
 		</tr>
-		
+
 		<?php
 		echo "\t<tr>\n\t\t\n";
-		
+
 	}
 	else
 	{
@@ -163,12 +163,12 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 		echo print_login_form();
 		echo "\t\t\t<p align=\"center\"><a href=\"usr/?thisQ=create&uT=y\">Create account</a>";
 		echo " | <a href=\"usr/\">Full account-control options</a>\n";
-		echo "\t\t\t<p>&nbsp;</p>\n"; 
+		echo "\t\t\t<p>&nbsp;</p>\n";
 		echo "\t\t</td>\n\t</tr>\n";
 	}
 
 
-	
+
 	?>
 	<tr>
 		<th colspan="3" class="concordtable">
@@ -182,50 +182,50 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 foreach ($categories as $id => $cat)
 {
 	/* get a list of corpora */
-	
+
 	$sql_query = "select corpus, visible from corpus_info where visible = 1 "
-		. ($Config->homepage_use_corpus_categories ? "and corpus_cat = $id" : '') 
+		. ($Config->homepage_use_corpus_categories ? "and corpus_cat = $id" : '')
 		. " order by corpus asc";
 
 	$result = do_mysql_query($sql_query);
-	
+
 	$corpus_list = array();
 	while ( ($x = mysql_fetch_object($result)) != false)
 		$corpus_list[] = $x;
-	
+
 	/* don't print a table for empty categories */
 	if (empty($corpus_list))
 		continue;
-	
+
 
 
 	if ($Config->homepage_use_corpus_categories)
 		echo "\t\t<tr><th colspan=\"3\" class=\"concordtable\">$cat</th></tr>\n\n";
-	
-	
-	
+
+
+
 	$i = 0;
 	$celltype = 'concordgeneral';
-	
+
 	foreach ($corpus_list as $c)
 	{
 		if ($i == 0)
 			echo "\t\t<tr>";
-		
+
 		/* get $corpus_title */
 		include ("../{$c->corpus}/settings.inc.php");
 		if (empty($corpus_title))
 			$corpus_title = $c->corpus;
-		
+
 		echo "
 			<td class=\"$celltype\" width=\"33%\" align=\"center\">
 				&nbsp;<br/>
 				<a href=\"{$c->corpus}/\">$corpus_title</a>
 				<br/>&nbsp;
 			</td>\n";
-		
+
 		$celltype = ($celltype=='concordgrey'?'concordgeneral':'concordgrey');
-		
+
 		if ($i == 2)
 		{
 			echo "\t\t</tr>\n";
@@ -235,10 +235,10 @@ foreach ($categories as $id => $cat)
 		{
 			$i++;
 		}
-		
+
 		unset($corpus_title);
 	}
-	
+
 	if ($i == 1)
 	{
 		echo "\t\t\t<td class=\"$celltype\" width=\"33%\" align=\"center\">&nbsp;</td>\n";
@@ -251,7 +251,7 @@ foreach ($categories as $id => $cat)
 
 ?>
 
-			
+
 </table>
 
 <a name="messages"></a>

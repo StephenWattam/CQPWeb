@@ -103,7 +103,7 @@ function print_menurow_heading($label)
  *
  * Returns string (does not echo automatically!)
  */
-function print_menu_aboutblock()
+function print_about_menu()
 {
 	return  print_menurow_heading('About CQPweb')
 
@@ -128,21 +128,82 @@ function print_menu_aboutblock()
  */
 function print_menu(){
 
-    global $User;
     global $corpus_sql_name;
+
+    // Show/hide
+    echo '<div id="showMenu" onclick="$(\'.menu\').fadeToggle(200);">&#8660;</div>';
+
+    // Menu header and contents
+    echo ('<table class="menu" width="100%" id="menuTable">');
+    if(isset($corpus_sql_name)){
+        print_corpus_menu($corpus_sql_name);
+    }
+
+    print_user_menu();
+    print_about_menu();
+    echo('</table>');
+}
+
+
+
+/** Print user-specific menu options */
+function print_user_menu(){
+
+    global $User;
+    /* The menu is different for when we are logged on, versus when we are not */
+
+    if ($User->logged_in)
+    {
+        echo print_menurow_heading('Your account');
+        echo print_menurow_index('welcome', 'Overview');
+        echo print_menurow_index('userSettings', 'Interface settings');
+        echo print_menurow_index('userMacros', 'User macros');
+        echo print_menurow_index('corpusAccess', 'Corpus permissions');
+        echo print_menurow_heading('Account actions');
+        echo print_menurow_index('userDetails', 'Account details');
+        echo print_menurow_index('changePassword', 'Change password');
+        echo print_menurow_index('userLogout', 'Log out of CQPweb');
+        if ($User->is_admin())
+        {
+            ?>
+            <tr>
+                <td class="concordgeneral">
+                    <a class="menuItem" href="../adm">Go to admin control panel</a>
+                </td>
+            </tr>
+            <?php
+
+        }
+    }
+    else
+    {
+        /* if we are not logged in, then we want to show a different default ... */
+        if ($thisQ == 'welcome')
+            $thisQ = 'login';
+
+        /* menu seen when no user is logged in */
+        echo print_menurow_heading('Account actions');
+        echo print_menurow_index('login', 'Log in to CQPweb');
+        echo print_menurow_index('create', 'Create new user account');
+        echo print_menurow_index('verify', 'Activate new account');
+        echo print_menurow_index('resend', 'Resend account activation');
+        echo print_menurow_index('lostUsername', 'Retrieve lost username');
+        echo print_menurow_index('lostPassword', 'Reset lost password');
+    }
+
+
+}
+
+
+function print_corpus_menu($corpus_sql_name){
+
+    global $User;
 
     /* ******************* *
      * PRINT SIDE BAR MENU *
      * ******************* */
 
-    echo '<div id="showMenu" style="display: none; text-decoration: underline; font-size: smaller; position: fixed; left: 0; top: 0;">';
-    echo '<a href="#" onclick="document.getElementById(\'menuTable\').style.display=\'block\';document.getElementById(\'showMenu\').style.display=\'none\';">Show menu</a>';
-    echo '</div>';
 
-    echo ('<table class="menu" width="100%" id="menuTable">');
-    echo '<tr><td style="font-size: smaller; text-decoration: underline; color: black;">';
-    echo '<a href="#" onclick="document.getElementById(\'menuTable\').style.display=\'none\';document.getElementById(\'showMenu\').style.display=\'block\';">Hide menu</a>';
-    echo '</td></tr>';
 
     echo print_menurow_heading('Corpus info');
 
@@ -231,20 +292,10 @@ function print_menu(){
 
     } /* end of "if user is a superuser" */
 
-    /* all the rest is encapsulated */
-    echo print_menu_aboutblock();
 
-    echo('</table>');
 
 
 }
-
-
-
-
-
-
-
 
 
 
@@ -269,16 +320,16 @@ function print_html_footer($link = 'help')
 ?>
     <div class="footer">
         <span class="footer-item">
-            CQPweb (SAMUELS fork) v<?php echo CQPWEB_VERSION; ?>
+            CQPweb (<a href="http://www.gla.ac.uk/schools/critical/research/fundedresearchprojects/samuels/" target="_blank">SAMUELS</a> fork) v<?php echo CQPWEB_VERSION; ?>
         </span>
 
 
     <?php
-        if ($link == 'help') { ?>
-            <span class="footer-item">
-                <a class="cqpweb_copynote_link" href="help.php" target="_NEW">Corpus and tagset help</a>
-                </span> <?php
-        }
+        /* if ($link == 'help') { ?> */
+        /*     <span class="footer-item"> */
+        /*         <a class="cqpweb_copynote_link" href="help.php" target="_NEW">Corpus and tagset help</a> */
+        /*         </span> <?php */
+        /* } */
 
         if ($User->logged_in) { ?>
             <span class="footer-item">

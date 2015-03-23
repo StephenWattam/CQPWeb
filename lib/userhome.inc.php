@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -63,71 +63,10 @@ echo print_html_header('CQPweb User Page', $Config->css_path, array('cword'));
 <table class="concordtable" width="100%">
 	<tr>
 		<td valign="top">
-			<!-- cell for menu -->
-		
-<table class="concordtable" width="100%">
-	<tr>
-		<th class="concordtable"><a class="menuHeaderItem">Menu</a></th>
-	</tr>
-</table>
-
-<table class="concordtable" width="100%">
-
-<?php
-
-/* The menu is different for when we are logged on, versus when we are not */
-
-if ($User->logged_in)
-{
-	echo print_menurow_heading('Your account');
-	echo print_menurow_index('welcome', 'Overview');
-	echo print_menurow_index('userSettings', 'Interface settings');
-	echo print_menurow_index('userMacros', 'User macros');
-	echo print_menurow_index('corpusAccess', 'Corpus permissions');
-	echo print_menurow_heading('Account actions');
-	echo print_menurow_index('userDetails', 'Account details');
-	echo print_menurow_index('changePassword', 'Change password');
-	echo print_menurow_index('userLogout', 'Log out of CQPweb');
-	if ($User->is_admin())
-	{
-		?>
-		<tr>
-			<td class="concordgeneral">
-				<a class="menuItem" href="../adm">Go to admin control panel</a>
-			</td>
-		</tr>
-		<?php
-	
-	}
-}
-else
-{
-	/* if we are not logged in, then we want to show a different default ... */
-	if ($thisQ == 'welcome')
-		$thisQ = 'login';
-
-	/* menu seen when no user is logged in */
-	echo print_menurow_heading('Account actions');
-	echo print_menurow_index('login', 'Log in to CQPweb');
-	echo print_menurow_index('create', 'Create new user account');
-	echo print_menurow_index('verify', 'Activate new account');
-	echo print_menurow_index('resend', 'Resend account activation');
-	echo print_menurow_index('lostUsername', 'Retrieve lost username');
-	echo print_menurow_index('lostPassword', 'Reset lost password');
-	
-}
-
-/* and now the menu that is seen unconditionally ... */
-echo print_menu_aboutblock();
-
-
-
-?>
-</table>
-
+            <?php print_menu(); ?>
 		</td>
 		<td valign="top">
-		
+
 <table class="concordtable" width="100%">
 	<tr>
 		<th class="concordtable">
@@ -150,7 +89,7 @@ echo print_menu_aboutblock();
 /* ******************************* */
 
 /*
- * Note: we need to have two wholly disjunct sets here, one if a user is logged in, and one if they are not. 
+ * Note: we need to have two wholly disjunct sets here, one if a user is logged in, and one if they are not.
  */
 
 if ($User->logged_in)
@@ -187,23 +126,23 @@ if ($User->logged_in)
 		break;
 
 	/* common cases... */
-	
+
 	case 'accessDenied':
 		printscreen_accessdenied();
 		break;
-	
+
 	case 'who_the_hell':
 		printquery_who();
 		break;
-		
+
 	case 'latest':
 		printquery_latest();
 		break;
-	
+
 	case 'bugs':
 		printquery_bugs();
 		break;
-	
+
 	default:
 		?>
 		<p class="errormessage">&nbsp;<br/>
@@ -223,11 +162,11 @@ else
 		printscreen_login();
 		display_system_messages();
 		break;
-	
+
 	case 'create':
 		printscreen_create();
 		break;
-	
+
 	case 'verify':
 		printscreen_verify();
 		break;
@@ -235,11 +174,11 @@ else
 	case 'resend':
 		printscreen_resend();
 		break;
-	
+
 	case 'lostUsername':
 		printscreen_lostusername();
 		break;
-	
+
 	case 'lostPassword':
 		printscreen_lostpassword();
 		break;
@@ -251,19 +190,19 @@ else
 	case 'accessDenied':
 		printscreen_accessdenied();
 		break;
-	
+
 	case 'who_the_hell':
 		printquery_who();
 		break;
-		
+
 	case 'latest':
 		printquery_latest();
 		break;
-	
+
 	case 'bugs':
 		printquery_bugs();
 		break;
-	
+
 	default:
 		?>
 		<p class="errormessage">&nbsp;<br/>

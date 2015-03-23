@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -37,25 +37,25 @@ require('../lib/library.inc.php');
 
 /**
  * @file
- * 
+ *
  * Receiver script for a whole bunch of actions relating to users.
- * 
+ *
  * Some come via redirect from various forms; others come via admin action.
- * 
+ *
  * The actions are controlled via switcyh and mostly work by sorting through
  * the "_GET" parameters, and then calling the underlying functions
  * (mostly in user-lib).
  */
 
 
-$script_called_from_admin = (isset ($_GET['userFunctionFromAdmin']) && $_GET['userFunctionFromAdmin'] == 1); 
+$script_called_from_admin = (isset ($_GET['userFunctionFromAdmin']) && $_GET['userFunctionFromAdmin'] == 1);
 
 
 /* a slightly tricky one, since functions here are accessible with or without login,
  * and also by admin only (in some caseS) and by anyone (in others).
- * 
- * Either admin did it, in which case we need admin login; or new user did it, 
- * in which case we do not need any login at all ........... 
+ *
+ * Either admin did it, in which case we need admin login; or new user did it,
+ * in which case we do not need any login at all ...........
  */
 cqpweb_startup_environment(
 	/* flags: */
@@ -66,19 +66,19 @@ cqpweb_startup_environment(
 /* BUT NOTE, some of the script below will re-impose the user-test. */
 
 
-$script_mode = isset($_GET['userAction']) ? $_GET['userAction'] : false; 
+$script_mode = isset($_GET['userAction']) ? $_GET['userAction'] : false;
 
 switch ($script_mode)
 {
 	/*
 	 * Cases in this switch are grouped according to the TYPE OF USER ACCESS.
-	 * 
+	 *
 	 * First, come the ones where NO LOGIN IS REQUIRED.
-	 * 
+	 *
 	 * So no additional check is required other than the one done at environment startup.
-	 * 
+	 *
 	 */
-	
+
 case 'userLogin':
 
 	/* step 1 - delete the logon cookie, and stop it being sent if it was going to be. */
@@ -87,26 +87,26 @@ case 'userLogin':
 		delete_cookie_token($_COOKIE[$Config->cqpweb_cookie_name]);
 		unset($_COOKIE[$Config->cqpweb_cookie_name]);
 		header_remove('Set-Cookie');
-		
+
 		/* if the cookie WAS set, the global $User object will have the wrong user in it.
 		 * but we don't need to worry about that, because this script just redirects anyway:
 		 * does not actually DO anything. */
 	}
 
 	/* step 2 - retrieve user info from form && check, piece by piece */
-	
+
 	/* easy one first: stay logged in on this browser? */
 	$persist = (isset($_GET['persist']) && $_GET['persist']);
 
 	/* username  & password */
 	if (! isset($_POST['username'], $_POST['password']))
 		exiterror_login("Sorry but the system didn't receive your username/password. Please try again.");
-	
+
 	$username_for_login = trim($_POST['username']);
 	/* we perform a basic check of the username now, to enabl;e amore informative error message */
 	if (0 < preg_match('/\W/', $username_for_login))
 		exiterror_login("Login error: please re-check yuor password, you may have mistyped it.");
-	
+
 	if ( false === ($userinfo = check_user_password($username_for_login, $_POST['password'])))
 	{
 		/* add a delay to reduce the possibility of excessive experimentation via login form */
@@ -115,7 +115,7 @@ case 'userLogin':
 			"That username/password combination was not recognised.",
 			"You may have mistyped either the username or the password. (Both are case-sensitive.)",
 			"Please go back to the log on page and try again."
-			));		
+			));
 	}
 	else
 	{
@@ -125,7 +125,7 @@ case 'userLogin':
 		case USER_STATUS_ACTIVE:
 			/* break and fall through to the rest of this "else" which completes login. */
 			break;
-			
+
 		case USER_STATUS_UNVERIFIED:
 			exiterror_login(array(
 				"You cannot log in to this account because it has not been activated yet.",
@@ -148,34 +148,34 @@ case 'userLogin':
 			/* should never be reached */
 			exiterror_general("Unreachable option was reached!",__FILE__,__LINE__);
 		}
-		
+
 		/* OK , user now logged in. Register a token for them, and send it as a cookie */
-		
+
 		/* how long before timeout? either 10 years, or till browser closed */
 		$browser_timeout = ($persist ? (time()+(10*365*24*60*60)) : 0);
-	
+
 		$token = generate_new_cookie_token();
 		setcookie($Config->cqpweb_cookie_name, $token, $browser_timeout, '/');
 		register_new_cookie_token($username_for_login, $token);
 	}
-	
+
 	if (isset($_GET['locationAfter']))
 		$next_location = $_GET['locationAfter'];
 	else
 		$next_location = '../usr/index.php?thisQ=welcome';
-	
-	
+
+
 	break;
 
 
 case 'userLogout':
 
 	/* to log out, all that is necessary is to delete the cookie, delete the token, and end this run of the script... */
-	
+
 	if (isset($_COOKIE[$Config->cqpweb_cookie_name]))
 		delete_cookie_token($_COOKIE[$Config->cqpweb_cookie_name]);
 	setcookie($Config->cqpweb_cookie_name, '', time() - 3600, '/');
-	
+
 	/* redirect to mainhome */
 	$next_location = '..';
 	break;
@@ -183,7 +183,7 @@ case 'userLogout':
 
 
 
-	
+
 case 'newUser':
 
 	/* CREATE NEW USER ACCOUNT */
@@ -194,34 +194,34 @@ case 'newUser':
 
 	if (!isset($_GET['newUsername'],$_GET['newPassword'],$_GET['newEmail']))
 		exiterror_general("Missing information: you must specify a username, password and email address to create an account!");
-	
+
 	$new_username = trim($_GET['newUsername']);
 
 	if (0 < preg_match('/\W/', $new_username))
 		exiterror_general("The username you specified contains an illegal character: only letters, numbers and underscore are allowed.");
-	
+
 	if (0 < mysql_num_rows(do_mysql_query("select id from user_info where username = '$new_username'")))
 		exiterror_general("The username you specified is not available: please go back and specify another!");
 
 	/* allow anything in password except empty string */
 	$password = $_GET['newPassword'];
 	if (empty($password))
-		exiterror_general("The password cannot be an empty string!");		
+		exiterror_general("The password cannot be an empty string!");
 	if (! $script_called_from_admin)
 	{
 		/* check for the standard password-typed-twice thing. */
 		if ( ! (isset($_GET['newPasswordCheck']) && $password == $_GET['newPasswordCheck']))
 			exiterror_general(array("The password you typed the second time did not match the password you typed the first time",
-				"Please click the Back button on your browser and try again."));   
+				"Please click the Back button on your browser and try again."));
 	}
-	
+
 	$email = trim($_GET['newEmail']);
 	if (empty($email))
 		exiterror_general("The email address for a new account cannot be an empty string!");
-	
-	// TODO make it a config option whether or not the same email address can have more than one acct ... 
+
+	// TODO make it a config option whether or not the same email address can have more than one acct ...
 	// For now, it universally can.
-	
+
 	/* OK, all 3 things now collected, so we can call the sharp-end function... */
 
 	/* but first check for CAPTCHA, if not called from admin */
@@ -254,7 +254,7 @@ case 'newUser':
 	add_new_user($new_username, $password, $email);
 
 	/* which also, note, does the group regexen... */
-	
+
 	/* verification status: do we email? do we change it? */
 	if ($script_called_from_admin)
 	{
@@ -282,9 +282,9 @@ case 'newUser':
 		/* do nowt. */
 		break;
 	}
-	
+
 	/* if the script was not called from the admin interface, we may also have the non-essential fields... */
-	
+
 	if (!empty($_GET['country']))
 	{
 		require('../lib/user-iso31661.inc.php');
@@ -299,10 +299,10 @@ case 'newUser':
 		update_user_setting($new_username, 'realname', $_GET['realName']);
 	if (!empty($_GET['affiliation']))
 		update_user_setting($new_username, 'affiliation', $_GET['affiliation']);
-	
-		
+
+
 	/* and redirect out */
-	
+
 	if ($script_called_from_admin)
 		$next_location = "index.php?thisF=showMessage&message=" . urlencode("User account '$new_username' has been created.") . "&uT=y";
 	else
@@ -311,7 +311,7 @@ case 'newUser':
 
 
 case 'captchaImage':
-	
+
 	/* this option is very different to all the others. All it does is write out a captcha image. */
 
 	/* we can't do anything unless we know which captcha has been asked for */
@@ -328,16 +328,16 @@ case 'captchaImage':
 case 'ajaxNewCaptchaImage':
 
 	/* like the prev option, very different; just returns the code for a brand-new captcha. */
-	
+
 	echo create_new_captcha();
-	
+
 	break;
 
 
 case 'verifyUser':
 
 	/* incoming check for user verification link; DOES NOT originate from admin interface. */
-	
+
 	$key = trim($_GET['v']);
 
 	if (1 > preg_match('/^[abcdef1234567890]{32}$/',$key))
@@ -345,7 +345,7 @@ case 'verifyUser':
 		$next_location = 'index.php?thisQ=verify&verifyScreenType=badlink&uT=y';
 		break;
 	}
-	
+
 	if (false === ($the_username = resolve_user_verification_key($key)))
 		exiterror_general("That activation code was not recognised. Go back and try again, or request a new verification email.");
 	else
@@ -355,38 +355,38 @@ case 'verifyUser':
 	}
 
 	$next_location = 'index.php?thisQ=verify&verifyScreenType=success&uT=y';
-	
+
 	break;
 
 
 case 'resendVerifyEmail':
 
 	/* re-send a verification email, w/ a new activation code */
-	
+
 	if (empty($_GET['email']))
 		exiterror_general("You did not type an email address! Please go back and try again.");
-	
+
 	$result = do_mysql_query("select username from user_info where email = '".mysql_real_escape_string($_GET['email'])."'
 							and acct_status=" . USER_STATUS_UNVERIFIED . " limit 1");
 	if (mysql_num_rows($result) < 1)
 		exiterror_general("No unverified account associated with that email could be found on our system.");
-	
+
 	list($resend_username) = mysql_fetch_row($result);
-	
+
 	send_user_verification_email($resend_username);
-	
+
 	$next_location = 'index.php?thisQ=verify&verifyScreenType=newEmailSent&uT=y';
-	
+
 	break;
 
 
 case 'resetUserPassword':
 
-	/* 
-	 * change a user's password to the new value specified. 
+	/*
+	 * change a user's password to the new value specified.
 	 */
-	
-	/* there are big differences in the checks needed between calling this from admin and from a normal login.... 
+
+	/* there are big differences in the checks needed between calling this from admin and from a normal login....
 	 * This if/else contains just the checks that everything is OK and in place before we call password-reset function. */
 	if ($script_called_from_admin)
 	{
@@ -404,7 +404,7 @@ case 'resetUserPassword':
 		 * the latter is checked below*/
 		if ( ! isset($_GET['userForPasswordReset'],$_GET['newPassword'], $_GET['newPasswordCheck']) )
 			exiterror_general("Badly-formed password reset request. Please go back and try again.");
-		
+
 		if ( $_GET['newPassword'] != $_GET['newPasswordCheck'] )
 			exiterror_general(array("The password you typed the second time did not match the password you typed the first time",
 				"Please click the Back button on your browser and try again."));
@@ -414,10 +414,10 @@ case 'resetUserPassword':
 			/* if the user is logged in, they must supply an existing password */
 			if ( ! isset($_GET['oldPassword']) )
 				exiterror_general("No existing password found in form submission. Please go back and try again.");
-			
+
 			if ($User->username != $_GET['userForPasswordReset'])
 				exiterror_general("Invalid username specified in form submission. Please go back and try again.");
-			
+
 			if ( false === check_user_password($User->username, $_GET['oldPassword']) )
 				exiterror_general("The existing password you entered was not correct. Please go back and try again.");
 		}
@@ -426,24 +426,24 @@ case 'resetUserPassword':
 			/* if the user is not logged in, they must provide a suitable verification key */
 			if (!isset($_GET['v']))
 				exiterror_general("You must be logged in to CQPweb, or supply a verification code, to perform that action.");
-			
+
 			$key = str_replace(" ", "", trim($_GET['v']));
-		
+
 			if (1 > preg_match('/^[abcdef1234567890]{32}$/',$key))
 				exiterror_general("Mis-typed verification code; please go back and try again.");
-			
+
 			if ($_GET['userForPasswordReset'] != resolve_user_verification_key($key))
 				exiterror_general("That verification code was not valid. Please go back and try again.");
 
 			/* all successful, so delete the verification key */
 			unset_user_verification_key($_GET['userForPasswordReset']);
 		}
-		
+
 		$next_location = "index.php?thisQ=welcome&extraMsg=" . urlencode("Your password has been reset.") . "&uT=y";
 	}
-	
+
 	/* if we got to here, one way or another, everything is OK. */
-	
+
 	update_user_password($_GET['userForPasswordReset'], $_GET['newPassword']);
 
 	break;
@@ -456,25 +456,25 @@ case 'remindUsername':
 
 	$sqemail = mysql_real_escape_string($_GET['emailToRemind']);
 	$result = do_mysql_query("select username, realname, email from user_info where email='$sqemail'");
-	
+
 	if (1 > mysql_num_rows($result))
 		exiterror_general(array(
 			"No account with the following email address was found on the system:",
-			$_GET['emailToRemind'], 
+			$_GET['emailToRemind'],
 			"Please go back and try again!"
 			));
-	
+
 	/* there may be more than one account with the same email.... */
 	while (false !== ($o = mysql_fetch_object($result)))
 	{
 		$reminder = $o->username;
 
 		list($realname, $user_address) = render_user_name_and_email($o);
-		
+
 		$body = <<<HERE
 Dear $realname,
 
-A username reminder has been requested for this email address on 
+A username reminder has been requested for this email address on
 CQPweb.
 
 The CQPweb username associated with your email is as follows:
@@ -486,10 +486,10 @@ Yours sincerely,
 The CQPweb User Administration System
 
 HERE;
-		
+
 		send_cqpweb_email($user_address, 'CQPweb: username reminder', $body);
 	}
-	
+
 	/* but the message assumes just one email, since that's the normal case */
 	$next_location = "index.php?thisQ=welcome&extraMsg=" . urlencode("A reminder email with your username has been sent.") . "&uT=y";
 
@@ -519,7 +519,7 @@ Dear $realname,
 
 A password reset has been requested for your user account on CQPweb.
 
-If you really want to reset your password, you can use the following 
+If you really want to reset your password, you can use the following
 32-letter code on the password-reset form:
 
     $vcode_render
@@ -535,24 +535,24 @@ Yours sincerely,
 The CQPweb User Administration System
 
 HERE;
-		
+
 		send_cqpweb_email($user_address, 'CQPweb: password reset', $body);
 
 
 	$next_location = "index.php?thisQ=lostPassword&showSentMessage=1&uT=y";
-	
+
 	break;
-	
-	
-	
+
+
+
 
 
 
 
 	/*
-	 * 
-	 * now come the cases where A USER LOGIN IS REQUIRED and WE ERROR-MESSAGE IF IT WAS NOT THERE 
-	 * 
+	 *
+	 * now come the cases where A USER LOGIN IS REQUIRED and WE ERROR-MESSAGE IF IT WAS NOT THERE
+	 *
 	 */
 
 
@@ -560,7 +560,7 @@ HERE;
 case 'revisedUserSettings':
 
 	/* change user's interface preferences */
-	
+
 	if (!$User->logged_in)
 		exiterror("You must be logged in to perform that action.");
 
@@ -596,21 +596,21 @@ case 'updateUserAccountDetails':
 	}
 
 
-	
+
 	break;
-	
-	
-	
+
+
+
 	/*
-	 * 
+	 *
 	 * Finally, default is an unconditional abort, so it really doesn't matter whether or not one is logged in.
-	 * 
+	 *
 	 */
-	
+
 default:
 
 	/* dodgy parameter: ERROR out. */
-	exiterror_general("A badly-formed user administration operation was requested!"); 
+	exiterror_general("A badly-formed user administration operation was requested!");
 	break;
 }
 
@@ -647,7 +647,7 @@ function parse_get_user_settings()
 			case 'thin_default_reproducible':
 				$settings[$m[1]] = (bool)$v;
 				break;
-					
+
 			/* integer settings */
 			case 'coll_statistic':
 			case 'coll_freqtogether':
@@ -657,14 +657,14 @@ function parse_get_user_settings()
 			case 'max_dbsize':
 				$settings[$m[1]] = (int)$v;
 				break;
-				
+
 			/* patterned settings */
 			case 'linefeed':
 				if (preg_match('/^(da|d|a|au)$/', $v) > 0)
 					$settings[$m[1]] = $v;
 				break;
 			}
-		} 
+		}
 	}
 	return $settings;
 }

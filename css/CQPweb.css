@@ -1,9 +1,11 @@
 
+body {
+	font-family: Sans-Serif, Verdana;
+}
 
 /* top page heading */
 
 h1 {
-	font-family: Verdana;
 	text-align: center;
 }
 
@@ -12,22 +14,16 @@ h1 {
 /* different paragraph styles */
 
 p.errormessage {
-	font-family: verdana;
 	font-size: large
 }
 
 p.instruction {
-	font-family: verdana;
-	font-size: 10pt
 }
 
 p.helpnote {
-	font-family: verdana;
-	font-size: 10pt
 }
 
 p.bigbold {
-	font-family: verdana;
 	font-size: medium;
 	font-weight: bold;
 }
@@ -63,7 +59,6 @@ table.controlbox {
 }
 
 td.controlbox {
-	font-family: Verdana;
 	padding-top: 5px;
 	padding-bottom: 5px;
 	padding-left: 10px;
@@ -98,7 +93,6 @@ th:only-child {
 
 th.concordtable {
 	padding: 5px 3px;
-	font-family: verdana;
 	font-weight: bold;
 
     background: #1e5799;
@@ -121,8 +115,6 @@ th.concordtable a{
 td.concordgeneral {
 	padding: 5px 3px;
 	background-color: #d5dff9;
-	font-family: verdana;
-	font-size: 12pt;
 	border-style: solid;
 	border-color: #ddd;
 	border-width: 1px
@@ -131,8 +123,6 @@ td.concordgeneral {
 td.concordgrey {
 	padding: 5px 3px;
 	background-color: #eee;
-	font-family: verdana;
-	font-size: 12pt;
 	border-style: solid;
 	border-color: #ddd;
 	border-width: 1px;
@@ -142,8 +132,6 @@ td.concordgrey {
 td.concorderror {
 	padding: 5px 3px;
 	background-color: #ffeeaa;
-	font-family: verdana;
-	font-size: 10pt;
 	border-style: solid;
 	border-color: #ffffff;
 	border-width: 2px
@@ -300,7 +288,8 @@ div#showMenu {
     position: fixed;
     left: 0;
     top: 0;
-    padding: 5px 7px;
+    padding: 0px 5px;
+    cursor: ew-resize;
 
     background: white;
     border-radius: 0 0 6px 0;
