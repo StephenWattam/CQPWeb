@@ -65,7 +65,7 @@ echo print_html_header('CQPweb User Page', $Config->css_path, array('cword'));
 		<td valign="top">
             <?php print_menu(); ?>
 		</td>
-		<td valign="top">
+		<td valign="top" width="100%">
 
 <table class="concordtable" width="100%">
 	<tr>

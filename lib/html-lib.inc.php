@@ -42,18 +42,17 @@
  *
  * This is the version for the normal user-facing index.
  */
-function print_menurow_index($link_handle, $link_text) {
-
+function print_menurow_index($link_handle, $link_text, $section = '') {
 	global $thisQ;
-	return print_menurow_backend($link_handle, $link_text, $thisQ, 'thisQ');
+	return print_menurow_backend($link_handle, $link_text, $thisQ, 'thisQ', $section);
 }
-function print_menurow_backend($link_handle, $link_text, $current_query, $http_varname) {
 
-    $s = print_menurow($link_text, "index.php?$http_varname=$link_handle&uT=y", $current_query == $link_handle);
+function print_menurow_backend($link_handle, $link_text, $current_query, $http_varname, $section = '') {
+    $s = print_menurow($link_text, "?$http_varname=$link_handle&uT=y", $section, $current_query == $link_handle);
     return $s;
 }
 
-function print_menurow($link_text, $href, $selected = false, $mouseover = false, $new_window = false){
+function print_menurow($link_text, $href, $section = '', $selected = false, $mouseover = false, $new_window = false){
 
     # Construct header with optional class if selected
     $s = "<tr><td class=\"menu-item";
@@ -61,6 +60,11 @@ function print_menurow($link_text, $href, $selected = false, $mouseover = false,
         $s .= " selected";
     }
     $s .= "\">";
+
+    # Make an attempt to unify sections
+    if($section != ''){
+        $href = "../$section/$href";
+    }
 
     # Write link.  TODO: include mouseover text
     $s .= "<a class=\"menuItem\" href=\"$href\"";
@@ -119,12 +123,78 @@ function print_about_menu()
 
 
 
+function print_admin_menu(){
+
+
+
+    /* ******************* */
+    /* PRINT SIDE BAR MENU */
+    /* ******************* */
+
+    // Show/hide
+    echo '<div id="showMenu" onclick="$(\'.menu\').fadeToggle(200);">&#8660;</div>';
+
+    // Menu header and contents
+    echo ('<div class="menu">');
+    echo ('<table width="100%" id="menuTable">');
+
+    print_places_menu();
+
+    echo print_menurow_heading('Corpora');
+    echo print_menurow_admin('showCorpora', 'Show corpora');
+    echo print_menurow_admin('installCorpus', 'Install new corpus');
+    echo print_menurow_admin('manageCorpusCategories', 'Manage corpus categories');
+    echo print_menurow_admin('annotationTemplates', 'Annotation templates');
+    echo print_menurow_admin('metadataTemplates', 'Metadata templates');
+    echo print_menurow_admin('xmlTemplates', 'XML templates');
+
+    echo print_menurow_heading('Uploads');
+    echo print_menurow_admin('newUpload', 'Upload a file');
+    echo print_menurow_admin('uploadArea', 'View upload area');
+
+    echo print_menurow_heading('Users and privileges');
+    echo print_menurow_admin('userAdmin', 'Manage users');
+    echo print_menurow_admin('groupAdmin', 'Manage groups');
+    echo print_menurow_admin('groupMembership', 'Manage group membership');
+    echo print_menurow_admin('privilegeAdmin', 'Manage privileges');
+    echo print_menurow_admin('userGrants', 'Manage user grants');
+    echo print_menurow_admin('groupGrants', 'Manage group grants');
+
+    echo print_menurow_heading('Frontend interface');
+    echo print_menurow_admin('systemMessages', 'System messages');
+    echo print_menurow_admin('mappingTables', 'Mapping tables');
+
+    echo print_menurow_heading('Backend system');
+    echo print_menurow_admin('cacheControl', 'Cache control');
+    echo print_menurow_admin('manageProcesses', 'Manage MySQL processes');
+    echo print_menurow_admin('tableView', 'View a MySQL table');
+    echo print_menurow_admin('phpConfig', 'PHP configuration');
+    echo print_menurow_admin('opcodeCache', 'PHP opcode cache');
+    /* echo print_menurow_admin('publicTables', 'Public frequency lists'); */
+    echo print_menurow_admin('systemSnapshots', 'System snapshots');
+    echo print_menurow_admin('systemDiagnostics', 'System diagnostics');
+
+    echo print_menurow_heading('Usage Statistics');
+    echo print_menurow_admin('corpusStatistics', 'Corpus statistics');
+    echo print_menurow_admin('userStatistics', 'User statistics');
+    echo print_menurow_admin('queryStatistics', 'Query statistics');
+    echo print_menurow_admin('advancedStatistics', 'Advanced statistics');
+
+
+    print_user_menu();
+    print_about_menu();
+
+    echo('</table>');
+    echo('</div>');
+}
 
 
 
 /** Display the entire menu.
  *
- * Really stateful, really messy.  Call only when necessary...
+ * Really stateful, really messy.
+ *
+ * Should be called for every normal user page (i.e. not admin.)
  */
 function print_menu(){
 
@@ -134,7 +204,12 @@ function print_menu(){
     echo '<div id="showMenu" onclick="$(\'.menu\').fadeToggle(200);">&#8660;</div>';
 
     // Menu header and contents
-    echo ('<table class="menu" width="100%" id="menuTable">');
+    echo ('<div class="menu">');
+    echo ('<table width="100%" id="menuTable">');
+
+
+    print_places_menu();
+
     if(isset($corpus_sql_name)){
         print_corpus_menu($corpus_sql_name);
     }
@@ -142,9 +217,30 @@ function print_menu(){
     print_user_menu();
     print_about_menu();
     echo('</table>');
+    echo('</div>');
 }
 
 
+
+/** PRints the places menu, showing users where they are in the interface.
+ *
+ */
+function print_places_menu(){
+
+    global $User;
+    global $corpus_sql_name;
+
+    echo print_menurow_heading('Places');
+    echo print_menurow('Home', '', 'home');
+
+    if($corpus_sql_name) {
+        echo print_menurow('Current Corpus', '', $corpus_sql_name);
+    }
+    echo print_menurow('User menu', '', 'usr');
+    if($User->is_admin()) {
+        echo print_menurow_index('', 'Admin interface', 'adm');
+    }
+}
 
 /** Print user-specific menu options */
 function print_user_menu(){
@@ -155,40 +251,34 @@ function print_user_menu(){
     if ($User->logged_in)
     {
         echo print_menurow_heading('Your account');
-        echo print_menurow_index('welcome', 'Overview');
-        echo print_menurow_index('userSettings', 'Interface settings');
-        echo print_menurow_index('userMacros', 'User macros');
-        echo print_menurow_index('corpusAccess', 'Corpus permissions');
+        echo print_menurow_index('welcome', 'Overview', 'usr');
+        echo print_menurow_index('userSettings', 'Interface settings', 'usr');
+        echo print_menurow_index('userMacros', 'User macros', 'usr');
+        echo print_menurow_index('corpusAccess', 'Corpus permissions', 'usr');
         echo print_menurow_heading('Account actions');
-        echo print_menurow_index('userDetails', 'Account details');
-        echo print_menurow_index('changePassword', 'Change password');
-        echo print_menurow_index('userLogout', 'Log out of CQPweb');
+        echo print_menurow_index('userDetails', 'Account details', 'usr');
+        echo print_menurow_index('changePassword', 'Change password', 'usr');
+        echo print_menurow_index('userLogout', 'Log out of CQPweb', 'usr');
         if ($User->is_admin())
         {
-            ?>
-            <tr>
-                <td class="concordgeneral">
-                    <a class="menuItem" href="../adm">Go to admin control panel</a>
-                </td>
-            </tr>
-            <?php
-
+            echo print_menurow_index('', 'Admin interface', 'adm');
         }
     }
     else
     {
-        /* if we are not logged in, then we want to show a different default ... */
+        /* i we are not logged in, then we want to show a different default ... */
+        global $thisQ;
         if ($thisQ == 'welcome')
             $thisQ = 'login';
 
         /* menu seen when no user is logged in */
         echo print_menurow_heading('Account actions');
-        echo print_menurow_index('login', 'Log in to CQPweb');
-        echo print_menurow_index('create', 'Create new user account');
-        echo print_menurow_index('verify', 'Activate new account');
-        echo print_menurow_index('resend', 'Resend account activation');
-        echo print_menurow_index('lostUsername', 'Retrieve lost username');
-        echo print_menurow_index('lostPassword', 'Reset lost password');
+        echo print_menurow_index('login', 'Log in to CQPweb', 'usr');
+        echo print_menurow_index('create', 'Create new user account', 'usr');
+        echo print_menurow_index('verify', 'Activate new account', 'usr');
+        echo print_menurow_index('resend', 'Resend account activation', 'usr');
+        echo print_menurow_index('lostUsername', 'Retrieve lost username', 'usr');
+        echo print_menurow_index('lostPassword', 'Reset lost password', 'usr');
     }
 
 
@@ -203,8 +293,6 @@ function print_corpus_menu($corpus_sql_name){
      * PRINT SIDE BAR MENU *
      * ******************* */
 
-
-
     echo print_menurow_heading('Corpus info');
 
     /* note that most of this section is links-out, so we can't use the print-row function */
@@ -218,20 +306,16 @@ function print_corpus_menu($corpus_sql_name){
 
         # FIXME: 'currently viewing' will never be set to true below.  This is a small bug.
         /* echo print_menurow('Corpus documentation', $row[0], false, "Info on $corpus_title", true); */
-        echo print_menurow_index('corpusDocs', 'Corpus documentation');
+        echo print_menurow_index('corpusDocs', 'Corpus documentation', $corpus_sql_name);
     }
 
     /* SHOW CORPUS METADATA */
-    echo print_menurow_index('corpusMetadata', 'View corpus metadata');
-
-
-
-
+    echo print_menurow_index('corpusMetadata', 'View corpus metadata', $corpus_sql_name);
 
 
     echo print_menurow_heading('Corpus queries');
-    echo print_menurow_index('search', 'Standard query');
-    echo print_menurow_index('restrict', 'Restricted query');
+    echo print_menurow_index('search', 'Standard query', $corpus_sql_name);
+    echo print_menurow_index('restrict', 'Restricted query', $corpus_sql_name);
 /* TODO
    note for future: "Restrict query by text" vs "Restrict quey by XML"
    OR: Restrict query (by XXXX) to be part of the configuration in the DB?
@@ -241,19 +325,19 @@ function print_corpus_menu($corpus_sql_name){
 
    OR: just have "Restricted query" and open up sub-options when that is clicked on?
  */
-    echo print_menurow_index('lookup', 'Word lookup');
-    echo print_menurow_index('freqList', 'Frequency lists');
-    echo print_menurow_index('keywords', 'Keywords');
+    echo print_menurow_index('lookup', 'Word lookup', $corpus_sql_name);
+    echo print_menurow_index('freqList', 'Frequency lists', $corpus_sql_name);
+    echo print_menurow_index('keywords', 'Keywords', $corpus_sql_name);
 
     echo print_menurow_heading('User controls');
-    echo print_menurow_index('history', 'Query history');
-    echo print_menurow_index('savedQs', 'Saved queries');
-    echo print_menurow_index('categorisedQs', 'Categorised queries');
-    echo print_menurow_index('uploadQ', 'Upload a query');
+    echo print_menurow_index('history', 'Query history', $corpus_sql_name);
+    echo print_menurow_index('savedQs', 'Saved queries', $corpus_sql_name);
+    echo print_menurow_index('categorisedQs', 'Categorised queries', $corpus_sql_name);
+    echo print_menurow_index('uploadQ', 'Upload a query', $corpus_sql_name);
     /* TODO: this is only for admin users while under development */
     //if ($User->is_admin())
-    echo print_menurow_index('analyseCorpus', 'Analyse corpus');
-    echo print_menurow_index('subcorpus', 'Create/edit subcorpora');
+    echo print_menurow_index('analyseCorpus', 'Analyse corpus', $corpus_sql_name);
+    echo print_menurow_index('subcorpus', 'Create/edit subcorpora', $corpus_sql_name);
 
 
 
@@ -281,14 +365,14 @@ function print_corpus_menu($corpus_sql_name){
         echo print_menurow_heading('Admin tools');
         echo print_menurow('Admin control panel', '../adm');
         echo print_menurow_index('corpusSettings', 'Corpus settings');
-        echo print_menurow_index('userAccess', 'Manage access');
-        echo print_menurow_index('manageMetadata', 'Manage metadata');
-        echo print_menurow_index('manageCategories', 'Manage text categories');
-        echo print_menurow_index('manageAnnotation', 'Manage annotation');
-        echo print_menurow_index('manageVisualisation', 'Manage visualisations');
-        echo print_menurow_index('cachedQueries', 'Cached queries');
-        echo print_menurow_index('cachedDatabases', 'Cached databases');
-        echo print_menurow_index('cachedFrequencyLists', 'Cached frequency lists');
+        echo print_menurow_index('userAccess', 'Manage access', $corpus_sql_name);
+        echo print_menurow_index('manageMetadata', 'Manage metadata', $corpus_sql_name);
+        echo print_menurow_index('manageCategories', 'Manage text categories', $corpus_sql_name);
+        echo print_menurow_index('manageAnnotation', 'Manage annotation', $corpus_sql_name);
+        echo print_menurow_index('manageVisualisation', 'Manage visualisations', $corpus_sql_name);
+        echo print_menurow_index('cachedQueries', 'Cached queries', $corpus_sql_name);
+        echo print_menurow_index('cachedDatabases', 'Cached databases', $corpus_sql_name);
+        echo print_menurow_index('cachedFrequencyLists', 'Cached frequency lists', $corpus_sql_name);
 
     } /* end of "if user is a superuser" */
 
@@ -366,7 +450,7 @@ function print_html_header($title, $css_url, $js_scripts = false)
 	if (!empty($css_url))
 		$s .= "\t<link rel=\"stylesheet\" type=\"text/css\" href=\"$css_url\" >\n";
 
-	$js_path = ($Config->run_location == RUN_LOCATION_MAINHOME ? 'jsc' : '../jsc');
+	$js_path = '../jsc';
 
 	if (empty($js_scripts))
 		$js_scripts = array('jquery', 'always');
@@ -391,8 +475,6 @@ function print_login_form($location_after = false)
 
 	if ($Config->run_location == RUN_LOCATION_USR)
 		$pathbegin = '';
-	else if ($Config->run_location == RUN_LOCATION_MAINHOME)
-		$pathbegin = 'usr/';
 	else
 		/* in a corpus, or in adm */
 		$pathbegin = '../usr/';

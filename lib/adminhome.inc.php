@@ -6,28 +6,28 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
- * 
+ *
  * @file
- * 
+ *
  * adminhome.inc.php: this file contains the code that structures the HTML of the admin control panel.
- * 
- * 
+ *
+ *
  */
 
 /* ------------ *
@@ -37,9 +37,9 @@
 
 /* first, process the various "actions" that the admin interface may be asked to perform */
 require('../lib/admin-execute.inc.php');
-/* 
- * note that the execute actions are zero-environment: they call execute.inc.php 
- * which builds an environment, then calls a function, then exits. 
+/*
+ * note that the execute actions are zero-environment: they call execute.inc.php
+ * which builds an environment, then calls a function, then exits.
  */
 
 require('../lib/environment.inc.php');
@@ -80,68 +80,10 @@ echo print_html_header('CQPweb Admin Control Panel', $Config->css_path, array('c
 <table class="concordtable" width="100%">
 	<tr>
 		<td valign="top">
-
-<?php
-
-
-
-/* ******************* */
-/* PRINT SIDE BAR MENU */
-/* ******************* */
-
-?>
-<table class="menu" width="100%">
-
-<?php
-echo print_menurow_heading('Corpora');
-echo print_menurow_admin('showCorpora', 'Show corpora');
-echo print_menurow_admin('installCorpus', 'Install new corpus');
-echo print_menurow_admin('manageCorpusCategories', 'Manage corpus categories');
-echo print_menurow_admin('annotationTemplates', 'Annotation templates');
-echo print_menurow_admin('metadataTemplates', 'Metadata templates');
-echo print_menurow_admin('xmlTemplates', 'XML templates');
-
-echo print_menurow_heading('Uploads');
-echo print_menurow_admin('newUpload', 'Upload a file');
-echo print_menurow_admin('uploadArea', 'View upload area');
-
-echo print_menurow_heading('Users and privileges');
-echo print_menurow_admin('userAdmin', 'Manage users');
-echo print_menurow_admin('groupAdmin', 'Manage groups');
-echo print_menurow_admin('groupMembership', 'Manage group membership');
-echo print_menurow_admin('privilegeAdmin', 'Manage privileges');
-echo print_menurow_admin('userGrants', 'Manage user grants');
-echo print_menurow_admin('groupGrants', 'Manage group grants');
-
-echo print_menurow_heading('Frontend interface');
-echo print_menurow_admin('systemMessages', 'System messages');
-echo print_menurow_admin('mappingTables', 'Mapping tables');
-
-echo print_menurow_heading('Backend system');
-echo print_menurow_admin('cacheControl', 'Cache control');
-echo print_menurow_admin('manageProcesses', 'Manage MySQL processes');
-echo print_menurow_admin('tableView', 'View a MySQL table');
-echo print_menurow_admin('phpConfig', 'PHP configuration');
-echo print_menurow_admin('opcodeCache', 'PHP opcode cache');
-/* echo print_menurow_admin('publicTables', 'Public frequency lists'); */
-echo print_menurow_admin('systemSnapshots', 'System snapshots');
-echo print_menurow_admin('systemDiagnostics', 'System diagnostics');
-
-echo print_menurow_heading('Usage Statistics');
-echo print_menurow_admin('corpusStatistics', 'Corpus statistics');
-echo print_menurow_admin('userStatistics', 'User statistics');
-echo print_menurow_admin('queryStatistics', 'Query statistics');
-echo print_menurow_admin('advancedStatistics', 'Advanced statistics');
-
-echo print_menurow_heading('Exit');
-echo print_menurow('Main menu', '../', false, 'Go to the main homepage for this CQPweb server')
-?>
-
-</table>
-
-		</td>
+            <?php print_admin_menu(); ?>
+        </td>
 		<td width="100%" valign="top">
-		
+
             <h1 class="page-title">CQPweb Admin Control Panel</h1>
 
 <?php
@@ -162,7 +104,7 @@ switch($thisF)
 case 'showCorpora':
 	printquery_showcorpora();
 	break;
-	
+
 case 'installCorpus':
 	printquery_installcorpus_unindexed();
 	break;
@@ -174,7 +116,7 @@ case 'installCorpusIndexed':
 case 'installCorpusDone':
 	printquery_installcorpusdone();
 	break;
-	
+
 case 'deleteCorpus':
 	/* note - this never has a menu entry -- it must be triggered from showCorpora */
 	printquery_deletecorpus();
@@ -183,31 +125,31 @@ case 'deleteCorpus':
 case 'manageCorpusCategories':
 	printquery_corpuscategories();
 	break;
-	
+
 case 'annotationTemplates':
 	printquery_annotationtemplates();
 	break;
-	
+
 case 'metadataTemplates':
 	printquery_metadatatemplates();
 	break;
-	
+
 case 'xmlTemplates':
 	printquery_xmltemplates();
 	break;
-	
+
 case 'newUpload':
 	printquery_newupload();
 	break;
-	
+
 case 'uploadArea':
 	printquery_uploadarea();
 	break;
-	
+
 case 'userAdmin':
 	printquery_useradmin();
 	break;
-	
+
 case 'groupAdmin':
 	printquery_groupadmin();
 	break;
@@ -239,15 +181,15 @@ case 'mappingTables':
 case 'cacheControl':
 	printquery_cachecontrol();
 	break;
-	
+
 case 'manageProcesses':
 	printquery_systemprocesses();
 	break;
-	
+
 case 'tableView':
 	printquery_tableview();
 	break;
-	
+
 case 'phpConfig':
 	printquery_phpconfig();
 	break;
@@ -275,7 +217,7 @@ case 'userStatistics':
 case 'queryStatistics':
 	printquery_statistic('query');
 	break;
-	
+
 case 'advancedStatistics':
 	printquery_advancedstats();
 	break;
@@ -311,8 +253,8 @@ echo print_html_footer();
 
 cqpweb_shutdown_environment();
 
-/* ------------- * 
- * END OF SCRIPT * 
+/* ------------- *
+ * END OF SCRIPT *
  * ------------- */
 
 

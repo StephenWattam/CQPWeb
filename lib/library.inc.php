@@ -1184,16 +1184,16 @@ function display_system_messages()
 		$after_path = urlencode("../usr/");
 		$rel_add = '../';
 		break;
-	case RUN_LOCATION_MAINHOME:
-		$execute_path = 'adm/index.php?admFunction=execute&function=delete_system_message';
-		$after_path = urlencode("../");
-		$rel_add = '';
-		break;
 	case RUN_LOCATION_CORPUS:
 		/* we are in a corpus */
 		$execute_path = 'execute.php?function=delete_system_message';
 		$after_path = urlencode(basename($_SERVER['SCRIPT_FILENAME']));
 		$rel_add = '../';
+		break;
+	default:
+		$execute_path = '../adm/index.php?admFunction=execute&function=delete_system_message';
+		$after_path = urlencode("../");
+		$rel_add = '';
 		break;
 	}
 

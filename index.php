@@ -1,5 +1,5 @@
 <?php
 
-require('lib/mainhome.inc.php');
+header('Location: home/');
 
 ?>

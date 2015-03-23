@@ -23,7 +23,7 @@
 
 
 /* Very first thing: Let's work in a subdirectory so that we can use the same subdirectory references! */
-chdir('bin');
+chdir('../bin');
 
 
 require('../lib/environment.inc.php');
@@ -35,7 +35,7 @@ require('../lib/metadata.inc.php');
 require('../lib/exiterror.inc.php');
 
 
-cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST, RUN_LOCATION_MAINHOME);
+cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP | CQPWEB_STARTUP_DONT_CHECK_URLTEST);
 
 if ($Config->homepage_use_corpus_categories)
 {
@@ -83,6 +83,15 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 
 ?>
 
+
+<!-- main table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top">
+            <?php print_menu(); ?>
+		</td>
+		<td valign="top" width="100%">
+
 <h1 class="page-title"><?php echo $logo_divs, $homepage_welcome_message; ?></h1>
 
 <table class="concordtable" width="100%">
@@ -113,46 +122,6 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 			$recent_corpora[] = $o; // TODO make the value to the description, once we have it
 		}
 		?>
-		<tr>
-			<td colspan="3" class="concordgeneral">
-
-				<p>&nbsp;</p>
-
-				<p align="center" style="font-size:large">
-                    You are logged in as <?php echo $User->username ?>.
-				</p>
-
-				<p>&nbsp;</p>
-
-				<table class="basicbox" style="margin:auto" width="40%">
-					<tr>
-						<th width="50%" class="basicbox">Recently-used corpora</th>
-						<th width="50%" class="basicbox">Quick links</th>
-					</tr>
-					<tr>
-						<td class="basicbox">
-							<ul style="margin:auto">
-								<?php
-								foreach($recent_corpora as $rc)
-									echo "\t\t\t\t\t\t\t\t<li><a href=\"{$rc->corpus}/\">{$rc->corpus}</a></li>\n";
-								?>
-							</ul>
-						</td>
-						<td class="basicbox">
-							<ul>
-								<li><a href="usr/index.php?thisQ=corpusAccess&uT=y">Corpus access privileges</a></li>
-								<?php if ($User->is_admin()) echo "<li><a href=\"adm\">Admin control panel</a></li>\n"; ?>
-								<li><a href="usr/index.php?thisQ=userDetails&uT=y">User account details</a></li>
-								<!-- <li><a href="">Open help system</a></li>  -->
-								<li><a href="usr/redirect.php?redirect=userLogout&uT=y">Log out</a></li>
-							</ul>
-						</td>
-					</tr>
-				</table>
-
-			</td>
-		</tr>
-
 		<?php
 		echo "\t<tr>\n\t\t\n";
 
@@ -161,8 +130,8 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 	{
 		echo "\t<tr>\n\t\t<td colspan=\"3\" class=\"concordgeneral\">\n";
 		echo print_login_form();
-		echo "\t\t\t<p align=\"center\"><a href=\"usr/?thisQ=create&uT=y\">Create account</a>";
-		echo " | <a href=\"usr/\">Full account-control options</a>\n";
+		echo "\t\t\t<p align=\"center\"><a href=\"../usr/?thisQ=create&uT=y\">Create account</a>";
+		echo " | <a href=\"../usr/\">Full account-control options</a>\n";
 		echo "\t\t\t<p>&nbsp;</p>\n";
 		echo "\t\t</td>\n\t</tr>\n";
 	}
@@ -172,7 +141,7 @@ echo print_html_header('CQPweb Main Page', $Config->css_path);
 	?>
 	<tr>
 		<th colspan="3" class="concordtable">
-			Corpora available on this server (<a href="usr/index.php?thisQ=corpusAccess&uT=y">view access privileges</a>)
+			Corpora available on this server (<a href="../usr/index.php?thisQ=corpusAccess&uT=y">view access privileges</a>)
 		</th>
 	</tr>
 <?php
@@ -220,7 +189,7 @@ foreach ($categories as $id => $cat)
 		echo "
 			<td class=\"$celltype\" width=\"33%\" align=\"center\">
 				&nbsp;<br/>
-				<a href=\"{$c->corpus}/\">$corpus_title</a>
+				<a href=\"../{$c->corpus}/\">$corpus_title</a>
 				<br/>&nbsp;
 			</td>\n";
 
@@ -259,6 +228,13 @@ foreach ($categories as $id => $cat)
 <?php
 
 display_system_messages();
+
+?>
+
+		</td>
+	</tr>
+</table>
+<?php
 
 echo print_html_footer();
 

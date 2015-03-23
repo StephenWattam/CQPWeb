@@ -6,32 +6,32 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
  * @file
- * 
+ *
  * This file contains several things:
- * 
+ *
  * (1) Constant definitions for the system.
- * 
+ *
  * (2) The three global objects ($Config, $User, $Corpus) into which everything is stuffed.
- * 
+ *
  * (3) The environment startup and shutdown functions that need to be called to get things moving.
- * 
+ *
  */
 
 
@@ -44,15 +44,15 @@
  */
 
 
-/* 
- * version number of CQPweb 
+/*
+ * version number of CQPweb
  */
 define('CQPWEB_VERSION', '3.1.9');
 
 /*
  * FLAGS for cqpweb_startup_environment()
  */
- 
+
 define('CQPWEB_STARTUP_NO_FLAGS',              0);
 define('CQPWEB_STARTUP_DONT_CONNECT_CQP',      1);
 define('CQPWEB_STARTUP_DONT_CONNECT_MYSQL',    2);
@@ -62,19 +62,18 @@ define('CQPWEB_STARTUP_ALLOW_ANONYMOUS_ACCESS',16);
 
 
 /*
- * Run location constants 
+ * Run location constants
  */
 
 define('RUN_LOCATION_CORPUS',                  0);
-define('RUN_LOCATION_MAINHOME',                1);
 define('RUN_LOCATION_ADM',                     2);
 define('RUN_LOCATION_USR',                     3);
 define('RUN_LOCATION_CLI',                     4);
 define('RUN_LOCATION_RSS',                     5);
 
 
-/* 
- * plugin type constants 
+/*
+ * plugin type constants
  */
 
 define('PLUGIN_TYPE_UNKNOWN',                  0);
@@ -150,33 +149,33 @@ require('../lib/defaults.inc.php');
 /**
  * Class of which each run of CQPweb should only ever have ONE - it holds config settings as public variables
  * (sometimes hierarchically using other objects).
- * 
+ *
  * The instantiation should always be the global $Config object.
- * 
+ *
  * Has only one function, its constructor, which loads all the config settings.
- * 
+ *
  * Config settings in the database are NOT loaded by the constructor.
- * 
- * 
+ *
+ *
  */
 class CQPwebEnvConfig
 {
 	/* we don't declare any members - the constructor function creates them dynamically */
-	
+
 	public function __construct($run_location)
-	{	
+	{
 		/* import config variables from the global state of the config file */
 		if (file_exists("settings.inc.php"))
 			require( '' . "settings.inc.php");
 		require('../lib/config.inc.php');
 		require('../lib/defaults.inc.php');
 		// TODO: some of the "settings" should be on the $Corpus object and not here. For now they are on both. */
-		
+
 		/* transfer imported variables to object members */
 		$variables = get_defined_vars();
 		unset(	$variables['GLOBALS'], $variables['_SERVER'], $variables['_GET'],
 				$variables['_POST'],   $variables['_FILES'],  $variables['_COOKIE'],
-				$variables['_SESSION'],$variables['_REQUEST'],$variables['_ENV'] 
+				$variables['_SESSION'],$variables['_REQUEST'],$variables['_ENV']
 				);
 		foreach ($variables as $k => $v)
 			$this->$k = $v;
@@ -213,7 +212,6 @@ class CQPwebEnvConfig
 		/* CSS action based on run_location */
 		switch ($this->run_location)
 		{
-		case RUN_LOCATION_MAINHOME:     $this->css_path = $this->css_path_for_homepage;     break;
 		case RUN_LOCATION_ADM:          $this->css_path = $this->css_path_for_adminpage;    break;
 		case RUN_LOCATION_USR:          $this->css_path = $this->css_path_for_userpage;     break;
         case RUN_LOCATION_RSS:          /* no CSS path needed */                            break;
@@ -222,45 +220,45 @@ class CQPwebEnvConfig
             if(!isset($css_path) || empty($css_path))
                 $this->css_path = $this->css_path_for_userpage;
 
-            /* 
+            /*
              * tacit default: RUN_LOCATION_CORPUS, where the $Corpus object takes responsibility for
              * setting the global $Config css_path appropriately (
              */
             break;
 		}
-        
-        
+
+
 	}
 }
 
 
 /**
  * Class of which each run of CQPweb should only ever have ONE - it represents the logged in user.
- * 
+ *
  * The instantiation should always be the global $User object.
- * 
- */ 
-class CQPwebEnvUser 
+ *
+ */
+class CQPwebEnvUser
 {
 	/** Is there a logged in user? (bool) */
 	public $logged_in;
-	
+
 	/** full array of privileges (db objects) available to this user (individually or via group) */
 	public $privileges;
-	
+
 	public function __construct()
 	{
 		global $Config;
 
-		/* 
-		 * Now, let us get the username ... 
+		/*
+		 * Now, let us get the username ...
 		 */
-		
-		/* if this environment is in a CLI script, count us as being logged in as the first admin user */ 
+
+		/* if this environment is in a CLI script, count us as being logged in as the first admin user */
 		if (PHP_SAPI == 'cli')
 		{
 			list($username) = list_superusers();
-			$this->logged_in = true; 
+			$this->logged_in = true;
 		}
 		else
 		{
@@ -290,22 +288,22 @@ class CQPwebEnvUser
 		{
 			/* Update the last-seen date (on every hit from user's browser!) */
 			touch_user($username);
-			
+
 			/* import database fields as object members. */
 			foreach ( ((array)get_user_info($username)) as $k => $v)
 				$this->$k = $v;
 			/* will also import $username --> $User->username which is canonical way to acces it. */
 		}
-		
+
 		/* finally: look for a full list of privileges that this user has. */
 		$this->privileges = ($this->logged_in ? get_collected_user_privileges($username) : array());
 	}
-	
+
 	public function is_admin()
 	{
 		return ( PHP_SAPI=='cli' || ($this->logged_in && user_is_superuser($this->username)) );
 	}
-	
+
 	/**
 	 * Returns the size, in tokens, of the largest sub-corpus for which this user
 	 * allowed to create frequency lists.
@@ -315,7 +313,7 @@ class CQPwebEnvUser
 		static $max = NULL;
 		if (! is_null($max) )
 			return $max;
-		
+
 		/* we begin with a ridiculously low value, so that any privilege will be higher */
 		$max = 1000;
 
@@ -323,7 +321,7 @@ class CQPwebEnvUser
 			if ($p->type == PRIVILEGE_TYPE_FREQLIST_CREATE)
 				if ($p->scope_object > $max)
 					$max = $p->scope_object;
-		
+
 		return $max;
 	}
 }
@@ -332,19 +330,19 @@ class CQPwebEnvUser
 
 /**
  * Class of which each run of CQPweb should only ever have ONE - it represents the current corpus.
- * 
+ *
  * The instantiation should always be the global $Corpus object.
- * 
- * Has only one function, its constructor, which loads all the info. * 
- */ 
-class CQPwebEnvCorpus 
+ *
+ * Has only one function, its constructor, which loads all the info. *
+ */
+class CQPwebEnvCorpus
 {
 	/** are we running within a particular corpus ? */
 	public $specified = false;
-	
+
 	/** This is set to a privilege constant to indicate what level of privilege the currently-logged-on used has. */
 	public $access_level;
-	
+
 	public function __construct()
 	{
 		/* first: try to identify the corpus. */
@@ -367,12 +365,12 @@ class CQPwebEnvCorpus
 			$variables = get_defined_vars();
 			unset(	$variables['GLOBALS'], $variables['_SERVER'], $variables['_GET'],
 					$variables['_POST'],   $variables['_FILES'],  $variables['_COOKIE'],
-					$variables['_SESSION'],$variables['_REQUEST'],$variables['_ENV'] 
+					$variables['_SESSION'],$variables['_REQUEST'],$variables['_ENV']
 					);
 			foreach ($variables as $k => $v)
 				$this->$k = $v;
-			
-	
+
+
 			/* import database fields as object members. */
 			$result = do_mysql_query("select * from corpus_info where corpus = '$this->name'");
 			foreach (mysql_fetch_assoc($result) as $k => $v)
@@ -383,10 +381,10 @@ class CQPwebEnvCorpus
 			/* finally, since we are in a corpus, we need to ascertain (a) whether the user is allowed
 			 * to access this corpus; (b) at what level the access is. */
 			$this->ascertain_access_level();
-			
+
 			if ($this->access_level == PRIVILEGE_TYPE_NO_PRIVILEGE)
 			{
-				/* redirect to a page telling them they do not have the privilege to access this corpus. */ 
+				/* redirect to a page telling them they do not have the privilege to access this corpus. */
 				set_next_absolute_location("../usr/index.php?thisQ=accessDenied&corpusDenied={$this->name}&uT=y");
 				cqpweb_shutdown_environment();
 				exit;
@@ -394,25 +392,25 @@ class CQPwebEnvCorpus
 			}
 		}
 	}
-	
+
 	/**
-	 * Sets up the access_level member to the privilege type indicating 
+	 * Sets up the access_level member to the privilege type indicating
 	 * the HIGHEST level of access to whihc the currently-logged-in user
 	 * is entitled for this corpus.
-	 */ 
+	 */
 	private function ascertain_access_level()
 	{
 		global $User;
-		
+
 		/* superusers have full access to everything. */
 		if ($User->is_admin())
 		{
 			$this->access_level = PRIVILEGE_TYPE_CORPUS_FULL;
 			return;
 		}
-		
+
 		/* otherwise we must dig through the privilweges owned by this user. */
-		
+
 		/* start by assuming NO access. Then look for the highest privilege this user has. */
 		$this->access_level = PRIVILEGE_TYPE_NO_PRIVILEGE;
 
@@ -454,9 +452,9 @@ class CQPwebEnvCorpus
  * This function will normally be used only in the config file.
  * It does not do any error checking, that is done later by the plugin
  * autoload function.
- * 
+ *
  * TODO: it would be handy to move this function elsewhere as it is messy to have it in environment.
- * 
+ *
  * @param class                The classname of the plugin. This should be the same as the
  *                             file that contains it, minus .php.
  * @param type                 The type of plugin. One of the following constants:
@@ -472,13 +470,13 @@ function declare_plugin($class, $type, $path_to_config_file = NULL)
 	global $plugin_registry;
 	if (!isset($plugin_registry))
 		$plugin_registry = array();
-	
+
 	$temp = new stdClass();
-	
+
 	$temp->class = $class;
 	$temp->type  = $type;
 	$temp->path  = $path_to_config_file;
-	
+
 	$plugin_registry[] = $temp;
 }
 
@@ -487,17 +485,17 @@ function declare_plugin($class, $type, $path_to_config_file = NULL)
 
 /**
  * Function that starts up CQPweb and sets up the required environment.
- * 
+ *
  * All scripts that require the environment should call this function.
- * 
+ *
  * It should be called *after* the inclusion of most functions, but
  * *before* the inclusion of admin functions (if any).
- * 
+ *
  * Ultimately, this function will be used instead of the various "setup
  * stuff" that uis currently done repeatedly, per-script.
- * 
- * Pass in bitwise-OR'd flags to control the behaviour. 
- * 
+ *
+ * Pass in bitwise-OR'd flags to control the behaviour.
+ *
  * TODO When we have the new user system, this function will prob get bigger
  * and bigger. Also when the system can be silent for the web-api, this
  * function will deal with it. As a result it will prob
@@ -510,7 +508,7 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS, $run_locat
 	if ($run_location == RUN_LOCATION_CLI)
 		if (php_sapi_name() != 'cli')
 			exit("Critical error: Cannot run CLI scripts over the web!\n");
-	
+
 	/* -------------- *
 	 * TRANSFROM HTTP *
 	 * -------------- */
@@ -518,46 +516,46 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS, $run_locat
 	/* the very first thing we do is set up _GET, _POST etc. .... */
 
 	/* MAGIC QUOTES, BEGONE! */
-	
+
 	/* In PHP > 5.4 magic quotes don't exist, but that's OK, because the function in the test will always
-	 * return false. We also don't worry about multidimensional arrays, since CQPweb doesn't use them. 
+	 * return false. We also don't worry about multidimensional arrays, since CQPweb doesn't use them.
 	 * The test function also returns false if we are working in the CLI environment. */
-	
-	if (get_magic_quotes_gpc()) 
+
+	if (get_magic_quotes_gpc())
 	{
-		foreach ($_POST as $k => $v) 
+		foreach ($_POST as $k => $v)
 		{
 			unset($_POST[$k]);
 			$_POST[stripslashes($k)] = stripslashes($v);
 		}
-		foreach ($_GET as $k => $v) 
+		foreach ($_GET as $k => $v)
 		{
 			unset($_GET[$k]);
 			$_GET[stripslashes($k)] = stripslashes($v);
 		}
 	}
-	
+
 	/* WE ALWAYS USE GET! */
-	
+
 	/* sort out our incoming variables.... */
 	foreach($_POST as $k=>$v)
 		$_GET[$k] = $v;
-	/* now, we can be sure that any bits of the system that rely on $_GET being there will work. */	
-	
-	
+	/* now, we can be sure that any bits of the system that rely on $_GET being there will work. */
+
+
 	/* -------------- *
 	 * GLOBAL OBJECTS *
 	 * -------------- */
-	
-	
+
+
 	/** Global object containing information on system configuration. */
 	global $Config;
 	/** Global object containing information on the current user account. */
 	global $User;
 	/** Global object containing information on the current corpus. */
 	global $Corpus;
-	
-	
+
+
 	// TODO, move into here the setup of plugins
 	// (so this is done AFTER all functions are imported, not
 	// in the defaults.inc.php file)
@@ -565,17 +563,17 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS, $run_locat
 	// TODO, move into here setting the HTTP response headers, charset and the like???
 	// (make dependent on whether we are writing plaintext or an HTML response?
 	// (do we want a flag CQPWEB_STARTUP_NONINTERACTIVE for when HTML response is NOT wanted?
-	
+
 	/* create global settings options */
 	$Config = new CQPwebEnvConfig($run_location);
-	
-	
-	
+
+
+
 	/*
 	 * The flags are for "dont" because we assume the default behaviour
 	 * is to need both a DB connection and a slave CQP process.
-	 * 
-	 * If one or both is not required, a script can be passed in to 
+	 *
+	 * If one or both is not required, a script can be passed in to
 	 * save the connection (not much of a saving in the case of the DB,
 	 * potentially quite a performance boost for the slave process.)
 	 */
@@ -583,7 +581,7 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS, $run_locat
 		;
 	else
 		connect_global_cqp();
-	
+
 	if ($flags & CQPWEB_STARTUP_DONT_CONNECT_MYSQL)
 		;
 	else
@@ -593,19 +591,19 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS, $run_locat
 	/* now the DB is connected, we can do the other two global objects. */
 
 	$User   = new CQPwebEnvUser();
-	
+
 	$Corpus = new CQPwebEnvCorpus();
 
-	
+
 	/* write progressively to output in case of long loading time */
 	ob_implicit_flush(true);
 
 
 
-		
-	
 
-	/* We do the following AFTER starting up the global objects, because without it, 
+
+
+	/* We do the following AFTER starting up the global objects, because without it,
 	 * we don't have the CSS path for exiterror. */
 	if (($flags & CQPWEB_STARTUP_DONT_CHECK_URLTEST) || PHP_SAPI=='cli')
 		;
@@ -615,20 +613,20 @@ function cqpweb_startup_environment($flags = CQPWEB_STARTUP_NO_FLAGS, $run_locat
 	if ($flags & CQPWEB_STARTUP_CHECK_ADMIN_USER)
 		if (!$User->is_admin())
 			exiterror_general("You do not have permission to use this part of CQPweb.");
-	
+
 	/* end of function cqpweb_startup_environment */
 }
 
 /**
  * Performs shutdown and cleanup for the CQPweb system.
- * 
- * The only thing that it will not do is finish off HTML. 
+ *
+ * The only thing that it will not do is finish off HTML.
  * The script should do that separately -- BEFORE calling this function.
- * 
+ *
  * All scripts should finish by calling this function.
  */
 function cqpweb_shutdown_environment()
-{	
+{
 	/* these funcs have their own "if" clauses so can be called here unconditionally... */
 	disconnect_global_cqp();
 	disconnect_global_mysql();
