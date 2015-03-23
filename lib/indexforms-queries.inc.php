@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -29,12 +29,12 @@
 function printquery_search()
 {
 	global $User;
-	
+
 	global $corpus_sql_name;
 	global $corpus_uses_case_sensitivity;
 
 	global $default_per_page;
-	
+
 	if (isset($_GET['insertString']))
 		$insertString = $_GET['insertString'];
 	else
@@ -45,10 +45,10 @@ function printquery_search()
 	else
 		$insertSubcorpus = '**search all**';
 
-	if	(   isset($_GET['insertType']) 
-		&&	(	   $_GET['insertType'] == 'sq_case' 
-				|| $_GET['insertType'] == 'sq_nocase' 
-				|| $_GET['insertType'] == 'cqp' )   
+	if	(   isset($_GET['insertType'])
+		&&	(	   $_GET['insertType'] == 'sq_case'
+				|| $_GET['insertType'] == 'sq_nocase'
+				|| $_GET['insertType'] == 'cqp' )
 		)
 		$select_qmode = $_GET['insertType'];
 	else
@@ -65,20 +65,20 @@ function printquery_search()
 
 <tr>
 	<td class="concordgeneral">
-	
-		<form action="concordance.php" accept-charset="UTF-8" method="get"> 
-	
+
+		<form action="concordance.php" accept-charset="UTF-8" method="get">
+
 			&nbsp;<br/>
-			
+
 			<textarea name="theData" rows="5" cols="65" style="font-size: 16px;"
 				><?php if (isset($insertString)) echo prepare_query_string($insertString); ?></textarea>
 			&nbsp;<br/>
 			&nbsp;<br/>
-			
-			<table>	
+
+			<table>
 				<tr>
 					<td class="basicbox">Query mode:</td>
-					
+
 					<td class="basicbox">
 						<select name="qmode">
 							<option value="cqp"<?php if ($select_qmode == 'cqp') echo ' selected="selected"';?>>
@@ -98,11 +98,11 @@ function printquery_search()
 						</a>
 					</td>
 				</tr>
-			
+
 				<tr>
 					<td class="basicbox">Number of hits per page:</td>
-					
-					<td class="basicbox">	
+
+					<td class="basicbox">
 						<select name="pp">
 							<option value="count">count hits</option>
 							<option value="10"<?php   if ($default_per_page == 10)   echo ' selected="selected"';?>>10</option>
@@ -120,70 +120,72 @@ function printquery_search()
 						</select>
 					</td>
 				</tr>
-	
+
 				<tr>
 					<td class="basicbox">Restriction:</td>
 					<input type="hidden" name="del" size="-1" value="begin" />
 					<td class="basicbox">
 						<select name="t">
-							
+
 							<?php
-							
+
+
 							/* first option is always whole corpus */
-							echo '<option value="" ' 
+							echo '<option value="" '
 								. ( $insertSubcorpus == '**search all**' ? 'selected="selected"' : '' )
-								. '>None (search whole corpus)</option>'; 
-							
-							/* create options for the Primary Classification */
-							$sql_query = "select primary_classification_field from corpus_info
-								where corpus = '$corpus_sql_name'";
-							$result = do_mysql_query($sql_query);
-							$row = mysql_fetch_row($result);
-							$field = $row[0];
-							
-							$catlist = metadata_category_listdescs($field);
-							
-							foreach ($catlist as $h => $c)
-								echo "<option value=\"$field~$h\">".(empty($c) ? $h : $c)."</option>\n";
-	
-							
+								. '>None (search whole corpus)</option>';
+
 							/* list the user's subcorpora for this corpus */
 							/* including the last set of restrictions used */
-							
+
 							$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
 								where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
 							$result = do_mysql_query($sql_query);
-	
+
 							while (($row = mysql_fetch_assoc($result)) != false)
 							{
 								if ($row['subcorpus_name'] == '__last_restrictions')
 									echo '<option value="__last_restrictions">Last restrictions ('
-										. number_format((float)$row['numwords']) . ' words in ' 
+										. number_format((float)$row['numwords']) . ' words in '
 										. number_format((float)$row['numfiles']) . ' texts)</option>';
 								else
 									echo '<option value="subcorpus~' . $row['subcorpus_name'] . '"'
 										. ($insertSubcorpus == $row['subcorpus_name'] ? ' selected="selected"' : '')
 										. '>'
 										. 'Subcorpus: ' . $row['subcorpus_name'] . ' ('
-										. number_format((float)$row['numwords']) . ' words in ' 
+										. number_format((float)$row['numwords']) . ' words in '
 										. number_format((float)$row['numfiles']) . ' texts)</option>';
 							}
-	
+
+
+							/* create options for the Primary Classification */
+							$sql_query = "select primary_classification_field from corpus_info
+								where corpus = '$corpus_sql_name'";
+							$result = do_mysql_query($sql_query);
+							$row = mysql_fetch_row($result);
+							$field = $row[0];
+
+							$catlist = metadata_category_listdescs($field);
+
+							foreach ($catlist as $h => $c)
+								echo "<option value=\"$field~$h\">".(empty($c) ? $h : $c)."</option>\n";
+
+
 							?>
-	
+
 						</select>
 					</td>
 				</tr>
-				<input type="hidden" name="del" size="-1" value="end" />			
+				<input type="hidden" name="del" size="-1" value="end" />
 				<tr>
 					<td class="basicbox">&nbsp;</td>
-					<td class="basicbox">				
+					<td class="basicbox">
 						<input type="submit" value="Start Query"/>
 						<input type="reset" value="Reset Query"/>
 					</td>
 				</tr>
 			</table>
-					
+
 			<!-- this input ALWAYS comes last -->
 			<input type="hidden" name="uT" value="y"/>
 		</form>
@@ -202,32 +204,32 @@ function printquery_search()
 function printquery_restricted()
 {
 	global $User;
-	
+
 	global $default_per_page;
 	global $corpus_uses_case_sensitivity;
-	
+
 	if (isset($_GET['insertString']))
 		$insertString = $_GET['insertString'];
 	else
 		$insertString = NULL;
 
-	if	(   isset($_GET['insertType']) 
-		&&	(	   $_GET['insertType'] == 'sq_case' 
-				|| $_GET['insertType'] == 'sq_nocase' 
-				|| $_GET['insertType'] == 'cqp' )   
+	if	(   isset($_GET['insertType'])
+		&&	(	   $_GET['insertType'] == 'sq_case'
+				|| $_GET['insertType'] == 'sq_nocase'
+				|| $_GET['insertType'] == 'cqp' )
 		)
 		$select_qmode = $_GET['insertType'];
 	else
-		$select_qmode = ($corpus_uses_case_sensitivity ? 'sq_case' : 'sq_nocase');
-	
+		$select_qmode = 'cqp'; //($corpus_uses_case_sensitivity ? 'sq_case' : 'sq_nocase');
+
 	/* insert restrictions as checked tickboxes lower down */
 	if (isset($_GET['insertRestrictions']))
 	{
 		preg_match_all('/\W+(\w+)=\W+(\w+)\W/', $_GET['insertRestrictions'], $matches, PREG_SET_ORDER);
-		
+
 		foreach($matches as $m)
 			$checkarray[$m[1]][$m[2]] = 'checked="checked" ';
-	
+
 		unset($matches);
 	}
 
@@ -238,21 +240,21 @@ function printquery_restricted()
 		<th class="concordtable" colspan="3">Restricted Query</th>
 	</tr>
 
-	<form action="concordance.php" accept-charset="UTF-8" method="get"> 
+	<form action="concordance.php" accept-charset="UTF-8" method="get">
 	<tr>
 		<td class="concordgeneral" colspan="3">
-	
+
 			&nbsp;<br/>
-			
+
 			<textarea name="theData" rows="5" cols="65" style="font-size: 16px;"
 				><?php if (isset($insertString)) echo prepare_query_string($insertString); ?></textarea>
 			&nbsp;<br/>
 			&nbsp;<br/>
-			
-			<table>	
+
+			<table>
 				<tr>
 					<td class="basicbox">Query mode:</td>
-				
+
 					<td class="basicbox">
 						<select name="qmode">
 							<option value="cqp"<?php if ($select_qmode == 'cqp') echo ' selected="selected"';?>>
@@ -272,10 +274,10 @@ function printquery_restricted()
 						</a>
 					</td>
 				</tr>
-			
+
 				<tr><td class="basicbox">Number of hits per page:</td>
-				
-				<td class="basicbox">	
+
+				<td class="basicbox">
 					<select name="pp">
 						<option value="count">count hits</option>
 						<option value="10"<?php if ($default_per_page == 10) echo ' selected="selected"';?>>10</option>
@@ -297,14 +299,14 @@ function printquery_restricted()
 
 				<tr>
 					<td class="basicbox">&nbsp;</td>
-					<td class="basicbox">				
+					<td class="basicbox">
 						<input type="submit" value="Start Query"/>
 						<input type="reset" value="Reset Query"/>
 					</td>
 				</tr>
 			</table>
 		</td></tr>
-				
+
 	<?php
 
 	echo printquery_build_restriction_block((isset($checkarray) ? $checkarray : NULL), 'query');
@@ -312,7 +314,29 @@ function printquery_restricted()
 }
 
 
+/**
+ *
+ * Print the corpus documentation file.
+ */
+function printquery_corpusdocs($corpus_sql_name)
+{
 
+    /* print a link to a corpus manual, if there is one */
+    $sql_query = "select external_url from corpus_info where corpus = '$corpus_sql_name' and external_url IS NOT NULL";
+    $result = do_mysql_query($sql_query);
+    if (mysql_num_rows($result) >= 1)
+    {
+        $row = mysql_fetch_row($result);
+
+
+        echo('<iframe style="width: 100%; min-height: 700px;" src="' . $row[0] . '"></iframe>');
+
+    } else {
+        // FIXME: format as error
+        echo "<center>No docs found for this corpus.</center>";
+    }
+
+}
 
 
 /**
@@ -326,13 +350,13 @@ function printquery_build_restriction_block($checkarray, $thing_to_produce)
 	{
 		/* build checkarray from the http query string */
 		preg_match_all('/&t=([^~]+)~([^&]+)/', $_SERVER['QUERY_STRING'], $pairs, PREG_SET_ORDER );
-		
+
 		foreach($pairs as $p)
 			$checkarray[$p[1]][$p[2]] = 'checked="checked" ';
-	
+
 		unset($pairs);
 	}
-	
+
 	$block = '
 		<tr>
 			<th colspan="3" class="concordtable">
@@ -340,35 +364,35 @@ function printquery_build_restriction_block($checkarray, $thing_to_produce)
 			</th>
 		</tr>
 		';
-		
-		
+
+
 	/* get a list of classifications and categories from mysql; print them here as tickboxes */
-	
+
 	$block .= '<tr><input type="hidden" name="del" size="-1" value="begin" />';
 
 	$classifications = metadata_list_classifications();
-	
+
 	$i = 0 ;
-	
+
 	foreach ($classifications as $c)
 	{
-		$header_row[$i] = '<td width="33%" class="concordgrey" align="center">' 
+		$header_row[$i] = '<td width="33%" class="concordgrey" align="center">'
 			. $c['description'] . '</td>';
 		$body_row[$i] = '<td class="concordgeneral" valign="top" nowrap="nowrap">';
-		
+
 		$catlist = metadata_category_listdescs($c['handle']);
-		
+
 		foreach ($catlist as $handle => $desc)
 			$body_row[$i] .= '<input type="checkbox" name="t" value="'
-				. $c['handle'] . "~$handle\" " . (isset($checkarray[$c['handle']][$handle]) ? $checkarray[$c['handle']][$handle] : '') 
+				. $c['handle'] . "~$handle\" " . (isset($checkarray[$c['handle']][$handle]) ? $checkarray[$c['handle']][$handle] : '')
 				. '/> ' . ($desc == '' ? $handle : $desc) . '<br/>';
-		
+
 
 		/* whitespace is gratuitous for readability */
 		$body_row[$i] .= '
 			&nbsp;
 			</td>';
-		
+
 		$i++;
 		/* print three columns at a time */
 		if ( $i == 3 )
@@ -381,7 +405,7 @@ function printquery_build_restriction_block($checkarray, $thing_to_produce)
 			$i = 0;
 		}
 	}
-	
+
 	if ($i > 0) /* not all cells printed */
 	{
 		while ($i < 3)
@@ -396,11 +420,11 @@ function printquery_build_restriction_block($checkarray, $thing_to_produce)
 			<tr>
 			';
 	}
-	
+
 	$block .= '<input type="hidden" name="del" size="-1" value="end" />
 	<input type="hidden" name="uT" value="y"/></form></tr>
 	';
-	
+
 	if (empty($classifications))
 		$block .= '<tr><td colspan="3" class="concordgrey" align="center">
 			&nbsp;<br/>
@@ -416,31 +440,31 @@ function printquery_build_restriction_block($checkarray, $thing_to_produce)
 
 /**
  * Returns a string containing a blob of HTML that contains info about the CWB/CQP attributes
- * available to those using CQP syntax.  
+ * available to those using CQP syntax.
  */
 function printquery_build_attribute_block()
 {
 	$html = "<p>The following p-attributes are available in this corpus:</p>\n\n";
-	
+
 	$html .= "<center>\n<table class=\"basicbox\" width=\"80%\">\n";
-	
+
 	$html .= "<tr>\t<td width=\"18%\"><code>word</code></td>\t<td>Main word-token attribute</td>\t</tr>\n";
-	
+
 	foreach(get_corpus_annotation_info() as $p)
 	{
 		$tagset = (empty($p->tagset) ? '' : "(using {$p->tagset})");
 		$html .= "<tr>\t<td><code>{$p->handle}</code></td>\t<td>{$p->description}$tagset</td>\t</tr>\n";
 	}
-	
+
 	$html .= "</table>\n\n\n";
-	
+
 	$html .= "<p>The following s-attributes are available in this corpus:</p>\n\n<ul>\n";
-	
+
 	foreach(get_xml_all() as $s)
 		$html .= "\t<li><code>$s</code></li>\n";
-	
+
 	$html .= "</ul>\n\n";
-	
+
 	return $html;
 }
 
@@ -450,10 +474,10 @@ function printquery_build_attribute_block()
 function printquery_lookup()
 {
 	/* much of this is the same as the form for freq list, but simpler */
-	
+
 	/* do we want to allow an option for "showing both words and tags"? */
 	$primary_annotation = get_corpus_metadata('primary_annotation');
-	
+
 	$annotation_available = ( empty($primary_annotation) ? false : true );
 
 ?>
@@ -462,7 +486,7 @@ function printquery_lookup()
 	<tr>
 		<th class="concordtable" colspan="2">Word lookup</th>
 	</tr>
-	
+
 	<tr>
 		<td class="concordgrey" colspan="2">
 			&nbsp;<br/>
@@ -471,7 +495,7 @@ function printquery_lookup()
 			<br/>&nbsp;
 		</td>
 	</tr>
-	
+
 	<form action="redirect.php" method="get">
 		<tr>
 			<td class="concordgeneral">Enter the word-form you want to look up</td>
@@ -507,7 +531,7 @@ function printquery_lookup()
 						</td>
 						<td class="basicbox" valign="center">
 							... the pattern you specified
-						</td>							
+						</td>
 					</tr>
 				</table>
 				<!--
@@ -521,8 +545,8 @@ function printquery_lookup()
 				-->
 			</td>
 		</tr>
-		
-		<?php		
+
+		<?php
 		if ($annotation_available)
 		{
 			echo '
@@ -582,9 +606,9 @@ function printquery_keywords()
 	global $Config;
 	global $corpus_title;
 	global $corpus_sql_name;
-	
+
 	/* create the options for frequency lists to compare */
-	
+
 	/* subcorpora belonging to this user that have freqlists compiled (list of names returned) */
 	$subcorpora = list_freqtabled_subcorpora();
 	sort($subcorpora);
@@ -595,36 +619,36 @@ function printquery_keywords()
 	/* public freqlists - subcorpora	(function returns associative array) */
 	$public_subcorpora = list_public_freqtables();
 
-	
+
 	$list_options = "<option value=\"__entire_corpus\">Whole of $corpus_title</option>\n";
-	
+
 	foreach ($subcorpora as $s)
 		$list_options .= "<option value=\"sc~$s\">Subcorpus: $s</option>\n";
-	
+
 	$list_options_list2 = $list_options;
 	/* only list 2 has the "public" options */
-	
+
 	foreach ($public_corpora as $pc)
-		$list_options_list2 .= ( $pc['corpus'] == $corpus_sql_name ? '' : 
+		$list_options_list2 .= ( $pc['corpus'] == $corpus_sql_name ? '' :
 			"<option value=\"pc~{$pc['corpus']}\">
 			Public frequency list: {$pc['public_freqlist_desc']}</option>\n" );
-		
+
 	foreach ($public_subcorpora as $ps)
 		$list_options_list2 .= "<option value=\"ps~{$ps['freqtable_name']}\">
 			Public frequency list: subcorpus {$ps['subcorpus']} from corpus {$ps['corpus']}
 			</option>";
-	
+
 	/* and the options for selecting an attribute */
-	
+
 	$attribute = get_corpus_annotations();
-	
+
 	$att_options = '<option value="word">Word forms</option>
 		';
-	
+
 	foreach ($attribute as $k => $a)
 		$att_options .= "<option value=\"$k\">$a</option>\n";
-	
-		
+
+
 
 ?>
 <table class="concordtable" width="100%">
@@ -632,24 +656,24 @@ function printquery_keywords()
 	<tr>
 		<th class="concordtable" colspan="4">Keywords and key tags</th>
 	</tr>
-	
+
 	<tr>
 		<td class="concordgrey" colspan="4">
 			<center>
 				&nbsp;<br/>
-				Keyword lists are compiled by comparing frequency lists you have created for different subcorpora. 
+				Keyword lists are compiled by comparing frequency lists you have created for different subcorpora.
 				<a href="index.php?thisQ=subcorpus&uT=y">Click here to create/view frequency lists</a>.
 				<br/>&nbsp;
 			</center>
 		</td>
 	</tr>
-	
+
 	<form action="keywords.php" method="get">
 		<tr>
 			<td class="concordgeneral">Select frequency list 1:</td>
 			<td class="concordgeneral">
 				<select name="kwTable1">
-					
+
 					<?php echo $list_options; ?>
 				</select>
 			</td>
@@ -668,7 +692,7 @@ function printquery_keywords()
 				</select>
 			</td>
 		</tr>
-		
+
 		<tr>
 			<th class="concordtable" colspan="4">Options for keyword analysis:</th>
 		</tr>
@@ -698,7 +722,7 @@ function printquery_keywords()
 				</select>
 			</td>
 		</tr>
-		
+
 		<tr>
 			<td class="concordgeneral">
 				Significance cut-off point:
@@ -720,8 +744,8 @@ function printquery_keywords()
 				Use Šidák correction?<?php } ?>
 			</td>
 		</tr>
-		
-		
+
+
 		<tr>
 			<td class="concordgeneral">Min. frequency (list 1):</td>
 			<td class="concordgeneral">
@@ -777,13 +801,13 @@ function printquery_keywords()
 				</center>
 			</td>
 		</tr>
-		
+
 		<tr>
 			<th class="concordtable" colspan="4">
 				View unique words or tags on one frequency list:
 			</th>
 		</tr>
-		
+
 		<tr>
 			<td class="concordgeneral" colspan="2">Display items that occur in:</td>
 			<td class="concordgeneral" colspan="2">
@@ -819,32 +843,32 @@ function printquery_keywords()
 function printquery_freqlist()
 {
 	/* much of this is the same as the form for keywords, but simpler */
-	
+
 	global $corpus_title;
 	global $corpus_sql_name;
-	
+
 	/* create the options for frequency lists to compare */
-	
+
 	/* subcorpora belonging to this user that have freqlists compiled (list of names returned) */
 	$subcorpora = list_freqtabled_subcorpora();
 	/* public freqlists - corpora */
-	
+
 	$list_options = "<option value=\"__entire_corpus\">Whole of $corpus_title</option>\n";
-	
+
 	foreach ($subcorpora as $s)
 		$list_options .= "<option value=\"$s\">Subcorpus: $s</option>\n";
-	
+
 	/* and the options for selecting an attribute */
-	
+
 	$attribute = get_corpus_annotations();
-	
+
 	$att_options = '<option value="word">Word forms</option>
 		';
-	
+
 	foreach ($attribute as $k => $a)
 		$att_options .= "<option value=\"$k\">$a</option>\n";
-	
-		
+
+
 
 ?>
 <table class="concordtable" width="100%">
@@ -852,17 +876,17 @@ function printquery_freqlist()
 	<tr>
 		<th class="concordtable" colspan="2">Frequency lists</th>
 	</tr>
-	
+
 	<tr>
 		<td class="concordgrey" colspan="2">
 			<center>
-				You can view the frequency lists of the whole corpus and frequency lists for 
-				subcorpora you have created. <a href="index.php?thisQ=subcorpus&uT=y">Click 
+				You can view the frequency lists of the whole corpus and frequency lists for
+				subcorpora you have created. <a href="index.php?thisQ=subcorpus&uT=y">Click
 				here to create/view subcorpus frequency lists</a>.
 			</center>
 		</td>
 	</tr>
-	
+
 	<form action="freqlist.php" method="get">
 		<tr>
 			<td class="concordgeneral">View frequency list for ...</td>
@@ -880,7 +904,7 @@ function printquery_freqlist()
 				</select>
 			</td>
 		</tr>
-		
+
 		<tr>
 			<th class="concordtable" colspan="2">Frequency list option settings</th>
 		</tr>
@@ -902,7 +926,7 @@ function printquery_freqlist()
 		<tr>
 			<td class="concordgeneral">Filter the list by <em>frequency</em> - show only words/tags ...</td>
 			<td class="concordgeneral">
-				with frequency between 
+				with frequency between
 				<input type="text" name="flFreqLimit1" size="8" />
 				and
 				<input type="text" name="flFreqLimit2" size="8" />
@@ -965,34 +989,34 @@ function printquery_corpusmetadata()
 
 	?>
 	<table class="concordtable" width="100%">
-	
+
 		<tr>
-			<th colspan="2" class="concordtable">Metadata for <?php echo $corpus_title; ?> 
+			<th colspan="2" class="concordtable">Metadata for <?php echo $corpus_title; ?>
 			</th>
 		</tr>
 
 	<?php
-	
+
 	/* set up the data we need */
-	
+
 	/* load metadata into two result arrays */
 
 	$sql_query = "select * from corpus_info where corpus = '$corpus_sql_name'";
 	$result_fixed = do_mysql_query($sql_query);
 	/* this will only contain a single row */
 	$metadata_fixed = mysql_fetch_assoc($result_fixed);
-	
+
 	$sql_query = "select * from corpus_metadata_variable where corpus = '$corpus_sql_name'";
-	$result_variable = do_mysql_query($sql_query);	
-	
+	$result_variable = do_mysql_query($sql_query);
+
 	/* number of files in corpus */
 	$result_textlist = do_mysql_query("select count(text_id) from text_metadata_for_$corpus_sql_name");
 	list($num_texts) = mysql_fetch_row($result_textlist);
 	$num_texts = number_format((float)$num_texts);
-	
+
 	/* now get total word length of all files */
 	$words_in_all_texts = number_format((float)$tokens = get_corpus_wordcount());
-	
+
 	/* work out number of types and type token ratio */
 	$result_temp = do_mysql_query("show tables like 'freq_corpus_{$corpus_sql_name}_word'");
 	if (mysql_num_rows($result_temp) > 0)
@@ -1005,9 +1029,9 @@ function printquery_corpusmetadata()
 	else
 	{
 		$types_in_corpus = 'Cannot be calculated (frequency tables not set up)';
-		$type_token_ratio = 'Cannot be calculated (frequency tables not set up)';	
+		$type_token_ratio = 'Cannot be calculated (frequency tables not set up)';
 	}
-	
+
 	/* get a list of metadata_fields */
 	$sql_query = "select handle from text_metadata_fields where corpus = '$corpus_sql_name'";
 	$result_textfields = do_mysql_query($sql_query);
@@ -1015,13 +1039,13 @@ function printquery_corpusmetadata()
 	/* get a list of annotations */
 	$sql_query = "select * from annotation_metadata where corpus = '$corpus_sql_name'";
 	$result_annotations = do_mysql_query($sql_query);
-	
+
 	/* create a placeholder for the primary annotation's description */
 	$primary_annotation_string = $metadata_fixed['primary_annotation'];
 	/* the description itself will be grabbed when we scroll through the full list of annotations */
-		
-	
-	
+
+
+
 	?>
 		<tr>
 			<td width="50%" class="concordgrey">Corpus name</td>
@@ -1049,8 +1073,8 @@ function printquery_corpusmetadata()
 		</tr>
 
 	<?php
-	
-	
+
+
 	/* VARIABLE METADATA */
 	while (($metadata = mysql_fetch_assoc($result_variable)) != false)
 	{
@@ -1065,14 +1089,14 @@ function printquery_corpusmetadata()
 		</tr>
 		<?php
 	}
-	
+
 	?>
 		<tr>
 			<th class="concordtable" colspan="2">Text metadata and word-level annotation</td>
 		</tr>
 	<?php
-	
-	
+
+
 	/* TEXT CLASSIFICATIONS */
 	$num_rows = mysql_num_rows($result_textfields);
 	?>
@@ -1097,16 +1121,16 @@ function printquery_corpusmetadata()
 		<tr>
 			<td class="concordgrey">The <b>primary</b> classification of texts is based on:</td>
 			<td class="concordgeneral">
-				<?php 
+				<?php
 				echo (empty($metadata_fixed['primary_classification_field'])
 					? 'A primary classification scheme for texts has not been set.'
-					: metadata_expand_field($metadata_fixed['primary_classification_field'])); 
+					: metadata_expand_field($metadata_fixed['primary_classification_field']));
 				?>
 			</td>
 		</tr>
-	<?php	
-	
-	
+	<?php
+
+
 	/* ANNOTATIONS */
 	$num_rows = mysql_num_rows($result_annotations);
 	?>
@@ -1122,7 +1146,7 @@ function printquery_corpusmetadata()
 		if ($annotation['description'] != "")
 		{
 			echo $annotation['description'];
-			
+
 			/* while we're looking at the description, save it for later if this
 			 * is the primary annotation */
 			if ($primary_annotation_string == $annotation['handle'])
@@ -1134,13 +1158,13 @@ function printquery_corpusmetadata()
 		{
 			echo ' (';
 			if ($annotation['external_url'] != "")
-				echo '<a target="_blank" href="' . $annotation['external_url'] 
+				echo '<a target="_blank" href="' . $annotation['external_url']
 					. '">' . $annotation['tagset'] . '</a>';
 			else
 				echo $annotation['tagset'];
 			echo ')';
-		}	
-			
+		}
+
 		echo '</td></tr>';
 		if (($i) < $num_rows)
 			echo '<tr>';
@@ -1153,16 +1177,16 @@ function printquery_corpusmetadata()
 		<tr>
 			<td class="concordgrey">The <b>primary</b> tagging scheme is:</td>
 			<td class="concordgeneral">
-				<?php 
-				echo empty($primary_annotation_string) 
-					? 'A primary tagging scheme has not been set' 
-					: $primary_annotation_string; 
+				<?php
+				echo empty($primary_annotation_string)
+					? 'A primary tagging scheme has not been set'
+					: $primary_annotation_string;
 				?>
 			</td>
 		</tr>
-	<?php		
-	
-	
+	<?php
+
+
 	/* EXTERNAL URL */
 	if ( $metadata_fixed['external_url'] != "" )
 	{
@@ -1179,8 +1203,8 @@ function printquery_corpusmetadata()
 		</tr>
 		<?php
 	}
-		
-	?>	
+
+	?>
 	</table>
 	<?php
 }

@@ -323,6 +323,11 @@ else
 	echo print_html_header($corpus_title . ' -- CQPweb Query Frequency Breakdown', $Config->css_path);
 	
 	?>
+<!-- Container table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
 	
 		<table class="concordtable" width="100%">
 			<tr>
@@ -382,6 +387,8 @@ else
 			
 		</table>
 		
+<!-- end of container table -->
+</td> </tr> </table>
 	<?php
 	
 	

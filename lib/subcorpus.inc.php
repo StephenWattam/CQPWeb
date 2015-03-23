@@ -85,6 +85,9 @@ function create_subcorpus_restrictions($subcorpus_name, $restrictions)
 	global $User;
 	global $corpus_sql_name;
 
+    // FIXME
+    header("X-restrict: " . $restrictions);
+
 	$sql_query = "SELECT count(*), sum(words) FROM text_metadata_for_$corpus_sql_name 
 		WHERE $restrictions";
 	$result = do_mysql_query($sql_query);
@@ -607,16 +610,26 @@ function load_limits_to_cqp($limits_file)
 /* if there are no such conditions, it just returns 'no_restriction', whihc can be used as a flag */
 function translate_restrictions_definition_string()
 {
+
+
+    $query_string = $_SERVER['QUERY_STRING'] . file_get_contents('php://input');
+    $query_string = urldecode($query_string);
+    /* $query_string = $_SERVER['QUERY_STRING']; */
+
+    /* header("X-qs: $query_string"); */
+
 	/* check for a named subcorpus OR a __last_restriction */
 	global $subcorpus;
-	if ( strpos($_SERVER['QUERY_STRING'], '&t=__last_restrictions') !== false) 
+	if ( strpos($query_string, '&t=__last_restrictions') !== false) 
 	{
 		$subcorpus = '__last_restrictions';
+        header("X-qs1: $query_string");
 		return 'no_restriction';
 	}
-	if (preg_match('/&t=subcorpus~(\w*)&/', $_SERVER['QUERY_STRING'], $m2))
+	if (preg_match('/&t=subcorpus~(\w*?)&/', $query_string, $m2))
 	{
 		$subcorpus = $m2[1];
+        header("X-qs2: $query_string");
 		return 'no_restriction';
 	}
 
@@ -624,20 +637,27 @@ function translate_restrictions_definition_string()
 
 	/* format of the string = &del=begin&t=[class~cat]&t=&del=end */
 	$m = array();
-	if ( ! preg_match('/&del=begin(.*)&del=end/', $_SERVER['QUERY_STRING'], $m))
-		return 'no_restriction';
-	
+	if ( ! preg_match('/&del=begin(.*?)&del=end/', $query_string, $m)){
+        return 'no_restriction';
+    /* }elseif ( ! preg_match('/&del=begin(.*?)(&del=end)?/', $query_string, $m)){     // FIXME: REALLY ugly hack. */
+    /*     return 'no_restriction'; */
+    }
+
+
+    /* header("X-q31: " . $m[1]); */
+
 	/* must be at least one restriction */
 	if ($m[1] === '&t=' || $m[1] === '')
 	{
 		unset($_GET['del']);
 		unset($_GET['t']);
-		$_SERVER['QUERY_STRING'] = preg_replace('/&del=begin.*&del=end/', '', $_SERVER['QUERY_STRING']);
+		$query_string = preg_replace('/&del=begin.*?&del=end/', '', $query_string);
+        /* header("X-qs3: $query_string"); */
 		return 'no_restriction';
 	}
 	
 	/* this is for data security  to failsafe - everything in the string *should* be a handle */
-	$m[1] = mysql_real_escape_string(urldecode($m[1]));
+	$m[1] = mysql_real_escape_string($m[1]);
 
 
 
@@ -650,7 +670,7 @@ function translate_restrictions_definition_string()
 	/* extract the classificationscheme-category (attribute-value) pairs */
 	foreach ($restriction as $r)
 	{
-		preg_match('/\A([^~]*)~(.*)\Z/', $r, $m);
+		preg_match('/\A([^~]*)~(.*?)\Z/', $r, $m);
 		$class = $m[1];
 		$cat = $m[2];
 		
@@ -675,7 +695,7 @@ function translate_restrictions_definition_string()
 	unset($_GET['del']);
 	
 	/* and delete it from the server array */
-	$_SERVER['QUERY_STRING'] = preg_replace('/&del=begin.*&del=end/', '', $_SERVER['QUERY_STRING']);
+	$query_string = preg_replace('/&del=begin.*?&del=end/', '', $query_string);
 	
 	return $final_sql_string;
 }

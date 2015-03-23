@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -43,7 +43,7 @@ function printquery_subcorpus()
 
 	/* a short circuit for returning to the subcorpus list from the "define...." dropdown */
 	if ($function == 'define_subcorpus' && $create_method == 'return')
-		$function = 'list_subcorpora'; 
+		$function = 'list_subcorpora';
 
 	if (!isset($_GET['subcorpusBadName']))
 		$badname_entered = false;
@@ -54,33 +54,33 @@ function printquery_subcorpus()
 		unset($_GET['subcorpusBadName']);
 	}
 
-		
+
 	switch($function)
 	{
 	case 'list_subcorpora':
 		print_sc_newform(false);
 		print_sc_showsubcorpora();
 		break;
-	
+
 	case 'view_subcorpus':
 		print_sc_view_and_edit();
 		break;
-		
+
 	case 'copy_subcorpus':
 		print_sc_copy($badname_entered);
 		break;
 
 	case 'add_texts_to_subcorpus':
 		print_sc_addtexts();
-		break;	
-	
+		break;
+
 	case 'list_of_files':
 		print_sc_list_of_files();
 		break;
-	
+
 	case 'define_subcorpus':
 		print_sc_newform(true);	/* this is here to allow them to abort and select a new method */
-		
+
 		switch($create_method)
 		{
 		case 'query':
@@ -90,7 +90,7 @@ function printquery_subcorpus()
 		case 'metadata_scan':
 			/* no name form in metadata scan -- the name is specified in the list page */
 			print_sc_define_metadata_scan();
-			break;		
+			break;
 		case 'manual':
 			print_sc_nameform($badname_entered, 1);
 			print_sc_define_filenames();
@@ -111,11 +111,11 @@ function printquery_subcorpus()
 			break;
 		}
 		break;
-	
-	
-	
+
+
+
 	//more here
-		
+
 
 	default:
 		break;
@@ -133,7 +133,7 @@ function print_sc_newform($with_return_option)
 		<tr>
 			<th class="concordtable">Create and edit subcorpora</th>
 		</tr>
-		
+
 		<tr>
 			<td class="concordgeneral">
 				<form action="index.php" method="get">
@@ -178,15 +178,16 @@ function print_sc_nameform($badname_entered, $colspan)
 		$colspan_text = '';
 	else
 		$colspan_text = " colspan=\"$colspan\"";
-		
+
 	?>
 	<table class="concordtable" width="100%">
-	<form action="subcorpus-admin.php" method="get">
+    <form action="subcorpus-admin.php" method="post">
+        <input type="hidden" name="uT" value="y"/>
 		<tr>
 			<th class="concordtable"<?php echo $colspan_text; ?>>Design a new subcorpus</th>
 		</tr>
 		<?php
-		
+
 		if($badname_entered)
 		{
 			?>
@@ -199,11 +200,11 @@ function print_sc_nameform($badname_entered, $colspan)
 					</center>
 				</td>
 			</tr>
-			<?php	
+			<?php
 		}
-		
+
 		?>
-		
+
 		<tr>
 			<td class="concordgeneral"<?php echo $colspan_text; ?>>
 				<table align="center">
@@ -224,7 +225,7 @@ function print_sc_nameform($badname_entered, $colspan)
 						</td>
 					</tr>
 				</table>
-			</td>	
+			</td>
 		</tr>
 	<?php
 }
@@ -240,13 +241,13 @@ function print_sc_define_metadata()
 				<center>
 					&nbsp;
 					<br/>
-					Choose the categories you want to include from the lists below. 
+					Choose the categories you want to include from the lists below.
 					<br/>&nbsp;<br/>
 					Then either create the subcorpus directly from those categories, or view a list
 					of texts to choose from.
 					<br/>&nbsp;
 					<br/>
-					
+
 					<input name="action" type="submit" value="Create subcorpus from selected categories"/>
 					<br/>&nbsp;<br/>&nbsp;<br/>
 					<input name="action" type="submit" value="Get list of texts"/>
@@ -273,14 +274,14 @@ function print_sc_define_query()
 {
 	global $User;
 	global $corpus_sql_name;
-	
-	$sql_query = $sql_query = "select query_name, save_name from saved_queries 
+
+	$sql_query = $sql_query = "select query_name, save_name from saved_queries
 		where corpus = '$corpus_sql_name' and user = '{$User->username}' and saved = 1";
-	
+
 	$result = do_mysql_query($sql_query);
-	
+
 	$no_saved_queries = (mysql_num_rows($result) == 0);
-	
+
 	$field_options = '';
 	while ( ($r = mysql_fetch_row($result)) !== false)
 	{
@@ -327,7 +328,7 @@ function print_sc_define_query()
 					</select>
 				<br/>&nbsp;
 				</td>
-				<?php		
+				<?php
 			}
 			?>
 		</tr>
@@ -364,10 +365,10 @@ function print_sc_define_metadata_scan()
 
 	/* allow sort by description... */
 	foreach($in_fields as $if)
-		$fields[$if] = metadata_expand_field($if);	
-	
+		$fields[$if] = metadata_expand_field($if);
+
 	natcasesort($fields);
-	
+
 	$field_options = "\n";
 
 	foreach($fields as $f => $l)
@@ -386,7 +387,7 @@ function print_sc_define_metadata_scan()
 					<select name="metadataFieldToScan">
 						<?php echo $field_options ?>
 					</select>
-				</td>			
+				</td>
 			</tr>
 			<tr>
 				<td class="concordgeneral">
@@ -401,7 +402,7 @@ function print_sc_define_metadata_scan()
 					</select>
 					&nbsp;&nbsp;
 					<input type="text" name="metadataScanString" size="32" />
-				</td>			
+				</td>
 			</tr>
 			<tr>
 				<td class="concordgeneral" colspan="2">
@@ -451,8 +452,8 @@ function print_sc_define_filenames()
 				<center>
 					&nbsp;
 					<br/>
-					Enter the filenames you wish to combine to a subcorpus 
-					(use commas or spaces to separate the individual files): 
+					Enter the filenames you wish to combine to a subcorpus
+					(use commas or spaces to separate the individual files):
 					<br/>&nbsp;
 					<br/>
 					<textarea name="subcorpusListOfFiles" rows="5" cols="58"><?php
@@ -460,7 +461,7 @@ function print_sc_define_filenames()
 							echo $_GET['subcorpusListOfFiles'];
 					?></textarea>
 					<br/>&nbsp;<br/>
-					
+
 					<input type="submit" value="Create subcorpus"/>
 					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 					<input type="reset" value="Clear form"/>
@@ -473,13 +474,13 @@ function print_sc_define_filenames()
 		<input type="hidden" name="scriptMode" value="create_from_manual"/>
 		<input type="hidden" name="uT" value="y"/>
 		<?php /*echo url_printinputs(array(
-			array('subcorpusNewName', ''), 
+			array('subcorpusNewName', ''),
 			array('subcorpusListOfFiles', '')	));
 			I really don't think this is needed, is it?
 		*/?>
 
 	</form>
-	
+
 	</table>
 	<?php
 
@@ -490,7 +491,7 @@ function print_sc_define_invert()
 {
 	global $User;
 	global $corpus_sql_name;
-	
+
 	?>
 		<tr>
 			<td class="concordgeneral" colspan="4">
@@ -498,13 +499,13 @@ function print_sc_define_invert()
 					&nbsp;
 					<br/>
 					When you "invert" a subcorpus, you create a new subcorpus containing all texts from
-					the corpus, <strong>except</strong> those in the subcorpus you selected to invert. 
+					the corpus, <strong>except</strong> those in the subcorpus you selected to invert.
 					<br/>&nbsp;<br/>
-					Choose the subcorpus you want to invert from the list below. 
+					Choose the subcorpus you want to invert from the list below.
 					<br/>&nbsp;<br/>
 
 					<br/>
-					
+
 					<input type="submit" value="Create inverted subcorpus"/>
 					<br/>&nbsp;<br/>&nbsp;<br/>
 					<input type="reset" value="Clear form"/>
@@ -516,7 +517,7 @@ function print_sc_define_invert()
 		</tr>
 		<input type="hidden" name="scriptMode" value="create_inverted"/>
 		<input type="hidden" name="thisQ" value="subcorpus"/>
-		
+
 		<tr>
 			<th class="concordtable">Select</th>
 			<th class="concordtable">Name of subcorpus</th>
@@ -529,7 +530,7 @@ function print_sc_define_invert()
 		where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
 	$result = do_mysql_query($sql_query);
 
-	/* we cache the result so that we can for Last Restrictions to be first. */ 
+	/* we cache the result so that we can for Last Restrictions to be first. */
 	$allrows = array();
 	while (($row = mysql_fetch_assoc($result)) != false)
 	{
@@ -542,23 +543,23 @@ function print_sc_define_invert()
 	foreach($allrows as $row)
 	{
 		echo '<tr>';
-		
+
 		echo '<td class="concordgrey"><center><input name="subcorpusToInvert" type="radio" '
 			, 'value="' , $row['subcorpus_name'] , '" '
-			, ( $_GET['subcorpusToInvert'] == $row['subcorpus_name'] ? 'checked="checked" ' : '') 
+			, ( $_GET['subcorpusToInvert'] == $row['subcorpus_name'] ? 'checked="checked" ' : '')
 			, '/></center></td>'
 			;
-		
+
 		if ($row['subcorpus_name'] == '__last_restrictions')
 			echo '<td class="concordgeneral">Last restrictions</td>';
 		else
 			echo '<td class="concordgeneral">', $row['subcorpus_name'], '</td>';
-		
-		echo '<td class="concordgeneral"><center>' . number_format((float)$row['numfiles']) 
+
+		echo '<td class="concordgeneral"><center>' . number_format((float)$row['numfiles'])
 			. '</center></td>'
 			. '<td class="concordgeneral"><center>' . number_format((float)$row['numwords'])
 			. '</center></td>';
-			
+
 		echo "</tr>\n";
 	}
 	if (mysql_num_rows($result) == 0)
@@ -567,9 +568,9 @@ function print_sc_define_invert()
 				</td></tr>';
 
 
-	
+
 	?>
-	
+
 			<input type="hidden" name="uT" value="y" />
 		</form>
 	</table>
@@ -593,13 +594,13 @@ function print_sc_define_text_id()
 				<center>
 					&nbsp;
 					<br/>
-					Click below to turn every text into a subcorpus. 
+					Click below to turn every text into a subcorpus.
 					<br/>&nbsp;<br/>
-					Note that this function is currently only available for corpora with 100 or less texts. 
+					Note that this function is currently only available for corpora with 100 or less texts.
 					<br/>&nbsp;<br/>
 
 					<br/>
-					
+
 					<input type="submit" value="Create one subcorpus per text"/>
 					<br/>&nbsp;<br/>&nbsp;<br/>
 					<input type="reset" value="Clear form"/>
@@ -646,10 +647,10 @@ function print_sc_showsubcorpora()
 		$sql_query = "select subcorpus_name, numwords, numfiles from saved_subcorpora
 			where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
 		$result = do_mysql_query($sql_query);
-				
+
 		$subcorpora_with_freqtables = list_freqtabled_subcorpora();
 
-		/* we cache the result so that we can for Last Restrictions to be first. */ 
+		/* we cache the result so that we can for Last Restrictions to be first. */
 		$allrows = array();
 		while (($row = mysql_fetch_assoc($result)) != false)
 		{
@@ -668,14 +669,14 @@ function print_sc_showsubcorpora()
 				echo '<td class="concordgeneral"><a href="index.php?thisQ=subcorpus&subcorpusFunction=view_subcorpus'
 				. '&subcorpusToView=' . $row['subcorpus_name'] .'&uT=y" '
 				. 'onmouseover="return escape(\'View (or remove) texts in this subcorpus\')">'
-				. $row['subcorpus_name'] 
+				. $row['subcorpus_name']
 				. '</a></td>';
-			
-			echo '<td class="concordgeneral"><center>' . number_format((float)$row['numfiles']) 
+
+			echo '<td class="concordgeneral"><center>' . number_format((float)$row['numfiles'])
 				. '</center></td>'
 				. '<td class="concordgeneral"><center>' . number_format((float)$row['numwords'])
 				. '</center></td>';
-			
+
 			echo '<td class="concordgeneral"><center>';
 			if ($row['subcorpus_name'] == '__last_restrictions')
 				echo 'N/A';
@@ -690,7 +691,7 @@ function print_sc_showsubcorpora()
 						, number_format($User->max_freqlist())
 						, '</b> tokens)\')">Cannot compile</a>';
 				else
-					echo '<a class="menuItem" href="freqtable-compile.php?compileSubcorpus=' 
+					echo '<a class="menuItem" href="freqtable-compile.php?compileSubcorpus='
 						, $row['subcorpus_name']
 						, '&compileAfter=index_sc&uT=y'
 						, '" onmouseover="return escape(\'Compile frequency tables for subcorpus <b>'
@@ -698,30 +699,30 @@ function print_sc_showsubcorpora()
 						, '</b>, allowing calculation of collocations and keywords\')">Compile</a>';
 			}
 			echo '</center></td>';
-			
-			echo '<td class="concordgeneral"><center><a class="menuItem" ' 
-				, 'href="index.php?thisQ=subcorpus&subcorpusFunction=copy_subcorpus&subcorpusToCopy=' 
-				, $row['subcorpus_name'] 
-				, '&uT=y" onmouseover="return escape(\'Copy this subcorpus\')">'   
+
+			echo '<td class="concordgeneral"><center><a class="menuItem" '
+				, 'href="index.php?thisQ=subcorpus&subcorpusFunction=copy_subcorpus&subcorpusToCopy='
+				, $row['subcorpus_name']
+				, '&uT=y" onmouseover="return escape(\'Copy this subcorpus\')">'
 				, '[copy]</a></center></td>';
-	
-			echo '<td class="concordgeneral"><center><a class="menuItem" ' 
-				, 'href="index.php?thisQ=subcorpus&subcorpusFunction=add_texts_to_subcorpus&subcorpusToAddTo=' 
-				, $row['subcorpus_name'] 
-				, '&uT=y" onmouseover="return escape(\'Add texts to this subcorpus\')">'   
+
+			echo '<td class="concordgeneral"><center><a class="menuItem" '
+				, 'href="index.php?thisQ=subcorpus&subcorpusFunction=add_texts_to_subcorpus&subcorpusToAddTo='
+				, $row['subcorpus_name']
+				, '&uT=y" onmouseover="return escape(\'Add texts to this subcorpus\')">'
 				, '[add]</a></center></td>';
 
-			echo '<td class="concordgeneral"><center>' 
+			echo '<td class="concordgeneral"><center>'
 				, '<a class="menuItem" href="subcorpus-admin.php?scriptMode=delete&subcorpusToDelete='
 				, $row['subcorpus_name'] . '&uT=y" onmouseover="return escape(\'Delete this subcorpus\')">'
 				, '[x]</a></center></td>';
-				
+
 			echo "</tr>\n";
 		}
 		if (mysql_num_rows($result) == 0)
 			echo '<tr><td class="concordgrey" colspan="7" align="center">
 					&nbsp;<br/>No subcorpora were found.<br/>&nbsp;
-					</td</tr>';	
+					</td</tr>';
 		?>
 	</table>
 	<?php
@@ -730,7 +731,7 @@ function print_sc_showsubcorpora()
 function print_sc_copy($badname_entered)
 {
 	if (!isset($_GET['subcorpusToCopy']))
-		exiterror_parameter('No subcorpus specified to copy!', __FILE__, __LINE__);	
+		exiterror_parameter('No subcorpus specified to copy!', __FILE__, __LINE__);
 	else
 		$copyme = $_GET['subcorpusToCopy'];
 	?>
@@ -742,13 +743,13 @@ function print_sc_copy($badname_entered)
 			if ($copyme == '__last_restrictions')
 				echo "Copying last restrictions used to saved subcorpus";
 			else
-				echo "Copying subcorpus <em>$copyme</em>"; 
+				echo "Copying subcorpus <em>$copyme</em>";
 			?>
 			</th>
 		</tr>
-		
+
 		<?php
-		
+
 		if($badname_entered)
 		{
 			?>
@@ -761,9 +762,9 @@ function print_sc_copy($badname_entered)
 					</center>
 				</td>
 			</tr>
-			<?php	
+			<?php
 		}
-		
+
 		?>
 		<tr>
 			<td class="concordgeneral">
@@ -794,7 +795,7 @@ function print_sc_copy($badname_entered)
 					<br/>&nbsp;
 					<br/>&nbsp;
 				</center>
-			</td>	
+			</td>
 		</tr>
 		<input type="hidden" name="scriptMode" value="copy"/>
 		<?php echo url_printinputs(array( array('subcorpusNewName', '') )); ?>
@@ -809,12 +810,12 @@ function print_sc_copy($badname_entered)
 function print_sc_addtexts()
 {
 	if (!isset($_GET['subcorpusToAddTo']))
-		exiterror_parameter('No subcorpus specified to add to!', __FILE__, __LINE__);	
+		exiterror_parameter('No subcorpus specified to add to!', __FILE__, __LINE__);
 	else
 		$subcorpus = mysql_real_escape_string($_GET['subcorpusToAddTo']);
 	?>
 	<table class="concordtable" width="100%">
-		<form action="subcorpus-admin.php" method="get">
+		<form action="subcorpus-admin.php" method="post">
 			<tr>
 				<th class="concordtable">
 					Adding texts to subcorpus &ldquo;<?php echo $subcorpus; ?>&rdquo;
@@ -842,8 +843,8 @@ function print_sc_addtexts()
 					<center>
 						&nbsp;
 						<br/>
-						Enter the filenames you wish to add to this subcorpus 
-						(use commas or spaces to separate the individual files): 
+						Enter the filenames you wish to add to this subcorpus
+						(use commas or spaces to separate the individual files):
 						<br/>&nbsp;
 						<br/>
 						<textarea name="subcorpusListOfFiles" rows="5" cols="58"><?php
@@ -851,7 +852,7 @@ function print_sc_addtexts()
 								echo $_GET['subcorpusListOfFiles'];
 						?></textarea>
 						<br/>&nbsp;<br/>
-						
+
 						<input type="submit" value="Add texts to subcorpus"/>
 						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 						<input type="reset" value="Clear form"/>
@@ -876,12 +877,12 @@ function print_sc_view_and_edit()
 {
 	global $default_history_per_page;
 	global $corpus_sql_name;
-	
+
 	$subcorpus = mysql_real_escape_string($_GET['subcorpusToView']);
-	
+
 	if(empty($subcorpus))
 		exiterror_parameter('No subcorpus was specified!', __FILE__, __LINE__);
-	
+
 	$size = subcorpus_sizeof($subcorpus);
 
 
@@ -906,22 +907,22 @@ function print_sc_view_and_edit()
 	}
 
 
-	
+
 	foreach(metadata_list_fields() as $f)
 	{
 		$l = metadata_expand_field($f);
 		$selected = ($f == $show_field ? 'selected="selected"' : '');
 		$field_options .= "<option value=\"$f\" $selected>$l</option>\n";
 	}
-	
-	
+
+
 	$text_list = explode(' ', subcorpus_get_text_list($subcorpus));
 
 	$i = 1;
-	
 
-	
-	
+
+
+
 	// TODO add a control bar and limit the number of texts per page, like sebastian does; (longterm)
 	?>
 	<script type="text/javascript">
@@ -955,12 +956,12 @@ function print_sc_view_and_edit()
 					&nbsp;<br/>
 					<input type="submit" value="Delete marked texts from subcorpus" />
 					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-					<input name="action" type="submit" value="Cancel" /> 
+					<input name="action" type="submit" value="Cancel" />
 					<br/>&nbsp;
 				</td>
 			<tr>
-				<th class="concordtable">No.</th>		
-				<th class="concordtable">Text</th>		
+				<th class="concordtable">No.</th>
+				<th class="concordtable">Text</th>
 					<th class="concordtable">
 						Showing:
 						<select name="subcorpusFieldToShow">
@@ -968,52 +969,52 @@ function print_sc_view_and_edit()
 						</select>
 						<input type="submit" onclick="subcorpusAlterForm()" value="Show" />
 					</th>
-				<th class="concordtable">Size in words</th>		
-				<th class="concordtable">Delete</th>		
+				<th class="concordtable">Size in words</th>
+				<th class="concordtable">Delete</th>
 			</tr>
 	<?php
-	
+
 	foreach($text_list as &$text)
 	{
 		$meta = metadata_of_text($text);
-		
+
 		echo '
 			<tr>';
-		
+
 		/* number */
 		echo '<td class="concordgrey" align="right"><strong>' . $i++ . '</strong></td>';
-		
+
 		/* text id with metadata link */
 		echo '<td class="concordgeneral"><strong>'
 			. '<a ' . metadata_tooltip($text) . ' href="textmeta.php?text=' . $text . '&uT=y">'
 			. $text
 			. '</a></strong></td>';
-			
+
 		/* primary classification (or whatever classification has been selected) */
 		echo '<td class="concordgeneral">'
-			. ($show_field === false 
+			. ($show_field === false
 					? '&nbsp;'
 					: ($catdescs !== false ? $catdescs[$meta[$show_field]] : $meta[$show_field])
 					)
 			. '</td>';
-		
+
 
 		/* number of words in file */
 		echo '<td class="concordgeneral" align="center">'
 			. number_format((float)$meta['words'])
 			. '</td>';
-			
+
 		/* tickbox for delete */
 		echo '<td class="concordgrey" align="center">'
 			. '<input type="checkbox" name="dT_' . $text . '" value="1" />'
 			. '</td>';
 
-		
+
 		echo '</tr>';
 	}
 	?>
 			<input type="hidden" name="thisQ" value="subcorpus" />
-			<input id="inputSubcorpusToDeleteFrom" type="hidden" name="subcorpusToDeleteFrom" 
+			<input id="inputSubcorpusToDeleteFrom" type="hidden" name="subcorpusToDeleteFrom"
 				value="<?php echo $subcorpus; ?>" />
 			<input id="inputScriptMode" type="hidden" name="scriptMode" value="delete_texts" />
 			<input type="hidden" name="uT" value="y" />
@@ -1036,17 +1037,18 @@ function print_sc_list_of_files()
 	global $field_to_show;
 
 	$field_to_show_desc = metadata_expand_field($field_to_show);
-	
-	
+
+
 	$form_full_list = str_replace(' ', '|', $list_of_texts_to_show_in_form);
-	
+
+
+
+    echo("DEBUG: strlen = " . strlen($list_of_texts_to_show_in_form));
 	$form_full_list_idcode = longvalue_store($form_full_list);
-	
-	
+
+
 	$text_list = ( empty($list_of_texts_to_show_in_form) ? NULL : explode(' ', $list_of_texts_to_show_in_form) );
-	
-	
-	
+
 	$sql_query = "select subcorpus_name from saved_subcorpora
 		where corpus = '$corpus_sql_name' and user = '{$User->username}' order by subcorpus_name";
 	$result = do_mysql_query($sql_query);
@@ -1093,8 +1095,8 @@ function print_sc_list_of_files()
 								(may only contain letters, numbers and underscore)
 							</td>
 							<td class="basicbox">
-								<input type="checkbox" name="processFileListAddAll" 
-                                    value="<?php echo $form_full_list_idcode; ?>" 
+								<input type="checkbox" name="processFileListAddAll"
+                                    value="<?php echo $form_full_list_idcode; ?>"
                                     <?php
                                         if(count($text_list) > 1000) {
                                             echo 'checked="checked"';
@@ -1112,10 +1114,10 @@ function print_sc_list_of_files()
 					</table>
 				</td>
 			<tr>
-				<th class="concordtable">No.</th>		
-				<th class="concordtable">Text</th>		
-				<th class="concordtable"><?php echo $field_to_show_desc;?></th>		
-				<th class="concordtable">Size in words</th>		
+				<th class="concordtable">No.</th>
+				<th class="concordtable">Text</th>
+				<th class="concordtable"><?php echo $field_to_show_desc;?></th>
+				<th class="concordtable">Size in words</th>
 				<th class="concordtable">Include in subcorpus</th>
 			</tr>
 	<?php
@@ -1130,35 +1132,35 @@ function print_sc_list_of_files()
 		foreach($text_list as &$text)
         {
 			$meta = metadata_of_text($text);
-			
+
 			echo '
 				<tr>';
-			
+
 			/* number */
 			echo '<td class="concordgrey" align="right"><strong>' . $i++ . '</strong></td>';
-			
+
 			/* text id with metadata link */
 			echo '<td class="concordgeneral"><strong>'
 				. '<a ' . metadata_tooltip($text) . ' href="textmeta.php?text=' . $text . '&uT=y">'
 				. $text
 				. '</a></strong></td>';
-				
+
 			/* primary classification */
 			echo '<td class="concordgeneral">'
 				. $meta[$field_to_show]
 				. '</td>';
-			
-	
+
+
 			/* number of words in file */
 			echo '<td class="concordgeneral" align="center">'
 				. number_format((float)$meta['words'])
 				. '</td>';
-				
+
 			/* tickbox for add */
 			echo '<td class="concordgrey" align="center">'
 				. '<input type="checkbox" name="aT_' . $text . '" value="1" />'
 				. '</td>';
-	
+
 			echo '</tr>';
 		}
 	}
@@ -1172,7 +1174,7 @@ function print_sc_list_of_files()
 					<br/>&nbsp;
 				</td>
 			</tr>
-		<?php	
+		<?php
 	}
 	?>
 			<input type="hidden" name="scriptMode" value="process_from_file_list" />
@@ -1180,7 +1182,7 @@ function print_sc_list_of_files()
 		</form>
 	</table>
 	<?php
-	
+
 }
 
 

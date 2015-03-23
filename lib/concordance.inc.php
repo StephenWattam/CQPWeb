@@ -67,6 +67,14 @@ user_macro_loadall($User->username);
 
 
 
+
+
+
+
+
+
+
+
 /* ------------------------------- *
  * initialise variables from $_GET *
  * and perform initial fiddling    *
@@ -159,7 +167,9 @@ else
 {
 	$subcorpus = 'no_subcorpus';
 	$restrictions = translate_restrictions_definition_string();
-	
+
+    /* header("X-subcorpus: $subcorpus"); */
+
 	/* careful - if there was a subcorpus in the "&t=...", it will now be stated as a restriction;
 	 * but that won't work, therefore we need to do this : */
 	
@@ -678,6 +688,28 @@ if ($program == 'lookup')
 echo print_html_header("$corpus_title -- CQPweb Concordance", $Config->css_path);
 
 
+/* ******************* *
+ * PRINT SIDE BAR MENU *
+ * ******************* */
+
+?>
+
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top">
+
+        <?php print_menu() ?>
+
+		</td>
+		<td width="100%" valign="top">
+		
+
+
+<?php
+
+
+
+
 /* print table headings && control lines */
 
 echo "\n<table class=\"concordtable\" width=\"100%\">\n";
@@ -844,6 +876,15 @@ if ($num_of_solutions_final > 15 && $per_page > 15)
 	echo "\n<table class=\"concordtable\" width=\"100%\">\n" . $control_row . '</table>';
 
 
+?>
+
+
+
+		</td>
+	</tr>
+</table>
+
+<?php
 
 
 echo print_html_footer();

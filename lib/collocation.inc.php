@@ -513,7 +513,20 @@ else
 	echo print_html_header("$corpus_title -- CQPweb collocation results", $Config->css_path, array('cword'));	
 
 	?>
-	
+
+
+
+<!-- Container table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
+
+
+
+
+
+
 	<table class="concordtable" width="100%">
 		<form action="redirect.php" method="get">
 			<tr>
@@ -737,6 +750,10 @@ else
 	echo $navlinks;
 	
 	echo print_html_footer();
+
+    
+    echo '</td> </tr> </table>';
+
 
 
 } /* endof "else" for "if $download_mode" */

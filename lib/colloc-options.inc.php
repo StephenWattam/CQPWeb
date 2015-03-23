@@ -57,9 +57,14 @@ if ($query_record === false)
 
 
 echo print_html_header("$corpus_title -- CQPweb Collocation Options", $Config->css_path, array('cword', 'colloc-options'));
-
-/* now print the options form */
 ?>
+<!-- Container table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
+
+
 
 
 <table width="100%" class="concordtable" id="tableCollocProximity">
@@ -312,8 +317,11 @@ if (false) // also temp, the next html block will be unconditional
 <?php
 }
 
-echo print_html_footer();
 
+
+echo '</td> </tr> </table>';
+
+echo print_html_footer();
 
 cqpweb_shutdown_environment();
 

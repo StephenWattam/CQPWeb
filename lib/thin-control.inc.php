@@ -75,6 +75,12 @@ echo print_html_header($corpus_title . ' -- CQPweb Thinning Options', $Config->c
 
 ?>
 
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
+		
+
 
 <table width="100%" class="concordtable">
 	<form action="concordance.php" method="get">
@@ -117,6 +123,13 @@ echo print_html_header($corpus_title . ' -- CQPweb Thinning Options', $Config->c
 		<input type="hidden" name="uT" value="y" />
 	</form>
 </table>
+
+
+
+
+<!-- end of container table -->
+</td> </tr> </table>
+
 
 
 

@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -67,7 +67,7 @@ if (isset($_GET['subcorpusNewName']))
 
 
 /* if "Cancel" was pressed on a form, do nothing, and just go straight to the index */
-if ($_GET['action'] === 'Cancel')
+if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'Cancel')
 {
 	cqpweb_shutdown_environment();
 	header('Location: index.php?thisQ=subcorpus&uT=y');
@@ -86,16 +86,16 @@ case 'create_from_manual':
 	{
 		cqpweb_shutdown_environment();
 		/* effectively do not allow a submission (but sans error message) if the field is empty */
-		header('Location: ' 
+		header('Location: '
 			. url_absolutify('index.php?subcorpusCreateMethod=manual&subcorpusFunction=define_subcorpus'
 			. "&subcorpusNewName=$subcorpus_name&thisQ=subcorpus&uT=y"));
 	}
 	else
 	{
-		$list_of_texts = mysql_real_escape_string(trim(preg_replace('/[\s,]+/', ' ', 
+		$list_of_texts = mysql_real_escape_string(trim(preg_replace('/[\s,]+/', ' ',
 			$_GET['subcorpusListOfFiles'])));
 
-		subcorpus_admin_check_name($subcorpus_name, 
+		subcorpus_admin_check_name($subcorpus_name,
 			url_absolutify('index.php?subcorpusBadName=y&' . url_printget()));
 
 		/* get a list of text names that are not real text ids */
@@ -104,14 +104,14 @@ case 'create_from_manual':
 		if ($errors != '__no__errors__')
 		{
 			cqpweb_shutdown_environment();
-			header('Location: ' 
+			header('Location: '
 				. url_absolutify('index.php?subcorpusCreateMethod=manual&subcorpusListOfFiles='
 				. "$list_of_texts&subcorpusFunction=define_subcorpus&subcorpusNewName="
 				. "$subcorpus_name&subcorpusBadTexts=$errors&thisQ=subcorpus&uT=y"));
 		}
-		
+
 		create_subcorpus_list($subcorpus_name, $list_of_texts);
-		
+
 		cqpweb_shutdown_environment();
 		header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
 	}
@@ -126,17 +126,17 @@ case 'create_from_metadata':
 	{
 		cqpweb_shutdown_environment();
 		/* effectively do not allow a submission (but sans error message) if no cats selected */
-		header('Location: ' 
+		header('Location: '
 			. url_absolutify('index.php?subcorpusCreateMethod=metadata&subcorpusFunction=define_subcorpus'
 			. "&subcorpusNewName=$subcorpus_name&thisQ=subcorpus&uT=y"));
 	}
-	
+
 	if ($_GET['action'] == 'Get list of texts')
 	{
 		/* then we don't want to actually store it, just display a new form */
-		
+
 		$list_of_texts_to_show_in_form = translate_restrictions_to_text_list($restrictions);
-		$header_cell_text = 'Viewing texts that match the following metadata restrictions: <br/>' 
+		$header_cell_text = 'Viewing texts that match the following metadata restrictions: <br/>'
 			. translate_restrictions_to_prose($restrictions);
 		$field_to_show = get_corpus_metadata('primary_classification_field');
 
@@ -146,15 +146,16 @@ case 'create_from_metadata':
 	}
 	else
 	{
-		subcorpus_admin_check_name($subcorpus_name, 
+		subcorpus_admin_check_name($subcorpus_name,
 			url_absolutify('index.php?subcorpusBadName=y&subcorpusCreateMethod='
-				. 'metadata&subcorpusFunction=define_subcorpus&' 
+				. 'metadata&subcorpusFunction=define_subcorpus&'
 				. untranslate_restrictions_definition_string($restrictions) . '&'
 				. url_printget()));
 
 		create_subcorpus_restrictions($subcorpus_name, $restrictions);
-		
+
 		cqpweb_shutdown_environment();
+		header('X-debug: test');
 		header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
 	}
 	exit();
@@ -177,45 +178,45 @@ case 'create_from_metadata_scan':
 		exiterror_general('No search target specified!', __FILE__, __LINE__);
 	else
 		$orig_value = $value = mysql_real_escape_string($_GET['metadataScanString']);
-	
-	$header_cell_text = 'Viewing texts where <em>' . metadata_expand_field($field);	
-	
+
+	$header_cell_text = 'Viewing texts where <em>' . metadata_expand_field($field);
+
 	switch($_GET['metadataScanType'])
 	{
 	case 'begin':
 		$value .= '%';
 		$header_cell_text .= '</em> begins with';
 		break;
-		
+
 	case 'end':
 		$value = '%' . $value;
 		$header_cell_text .= '</em> ends with';
 		break;
-		
+
 	case 'contain':
-		$value = '%' . $value . '%';	
+		$value = '%' . $value . '%';
 		$header_cell_text .= '</em> contains';
 		break;
-		
+
 	case 'exact':
 		/* note - if nothing is specified, assume exact match required */
 	default:
 		$header_cell_text .= '</em> matches exactly';
 		break;
 	}
-	
+
 	$header_cell_text .= ' &ldquo;' . $orig_value . '&rdquo;';
-	
+
 
 	$sql_query = "select text_id from text_metadata_for_$corpus_sql_name where $field like '$value'";
 	$result = do_mysql_query($sql_query);
 
-			
+
 	$list_of_texts_to_show_in_form = '';
-	
+
 	while ( ($r = mysql_fetch_row($result)) != false)
 		$list_of_texts_to_show_in_form .= ' ' . $r[0];
-		
+
 	$list_of_texts_to_show_in_form = trim($list_of_texts_to_show_in_form);
 
 
@@ -237,25 +238,25 @@ case 'create_from_query':
 	{
 		cqpweb_shutdown_environment();
 		/* effectively do not allow a submission (but sans error message) if no query specified */
-		header('Location: ' 
+		header('Location: '
 			. url_absolutify('index.php?subcorpusCreateMethod=query&subcorpusFunction=define_subcorpus'
 			. "&subcorpusNewName=$subcorpus_name&thisQ=subcorpus&uT=y"));
 		exit();
 	}
-	
-	
+
+
 	$create = ($_GET['action'] != 'Get list of texts');
 	$qname = mysql_real_escape_string($_GET['savedQueryToScan']);
 
 	if ($create)
 	{
-		subcorpus_admin_check_name($subcorpus_name, 
+		subcorpus_admin_check_name($subcorpus_name,
 			url_absolutify('index.php?subcorpusBadName=y&subcorpusCreateMethod='
-				. 'query&subcorpusFunction=define_subcorpus&' 
+				. 'query&subcorpusFunction=define_subcorpus&'
 				. url_printget()));
 
 		create_subcorpus_query($subcorpus_name, $qname);
-	
+
 		cqpweb_shutdown_environment();
 		header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
 	}
@@ -263,17 +264,17 @@ case 'create_from_query':
 	{
 		$header_cell_text = "Viewing texts in saved query &ldquo;$qname&rdquo;";
 		$field_to_show = get_corpus_metadata('primary_classification_field');
-		
+
 		connect_global_cqp();
-		
+
 		$grouplist = $cqp->execute("group $qname match text_id");
-		
+
 		$texts = array();
 		foreach($grouplist as &$g)
 			list($texts[]) = explode("\t", $g);
-	
+
 		$list_of_texts_to_show_in_form = implode(' ', $texts);
-		
+
 		cqpweb_shutdown_environment();
 		$_GET['subcorpusFunction'] = 'list_of_files';
 		// TODO better with Location?
@@ -288,13 +289,13 @@ case 'create_inverted':
 	if (empty($subcorpus_to_invert))
 		exiterror_general("You must specify a subcorpus to invert!");
 
-	subcorpus_admin_check_name($subcorpus_name, 
+	subcorpus_admin_check_name($subcorpus_name,
 		url_absolutify('index.php?subcorpusBadName=y&subcorpusCreateMethod='
-			. 'invert&subcorpusFunction=define_subcorpus&' 
+			. 'invert&subcorpusFunction=define_subcorpus&'
 			. url_printget()));
 
 	create_subcorpus_invert($subcorpus_name, $subcorpus_to_invert);
-	
+
 	cqpweb_shutdown_environment();
 	header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
 	exit();
@@ -302,13 +303,13 @@ case 'create_inverted':
 
 case 'create_text_id':
 	$text_list = corpus_list_texts($corpus_sql_name);
-	
+
 	if (count($text_list) > 100)
 		exiterror_general('This corpus contains more than 100 texts, so you cannot use the one-subcorpus-per-text function!');
-	
+
 	foreach($text_list as $id)
 		create_subcorpus_list($id, $id);
-		
+
 	cqpweb_shutdown_environment();
 	header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
 	exit();
@@ -329,29 +330,29 @@ case 'copy':
 		exit();
 	}
 
-			
+
 	$old_subcorpus_name = mysql_real_escape_string($_GET['subcorpusToCopy']);
 
 	/* queries below need username and corpus because only with all three is the record unique */
-	
-	$sql_query = "insert into saved_subcorpora select * from saved_subcorpora 
+
+	$sql_query = "insert into saved_subcorpora select * from saved_subcorpora
 		where subcorpus_name = '$old_subcorpus_name'
-		and corpus = '$corpus_sql_name' 
+		and corpus = '$corpus_sql_name'
 		and user = '{$User->username}'";
 	do_mysql_query($sql_query);
 
 	$sql_query = "update saved_subcorpora set subcorpus_name = '$subcorpus_name'
-		where subcorpus_name = '$old_subcorpus_name' 
-		and corpus = '$corpus_sql_name' 
-		and user = '{$User->username}' 
+		where subcorpus_name = '$old_subcorpus_name'
+		and corpus = '$corpus_sql_name'
+		and user = '{$User->username}'
 		LIMIT 1";
 	do_mysql_query($sql_query);
-	
+
 	cqpweb_shutdown_environment();
 	header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
 
 	exit();
-	
+
 
 case 'delete':
 
@@ -364,11 +365,11 @@ case 'delete':
 		cqpweb_shutdown_environment();
 
 		header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
-	
+
 		exit();
 	}
 	else
-		exiterror_parameter('No subcorpus specified to delete!', __FILE__, __LINE__);	
+		exiterror_parameter('No subcorpus specified to delete!', __FILE__, __LINE__);
 	break;
 
 
@@ -397,14 +398,14 @@ case 'delete_texts':
 
 	exit();
 
-	
+
 case 'add_texts':
 
 	if (! (isset($_GET['subcorpusToAddTo']) ) )
 		exiterror_general('No subcorpus name specified for adding texts to in subcorpus-admin.inc.php!');
 	else
 		$subcorpus_to = mysql_real_escape_string($_GET['subcorpusToAddTo']);
-		
+
 	if (!isset($_GET['subcorpusListOfFiles']))
 	{
 		/* no texts specified, go back to menu */
@@ -412,22 +413,22 @@ case 'add_texts':
 	}
 	else
 	{
-		$list_of_texts = mysql_real_escape_string(trim(preg_replace('/[\s,]+/', ' ', 
+		$list_of_texts = mysql_real_escape_string(trim(preg_replace('/[\s,]+/', ' ',
 			$_GET['subcorpusListOfFiles'])));
-		
+
 		/* get a list of text names that are not real text ids */
-		$errors = check_textlist_valid($list_of_texts);	
-		
+		$errors = check_textlist_valid($list_of_texts);
+
 		if ($errors != '__no__errors__')
 		{
-			header('Location: ' 
+			header('Location: '
 				. url_absolutify('index.php?thisQ=subcorpus&subcorpusListOfFiles='
 				. "$list_of_texts&subcorpusFunction=add_texts_to_subcorpus&subcorpusToAddTo="
 				. "$subcorpus_to&subcorpusBadTexts=$errors&uT=y"));
 			cqpweb_shutdown_environment();
 			exit();
 		}
-		
+
 		/* OK, we now know the list of names is OK */
 		subcorpus_add_texts($subcorpus_to, explode(' ', $list_of_texts));
 	}
@@ -440,14 +441,14 @@ case 'add_texts':
 case 'process_from_file_list':
 
 	/* work out if we're adding or creating */
-	
-	if (  (! isset($_GET['subcorpusToAddTo']) ) && (! isset($subcorpus_name) )  )
+
+	if (  (! isset($_REQUEST['subcorpusToAddTo']) ) && (! isset($subcorpus_name) )  )
 		exiterror_general('No subcorpus name specified for adding texts to in subcorpus-admin.inc.php!');
 	else
 	{
-		if ($_GET['subcorpusToAddTo'] !== '!__NEW')
+		if ($_REQUEST['subcorpusToAddTo'] !== '!__NEW')
 		{
-			$subcorpus_to = mysql_real_escape_string($_GET['subcorpusToAddTo']);
+			$subcorpus_to = mysql_real_escape_string($_REQUEST['subcorpusToAddTo']);
 			$create = false;
 			$function = 'subcorpus_add_texts';
 		}
@@ -460,19 +461,20 @@ case 'process_from_file_list':
 			$function = 'create_subcorpus_list';
 		}
 	}
-	
-	if (isset($_GET['processFileListAddAll']))
+
+	if (isset($_REQUEST['processFileListAddAll']))
 	{
 		/* "include all texts" was ticked */
 		/* the actual list of texts may be too long for HTTP GET, so is stored in the longvalues table */
-		$text_list_to_add = preg_replace('/\W/', ' ', longvalue_retrieve($_GET['processFileListAddAll']) );
+        $text_list_to_add = preg_replace('/\W/', ' ', longvalue_retrieve($_REQUEST['processFileListAddAll']) );
+        header('X-debug: ' + strlen($text_list_to_add));
 		if (! $create)
-			$text_list_to_add = explode(' ', $text_list_to_add); 
+			$text_list_to_add = explode(' ', $text_list_to_add);
 	}
 	else
 	{
 		preg_match_all('/aT_([^&]*)=1/', $_SERVER['QUERY_STRING'], $m, PREG_PATTERN_ORDER);
-	
+
 		if (!empty($m[1]))
 		{
 			foreach($m[1] as &$current)
@@ -485,11 +487,11 @@ case 'process_from_file_list':
 		else
 			exiterror_general("You didn't specify any files to add to this subcorpus! Go back and try again.");
 	}
-	
+
 	/* so, by this point, if crete is true, $text_list_to_add is a string; if false, an array */
 	/* and either way we have the function pointer in the "$function" variable */
-	
-	$function($subcorpus_to, $text_list_to_add); 
+
+	$function($subcorpus_to, $text_list_to_add);
 
 	header('Location: ' . url_absolutify('index.php?thisQ=subcorpus&uT=y'));
 	cqpweb_shutdown_environment();

@@ -184,7 +184,15 @@ else
 	echo print_html_header("$corpus_title -- CQPweb showing distribution of query solutions", 
 	                       $Config->css_path, 
 	                       array('cword', ''));
-	
+
+
+?>
+<!-- Container table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
+<?php
 	/* -------------------------------- *
 	 * print upper table - control form * 
 	 * -------------------------------- */
@@ -367,6 +375,8 @@ else
 	
 	echo '</table>';
 	
+    echo '<!-- end of container table -->';
+    echo '</td> </tr> </table>';
 	echo print_html_footer();
 
 } /* end of "else" for "if download_mode" */

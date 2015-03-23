@@ -118,6 +118,138 @@ function print_menu_aboutblock()
 
 
 
+
+
+
+
+/** Display the entire menu.
+ *
+ * Really stateful, really messy.  Call only when necessary...
+ */
+function print_menu(){
+
+    global $User;
+    global $corpus_sql_name;
+
+    /* ******************* *
+     * PRINT SIDE BAR MENU *
+     * ******************* */
+
+    echo '<div id="showMenu" style="display: none; text-decoration: underline; font-size: smaller; position: fixed; left: 0; top: 0;">';
+    echo '<a href="#" onclick="document.getElementById(\'menuTable\').style.display=\'block\';document.getElementById(\'showMenu\').style.display=\'none\';">Show menu</a>';
+    echo '</div>';
+
+    echo ('<table class="menu" width="100%" id="menuTable">');
+    echo '<tr><td style="font-size: smaller; text-decoration: underline; color: black;">';
+    echo '<a href="#" onclick="document.getElementById(\'menuTable\').style.display=\'none\';document.getElementById(\'showMenu\').style.display=\'block\';">Hide menu</a>';
+    echo '</td></tr>';
+
+    echo print_menurow_heading('Corpus info');
+
+    /* note that most of this section is links-out, so we can't use the print-row function */
+
+    /* print a link to a corpus manual, if there is one */
+    $sql_query = "select external_url from corpus_info where corpus = '$corpus_sql_name' and external_url IS NOT NULL";
+    $result = do_mysql_query($sql_query);
+    if (mysql_num_rows($result) >= 1)
+    {
+        $row = mysql_fetch_row($result);
+
+        # FIXME: 'currently viewing' will never be set to true below.  This is a small bug.
+        /* echo print_menurow('Corpus documentation', $row[0], false, "Info on $corpus_title", true); */
+        echo print_menurow_index('corpusDocs', 'Corpus documentation');
+    }
+
+    /* SHOW CORPUS METADATA */
+    echo print_menurow_index('corpusMetadata', 'View corpus metadata');
+
+
+
+
+
+
+    echo print_menurow_heading('Corpus queries');
+    echo print_menurow_index('search', 'Standard query');
+    echo print_menurow_index('restrict', 'Restricted query');
+/* TODO
+   note for future: "Restrict query by text" vs "Restrict quey by XML"
+   OR: Restrict query (by XXXX) to be part of the configuration in the DB?
+   with a row for every XXXX that is an XML in the db that has been set up
+   for restricting-via? 
+   and the normal "Restricted query" is jut a special case for text / text_id
+
+   OR: just have "Restricted query" and open up sub-options when that is clicked on?
+ */
+    echo print_menurow_index('lookup', 'Word lookup');
+    echo print_menurow_index('freqList', 'Frequency lists');
+    echo print_menurow_index('keywords', 'Keywords');
+
+    echo print_menurow_heading('User controls');
+    echo print_menurow_index('history', 'Query history');
+    echo print_menurow_index('savedQs', 'Saved queries');
+    echo print_menurow_index('categorisedQs', 'Categorised queries');
+    echo print_menurow_index('uploadQ', 'Upload a query');
+    /* TODO: this is only for admin users while under development */
+    //if ($User->is_admin())
+    echo print_menurow_index('analyseCorpus', 'Analyse corpus');
+    echo print_menurow_index('subcorpus', 'Create/edit subcorpora');
+
+
+
+
+    /* print a link to each tagset for which an external_url is declared in metadata */
+    // todo: change this to use get_corpus_annotation_info()
+    $sql_query = "select description, tagset, external_url from annotation_metadata "
+        . "where corpus = '$corpus_sql_name' and external_url IS NOT NULL";
+    $result = do_mysql_query($sql_query);
+
+    while (($row = mysql_fetch_assoc($result)) != false)
+    {
+        if ($row['external_url'] != '')
+            echo '<tr><td class="concordgeneral"><a target="_blank" class="menuItem" href="'
+            . $row['external_url'] . '" onmouseover="return escape(\'' . $row['description']
+            . ': view documentation\')">' . $row['tagset'] . '</a></td></tr>';
+    }
+
+
+
+
+    /* these are the super-user options */
+    if ($User->is_admin())
+    {
+        echo print_menurow_heading('Admin tools');
+        echo print_menurow('Admin control panel', '../adm');
+        echo print_menurow_index('corpusSettings', 'Corpus settings');
+        echo print_menurow_index('userAccess', 'Manage access');
+        echo print_menurow_index('manageMetadata', 'Manage metadata');
+        echo print_menurow_index('manageCategories', 'Manage text categories');
+        echo print_menurow_index('manageAnnotation', 'Manage annotation');
+        echo print_menurow_index('manageVisualisation', 'Manage visualisations');
+        echo print_menurow_index('cachedQueries', 'Cached queries');
+        echo print_menurow_index('cachedDatabases', 'Cached databases');
+        echo print_menurow_index('cachedFrequencyLists', 'Cached frequency lists');
+
+    } /* end of "if user is a superuser" */
+
+    /* all the rest is encapsulated */
+    echo print_menu_aboutblock();
+
+    echo('</table>');
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 // TODO make this RETURN rather than ECHO
 /**
  * Creates a page footer for CQPweb.
@@ -174,9 +306,9 @@ function print_html_header($title, $css_url, $js_scripts = false)
 	global $Config;
 	
 	/* also set the generic header (will only be sent when the header is echo'd, though) */
-	header('Content-Type: text/html; charset=utf-8');
+    header('Content-Type: text/html; charset=utf-8');
 	
-	$s = "<html>\n<head>\n\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" >\n";
+	$s = "<!DOCTYPE html><html>\n<head>\n\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" >\n";
 
 	$s .= "\t<title>$title</title>\n";
 

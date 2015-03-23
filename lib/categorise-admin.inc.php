@@ -470,7 +470,25 @@ function categorise_enter_new_value()
 
 	echo print_html_header('Categorise Query -- CQPweb', $Config->css_path, array('cword'));
 
-	?>
+    ?>
+
+    
+
+<!-- Container table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
+
+
+
+
+
+
+
+
+
+
 	<form action="redirect.php" method="get">
 		<table class="concordtable" width="100%">
 			<tr>
@@ -515,7 +533,14 @@ function categorise_enter_new_value()
 		<input type="hidden" name="categoriseAction" value="addNewValue"/>
 		<input type="hidden" name="uT" value="y" />
 	</form>
-	
+
+
+
+
+<!-- end of container table -->
+</td> </tr> </table>
+
+
 	<?php
 	
 	echo print_html_footer();	
@@ -565,6 +590,15 @@ function categorise_enter_categories($error = NULL)
 	echo print_html_header('Categorise Query -- CQPweb', $Config->css_path)
 
 	?>
+
+
+<!-- Container table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
+
+
 
 	<form action="redirect.php" method="get">
 		<table class="concordtable" width="100%">
@@ -653,6 +687,10 @@ function categorise_enter_categories($error = NULL)
 		<input type="hidden" name="categoriseAction" value="createQuery"/>
 		<input type="hidden" name="uT" value="y" />
 	</form>
+
+<!-- end of container table -->
+</td> </tr> </table>
+
 	
 	<?php
 	echo print_html_footer();

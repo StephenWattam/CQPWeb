@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -37,7 +37,7 @@
 /*
  * If mysql extension does not exist, include fake-mysql.inc.php to restore the functions
  * that are actually used and emulate them via mysqli.
- * 
+ *
  * This is global code in a library file; normally a no-no.
  * it -only- addresses what files need to be included and which don't.
  */
@@ -66,9 +66,9 @@ if  (!extension_loaded('mysql'))
 
 
 
-/* 
+/*
  * ============================
- * connect/disconnect functions 
+ * connect/disconnect functions
  * ============================
  */
 
@@ -94,7 +94,7 @@ function connect_global_cqp($corpus = NULL)
 	else if (! empty ($corpus_cqp_name))
 		$cqp->set_corpus($corpus_cqp_name);
 	/* note that corpus must be (RE)SELECTED after calling "set DataDirectory" */
-	
+
 	if ($Config->print_debug_messages)
 		$cqp->set_debug_mode(true);
 }
@@ -115,7 +115,7 @@ function disconnect_global_cqp()
 
 /**
  * This function refreshes CQP's internal list of queries currently existing in its data directory
- * 
+ *
  * NB should this perhaps be part of the CQP object model?
  * (as perhaps should set DataDirectory!)
  */
@@ -124,7 +124,7 @@ function refresh_directory_global_cqp()
 	global $cqp;
 	global $Config;
 	global $corpus_cqp_name;
-	
+
 	if (isset($cqp))
 	{
 		$switchdir = getcwd();
@@ -150,38 +150,38 @@ function connect_global_mysql()
 	global $mysql_schema;
 	global $mysql_utf8_set_required;
 	*/
-	
+
 	/* check for previous connection */
 	if ( is_resource($mysql_link) )
 		mysql_close($mysql_link);
-	
+
 	/* Connect with flag 128 == mysql client lib constant CLIENT_LOCAL_FILES;
 	 * this overrules deactivation at PHP's end of LOAD DATA LOCAL. (If L-D-L
-	 * is deactivated at the mysqld end, e.g. by my.cnf, this won't help, but 
-	 * won't hurt either.) 
-	 */ 
+	 * is deactivated at the mysqld end, e.g. by my.cnf, this won't help, but
+	 * won't hurt either.)
+	 */
 	$mysql_link = mysql_connect($Config->mysql_server, $Config->mysql_webuser, $Config->mysql_webpass, false, 128);
-	/* Note, in theory there are performance gains to be had by using a 
+	/* Note, in theory there are performance gains to be had by using a
 	 * persistent connection. However, current judgement is that the risk
 	 * of problems is too great to justify doing so. MySQLi does
-	 * link cleanup so once most people are using that, persistent 
+	 * link cleanup so once most people are using that, persistent
 	 * connections are more likely to be useful.
 	 */
-	
+
 	if (! $mysql_link)
 		exiterror_general('MySQL did not connect - please try again later!');
-	
+
 	mysql_select_db($Config->mysql_schema, $mysql_link);
-	
+
 	/* utf-8 setting is dependent on a variable defined in config.inc.php */
 	if ($Config->mysql_utf8_set_required)
 		mysql_set_charset("utf8", $mysql_link);
 }
 /**
  * Disconnects from the MySQL server.
- * 
+ *
  * Scripts could easily disconnect mysql_link locally. So this function
- * only exists so there is function-name-symmetry, and (less anally-retentively) so 
+ * only exists so there is function-name-symmetry, and (less anally-retentively) so
  * a script never really has to use mysql_link in the normal way of things. As
  * a consequence mysql_link is entirely contained within this module.
  */
@@ -204,9 +204,9 @@ function get_db_version()
 
 
 
-/* 
+/*
  * =====================
- * MySQL query functions 
+ * MySQL query functions
  * =====================
  */
 
@@ -215,19 +215,19 @@ function get_db_version()
 
 /**
  * Does a MySQL query on the CQPweb database, with error checking.
- * 
+ *
  * Auto-connects to the database if necessary.
- * 
+ *
  * Note - this function should replace all direct calls to mysql_query,
  * thus avoiding duplication of error-checking code.
- * 
+ *
  * Returns the result resource.
- */ 
+ */
 function do_mysql_query($sql_query)
 {
 	global $mysql_link;
 	static $last_query_time = 0;
-	
+
 	/* auto connect if not yet connected ...  */
 	if (NULL === $mysql_link)
 		connect_global_mysql();
@@ -238,34 +238,34 @@ function do_mysql_query($sql_query)
 
 	print_debug_message("About to run the following MySQL query:\n\t$sql_query\n");
 	$start_time = time();
-	
+
 	$result = mysql_query($sql_query, $mysql_link);
-	
-	if (false === $result) 
+
+	if (false === $result)
 		exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), $sql_query);
-	
+
 	$last_query_time = time();
-			
+
 	print_debug_message("The query ran successfully in " . (time() - $start_time) . " seconds.\n");
-		
+
 	return $result;
 }
 
 
 /**
  * Does a mysql query and puts the result into an output file.
- * 
+ *
  * This works regardless of whether the mysql server program (mysqld)
  * is allowed to write files or not.
- * 
- * The mysql $query should be of the form "select [something] FROM [table] [other conditions]" 
- * -- that is, it MUST NOT contain "into outfile $filename", and the FROM must be in capitals. 
- * 
+ *
+ * The mysql $query should be of the form "select [something] FROM [table] [other conditions]"
+ * -- that is, it MUST NOT contain "into outfile $filename", and the FROM must be in capitals.
+ *
  * The output file is specified by $filename - this must be a full absolute path.
- * 
+ *
  * Typically used to create a dump file (new format post CWB2.2.101)
- * for input to CQP e.g. in the creation of a postprocessed query. 
- * 
+ * for input to CQP e.g. in the creation of a postprocessed query.
+ *
  * Its return value is the number of rows written to file. In case of problem,
  * exiterror_* is called here.
  */
@@ -273,20 +273,20 @@ function do_mysql_outfile_query($query, $filename)
 {
 	global $Config;
 	global $mysql_link;
-	
+
 	if ($Config->mysql_has_file_access)
 	{
 		/* We should use INTO OUTFILE */
-		
+
 		$into_outfile = 'INTO OUTFILE "' . mysql_real_escape_string($filename) . '" FROM ';
 		$replaced = 0;
 		$query = str_replace("FROM ", $into_outfile, $query, $replaced);
-		
+
 		if ($replaced != 1)
 			exiterror_mysqlquery('no_number',
-				'A query was prepared which does not contain FROM, or contains multiple instances of FROM.' 
+				'A query was prepared which does not contain FROM, or contains multiple instances of FROM.'
 				, $query);
-		
+
 		print_debug_message("About to run the following MySQL query:\n\n$query\n");
 		$result = mysql_query($query);
 		if ($result == false)
@@ -297,7 +297,7 @@ function do_mysql_outfile_query($query, $filename)
 			return mysql_affected_rows($mysql_link);
 		}
 	}
-	else 
+	else
 	{
 		/* we cannot use INTO OUTFILE, so run the query, and write to file ourselves */
 		print_debug_message("About to run the following MySQL query:\n\n$query\n");
@@ -305,20 +305,20 @@ function do_mysql_outfile_query($query, $filename)
 		if ($result == false)
 			exiterror_mysqlquery(mysql_errno($mysql_link), mysql_error($mysql_link), $query);
 		print_debug_message("The query ran successfully.\n");
-	
-		if (!($fh = fopen($filename, 'w'))) 
+
+		if (!($fh = fopen($filename, 'w')))
 			exiterror_general("Could not open file for write ( $filename )", __FILE__, __LINE__);
-		
+
 		$rowcount = 0;
-		
-		while ($row = mysql_fetch_row($result)) 
+
+		while ($row = mysql_fetch_row($result))
 		{
 			fputs($fh, implode("\t", $row) . "\n");
 			$rowcount++;
 		}
-		
+
 		fclose($fh);
-		
+
 		return $rowcount;
 	}
 }
@@ -326,18 +326,18 @@ function do_mysql_outfile_query($query, $filename)
 
 /**
  * Loads a specified text file into the given MySQL table.
- * 
+ *
  * Note: this is done EITHER with LOAD DATA (LOCAL) INFILE, OR
  * with a loop across the lines of the file.
- * 
- * The latter is EXTREMELY inefficient, but necessary if we're 
- * working on a box where LOAD DATA (LOCAL) INFILE has been 
+ *
+ * The latter is EXTREMELY inefficient, but necessary if we're
+ * working on a box where LOAD DATA (LOCAL) INFILE has been
  * disabled.
- * 
+ *
  * "FIELDS ESCAPED BY" behaviour is normally not specified,
  * but if $no_escapes is true, it will be set to an empty
  * string.
- * 
+ *
  * Function returns the (last) update/import query result if
  * all went well; false in case of error.
  */
@@ -346,35 +346,35 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 	global $Config;
 //	global $mysql_infile_disabled;
 //	global $mysql_LOAD_DATA_INFILE_command;
-	
+
 	/* check variables */
 	if (! is_file($filename))
 		return false;
 	$table = mysql_real_escape_string($table);
-	
+
 	/* massive if/else: overall two branches. */
-	
+
 	if (! $Config->mysql_infile_disabled)
 	{
 		/* the normal sensible way */
-		
+
 		$sql = "{$Config->mysql_LOAD_DATA_INFILE_command} '$filename' INTO TABLE $table";
 		if ($no_escapes)
 			$sql .= ' FIELDS ESCAPED BY \'\'';
-		
+
 		return do_mysql_query($sql);
 	}
 	else
 	{
 		/* the nasty hacky workaround way */
-		
+
 		/* first we need to find out about the table ... */
 		$fields = array();
-		
+
 		/* note: we currently allow for char, varchar, and text as "quote-needed"
 		 * types, because those are the ones CQPweb uses. There are, of course,
 		 * others. See the MySQL manual. */
-		
+
 		$result = do_mysql_query("describe $table");
 		while (false !== ($f = mysql_fetch_object($result)))
 		{
@@ -389,12 +389,12 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 					||
 					substr($f->Type, 0, 4) == 'char'
 				);
-			$fields[] = array('field' => $f->Field, 'quoteme' => $quoteme);	
+			$fields[] = array('field' => $f->Field, 'quoteme' => $quoteme);
 		}
 		unset($result);
-		
+
 		$source = fopen($filename, 'r');
-		
+
 		/* loop across lines in input file */
 		while (false !== ($line = fgets($source)));
 		{
@@ -404,20 +404,20 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 			$line = rtrim($line, "\r\n");
 			$data = explode($line, "\t");
 
-			
+
 			$blob1 = $blob2 = '';
-			
+
 			for ( $i = 0 ; true ; $i++ )
 			{
 				/* require both a field and data; otherwise break */
 				if (!isset($data[$i], $fields[$i]))
 					break;
 				$blob1 .= ", {$fields[$i]['field']}";
-				
+
 				if ( (! $no_escapes) && $data[$i] == '\\N' )
 					/* data for this field is NULL, so type doesn't matter */
 					$blob2 .= ', NULL';
-				else 
+				else
 					if ( $fields[$i]['quoteme'] )
 						/* data for this field needs quoting (string) */
 						$blob2 .= ", '{$data[$i]}'";
@@ -425,16 +425,16 @@ function do_mysql_infile_query($table, $filename, $no_escapes = false)
 						/* data for this field is an integer or like type */
 						$blob2 .= ", '{$data[$i]}'";
 			}
-			
+
 			$blob1 = ltrim($blob1, ', ');
 			$blob2 = ltrim($blob2, ', ');
-			
+
 			$result = do_mysql_query("insert into $table ($blob1) values ($blob2)");
 		}
 		fclose($source);
-		
+
 		return $result;
-		
+
 	} /* end of massive if/else that branches this function */
 }
 
@@ -451,7 +451,7 @@ function get_mysql_insert_id()
 
 
 
-/* 
+/*
  * the next two functions are really just for convenience
  */
 
@@ -486,18 +486,18 @@ function get_cwb_memory_limit()
 
 
 /**
- * Prints a debug message. 
- * 
+ * Prints a debug message.
+ *
  * Messages are not printed if the config variable $print_debug_messages is not set to
  * true.
- * 
+ *
  * (Currently, this function just wraps pre_echo, or echoes naked to the command line
  * - but we might want to create a more HTML-table-friendly version later.)
  */
 function print_debug_message($message)
 {
 	global $Config;
-	
+
 	if ($Config->print_debug_messages)
 	{
 		if ($Config->debug_messages_textonly)
@@ -518,19 +518,19 @@ function pre_echo($s)
 
 /**
  * Imports the settings for a corpus into global variable space.
- * 
+ *
  * If there is an active CQP object, it is set to use that corpus.
  */
 function import_settings_as_global($corpus)
 {
 	$data = file_get_contents("../$corpus/settings.inc.php");
-	
+
 	/* get list of variables and create global references */
 	preg_match_all('/\$(\w+)\W/', $data, $m, PREG_PATTERN_ORDER);
 	foreach($m[1] as $v)
-		global $$v;	
+		global $$v;
 	include("../$corpus/settings.inc.php");
-	
+
 	// TODO shouldn't this be a separate function?
 	/* one special one */
 	global $cqp;
@@ -539,7 +539,7 @@ function import_settings_as_global($corpus)
 }
 
 
-/** 
+/**
  * This function removes any existing start/end anchors from a regex
  * and adds new ones.
  */
@@ -557,8 +557,8 @@ function regex_add_anchors($s)
 
 /**
  * Replacement for htmlspecialcharacters which DOESN'T change & to &amp; if it is already part of
- * an entity; otherwise equiv to htmlspecialchars($string, ENT_COMPAT, 'UTF-8', false) 
- * 
+ * an entity; otherwise equiv to htmlspecialchars($string, ENT_COMPAT, 'UTF-8', false)
+ *
  * Note the double-encode flag exists in PHP >= 5.2.3. So we don't really need this
  * function, since - officially! - CQPweb requires PHP 5.3. But let's keep it since it's no effort to
  * do so and it might let people without upgrade power keep running the system a little longer.
@@ -571,20 +571,20 @@ function cqpweb_htmlspecialchars($string)
 	$string = str_replace('"', '&quot;', $string);
 
 	return preg_replace('/&amp;(\#?\w+;)/', '&$1', $string);
-} 
+}
 
 
 /**
  * Removes any nonhandle characters from a string.
- *  
+ *
  * A "handle" can only contain ascii letters, numbers, and underscore.
- * 
+ *
  * If removing the nonhandle characters reduces it to an
  * empty string, then it will be converted to "__HANDLE".
- * 
+ *
  * (Other code must be responsible for making sure the handle is unique
  * where necessary.)
- * 
+ *
  * A maximum length can also be enforced if the second parameter
  * is set to greater than 0.
  */
@@ -600,7 +600,7 @@ function cqpweb_handle_enforce($string, $length = -1)
  * Returns true iff the argument string is OK as a handle,
  * that is, iff there are no non-word characters (i.e. no \W)
  * in the string and it is not empty.
- * 
+ *
  * A maximum length can also be checked if the second parameter
  * is set to greater than 0.
  */
@@ -609,7 +609,7 @@ function cqpweb_handle_check($string, $length = -1)
 	return (
 			is_string($string)
 			&&   $string !== ''
-			&&   0 >= preg_match('/\W/', $string) 
+			&&   0 >= preg_match('/\W/', $string)
 			&&   ( $length < 1 || strlen($string) <= $length )
 			);
 }
@@ -619,10 +619,10 @@ function cqpweb_handle_check($string, $length = -1)
  * Function which performs standard safety checks on a qname parameter in
  * the global $_GET array, and exits the program if it is either (a) not present
  * or (b) not a word-character-only string.
- * 
+ *
  * The return value is then safe from XSS if embodied into HTML output;
  * and is also safe for embedding into MySQL queries.
- * 
+ *
  * A named index into $_GET can be supplied; if none is, "qname" is assumed.
  */
 function safe_qname_from_get($index = 'qname')
@@ -642,10 +642,10 @@ function safe_qname_from_get($index = 'qname')
  * Sets the location field in the HTTP response
  * to an absolute location based on the supplied relative URL,
  * iff the headers have not yet been sent.
- * 
- * If, on the other hand, the headers have been sent, 
+ *
+ * If, on the other hand, the headers have been sent,
  * the function does nothing.
- * 
+ *
  * The function DOES NOT exit. Instead, it returns the
  * value it itself got from the headers_sent() function.
  * This allows the caller to check whether it needs to
@@ -662,25 +662,25 @@ function set_next_absolute_location($relative_url)
 /**
  * This function creates absolute URLs from relative ones by adding the relative
  * URL argument $u to the real URL of the directory in which the script is running.
- * 
- * The URL of the currently-running script's containing directory is worked out  
+ *
+ * The URL of the currently-running script's containing directory is worked out
  * in one of two ways. If the global configuration variable "$cqpweb_root_url" is
- * set, this address is taken, and the corpus handle (SQL version, IE lowercase, which 
+ * set, this address is taken, and the corpus handle (SQL version, IE lowercase, which
  * is the same as the subdirectory that accesses the corpus) is added. If no SQL
- * corpus handle exists, the current script's containing directory is added to 
+ * corpus handle exists, the current script's containing directory is added to
  * $cqpweb_root_url.
- * 
- * $u will be treated as a relative address  (as explained above) if it does not 
+ *
+ * $u will be treated as a relative address  (as explained above) if it does not
  * begin with "http:" or "https:" and as an absolute address if it does.
- * 
- * Note, this "absolute" in the sense of having a server specified at the start, 
+ *
+ * Note, this "absolute" in the sense of having a server specified at the start,
  * it can still contain relativising elements such as '/../' etc.
  */
 function url_absolutify($u, $special_subdir = NULL)
 {
 	global $Config;
 	global $corpus_sql_name;
-	
+
 	/* outside a corpus, extract the immeidate containing directory
 	 * from REQUEST_URI (e.g. 'adm') */
 	if (empty($special_subdir) && empty($corpus_sql_name))
@@ -694,49 +694,52 @@ function url_absolutify($u, $special_subdir = NULL)
 		return $u;
 	else
 	{
-		/* 
+		/*
 		 * make address absolute by adding server of this script plus folder path of this URI;
-		 * this may not be foolproof, because it assumes that the path will always lead to the 
-		 * folder in which the current php script is located -- but should work for most cases 
+		 * this may not be foolproof, because it assumes that the path will always lead to the
+		 * folder in which the current php script is located -- but should work for most cases
 		 */
 		if (empty($Config->cqpweb_root_url))
 			$url = (isset ($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 'https://' : 'http://')
 				  /* host name */
 				. $_SERVER['HTTP_HOST']
-				  /* path from request URI excluding filename */ 
+				  /* path from request URI excluding filename */
 				. preg_replace('|/[^/]*\z|', '/', $_SERVER['REQUEST_URI'])
-				  /* target path relative to current folder */ 
+				  /* target path relative to current folder */
 				. $u;
 		else
-			$url = $Config->cqpweb_root_url 
-				. ( 
-					(!empty($corpus_sql_name)) 
+			$url = $Config->cqpweb_root_url
+				. (
+					(!empty($corpus_sql_name))
 					/* within a corpus, use the root + the corpus sql name */
-					? $corpus_sql_name  
+					? $corpus_sql_name
 					: $special_subdir
 				)
 				. '/' . $u;
-		
+
 		/* attempt to resolve ../ if present */
 		$url = preg_replace('|/[^\./]+/\.\./|', '/', $url);
-		
-		return $url; 
+
+		return $url;
 	}
 }
 
 
 
-/** 
- * Checks whether the current script has $_GET['uT'] == "y" 
+/**
+ * Checks whether the current script has $_GET['uT'] == "y"
  * (&uT=y is the terminating element of all valid CQPweb URIs).
- * 
+ *
  * "uT" is short for "urlTest", by the way.
  */
 function url_string_is_valid()
 {
-	if ( (!isset($_GET['uT'])) && isset($_POST['uT']))
-		return ($_POST['uT'] == 'y');
-	return (array_key_exists('uT', $_GET) && $_GET['uT'] == 'y');
+
+    return array_key_exists('uT', $_REQUEST) && $_REQUEST['uT'] == 'y';
+
+    //if ( (!isset($_GET['uT'])) && isset($_POST['uT']))
+	//	return ($_POST['uT'] == 'y');
+	//return (array_key_exists('uT', $_GET) && $_GET['uT'] == 'y');
 }
 
 
@@ -744,15 +747,15 @@ function url_string_is_valid()
 
 /**
  * Returns a string of "var=val&var=val&var=val".
- * 
- * $changes = array of arrays, 
- * where each array consists of [0] a field name  
+ *
+ * $changes = array of arrays,
+ * where each array consists of [0] a field name
  *                            & [1] the new value.
- * 
+ *
  * If [1] is an empty string, that pair is not included.
- * 
+ *
  * WARNING: adds values that weren't already there at the START of the string.
- * 
+ *
  */
 function url_printget($changes = "Nope!")
 {
@@ -780,7 +783,7 @@ function url_printget($changes = "Nope!")
 				$string .= $key . '=' . urlencode($newval);
 			else
 				$string = preg_replace('/&\z/', '', $string);
-				
+
 		}
 		else
 			$string .= $key . '=' . urlencode($val);
@@ -794,19 +797,19 @@ function url_printget($changes = "Nope!")
 				$extra .= $c[0] . '=' . $c[1] . '&';
 		$string = $extra . $string;
 	}
-	
+
 	return $string;
 }
 
 /**
  * Returns a string of "&lt;input type="hidden" name="key" value="value" /&gt;..."
- * 
- * $changes = array of arrays, 
- * where each array consists of [0] a field name  
+ *
+ * $changes = array of arrays,
+ * where each array consists of [0] a field name
  *                            & [1] the new value.
- * 
+ *
  * If [1] is an empty string, that pair is not included.
- *  
+ *
  * WARNING: adds values that weren't there at the START of the string.
  */
 function url_printinputs($changes = "Nope!")
@@ -827,18 +830,18 @@ function url_printinputs($changes = "Nope!")
 				}
 			/* only add the new value if the change array DID NOT contain a zero-length string */
 			if ($newval != '')
-				$string .= '<input type="hidden" name="' . $key . '" value="' 
+				$string .= '<input type="hidden" name="' . $key . '" value="'
 					. htmlspecialchars($newval, ENT_QUOTES, 'UTF-8') . '" />
 					';
 		}
 		else
-			$string .= '<input type="hidden" name="' . $key . '" value="' 
+			$string .= '<input type="hidden" name="' . $key . '" value="'
 				. htmlspecialchars($val, ENT_QUOTES, 'UTF-8') . '" />
 				';
 
 		/* note: should really be htmlspecialchars($val, ENT_QUOTES, UTF-8, false)
 		 * etc. BUT the last parameter (whcih turns off the effect on existing entities)
-		 * is PHP >=5.2.3 only 
+		 * is PHP >=5.2.3 only
 		 * TODO use cqpweb_htmlspecialchars instead.
 		 */
 	}
@@ -848,7 +851,7 @@ function url_printinputs($changes = "Nope!")
 		$extra = '';
 		foreach ($changes as &$c)
 			if ($c[0] !== '' && $c[1] !== '')
-				$extra .= '<input type="hidden" name="' . $c[0] . '" value="' 
+				$extra .= '<input type="hidden" name="' . $c[0] . '" value="'
 					. htmlspecialchars($c[1], ENT_QUOTES, 'UTF-8') . '" />
 					';
 		$string = $extra . $string;
@@ -863,10 +866,10 @@ function prepare_per_page($pp)
 {
 	// TODO is it possible to use $config here?
 	global $default_per_page;
-	
+
 	if ( is_string($pp) )
 		$pp = strtolower($pp);
-	
+
 	switch($pp)
 	{
 	/* extra values valid in concordance.php */
@@ -919,22 +922,22 @@ function list_superusers()
 {
 	/* superusers are determined in the config file */
 	global $Config;
-	
+
 	static $a = NULL;
-	
+
 	if (empty($a))
 		$a = explode('|', $Config->superuser_username);
-	
+
 	return $a;
 }
 
 
 
 /**
- * Change the character encoding of a specified text file. 
- * 
+ * Change the character encoding of a specified text file.
+ *
  * The re-coded file is saved to the path of $outfile.
- * 
+ *
  * Infile and outfile paths cannot be the same.
  */
 function change_file_encoding($infile, $outfile, $source_charset_for_iconv, $dest_charset_for_iconv)
@@ -946,10 +949,10 @@ function change_file_encoding($infile, $outfile, $source_charset_for_iconv, $des
 	if (! is_writable(dirname($outfile)) )
 		exiterror_arguments($outfile, "This path is not writable.");
 	$dest = fopen($outfile,  'w');
-	
+
 	while (false !== ($line = fgets($source)) )
 		fputs($dest, iconv($source_charset_for_iconv, $dest_charset_for_iconv, $line));
-	
+
 	fclose($source);
 	fclose($dest);
 }
@@ -978,12 +981,12 @@ function php_execute_time_relimit()
 }
 
 
-/** 
+/**
  * Call as show_var($x, get_defined_vars());
- * 
+ *
  * Omit 2nd arg in global scope.
- * 
- * THIS IS A DEBUG FUNCTION. 
+ *
+ * THIS IS A DEBUG FUNCTION.
  */
 function show_var(&$var, $scope=false, $prefix='unique', $suffix='value')
 {
@@ -992,8 +995,8 @@ function show_var(&$var, $scope=false, $prefix='unique', $suffix='value')
 	$old = $var;
 	$var = $new = $prefix.rand().$suffix;
 	$vname = FALSE;
-	foreach($vals as $key => $val) 
-		if($val === $new) 
+	foreach($vals as $key => $val)
+		if($val === $new)
 			$vname = $key;
 	$var = $old;
 
@@ -1008,12 +1011,12 @@ function dump_mysql_result($result)
 	$s = '<table class="concordtable"><tr>';
 	$n = mysql_num_fields($result);
 	for ( $i = 0 ; $i < $n ; $i++ )
-		$s .= "<th class='concordtable'>" 
+		$s .= "<th class='concordtable'>"
 			. mysql_field_name($result, $i)
 			. "</th>";
 	$s .=  '</tr>
 		';
-	
+
 	while ( ($r = mysql_fetch_row($result)) !== false )
 	{
 		$s .= '<tr>';
@@ -1023,7 +1026,7 @@ function dump_mysql_result($result)
 			';
 	}
 	$s .= '</table>';
-	
+
 	return $s;
 }
 
@@ -1053,7 +1056,7 @@ function coming_soon_finish_page()
 			</td>
 		</tr>
 	</table>
-	
+
 	</body>
 	</html>
 	<?php
@@ -1064,40 +1067,40 @@ function coming_soon_finish_page()
 /**
  * Runs a script in perl and returns up to 10Kb of text written to STDOUT
  * by that perl script, or an empty string if Perl writes nothing to STDOUT.
- * 
+ *
  * It reads STDERR if nothing is written to STDOUT.
- * 
+ *
  * This function is not currently used.
- * 
+ *
  * script_path	   path to the script, relative to current PHP script (string)
  * arguments	   anything to add after the script name (string)
  * select_maxtime  time to wait for Perl to respond
- * 
+ *
  */
 function perl_interface($script_path, $arguments, $select_maxtime='!')
 {
 	global $Config;
-	
+
 	if (!is_int($select_maxtime))
 		$select_maxtime = 10;
-	
+
 	if (! file_exists($script_path) )
 		return "ERROR: perl script could not be found.";
-		
+
 	$call = "{$Config->path_to_perl}perl $script_path $arguments";
 	// TODO should we not use the extra include directories, if specified?
-	
+
 	$io_settings = array(
-		0 => array("pipe", "r"), // stdin 
-		1 => array("pipe", "w"), // stdout 
-		2 => array("pipe", "w")  // stderr 
-	); 
-	
+		0 => array("pipe", "r"), // stdin
+		1 => array("pipe", "w"), // stdout
+		2 => array("pipe", "w")  // stderr
+	);
+
 	$handles = false;
-	
+
 	$process = proc_open($call, $io_settings, $handles);
 
-	if (is_resource($process)) 
+	if (is_resource($process))
 	{
 		/* returns stdout, if stdout is empty, returns stderr */
 		if (stream_select($r=array($handles[1]), $w=NULL, $e=NULL, $select_maxtime) > 0 )
@@ -1111,7 +1114,7 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 		fclose($handles[1]);
 		fclose($handles[2]);
 		proc_close($process);
-		
+
 		return $output;
 	}
 	else
@@ -1138,9 +1141,9 @@ function perl_interface($script_path, $arguments, $select_maxtime='!')
 function add_system_message($header, $content)
 {
 	global $Config;
-	$sql_query = "insert into system_messages set 
-		header = '" . mysql_real_escape_string($header) . "', 
-		content = '" . mysql_real_escape_string($content) . "', 
+	$sql_query = "insert into system_messages set
+		header = '" . mysql_real_escape_string($header) . "',
+		content = '" . mysql_real_escape_string($content) . "',
 		message_id = '{$Config->instance_name}'";
 	/* timestamp is defaulted */
 	do_mysql_query($sql_query);
@@ -1149,7 +1152,7 @@ function add_system_message($header, $content)
 /**
  * Delete the system message associated with a particular message_id.
  *
- * The message_id is the user/timecode assigned to the system message when it 
+ * The message_id is the user/timecode assigned to the system message when it
  * was created.
  */
 function delete_system_message($message_id)
@@ -1167,7 +1170,7 @@ function display_system_messages()
 	global $User;
 	global $Config;
 	global $corpus_sql_name;
-	
+
 	/* weeeeeelll, this is unfortunately complex! */
 	switch ($Config->run_location)
 	{
@@ -1193,34 +1196,34 @@ function display_system_messages()
 		$rel_add = '../';
 		break;
 	}
-	
+
 	$su = $User->is_admin();
 
 	$result = do_mysql_query("select * from system_messages order by timestamp desc");
-	
+
 	if (mysql_num_rows($result) == 0)
 		return;
-	
+
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
 			<th colspan="<?php echo ($su ? 3 : 2) ; ?>" class="concordtable">
-				System messages 
+				System messages
 				<?php
 				if ($Config->rss_feed_available)
 				{
 					?>
 					<a href="<?php echo $rel_add;?>rss">
 						<img src="<?php echo $rel_add;?>css/img/feed-icon-14x14.png" />
-					</a> 
-					<?php	
+					</a>
+					<?php
 				}
-				?> 
+				?>
 			</th>
 		</tr>
 	<?php
-	
-	
+
+
 	while ( ($r = mysql_fetch_object($result)) !== false)
 	{
 		?>
@@ -1252,13 +1255,13 @@ function display_system_messages()
 			<td class="concordgeneral">
 				<?php
 				/* Sanitise, then add br's, then restore whitelisted links ... */
-				echo preg_replace(	'|&lt;a\s+href=&quot;(.*?)&quot;\s*&gt;(.*?)&lt;/a&gt;|', 
-									'<a href="$1">$2</a>', 
+				echo preg_replace(	'|&lt;a\s+href=&quot;(.*?)&quot;\s*&gt;(.*?)&lt;/a&gt;|',
+									'<a href="$1">$2</a>',
 									str_replace("\n", '<br/>', cqpweb_htmlspecialchars(stripslashes($r->content))));
 				?>
 
 			</td>
-		</tr>			
+		</tr>
 		<?php
 	}
 	echo '</table>';
@@ -1287,13 +1290,13 @@ function recursive_delete_directory($path)
 
 /**
  * Convenience function to recursively copy a directory.
- * 
- * Both $from and $to should be directory paths. 
- * 
- * If $from is a file or symlink rather than a directory, 
+ *
+ * Both $from and $to should be directory paths.
+ *
+ * If $from is a file or symlink rather than a directory,
  * we default back to the behaviour
  * of php's builtin copy() function.
- * 
+ *
  * If $to already exists, it will be overwritten.
  */
 function recursive_copy_directory($from, $to)
@@ -1302,7 +1305,7 @@ function recursive_copy_directory($from, $to)
 	{
 		recursive_delete_directory($to);
 		mkdir($to);
-		
+
 		foreach(scandir($from) as $f)
 		{
 			if ($f == '.' || $f == '..')
@@ -1322,27 +1325,27 @@ function recursive_copy_directory($from, $to)
 /**
  * This function stores values in a table that would be too big to send via GET.
  *
- * Instead, they are referenced in the web form by their id code (which is passed 
+ * Instead, they are referenced in the web form by their id code (which is passed
  * by get) and retrieved by the script that processes the user input.
- * 
+ *
  * The return value is the id code that you should use in the web form.
- * 
+ *
  * Things stored in the longvalues table are deleted when they are 5 days old.
- * 
+ *
  * The retrieval function is longvalue_retrieve().
- *  
+ *
  */
 function longvalue_store($value)
 {
-	global $Config;	
+	global $Config;
 	// TODO do not use instance name, as there might be more than one longvalue per call.
 	// use something based on instance name but guarantee its uniqueness.
-	
+
 	/* clear out old longvalues */
 	do_mysql_query("delete from system_longvalues where timestamp < DATE_SUB(NOW(), INTERVAL 5 DAY)");
-	
+
 	$value = mysql_real_escape_string($value);
-	
+
 	do_mysql_query("insert into system_longvalues (id, value) values ('{$Config->instance_name}', '$value')");
 
 	return $Config->instance_name;
@@ -1353,20 +1356,20 @@ function longvalue_store($value)
  * Retrieval function for values stored with longvalue_store.
  */
 function longvalue_retrieve($id)
-{	
+{
 	$id = mysql_real_escape_string($id);
-	
+
 	$result = do_mysql_query("select value from system_longvalues where id = '$id'");
-	
+
 	$r = mysql_fetch_row($result);
-		
+
 	return $r[0];
 }
 
 
 /**
- * Send an email with appropriate CQPweb boilerp[late, plus error checking. 
- * 
+ * Send an email with appropriate CQPweb boilerp[late, plus error checking.
+ *
  * @param address_to    The "send" email address. Can be a raw address or a name plus address in < ... >.
  * @param mail_subject  Subject line.
  * @param mail_content  The email body.
@@ -1378,18 +1381,18 @@ function longvalue_retrieve($id)
 function send_cqpweb_email($address_to, $mail_subject, $mail_content, $extra_headers = array())
 {
 	global $Config;
-	
+
 	if ($Config->cqpweb_no_internet)
 		return false;
 
 	if (!empty($Config->cqpweb_root_url))
 		$mail_content .= "\n" . $Config->cqpweb_root_url . "\n";
-	
+
 	if (!empty($Config->cqpweb_email_from_address))
 	{
 		$add_from = true;
 		$add_reply_to = true;
-		
+
 		foreach($extra_headers as $h)
 		{
 			$lch = strtolower($h);
@@ -1398,36 +1401,36 @@ function send_cqpweb_email($address_to, $mail_subject, $mail_content, $extra_hea
 			if (substr($lch,0,9) == 'reply-to:')
 				$add_reply_to = false;
 		}
-		
+
 		if ($add_from)
 			$extra_headers[] = "From: {$Config->cqpweb_email_from_address}";
 		if ($add_reply_to)
 			$extra_headers[] = "Reply-To: {$Config->cqpweb_email_from_address}";
 	}
 
-	return (bool)mail($address_to, $mail_subject, $mail_content, implode("\r\n", $extra_headers));	
+	return (bool)mail($address_to, $mail_subject, $mail_content, implode("\r\n", $extra_headers));
 }
 
 
 /**
  * Perform Bonferroni or Šidák correction.
- * 
+ *
  * NB this file may not be a good place to do have this function, long-run.
- */ 
+ */
 function correct_alpha_for_familywise($alpha, $n_comparisons, $type = 'Bonferroni')
 {
 	/* any empty value signies don't correct */
 	if (empty($type))
 		return $alpha;
-	
+
 	switch($type)
 	{
 		case 'Bonferroni':
 			return $alpha/$n_comparisons;
-			
+
 		case 'Šidák':
 			return 1.0 - pow((1.0 - $alpha), 1.0/$n_comparisons);
-			
+
 		default:
 			exiterror_general("Unrecognised correction for multiple comparisons.", __FILE__, __LINE__);
 	}
@@ -1448,7 +1451,7 @@ function retrieve_plugin_info($class)
 }
 
 
-/** Returns a list of the available plugins (array of objects from the global registry) of the specified type. */ 
+/** Returns a list of the available plugins (array of objects from the global registry) of the specified type. */
 function list_plugins_of_type($type)
 {
 	global $plugin_registry;

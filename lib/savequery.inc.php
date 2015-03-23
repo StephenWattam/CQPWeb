@@ -242,7 +242,18 @@ default:
 function print_savename_top()
 {
 	global $Config;
-	echo print_html_header('CQPweb Save Query', $Config->css_path, array('cword'));
+    echo print_html_header('CQPweb Save Query', $Config->css_path, array('cword'));
+
+
+    
+?>
+<!-- Container table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
+<?php
+
 }
 
 function print_savename_page()
@@ -277,7 +288,13 @@ function print_savename_page()
 			 	</table>
 			</td>
 		</tr>
-	</table>
+    </table>
+
+
+<!-- end of container table -->
+</td> </tr> </table>
+
+
 	<?php
 	echo print_html_footer();
 	cqpweb_shutdown_environment();

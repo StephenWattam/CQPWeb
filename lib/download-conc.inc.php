@@ -487,7 +487,19 @@ else
 	
 	echo print_html_header("$corpus_title -- CQPweb Concordance Download", $Config->css_path, array('cword'));
 
-	?>
+?>
+
+
+
+
+<!-- Container table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
+
+
+
 	<table class="concordtable" width="100%">
 		<tr>
 			<th class="concordtable" colspan="2">Download concordance</th>
@@ -703,7 +715,14 @@ else
 			<input type="hidden" name="qname" value="<?php echo $qname; ?>" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
-	</table>
+    </table>
+
+
+
+<!-- end of container table -->
+</td> </tr> </table>
+
+
 	<?php
 	
 	echo print_html_footer();
