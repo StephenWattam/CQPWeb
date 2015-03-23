@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -47,9 +47,9 @@ cqpweb_startup_environment(CQPWEB_STARTUP_DONT_CONNECT_CQP);
 
 if (empty($_GET["text"]) )
 	exiterror_general("No text was specified for metadata-view! Please reload CQPweb.");
-else 
+else
 	$text_id = cqpweb_handle_enforce($_GET["text"]);
-	
+
 
 $result = do_mysql_query("SELECT * from text_metadata_for_$corpus_sql_name where text_id = '$text_id'");
 
@@ -67,6 +67,15 @@ echo print_html_header($corpus_title . ': viewing text metadata -- CQPweb', $Con
 
 ?>
 
+
+
+<!-- Container table -->
+<table class="concordtable" width="100%">
+	<tr>
+		<td valign="top"> <?php print_menu() ?> </td>
+		<td width="100%" valign="top">
+
+
 <table class="concordtable" width="100%">
 	<tr>
 		<th colspan="2" class="concordtable">Metadata for text <em><?php echo $text_id; ?></em></th>
@@ -79,7 +88,7 @@ $n = count($metadata);
 for ( $i = 0 ; $i < $n ; $i++ )
 {
 	$att = metadata_expand_attribute(mysql_field_name($result, $i), $metadata[$i]);
-	
+
 	/* this expansion is hardwired */
 	if ($att['field'] == 'text_id')
 		$att['field'] =  'Text identification label';
@@ -105,11 +114,11 @@ for ( $i = 0 ; $i < $n ; $i++ )
 		else
 			$att['value'] = '<a target="_blank" href="'.$att['value'].'">'.$att['value'].'</a>';
 	}
-	
+
 	echo '<tr><td class="concordgrey">' . $att['field']
 		. '</td><td class="concordgeneral">' . $att['value'] . '</td></tr>
 		';
-		
+
 	unset($att);
 }
 
@@ -117,6 +126,8 @@ for ( $i = 0 ; $i < $n ; $i++ )
 
 echo '</table>';
 
+    echo '<!-- end of container table -->';
+    echo '</td> </tr> </table>';
 echo print_html_footer();
 
 cqpweb_shutdown_environment();

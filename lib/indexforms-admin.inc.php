@@ -6,17 +6,17 @@
  * See http://cwb.sourceforge.net/cqpweb.php
  *
  * This file is part of CQPweb.
- * 
+ *
  * CQPweb is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * CQPweb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -32,7 +32,7 @@ function printquery_corpusoptions()
 	global $corpus_sql_name;
 	global $initial_extended_context;
 	global $max_extended_context;
-	
+
 	if (isset($_GET['settingsUpdateURL']))
 		update_corpus_metadata('external_url',$_GET['settingsUpdateURL']);
 	if (isset($_GET['settingsUpdatePrimaryClassification']))
@@ -47,22 +47,22 @@ function printquery_corpusoptions()
 
 	$classifications = metadata_list_classifications();
 	$class_options = '';
-	
+
 	$primary = get_corpus_metadata('primary_classification_field');
-	
+
 	foreach ($classifications as &$class)
 	{
 		$class_options .= "<option value=\"{$class['handle']}\"";
 		$class_options .= ($class['handle'] === $primary ? 'selected="selected"' : '');
 		$class_options .= '>' . $class['description'] . '</option>';
 	}
-	
+
 	/* object containing the core settings */
 	$settings = new CQPwebSettings('..');
 	$settings->load($corpus_sql_name);
 	$r2l = $settings->get_r2l();
 	$case_sensitive = $settings->get_case_sens();
-	
+
 
 
 
@@ -72,7 +72,7 @@ function printquery_corpusoptions()
 			<th class="concordtable">Corpus options</th>
 		</tr>
 	</table>
-	
+
 	<table class="concordtable" width="100%">
 		<tr>
 			<th class="concordtable" colspan="3">Core corpus settings</th>
@@ -119,10 +119,10 @@ function printquery_corpusoptions()
 					Corpus requires case-sensitive collation for string comparison and searches
 					<br/>&nbsp;<br/>
 					<em>
-						(note: the default, and recommended, value is &ldquo;No&rdquo;; if you change this  
+						(note: the default, and recommended, value is &ldquo;No&rdquo;; if you change this
 						<br/>
 						setting, you must delete and recreate all frequency lists and delete cached databases)
-					</em> 
+					</em>
 				</td>
 				<td class="concordgeneral" align="center">
 					<select name="args">
@@ -139,8 +139,8 @@ function printquery_corpusoptions()
 			<input type="hidden" name="function" value="update_corpus_uses_case_sensitivity" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
-		
-		
+
+
 
 		<!-- ***************************************************************************** -->
 
@@ -164,7 +164,7 @@ function printquery_corpusoptions()
 			<input type="hidden" name="function" value="update_css_path" />
 			<input type="hidden" name="uT" value="y" />
 		</form>
-		
+
 		<form action="index.php" method="get">
 			<tr>
 				<td class="concordgrey" align="center">
@@ -182,8 +182,8 @@ function printquery_corpusoptions()
 
 						$current_scope_unit = $settings->get_context_s_attribute();
 
-						echo '<option value="*words*"' 
-							. ( is_null($current_scope_unit) ? ' selected="selected"' : '' ) 
+						echo '<option value="*words*"'
+							. ( is_null($current_scope_unit) ? ' selected="selected"' : '' )
 							. '>words</option>';
 
 						$all_elements = array_diff(get_xml_all(), get_xml_annotations(), array('text'));
@@ -193,7 +193,7 @@ function printquery_corpusoptions()
 								. ">XML element: $element</option>";
 
 						?>
-						
+
 					</select>
 				</td>
 				<td class="concordgeneral" align="center">
@@ -254,11 +254,11 @@ function printquery_corpusoptions()
 						$this_corpus_cat = get_corpus_metadata('corpus_cat');
 
 						foreach (list_corpus_categories() as $i => $c)
-							echo "<option value=\"$i\"", 
-								( ($this_corpus_cat == $i) ? ' selected="selected"': ''), 
+							echo "<option value=\"$i\"",
+								( ($this_corpus_cat == $i) ? ' selected="selected"': ''),
 								">$c</option>\n\t\t";
 						?>
-					
+
 					</select>
 				</td>
 				<td class="concordgeneral" align="center">
@@ -275,8 +275,8 @@ function printquery_corpusoptions()
 					The external URL (for documentation/help links) is:
 				</td>
 				<td class="concordgeneral" align="center">
-					<input type="text" name="settingsUpdateURL" maxlength="200" value="<?php 
-						echo get_corpus_metadata('external_url'); 
+					<input type="text" name="settingsUpdateURL" maxlength="200" value="<?php
+						echo get_corpus_metadata('external_url');
 					?>" />
 				</td>
 				<td class="concordgeneral" align="center">
@@ -305,18 +305,18 @@ function printquery_corpusoptions()
 							echo $class_options;
 						}
 						?>
-						
+
 					</select>
-					
+
 				</td>
 				<td class="concordgeneral" align="center">
 					<?php echo $button; ?>
-					
+
 				</td>
 			</tr>
 			<input type="hidden" name="thisQ" value="corpusSettings" />
 			<input type="hidden" name="uT" value="y" />
-		</form>			
+		</form>
 	</table>
 	<?php
 }
@@ -328,10 +328,10 @@ function printquery_corpusoptions()
 function printquery_manageaccess()
 {
 	global $corpus_sql_name;
-	
+
 //	$access = get_apache_object(realpath('.'));
 //	$access->load();
-	
+
 //	$all_groups = get_list_of_groups();
 //	$allowed_groups = $access->get_allowed_groups();
 //	$disallowed_groups = array();
@@ -346,7 +346,7 @@ function printquery_manageaccess()
 //			continue;
 //		$options_groups_to_add .= "\n\t\t<option>$dg</option>";
 //	}
-//		
+//
 //	$options_groups_to_remove = '';
 //	foreach($allowed_groups as &$ag)
 //	{
@@ -360,11 +360,11 @@ function printquery_manageaccess()
 		PRIVILEGE_TYPE_CORPUS_NORMAL     => 'Normal',
 		PRIVILEGE_TYPE_CORPUS_RESTRICTED => 'Restricted'
 		);
-	
+
 	$all_users_allowed = array();
-	
+
 	$corpus_privileges = get_all_privileges_info(array('corpus'=>$corpus_sql_name));
-	
+
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -383,21 +383,21 @@ function printquery_manageaccess()
 			<th class="concordtable">Access level</th>
 			<th class="concordtable">Granted to...</th>
 		</tr>
-		
+
 		<?php
-		
+
 		foreach ($corpus_privileges as $p)
 		{
 			$users_with = list_users_with_privilege($p->id);
 			$grant_string_u = (empty($users_with) ? '&nbsp;' : "<b>Users:</b> " . implode(', ',$users_with));
 			$all_users_allowed = array_merge($all_users_allowed, $users_with);
-			
-			
+
+
 			$groups_with = list_groups_with_privilege($p->id);
 			$grant_string_g = (empty($groups_with) ? '&nbsp;' : "<b>Groups:</b> " . implode(', ',$groups_with));
 			foreach($groups_with as $gw)
 				$all_users_allowed = array_merge($all_users_allowed, list_users_in_group($gw));
-			
+
 			echo "\t\t<tr>\n"
 				, "\t\t\t<td class=\"concordgeneral\" align=\"center\">{$p->id}</td>\n"
 				, "\t\t\t<td class=\"concordgeneral\">{$p->description}</td>\n"
@@ -405,18 +405,18 @@ function printquery_manageaccess()
 				, "\t\t\t<td class=\"concordgeneral\">$grant_string_g<br/>$grant_string_u</td>\n"
 				;
 		}
-		
+
 		$all_users_allowed = array_values(array_unique($all_users_allowed));
-		
+
 		?>
-		
+
 		<tr>
 			<td class="concordgrey" align="center" colspan="4">
 				&nbsp;<br/>
 				<a href="../adm/index.php?thisF=userGrants&uT=y">Manage individual privileges</a>
 				|
 				<a href="../adm/index.php?thisF=groupGrants&uT=y">Manage group privileges</a>
-				| 
+				|
 				<a href="../adm/index.php?thisF=groupMembership&uT=y">Manage group membership</a>
 				<br/>&nbsp;
 			</td>
@@ -435,32 +435,32 @@ function printquery_manageaccess()
 		<tr>
 			<td class="concordgeneral" align="center" colspan="4">
 				&nbsp;<br/>
-				
+
 				<table class="basicbox">
 					<tr>
 					<?php
-					
+
 					// TODO make user names links to the admin-user's User Overview page.
-					
+
 					natcasesort($all_users_allowed);
-					
+
 					for($i = 0, $n = count($all_users_allowed); $i < $n ; $i++)
 					{
 						echo "\n\t\t\t\t\t\t<td class=\"basicbox\">{$all_users_allowed[$i]}</td>";
 						if ( 0 == (($i+1) % 8) && ($i+1) != $n )
 							echo "\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>";
 					}
-					
+
 					?>
-					
+
 					</tr>
 				</table>
-				
+
 				<br/>&nbsp;
 			</td>
 		</tr>
 	</table>
-	
+
 	<?php
 }
 
@@ -470,33 +470,33 @@ function printquery_managemeta()
 {
 	global $Config;
 	global $corpus_sql_name;
-	
-	
+
+
 	?>
 	<table class="concordtable" width="100%">
-	
+
 		<tr>
 			<th class="concordtable">Admin tools for managing corpus metadata</th>
 		</tr>
-	
+
 	<?php
-	
+
 	if (! text_metadata_table_exists())
 	{
 		/* we need to create a text metadata table for this corpus */
-		
+
 		/* first, test for the "alternate" form. */
 		if (isset($_GET['createMetadataFromXml']) && $_GET['createMetadataFromXml'] == '1')
 		{
 			?><table class="concordtable" width="100%">
-		
+
 			<tr>
 				<th class="concordtable" colspan="5" >Create metadata table from corpus XML annotations</th>
 			</tr>
 			<?php
-			
+
 			$possible_annotations = get_xml_annotations();
-			
+
 			/* there is always at least one */
 			if (count($possible_annotations) == 1)
 			{
@@ -514,22 +514,22 @@ function printquery_managemeta()
 			{
 				?>
 				<form action="../adm/index.php" method="get">
-				
+
 					<tr>
 						<td class="concordgrey" colspan="5" align="center">
 							&nbsp;<br/>
-							
+
 							The following XML annotations are indexed in the corpus.
 							Select the ones which you wish to use as text-metadata fields.
-							
+
 							<br/>&nbsp;<br/>
-							
+
 							<em>Note: you must only select annotations that occur <strong>at or above</strong>
-							the level of &lt;text&gt; in the XML hierarchy of your corpus; doing otherwise may 
-							cause a CQP error, and will in any case not give you the expecteds results.</em> 
-							
+							the level of &lt;text&gt; in the XML hierarchy of your corpus; doing otherwise may
+							cause a CQP error, and will in any case not give you the expecteds results.</em>
+
 							<br/>&nbsp;<br/>
-							
+
 						</td>
 					</tr>
 					<tr>
@@ -540,12 +540,12 @@ function printquery_managemeta()
 						<th class="concordtable">Which field is the primary classification?</th>
 					</tr>
 				<?php
-				
+
 				foreach($possible_annotations as $xml_annotation)
 				{
 					if ($xml_annotation == 'text_id')
 						continue;
-						
+
 					echo "\n\n<tr>"
 						, '<td class="concordgeneral">'
 						, '<input name="createMetadataFromXmlUse_'
@@ -553,8 +553,8 @@ function printquery_managemeta()
 						, '" type="checkbox" value="1" /> '
 						, '</td>'
 						, '<td class="concordgeneral">' . $xml_annotation . '</td>';
-					echo '<td class="concordgeneral">' 
-						, '<input name="createMetadataFromXmlDescription_' 
+					echo '<td class="concordgeneral">'
+						, '<input name="createMetadataFromXmlDescription_'
 						, $xml_annotation
 						, '" type="text" /> '
 						, '</td>';
@@ -564,12 +564,12 @@ function printquery_managemeta()
 						, '<option value="0">Free text</option></select></td>';
 					echo '<td class="concordgeneral" align="center">'
 						, '<input type="radio" name="primaryClassification" value="'
-						, $xml_annotation 
+						, $xml_annotation
 						/* nb this form, unlike t'other, has primaryClassification as a handle, not a row ix */
 						, '"/></td>';
 					echo "</tr>\n\n\n";
 				}
-				
+
 				?>
 					<tr>
 						<th class="concordtable" colspan="5">
@@ -613,19 +613,19 @@ function printquery_managemeta()
 				</form>
 				<?php
 			}
-		
+
 			/* to avoid wrapping the whole of the rest of the function in an else */
 			echo '</table>';
-			return;	
+			return;
 		}
-		
-		
+
+
 		/* OK, print the main metadata setup page. */
-		
-		
+
+
 		$number_of_fields_in_form = ( isset($_GET['metadataFormFieldCount']) ? (int)$_GET['metadataFormFieldCount'] : 8);
 		?>
-		
+
 			<tr>
 				<td class="concordgrey">
 					&nbsp;<br/>
@@ -635,10 +635,10 @@ function printquery_managemeta()
 				</td>
 			</tr>
 		</table>
-		
 
-		
-		
+
+
+
 		<!-- i want a form with more slots! -->
 
 		<table class="concordtable" width="100%">
@@ -650,8 +650,8 @@ function printquery_managemeta()
 					<td class="concordgeneral">
 						Do you need more metadata fields? Use this control:
 					</td>
-					<td class="concordgeneral">						
-						I want a metadata form with 
+					<td class="concordgeneral">
+						I want a metadata form with
 						<select name="metadataFormFieldCount">
 							<option>9</option>
 							<option>10</option>
@@ -674,10 +674,10 @@ function printquery_managemeta()
 				<input type="hidden" name="uT" value="y" />
 			</form>
 		</table>
-		
-		
+
+
 		<form action="../adm/index.php" method="get">
-		
+
 		<table class="concordtable" width="100%">
 			<tr>
 				<th class="concordtable" colspan="5">Choose the file containing the metadata</th>
@@ -691,58 +691,58 @@ function printquery_managemeta()
 			</tr>
 			<?php
 			$file_list = scandir($Config->dir->upload);
-	
+
 			foreach ($file_list as &$f)
 			{
 				$file = "{$Config->dir->upload}/$f";
-				
+
 				if (!is_file($file)) continue;
-				
+
 				if (substr($f,-3) === '.gz') continue;
-	
+
 				$stat = stat($file);
 				?>
-				
+
 				<tr>
 					<td class="concordgeneral" align="center">
-						<?php 
-						echo '<input type="radio" name="dataFile" value="' . urlencode($f) . '" />'; 
+						<?php
+						echo '<input type="radio" name="dataFile" value="' . urlencode($f) . '" />';
 						?>
 					</td>
-					
+
 					<td class="concordgeneral" colspan="2" align="left"><?php echo $f; ?></td>
-					
+
 					<td class="concordgeneral" align="right";>
 						<?php echo number_format(round($stat['size']/1024, 0)); ?>
 					</td>
-				
+
 					<td class="concordgeneral" align="center">
 						<?php echo date('Y-M-d H:i:s', $stat['mtime']); ?>
-					</td>		
+					</td>
 				</tr>
 				<?php
 			}
 			?>
 
-	
-				
+
+
 			<tr>
 				<th class="concordtable" colspan="5">Describe the contents of the file you have selected</th>
 			</tr>
-			
+
 			<tr>
 				<td class="concordgrey" colspan="5">
-					Note: you should not specify text_id, which must be the first field. 
+					Note: you should not specify text_id, which must be the first field.
 					This is inserted automatically.
-					
+
 					<br/>&nbsp;<br/>
-					
-					<em>Classification</em> fields contain one of a set number of handles indicating text 
+
+					<em>Classification</em> fields contain one of a set number of handles indicating text
 					categories. <em>Free-text metadata</em> fields can contain anything, and don't indicate
 					categories of texts.
 				</td>
 			</tr>
-			
+
 			<tr>
 				<th class="concordtable">&nbsp;</th>
 				<th class="concordtable">Handle for this field</th>
@@ -750,8 +750,8 @@ function printquery_managemeta()
 				<th class="concordtable">Does the field classify texts or provide free-text info?</th>
 				<th class="concordtable">Which field is the primary classification?</th>
 			</tr>
-				
-			<?php		
+
+			<?php
 			for ( $i = 1 ; $i <= $number_of_fields_in_form ; $i++ )
 				echo "<tr>
 					<td class=\"concordgeneral\">Field $i</td>
@@ -773,7 +773,7 @@ function printquery_managemeta()
 				</tr>
 				";
 			?>
-			
+
 			<tr>
 				<th class="concordtable" colspan="5">
 					Do you want to automatically run frequency-list setup?
@@ -797,15 +797,15 @@ function printquery_managemeta()
 					</table>
 				</td>
 			</tr>
-		
+
 			<tr>
 				<td align="center" class="concordgeneral" colspan="5">
 					<input type="submit" value="Install metadata table using the settings above" />
 				</td>
 			</tr>
-			
+
 		</table>
-		
+
 			<input type="hidden" name="admFunction" value="createMetadataFromFile" />
 			<input type="hidden" name="fieldCount" value="<?php echo $number_of_fields_in_form; ?>" />
 			<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name; ?>" />
@@ -813,10 +813,10 @@ function printquery_managemeta()
 		</form>
 
 		<table class="concordtable" width="100%">
-		
-		
+
+
 			<!-- minimalist metadata -->
-		
+
 			<tr>
 				<th class="concordtable">My corpus has no metadata!</th>
 			</tr>
@@ -824,35 +824,35 @@ function printquery_managemeta()
 				<form action="execute.php" method="get">
 					<td class="concordgeneral" align="center">
 						&nbsp;<br/>
-						
+
 						Click here to automatically generate a &ldquo;dummy&rdquo; metadata table,
 						containing only text IDs, for a corpus with no other metadata.
-						
+
 						<br/>
 						&nbsp;<br/>
-						
+
 						<input type="submit" value="Create minimalist metadata table"/>
-						
+
 						<br/>&nbsp;
 					</td>
 					<input type="hidden" name="function" value="create_text_metadata_for_minimalist"/>
 					<input type="hidden" name="locationAfter" value="index.php?thisQ=manageMetadata&uT=y" />
 					<input type="hidden" name="uT" value="y"/>
-				</form>				
+				</form>
 			</tr>
 		</table>
-		
-		
-		
+
+
+
 		<!-- pre-encoded metadata:link to alt page -->
-			
+
 		<table class="concordtable" width="100%">
-		
+
 			<tr>
 				<th class="concordtable" >My metadata is embedded in the XML of my corpus!</th>
 			</tr>
 			<?php
-						
+
 			/* there is always at least one */
 			if (count(get_xml_annotations()) == 1)
 			{
@@ -872,19 +872,19 @@ function printquery_managemeta()
 					<tr>
 						<td class="concordgrey" align="center">
 							&nbsp;<br/>
-							
+
 							<a href="index.php?thisQ=manageMetadata&createMetadataFromXml=1&uT=y">
 								Click here to install metadata from within-corpus XML annotation.</a>
-							
+
 							<br/>&nbsp;<br/>
-							
+
 						</td>
 					</tr>
 
 				<?php
 			}
 			?>
-			
+
 		</table>
 
 		<?php
@@ -893,7 +893,7 @@ function printquery_managemeta()
 	else
 	{
 		/* table exists, so allow other actions */
-		
+
 		global $corpus_title;
 		?>
 		</table>
@@ -930,10 +930,10 @@ function printquery_managemeta()
 					<em>
 						<?php
 						$sql_query = "select * from corpus_metadata_variable where corpus = '$corpus_sql_name'";
-						$result_variable = do_mysql_query($sql_query);	
-						
+						$result_variable = do_mysql_query($sql_query);
+
 						echo mysql_num_rows($result_variable) != 0
-							? 'Existing items of variable corpus-level metadata (as attribute-value pairs):' 
+							? 'Existing items of variable corpus-level metadata (as attribute-value pairs):'
 							: 'No items of variable corpus-level metadata have been set.';
 						?>
 
@@ -949,9 +949,9 @@ function printquery_managemeta()
 				?>
 				<tr>
 					<td class="concordgeneral" align="center">
-						<?php 
-							echo "Attribute [<strong>{$metadata['attribute']}</strong>] 
-									with value [<strong>{$metadata['value']}</strong>]"; 
+						<?php
+							echo "Attribute [<strong>{$metadata['attribute']}</strong>]
+									with value [<strong>{$metadata['value']}</strong>]";
 						?>
 					</td>
 					<td class="concordgeneral" align="center">
@@ -978,10 +978,10 @@ function printquery_managemeta()
 				<tr>
 					<td class="concordgeneral" align="center">
 						<input type="checkbox" name="clearMetadataAreYouReallySure" value="yesYesYes"/>
-						Yes, I'm really sure and I know I can't undo it.
+						Confirm delete
 					</td>
 					<td class="concordgeneral" align="center">
-						<input type="submit" value="Delete metadata table for this corpus" />
+						<input type="submit" value="Delete metadata table" />
 					</td>
 					<input type="hidden" name="admFunction" value="clearMetadataTable" />
 					<input type="hidden" name="corpus" value="<?php echo $corpus_sql_name; ?>" />
@@ -1002,25 +1002,25 @@ function printquery_managemeta()
 			</tr>
 
 			<?php
-			
+
 			list($n) = mysql_fetch_row(
 							do_mysql_query("select count(*) from text_metadata_for_$corpus_sql_name where words > 0")
 						);
 			if ($n > 0)
 			{
-				$message = 'The text metadata table <strong>has already been populated</strong> 
-									with begin/end offset positions. Use the button below to refresh 
+				$message = 'The text metadata table <strong>has already been populated</strong>
+									with begin/end offset positions. Use the button below to refresh
 									this data.';
 				$button_label = 'Update CWB text-position records';
 			}
 			else
 			{
-				$message = 'The text metadata table <strong>has not yet been populated</strong> 
-									with begin/end offset positions. Use the button below to generate 
+				$message = 'The text metadata table <strong>has not yet been populated</strong>
+									with begin/end offset positions. Use the button below to generate
 									this data.';
 				$button_label = 'Generate CWB text-position records';
 			}
-		
+
 			?>
 			<tr>
 				<td class="concordgrey" width="20%" valign="center">Text begin/end positions</td>
@@ -1038,12 +1038,12 @@ function printquery_managemeta()
 					</form>
 				</td>
 			</tr>
-			
+
 
 			<?php
-			
+
 			$n = mysql_num_rows(
-					do_mysql_query("select handle from text_metadata_fields 
+					do_mysql_query("select handle from text_metadata_fields
 						where corpus = '$corpus_sql_name' and is_classification = 1")
 					);
 			if ($n == 0)
@@ -1067,18 +1067,18 @@ function printquery_managemeta()
 					> 0)
 				{
 					$button_label = 'Update word and file counts';
-					$message = 'The word count tables for the different text classification categories 
-									in this corpus <strong>have already been generated</strong>. Use the button below 
+					$message = 'The word count tables for the different text classification categories
+									in this corpus <strong>have already been generated</strong>. Use the button below
 									to regenerate them.';
 				}
 				else
 				{
 					$button_label = 'Populate word and file counts';
-					$message = 'The word count tables for the different text classification categories 
-									in this corpus <strong>have not yet been populated</strong>. Use the button below  
+					$message = 'The word count tables for the different text classification categories
+									in this corpus <strong>have not yet been populated</strong>. Use the button below
 									to populate them.';
 				}
-				
+
 				?>
 				<tr>
 					<td class="concordgrey" width="20%" valign="center">Text category wordcounts</td>
@@ -1097,16 +1097,16 @@ function printquery_managemeta()
 				</tr>
 				<?php
 			}
-			
+
 			?>
-			
-			
-			
+
+
+
 			<?php
-			
+
 			global $corpus_cqp_name;
 			$corpus_cqp_name_lower = strtolower($corpus_cqp_name);
-			
+
 			if (file_exists("{$Config->dir->registry}/{$corpus_cqp_name_lower}__freq"))
 			{
 				$message = 'The text-by-text list for this corpus <strong>has already been created</strong>. Use
@@ -1119,7 +1119,7 @@ function printquery_managemeta()
 								the button below to generate it.';
 				$button_label = 'Create CWB frequency table';
 			}
-			
+
 			?>
 			<tr>
 				<td class="concordgrey" width="20%" valign="center">Text-by-text freq-lists</td>
@@ -1141,22 +1141,22 @@ function printquery_managemeta()
 			</tr>
 
 			<?php
-			
+
 			if (mysql_num_rows(do_mysql_query("show tables like 'freq_corpus_{$corpus_sql_name}_word'")) > 0)
 			{
-				$message = 'Word and annotation frequency tables for this corpus <strong>have already been created</strong>. 
+				$message = 'Word and annotation frequency tables for this corpus <strong>have already been created</strong>.
 								Use the button below to delete and recreate them.';
 				$button_label = 'Recreate frequency tables';
 			}
 			else
 			{
-				$message = 'Word and annotation frequency tables for this corpus <strong>have not yet been created</strong>. 
+				$message = 'Word and annotation frequency tables for this corpus <strong>have not yet been created</strong>.
 								Use the button below to generate them.';
 				$button_label = 'Create frequency tables';
 			}
-			?>			
-			
-			
+			?>
+
+
 
 			<tr>
 				<td class="concordgrey" width="20%" valign="center">Frequency tables</td>
@@ -1173,13 +1173,13 @@ function printquery_managemeta()
 					</form>
 				</td>
 			</tr>
-			
 
-		
-			<?php	
+
+
+			<?php
 
 			/* Is the corpus public on the system? */
-			if ( ($public_freqlist_desc = get_corpus_metadata('public_freqlist_desc') ) != NULL) 
+			if ( ($public_freqlist_desc = get_corpus_metadata('public_freqlist_desc') ) != NULL)
 			/* nb NULL in mySQL comes back as NULL */
 			{
 				?>
@@ -1214,10 +1214,10 @@ function printquery_managemeta()
 						<br/>&nbsp;<br/>
 						<form action="execute.php" method="get">
 
-							The frequency list will be identified by this descriptor 
+							The frequency list will be identified by this descriptor
 							(you may wish to modify):
 							<br/>&nbsp;<br/>
-							<input type="text" name="args" value="<?php 
+							<input type="text" name="args" value="<?php
 								echo cqpweb_htmlspecialchars($corpus_title);
 								?>" size="40" maxlength="100" />
 							<br/>&nbsp;<br/>
@@ -1243,7 +1243,7 @@ function printquery_managemeta()
 function printquery_managecategories()
 {
 	global $corpus_sql_name;
-	
+
 	$classification_list = metadata_list_classifications();
 
 	?>
@@ -1275,9 +1275,9 @@ function printquery_managecategories()
 								<td class="basicbox" align="center"><strong>Category description</strong></td>
 							</tr>
 							<?php
-							
+
 							$category_list = metadata_category_listdescs($scheme['handle']);
-				
+
 							foreach ($category_list as $handle => $description)
 							{
 								echo '<tr><td class="basicbox">' . "{$scheme['handle']} = $handle" . '</td>';
@@ -1287,7 +1287,7 @@ function printquery_managecategories()
 									</td>
 								</tr>';
 							}
-							
+
 							?>
 							<tr>
 								<td class="basicbox" align="center" colspan="2">
@@ -1310,7 +1310,7 @@ function printquery_managecategories()
 function printquery_manageannotation()
 {
 	global $corpus_sql_name;
-	
+
 	if (isset($_GET['updateMe']))
 	{
 		if ( $_GET['updateMe'] == 'CEQL')
@@ -1326,7 +1326,7 @@ function printquery_manageannotation()
 			$new_combo = ($new_combo == '__UNSET__' ? 'NULL' : "'$new_combo'");
 			$new_maptable = mysql_real_escape_string($_GET['setMaptable']);
 			$new_maptable = ($new_maptable == '__UNSET__' ? 'NULL' : "'$new_maptable'");
-			
+
 			$sql_query = "update corpus_info set
 				primary_annotation = $new_primary,
 				secondary_annotation = $new_secondary,
@@ -1344,11 +1344,11 @@ function printquery_manageannotation()
 					__FILE__, __LINE__);
 			$new_desc = ( empty($_GET['annotationDescription']) ? 'NULL'
 							: '\''.mysql_real_escape_string($_GET['annotationDescription']).'\'');
-			$new_tagset = ( empty($_GET['annotationTagset']) ? 'NULL' 
+			$new_tagset = ( empty($_GET['annotationTagset']) ? 'NULL'
 							: '\''.mysql_real_escape_string($_GET['annotationTagset']).'\'');
 			$new_url = ( empty($_GET['annotationURL']) ? 'NULL'
 							: '\''.mysql_real_escape_string($_GET['annotationURL']).'\'');
-	
+
 			$sql_query = "update annotation_metadata set
 				description = $new_desc,
 				tagset = $new_tagset,
@@ -1362,11 +1362,11 @@ function printquery_manageannotation()
 	$sql_query = "select * from corpus_info where corpus='$corpus_sql_name'";
 	$result = do_mysql_query($sql_query);
 	$data = mysql_fetch_object($result);
-	
+
 	$annotation_list = get_corpus_annotations();
 
 	/* set variables */
-	
+
 	$select_for_primary = '<select name="setPrimaryAnnotation">';
 	$selector = ($data->primary_annotation === NULL ? 'selected="selected"' : '');
 	$select_for_primary .= '<option value="__UNSET__"' . $selector . '>Not in use in this corpus</option>';
@@ -1409,7 +1409,7 @@ function printquery_manageannotation()
 
 
 	/* and the mapping table */
-	
+
 	$mapping_table_list = get_list_of_tertiary_mapping_tables();
 	$select_for_maptable = '<select name="setMaptable">';
 	$selector = ($data->tertiary_annotation_tablehandle === NULL ? 'selected="selected"' : '');
@@ -1448,7 +1448,7 @@ function printquery_manageannotation()
 			<tr>
 				<td class="concordgrey">
 					<b>Secondary annotation</b>
-					- used for searches like <em>{...}</em> (typically lemma)	
+					- used for searches like <em>{...}</em> (typically lemma)
 				</td>
 				<td class="concordgeneral">
 					<?php echo $select_for_secondary;?>
@@ -1456,7 +1456,7 @@ function printquery_manageannotation()
 			<tr>
 				<td class="concordgrey">
 					<b>Tertiary annotation</b>
-					- used for searches like <em>_{...}</em> (typically simplified POS tag)	
+					- used for searches like <em>_{...}</em> (typically simplified POS tag)
 				</td>
 				<td class="concordgeneral">
 					<?php echo $select_for_tertiary;?>
@@ -1503,34 +1503,34 @@ function printquery_manageannotation()
 			<th class="concordtable">External URL</th>
 			<th class="concordtable">Update?</th>
 		</tr>
-		
+
 		<?php
-		
+
 		$result = do_mysql_query("select * from annotation_metadata where corpus='$corpus_sql_name'");
 		if (mysql_num_rows($result) < 1)
 			echo '<tr><td colspan="5" class="concordgrey" align="center">&nbsp;<br/>
 				This corpus has no annotation.<br/>&nbsp;</td></tr>';
-		
+
 		while( ($tag = mysql_fetch_object($result)) !== false)
 		{
 			echo '<form action="index.php" method= "get"><tr>';
-			
-			echo '<td class="concordgrey"><strong>' . $tag->handle . '</strong></td>'; 
+
+			echo '<td class="concordgrey"><strong>' . $tag->handle . '</strong></td>';
 			echo '<td class="concordgeneral" align="center">
 				<input name="annotationDescription" maxlength="230" type="text" value="'
 				. $tag->description	. '"/></td>
-				'; 
+				';
 			echo '<td class="concordgeneral" align="center">
 				<input name="annotationTagset" maxlength="230" type="text" value="'
 				. $tag->tagset	. '"/></td>
-				'; 
+				';
 			echo '<td class="concordgeneral" align="center">
 				<input name="annotationURL" maxlength="230" type="text" value="'
 				. $tag->external_url	. '"/></td>
 				';
 			?>
 					<td class="concordgeneral" align="center">
-						<input type="submit" value="Go!" />			
+						<input type="submit" value="Go!" />
 					</td>
 				</tr>
 				<input type="hidden" name="annotationHandle" value="<?php echo $tag->handle; ?>" />
@@ -1538,17 +1538,17 @@ function printquery_manageannotation()
 				<input type="hidden" name="thisQ" value="manageAnnotation" />
 				<input type="hidden" name="uT" value="y" />
 			</form>
-			
+
 			<?php
 		}
-	
+
 		?>
 		<tr>
 			<td colspan="5" class="concordgeneral">&nbsp;<br/>&nbsp;</td>
-		</tr> 
+		</tr>
 	</table>
-	
-	
+
+
 	<?php
 
 }
@@ -1570,12 +1570,12 @@ function printquery_visualisation()
 
 	/* FIRST SECTION --- GLOSS VISUALIASATION */
 	/* process incoming */
-	
+
 	global $visualise_gloss_in_concordance;
 	global $visualise_gloss_in_context;
 	global $visualise_gloss_annotation;
 	$annotations = get_corpus_annotations();
-	
+
 	if (isset($_GET['settingsUpdateGlossAnnotation']))
 	{
 		switch($_GET['settingsUpdateGlossShowWhere'])
@@ -1595,26 +1595,26 @@ function printquery_visualisation()
 		default:
 			$visualise_gloss_in_context = false;
 			$visualise_gloss_in_concordance = false;
-			break;			
+			break;
 		}
 		if ($_GET['settingsUpdateGlossAnnotation'] == '~~none~~')
 			$_GET['settingsUpdateGlossAnnotation'] = NULL;
-		if (array_key_exists($_GET['settingsUpdateGlossAnnotation'], $annotations) 
+		if (array_key_exists($_GET['settingsUpdateGlossAnnotation'], $annotations)
 				|| $_GET['settingsUpdateGlossAnnotation'] == NULL)
 		{
 			$visualise_gloss_annotation = $_GET['settingsUpdateGlossAnnotation'];
-			update_corpus_visualisation_gloss($visualise_gloss_in_concordance, $visualise_gloss_in_context, 
+			update_corpus_visualisation_gloss($visualise_gloss_in_concordance, $visualise_gloss_in_context,
 												$visualise_gloss_annotation);
 		}
 		else
 			exiterror_parameter("A non-existent annotation was specified to be used for glossing.");
 	}
-	
+
 	/* set up option strings for first form  */
-	
-	$opts = array(	'neither'=>'Don\'t show anywhere', 
-					'concord'=>'Concordance only', 
-					'context'=>'Context only', 
+
+	$opts = array(	'neither'=>'Don\'t show anywhere',
+					'concord'=>'Concordance only',
+					'context'=>'Context only',
 					'both'=>'Both concordance and context'
 					);
 	if ($visualise_gloss_in_concordance)
@@ -1627,7 +1627,7 @@ function printquery_visualisation()
 			$show_gloss_curr_opt = 'context';
 		else
 			$show_gloss_curr_opt = 'neither';
-	
+
 	$show_gloss_options = '';
 	foreach ($opts as $o => $d)
 		$show_gloss_options .= "\t\t\t\t\t\t<option value=\"$o\""
@@ -1636,12 +1636,12 @@ function printquery_visualisation()
 
 	$gloss_annotaton_options = "\t\t\t\t\t\t<option value=\"~~none~~\""
 								. (isset($visualise_gloss_annotation) ? '' : ' selected="selected"')
-								. ">No annotation selected</option>";		
+								. ">No annotation selected</option>";
 	foreach($annotations as $h => $d)
 		$gloss_annotaton_options .= "\t\t\t\t\t\t<option value=\"$h\""
 							. ($h == $visualise_gloss_annotation ? ' selected="selected"' : '')
 							. ">$d</option>\n";
-		
+
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -1684,18 +1684,18 @@ function printquery_visualisation()
 			</tr>
 		</form>
 	</table>
-	
+
 	<?php
 	/* SECOND SECTION --- TRANSLATION VISUALIASATION */
 	/* process incoming */
-	
+
 	global $visualise_translate_in_concordance;
 	global $visualise_translate_in_context;
 	global $visualise_translate_s_att;
 	$s_attributes = get_xml_annotations();
-	
+
 	if (isset($_GET['settingsUpdateTranslateXML']))
-	{	
+	{
 		switch($_GET['settingsUpdateTranslateShowWhere'])
 		{
 		case 'both':
@@ -1713,21 +1713,21 @@ function printquery_visualisation()
 		default:
 			$visualise_translate_in_context = false;
 			$visualise_translate_in_concordance = false;
-			break;			
+			break;
 		}
 		if ($_GET['settingsUpdateTranslateXML'] == '~~none~~')
 			$_GET['settingsUpdateTranslateXML'] = NULL;
-		if (in_array($_GET['settingsUpdateTranslateXML'], $s_attributes) 
+		if (in_array($_GET['settingsUpdateTranslateXML'], $s_attributes)
 				|| $_GET['settingsUpdateTranslateXML'] == NULL)
 		{
 			$visualise_translate_s_att = $_GET['settingsUpdateTranslateXML'];
-			update_corpus_visualisation_translate($visualise_translate_in_concordance, $visualise_translate_in_context, 
+			update_corpus_visualisation_translate($visualise_translate_in_concordance, $visualise_translate_in_context,
 												  $visualise_translate_s_att);
 		}
 		else
 			exiterror_parameter("A non-existent s-attribute was specified to be used for translation.");
 	}
-	
+
 	/* set up option string for second form */
 
 	/* note that $opts array already exists */
@@ -1741,7 +1741,7 @@ function printquery_visualisation()
 			$show_translate_curr_opt = 'context';
 		else
 			$show_translate_curr_opt = 'neither';
-	
+
 	$show_translate_options = '';
 	foreach ($opts as $o => $d)
 		$show_translate_options .= "\t\t\t\t\t\t<option value=\"$o\""
@@ -1749,12 +1749,12 @@ function printquery_visualisation()
 							. ">$d</option>\n";
 	$translate_XML_options = "\t\t\t\t\t\t<option value=\"~~none~~\""
 								. (isset($visualise_translate_s_att) ? '' : ' selected="selected"')
-								. ">No XML element-attribute selected</option>";		
+								. ">No XML element-attribute selected</option>";
 	foreach($s_attributes as $s)
 		$translate_XML_options .= "\t\t\t\t\t\t<option value=\"$s\""
 							. ($s == $visualise_translate_s_att ? ' selected="selected"' : '')
 							. ">$s</option>\n";
-	
+
 	?>
 
 	<table class="concordtable" width="100%">
@@ -1806,7 +1806,7 @@ function printquery_visualisation()
 
 	/* THIRD SECTION --- POSITION LABELS */
 	/* process incoming */
-	
+
 	/* these don't really need to be improted from global namespace, but let's be consistent */
 	global $visualise_position_labels;
 	global $visualise_position_label_attribute;
@@ -1816,7 +1816,7 @@ function printquery_visualisation()
 	{
 		$visualise_position_labels = true;
 		$visualise_position_label_attribute = $_GET['settingsUpdatePositionLabelAttribute'];
-		
+
 		if ($visualise_position_label_attribute == '~~none~~')
 		{
 			$visualise_position_labels = false;
@@ -1826,13 +1826,13 @@ function printquery_visualisation()
 		{
 			exiterror_parameter("A non-existent s-attribute was specified for position labels.");
 		}
-		/* so we know at this point that $visualise_position_label_attribute contains an OK s-att */ 
+		/* so we know at this point that $visualise_position_label_attribute contains an OK s-att */
 		update_corpus_visualisation_position_labels($visualise_position_labels, $visualise_position_label_attribute);
 	}
-	
+
 	$position_label_options = "\t\t\t\t\t\t<option value=\"~~none~~\""
 								. ($visualise_position_labels ? '' : ' selected="selected"')
-								. ">No position labels will be shown in the concordance</option>";		
+								. ">No position labels will be shown in the concordance</option>";
 	foreach($s_attributes as $s)
 		$position_label_options .= "\t\t\t\t\t\t<option value=\"$s\""
 							. ($s == $visualise_position_label_attribute ? ' selected="selected"' : '')
@@ -1874,33 +1874,33 @@ function printquery_visualisation()
 			</tr>
 		</form>
 	</table>
-	
 
-	<!-- 
-	
-	
-	
+
+	<!--
+
+
+
 	TODO from here on down.....
-	
-	
+
+
 	note, way down the road, it would be nice if auto-transliteration
 	could affect database-derived tables as well
 	- and, of course, be configurable on a per-user basis.
-	
-	
-	
+
+
+
 	-->
-	
+
 	<?php
-	
+
 	// for now, don't display
 	return;
-	
+
 	/* FOURTH SECTION --- TRANSLITERATION VISUALIASATION */
 	/* process incoming */
 
-	
-	
+
+
 	?>
 
 	<table class="concordtable" width="100%">
@@ -1922,7 +1922,7 @@ function printquery_visualisation()
 			<tr>
 				<td class="concordgrey">Select transliterator:</td>
 				<td class="concordgeneral">
-					
+
 				</td>
 			</tr>
 			<tr>
@@ -1967,9 +1967,9 @@ function printquery_visualisation()
 function printquery_xmlvisualisation()
 {
 	global $corpus_sql_name;
-	
+
 	/* PROCESS INCOMING */
-	
+
 	/* process incoming NEW or UPDATE */
 	if (isset($_GET['xmlTheElement']))
 	{
@@ -1979,26 +1979,26 @@ function printquery_xmlvisualisation()
 			$_GET['xmlUseInConc']    = ( $_GET['xmlUseInSelector'] == 'in_conc'    || $_GET['xmlUseInSelector'] == 'both' );
 			$_GET['xmlUseInContext'] = ( $_GET['xmlUseInSelector'] == 'in_context' || $_GET['xmlUseInSelector'] == 'both' );
 		}
-		xml_visualisation_create(	$corpus_sql_name, 
-									$_GET['xmlTheElement'], 
+		xml_visualisation_create(	$corpus_sql_name,
+									$_GET['xmlTheElement'],
 									$_GET['xmlVisCode'],
 									$_GET['xmlCondAttribute'],
 									$_GET['xmlCondRegex'],
-									(bool) $_GET['xmlIsStartTag'], 
-									(bool) $_GET['xmlUseInConc'], 
+									(bool) $_GET['xmlIsStartTag'],
+									(bool) $_GET['xmlUseInConc'],
 									(bool) $_GET['xmlUseInContext'] );
 	}
 	/* process incoming DELETE */
 	if (isset($_GET['xmlDeleteVisualisation']))
-		xml_visualisation_delete(	$corpus_sql_name, 
+		xml_visualisation_delete(	$corpus_sql_name,
 									$_GET['xmlDeleteVisualisation'],
 									$_GET['xmlCondAttribute'],
 									$_GET['xmlCondRegex'] );
-	
-	/* 
-	 * OK, now the processing is done, let's render the form 
+
+	/*
+	 * OK, now the processing is done, let's render the form
 	 */
-	
+
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -2013,7 +2013,7 @@ function printquery_xmlvisualisation()
 				XML element (or, in CWB terms, an &ldquo;s-attribute&rdquo;) is to appear in the concordance.
 				<br/>&nbsp;<br/>
 				By default, all XML elements are invisible. You must create and enable a visualisation for
-				each XML element in each corpus that you wish to display to the user.  
+				each XML element in each corpus that you wish to display to the user.
 				<br/>&nbsp;<br/>
 				An XML visualisation can be unconditional, in which case it will always apply. Or, it can have
 				a condition attached to it - a regular expresion that will be matched against an attribute on
@@ -2021,16 +2021,16 @@ function printquery_xmlvisualisation()
 				you to have different visualisations for &lt;element type="A"&gt; and &lt;element type="B"&gt;.
 				<br/>&nbsp;<br/>
 				You can define an unconditional visualisation for the same element as one or more conditional
-				visualisations, in which case, the unconditional visualisation applies in any cases where none of the 
-				conditional visualisations apply. In addition, note that conditions are only possible on start tags, 
+				visualisations, in which case, the unconditional visualisation applies in any cases where none of the
+				conditional visualisations apply. In addition, note that conditions are only possible on start tags,
 				not end tags.
 				<br/>&nbsp;<br/>
 				You can use the forms below to manage your visualisations.
 				<br/>&nbsp;
 			</td>
 		</tr>
-		
-		
+
+
 		<!-- display current visualisations for this corpus -->
 		<!-- note we use the SAME FORM for updates as for creates -->
 		<tr>
@@ -2045,11 +2045,11 @@ function printquery_xmlvisualisation()
 			<th class="concordtable">Used where?</th>
 			<th class="concordtable" colspan="2">Actions</th>
 		</tr>
-		
+
 		<?php
-		
+
 		/* show each existing visualisation for this corpus */
-		
+
 		$where_values = array(
 			'in_conc' => "In concordance displays only",
 			'in_context' => "In extended context displays only",
@@ -2057,51 +2057,51 @@ function printquery_xmlvisualisation()
 			'neither' => "Nowhere (visualisation disabled)"
 			);
 
-		$result = do_mysql_query("select * from xml_visualisations where corpus = '$corpus_sql_name'"); 
-		
+		$result = do_mysql_query("select * from xml_visualisations where corpus = '$corpus_sql_name'");
+
 		if (mysql_num_rows($result) == 0)
 			echo '<tr><td colspan="6" class="concordgrey" align="center">'
 				. '&nbsp;<br/>There are currently no XML visualisations in the database.<br/>&nbsp;'
 				. '</td></tr>';
-		
+
 		while (false !== ($v = mysql_fetch_object($result)))
 		{
 			echo '
 				<form action="index.php" method="get">
 				<tr>
 				';
-			
+
 			list($tag, $startend) = explode('~', $v->element);
-			$startend = ($startend=='end' ? '/' : ''); 
+			$startend = ($startend=='end' ? '/' : '');
 			$cond_regex_print = htmlspecialchars($v->cond_regex, ENT_QUOTES, 'UTF-8', true);
-			
+
 			echo '
 				<td class="concordgeneral">&lt;' . $startend . $tag . '&gt;'
-				. (empty($v->cond_attribute) ? '' 
-					: "<br/>where <em>{$v->cond_attribute}</em> matches <em>$cond_regex_print</em>\n")  
+				. (empty($v->cond_attribute) ? ''
+					: "<br/>where <em>{$v->cond_attribute}</em> matches <em>$cond_regex_print</em>\n")
 				. '</td>
 				';
-			
+
 			echo '
-				<td class="concordgeneral" align="center"><textarea cols="40" rows="2" name="xmlVisCode">' 
-				. $v->bb_code 
+				<td class="concordgeneral" align="center"><textarea cols="40" rows="2" name="xmlVisCode">'
+				. $v->bb_code
 				. '</textarea></td>
 				';
-			
+
 			echo '<td class="concordgeneral" align="center">'
-				. '<span onmouseover="return escape(\'' 
+				. '<span onmouseover="return escape(\''
 				  /* note we need double-encoding to get the actual code to show up in a tooltip ! */
-				. htmlspecialchars(htmlspecialchars($v->html_code, ENT_QUOTES, 'UTF-8', true) , ENT_QUOTES, 'UTF-8', true) 
+				. htmlspecialchars(htmlspecialchars($v->html_code, ENT_QUOTES, 'UTF-8', true) , ENT_QUOTES, 'UTF-8', true)
 				.'\')">[HTML]</span>'
 				. '</td>
 				';
-			
+
 			switch (true)
 			{
-				case ( $v->in_context &&  $v->in_concordance):		$checked = 'both';			break; 
-				case (!$v->in_context && !$v->in_concordance):		$checked = 'neither';		break; 
-				case (!$v->in_context &&  $v->in_concordance):		$checked = 'in_conc';		break; 
-				case ( $v->in_context && !$v->in_concordance):		$checked = 'in_context';	break; 
+				case ( $v->in_context &&  $v->in_concordance):		$checked = 'both';			break;
+				case (!$v->in_context && !$v->in_concordance):		$checked = 'neither';		break;
+				case (!$v->in_context &&  $v->in_concordance):		$checked = 'in_conc';		break;
+				case ( $v->in_context && !$v->in_concordance):		$checked = 'in_context';	break;
 			}
 			$options = "\n";
 			foreach ($where_values as $val=>$label)
@@ -2109,7 +2109,7 @@ function printquery_xmlvisualisation()
 				$blob = ($checked == $val ? ' selected="selected"' : '');
 				$options .= "\n\t\t\t\t\t<option value=\"$val\"$blob>$label</option>\n";
 			}
-			
+
 			echo '
 				<td class="concordgeneral" align="center">
 				<select name="xmlUseInSelector">'
@@ -2121,9 +2121,9 @@ function printquery_xmlvisualisation()
 
 			echo '
 				<td class="concordgeneral" align="center">'
-				. '<input type="submit" value="Update" />' 
+				. '<input type="submit" value="Update" />'
 				. '</td>';
-						
+
 			echo '
 				<td class="concordgeneral" align="center">'
 				. '<a class="menuItem" href="index.php?thisQ=manageVisualisation&xmlDeleteVisualisation='
@@ -2133,7 +2133,7 @@ function printquery_xmlvisualisation()
 				. '&uT=y">[Delete]</a>'
 				. '</td>
 				';
-						
+
 			echo '
 				</tr>
 				<input type="hidden" name="xmlTheElement" value="' . $tag . '" />
@@ -2149,7 +2149,7 @@ function printquery_xmlvisualisation()
 		?>
 
 	</table>
-	<table class="concordtable" width="100%">		
+	<table class="concordtable" width="100%">
 		<!-- form to create new visualisation -->
 		<form action="index.php" method="get">
 			<tr>
@@ -2157,20 +2157,20 @@ function printquery_xmlvisualisation()
 					Create new XML visualisation command
 				</th>
 			</tr>
-			
+
 			<tr>
 				<td class="concordgrey">
 					Select one of the available XML elements:
 				</td>
 				<td class="concordgeneral">
 					<select name="xmlTheElement">
-					
+
 						<?php
 						foreach (get_xml_all() as $x)
 							echo "<option>$x</option>\n\t\t\t\t\t\t";
 						?>
-						
-					</select>					
+
+					</select>
 				</td>
 			</tr>
 			<tr>
@@ -2182,8 +2182,8 @@ function printquery_xmlvisualisation()
 			</tr>
 			<tr>
 				<td align="center" colspan="2" class="concordgrey">
-					<em>Note: if you choose an element start/end for which a visualisation 
-					already exists, the existing visualisation will be overwritten UNLESS 
+					<em>Note: if you choose an element start/end for which a visualisation
+					already exists, the existing visualisation will be overwritten UNLESS
 					there are different conditions.</em>
 				</td>
 			</tr>
@@ -2197,7 +2197,7 @@ function printquery_xmlvisualisation()
 				<td class="concordgeneral">
 					<textarea cols="40" rows="12" name="xmlVisCode"></textarea>
 				</td>
-			</tr>		
+			</tr>
 			<tr>
 				<td class="concordgrey">Use this visualisation in concordances?</td>
 				<td class="concordgeneral">
@@ -2218,10 +2218,10 @@ function printquery_xmlvisualisation()
 					<br/>&nbsp;<br/>
 					<em>(Leave blank for an unconditional visualisation.)</em></td>
 				<td class="concordgeneral">
-					The attribute 
+					The attribute
 					<input type="text" name="xmlCondAttribute" />
 					must have a value which contains
-					<br/> 
+					<br/>
 					a match for the regular expression
 					<input type="text" name="xmlCondRegex" />
 					.
@@ -2233,15 +2233,15 @@ function printquery_xmlvisualisation()
 					<input type="submit" value="Create XML visualisation" />
 				</td>
 			</tr>
-			
+
 			<input type="hidden" name="thisQ" value="manageVisualisation" />
 			<input type="hidden" name="uT" value="y" />
-			
+
 		</form>
 	</table>
-	
-	
-	<?php	
+
+
+	<?php
 }
 
 
@@ -2266,7 +2266,7 @@ function printquery_showcache()
 		</tr>
 		<tr>
 	<?php
-	
+
 	$return_to_url = urlencode('index.php?' . url_printget());
 
 	echo '<th width="50%" class="concordtable">'
@@ -2278,19 +2278,19 @@ function printquery_showcache()
 	echo '<th width="50%" class="concordtable">Discard old query history<br/>(function removed)</th>';
 
 	echo '</tr> <tr>';
-			
+
 	echo '<th width="50%" class="concordtable">'
 		. '<a onmouseover="return escape(\'This function affects <b>all</b> corpora in the CQPweb database\')"'
 		. 'href="execute.php?function=clear_cache&locationAfter='
 		. $return_to_url
 		. '&uT=y">Clear entire cache<br/>(but keep saved queries)</a></th>';
-		
+
 	echo '<th width="50%" class="concordtable">'
 		. '<a onmouseover="return escape(\'This function affects <b>all</b> corpora in the CQPweb database\')"'
 		. 'href="execute.php?function=clear_cache&args=0&locationAfter='
 		. $return_to_url
 		. '&uT=y">Clear entire cache<br/>(clear all saved queries)</a></th>';
-		
+
 	echo '</td></tr></table>';
 
 
@@ -2314,12 +2314,12 @@ function printquery_showfreqtables()
 	global $corpus_sql_name;
 	global $default_history_per_page;
 	global $mysql_freqtables_size_limit;
-	
+
 	list($size) = mysql_fetch_row(do_mysql_query("select sum(ft_size) from saved_freqtables"));
 	if (empty($size))
 		$size = 0;
 	$percent = round(((float)$size / (float)$mysql_freqtables_size_limit) * 100.0, 2);
-	
+
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -2330,7 +2330,7 @@ function printquery_showfreqtables()
 		<tr>
 			<td colspan="2" class="concordgeneral">
 				&nbsp;<br/>
-				The currently saved frequency tables for all corpora have a total size of 
+				The currently saved frequency tables for all corpora have a total size of
 				<?php echo number_format((float)$size) . " bytes, $percent%"; ?>
 				of the maximum cache.
 				<br/>&nbsp;
@@ -2343,7 +2343,7 @@ function printquery_showfreqtables()
 		</tr>
 		<tr>
 	<?php
-	
+
 	$return_to_url = urlencode('index.php?' . url_printget());
 
 	echo '<th width="50%" class="concordtable">'
@@ -2358,16 +2358,16 @@ function printquery_showfreqtables()
 		. 'href="execute.php?function=clear_freqtables&locationAfter='
 		. $return_to_url
 		. '&uT=y">Clear entire frequency table cache</a></th>';
-	
-	
-	
+
+
+
 	?>
 		</tr>
 	</table>
-	
-	
-	
-	
+
+
+
+
 	<table class="concordtable" width="100%">
 		<tr>
 			<th class="concordtable">No.</th>
@@ -2383,13 +2383,13 @@ function printquery_showfreqtables()
 
 
 	<?php
-	
+
 	$sql_query = "SELECT freqtable_name, user, ft_size, restrictions, subcorpus, create_time,
 		public
 		FROM saved_freqtables WHERE corpus = '$corpus_sql_name' order by create_time desc";
-		
+
 	$result = do_mysql_query($sql_query);
-	
+
 
 	if (isset($_GET['beginAt']))
 		$begin_at = $_GET['beginAt'];
@@ -2404,10 +2404,10 @@ function printquery_showfreqtables()
 
 	$toplimit = $begin_at + $per_page;
 	$alt_toplimit = mysql_num_rows($result);
-	
+
 	if (($alt_toplimit + 1) < $toplimit)
 		$toplimit = $alt_toplimit + 1;
-	
+
 	$name_trim_factor = strlen($corpus_sql_name) + 9;
 
 	for ( $i = 1 ; $i < $toplimit ; $i++ )
@@ -2417,25 +2417,25 @@ function printquery_showfreqtables()
 			break;
 		if ($i < $begin_at)
 			continue;
-		
+
 		echo "<tr>\n<td class='concordgeneral'><center>$i</center></td>";
 		echo "<td class='concordgeneral'><center>" . substr($row['freqtable_name'], $name_trim_factor) . '</center></td>';
 		echo "<td class='concordgeneral'><center>" . $row['user'] . '</center></td>';
 		echo "<td class='concordgeneral'><center>" . $row['ft_size'] . '</center></td>';
-		echo "<td class='concordgeneral'><center>" 
+		echo "<td class='concordgeneral'><center>"
 			. ($row['restrictions'] != 'no_restriction' ? $row['restrictions'] : '-')
 			. '</center></td>';
-		echo "<td class='concordgeneral'><center>" 
+		echo "<td class='concordgeneral'><center>"
 			. ($row['subcorpus'] != 'no_subcorpus' ? $row['subcorpus'] : '-')
 			. '</center></td>';
-		echo "<td class='concordgeneral'><center>" . date('Y-m-d H:i:s', $row['create_time']) 
+		echo "<td class='concordgeneral'><center>" . date('Y-m-d H:i:s', $row['create_time'])
 			. '</center></td>';
-		
+
 		if ( $row['subcorpus'] != 'no_subcorpus' )
 		{
 			if ((bool)$row['public'])
 			{
-				echo '<td class="concordgeneral"><center><span 
+				echo '<td class="concordgeneral"><center><span
 					onmouseover="return escape(\'This frequency list is public on the system!\')">Yes</span>
 					<a class="menuItem" href="execute.php?function=unpublicise_freqtable&args='
 					. $row['freqtable_name'] . "&locationAfter=$return_to_url&uT=y"
@@ -2473,14 +2473,14 @@ function printquery_showfreqtables()
 	if ($begin_at > 1)
 		$navlinks .= '</a>';
 	$navlinks .= '</td><td class="basicbox" align="right';
-	
+
 	if (mysql_num_rows($result) > $i)
 		$navlinks .=  '"><a href="index.php?' . url_printget(array(array('beginAt', "$i + 1")));
 	$navlinks .= '">[Older frequency tables] &gt;&gt;';
 	if (mysql_num_rows($result) > $i)
 		$navlinks .= '</a>';
 	$navlinks .= '</td></tr></table>';
-	
+
 	echo $navlinks;
 
 
@@ -2495,17 +2495,17 @@ function printquery_showdbs()
 	global $corpus_sql_name;
 	global $default_history_per_page;
 	global $mysql_db_size_limit;
-	
+
 	$sql_query = "select sum(db_size) from saved_dbs";
 	$result = do_mysql_query($sql_query);
-	
+
 	list($size) = mysql_fetch_row($result);
 	if (!isset($size))
 		$size = 0;
 	$percent = round(((float)$size / (float)$mysql_db_size_limit) * 100.0, 2);
-	
+
 	unset($result);
-	
+
 	?>
 	<table class="concordtable" width="100%">
 		<tr>
@@ -2516,7 +2516,7 @@ function printquery_showdbs()
 		<tr>
 			<td colspan="2" class="concordgeneral">
 				&nbsp;<br/>
-				The currently saved databases for all corpora have a total size of 
+				The currently saved databases for all corpora have a total size of
 				<?php echo number_format((float)$size) . " bytes, $percent%"; ?>
 				of the maximum cache.
 				<br/>&nbsp;
@@ -2529,7 +2529,7 @@ function printquery_showdbs()
 		</tr>
 		<tr>
 	<?php
-	
+
 	$return_to_url = urlencode('index.php?' . url_printget());
 
 	echo '<th width="50%" class="concordtable">'
@@ -2544,16 +2544,16 @@ function printquery_showdbs()
 		. 'href="execute.php?function=clear_dbs&locationAfter='
 		. $return_to_url
 		. '&uT=y">Clear entire DB cache</a></th>';
-	
-	
-	
+
+
+
 	?>
 		</tr>
 	</table>
-	
-	
-	
-	
+
+
+
+
 	<table class="concordtable" width="100%">
 		<tr>
 			<th class="concordtable">No.</th>
@@ -2565,15 +2565,15 @@ function printquery_showdbs()
 			<th class="concordtable">Restrictions</th>
 			<th class="concordtable">Subcorpus</th>
 			<th class="concordtable">Created</th>
-			<th class="concordtable">Delete</th>	
+			<th class="concordtable">Delete</th>
 		</tr>
 
 
 	<?php
-	
-	$sql_query = "SELECT user, dbname, db_type, db_size, cqp_query, restrictions, subcorpus, create_time 
+
+	$sql_query = "SELECT user, dbname, db_type, db_size, cqp_query, restrictions, subcorpus, create_time
 		FROM saved_dbs WHERE corpus = '$corpus_sql_name' order by create_time desc";
-		
+
 	$result = do_mysql_query($sql_query);
 
 	if (isset($_GET['beginAt']))
@@ -2589,10 +2589,10 @@ function printquery_showdbs()
 
 	$toplimit = $begin_at + $per_page;
 	$alt_toplimit = mysql_num_rows($result);
-	
+
 	if (($alt_toplimit + 1) < $toplimit)
 		$toplimit = $alt_toplimit + 1;
-	
+
 
 	for ( $i = 1 ; $i < $toplimit ; $i++ )
 	{
@@ -2601,22 +2601,22 @@ function printquery_showdbs()
 			break;
 		if ($i < $begin_at)
 			continue;
-		
+
 		echo "<tr>\n<td class='concordgeneral'><center>$i</center></td>";
 		echo "<td class='concordgeneral'><center>" . $row['user'] . '</center></td>';
 		echo "<td class='concordgeneral'><center>" . $row['dbname'] . '</center></td>';
 		echo "<td class='concordgeneral'><center>" . $row['db_type'] . '</center></td>';
 		echo "<td class='concordgeneral'><center>" . $row['db_size'] . '</center></td>';
 		echo "<td class='concordgeneral'><center>" . $row['cqp_query'] . '</center></td>';
-		echo "<td class='concordgeneral'><center>" 
+		echo "<td class='concordgeneral'><center>"
 			. ($row['restrictions'] != 'no_restriction' ? $row['restrictions'] : '-')
 			. '</center></td>';
-		echo "<td class='concordgeneral'><center>" 
+		echo "<td class='concordgeneral'><center>"
 			. ($row['subcorpus'] != 'no_subcorpus' ? $row['subcorpus'] : '-')
 			. '</center></td>';
-		echo "<td class='concordgeneral'><center>" . date('Y-m-d H:i:s', $row['create_time']) 
+		echo "<td class='concordgeneral'><center>" . date('Y-m-d H:i:s', $row['create_time'])
 			. '</center></td>';
-			
+
 		echo '<td class="concordgeneral"><center><a class="menuItem" href="execute.php?function=delete_db&args='
 			. $row['dbname'] . "&locationAfter=$return_to_url&uT=y"
 			. '" onmouseover="return escape(\'Delete this table\')">[x]</a></center></td>';
@@ -2634,14 +2634,14 @@ function printquery_showdbs()
 	if ($begin_at > 1)
 		$navlinks .= '</a>';
 	$navlinks .= '</td><td class="basicbox" align="right';
-	
+
 	if (mysql_num_rows($result) > $i)
 		$navlinks .=  '"><a href="index.php?' . url_printget(array(array('beginAt', "$i + 1")));
 	$navlinks .= '">[Older databases] &gt;&gt;';
 	if (mysql_num_rows($result) > $i)
 		$navlinks .= '</a>';
 	$navlinks .= '</td></tr></table>';
-	
+
 	echo $navlinks;
 
 

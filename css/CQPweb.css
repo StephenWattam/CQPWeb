@@ -75,72 +75,89 @@ td.controlbox {
 
 
 table.concordtable {
-	border-style: solid;
-	border-color: #ffffff; 
-	border-width: 5px
+	/* border-style: solid; */
+	/* border-color: #ffffff; */
+	/* border-width: 5pxi */
+
+    border-collapse: collapse;
+    border-spacing: 0;
 }
 
+th:first-child {
+    border-radius: 6px 0 0 6px;
+}
+
+th:last-child {
+    border-radius: 0 6px 6px 0;
+}
+
+th:only-child {
+    border-radius: 6px;
+}
+
+
 th.concordtable {
-	padding-left: 3px;
-	padding-right: 3px;
-	padding-top: 7px;
-	padding-bottom: 7px;
-	background-color: #bbbbff;
+	padding: 5px 3px;
 	font-family: verdana;
 	font-weight: bold;
-	border-style: solid;
-	border-color: #ddd; 
-	border-width: 1px
+
+    background: #1e5799;
+    background: -moz-linear-gradient(top, #1e5799 0%, #2989d8 50%, #207cca 51%, #7db9e8 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#1e5799), color-stop(50%,#2989d8), color-stop(51%,#207cca), color-stop(100%,#7db9e8));
+    background: -webkit-linear-gradient(top, #1e5799 0%,#2989d8 50%,#207cca 51%,#7db9e8 100%);
+    background: -o-linear-gradient(top, #1e5799 0%,#2989d8 50%,#207cca 51%,#7db9e8 100%);
+    background: -ms-linear-gradient(top, #1e5799 0%,#2989d8 50%,#207cca 51%,#7db9e8 100%);
+    background: linear-gradient(to bottom, #1e5799 0%,#2989d8 50%,#207cca 51%,#7db9e8 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=0 );
+
+    color: white;
+}
+
+th.concordtable a{
+    color: white;
+    text-decoration: none;
 }
 
 td.concordgeneral {
-	padding-left: 7px;
-	padding-right: 7px;
-	padding-top: 3px;
-	padding-bottom: 3px;
-	background-color: #ddddff;	
+	padding: 5px 3px;
+	background-color: #d5dff9;
 	font-family: verdana;
-	font-size: 10pt;
+	font-size: 12pt;
 	border-style: solid;
-	border-color: #ddd; 
+	border-color: #ddd;
 	border-width: 1px
-}	
+}
+
+td.concordgrey {
+	padding: 5px 3px;
+	background-color: #eee;
+	font-family: verdana;
+	font-size: 12pt;
+	border-style: solid;
+	border-color: #ddd;
+	border-width: 1px;
+}
 
 
 td.concorderror {
-	padding-left: 7px;
-	padding-right: 7px;
-	padding-top: 3px;
-	padding-bottom: 3px;
-	background-color: #ffeeaa;	
+	padding: 5px 3px;
+	background-color: #ffeeaa;
 	font-family: verdana;
 	font-size: 10pt;
 	border-style: solid;
-	border-color: #ffffff; 
+	border-color: #ffffff;
 	border-width: 2px
 }
 
 
-td.concordgrey {
-	padding-left: 7px;
-	padding-right: 7px;
-	padding-top: 3px;
-	padding-bottom: 3px;
-	background-color: #d5d5d5;	
-	font-family: verdana;
-	font-size: 10pt;
-	border-style: solid;
-	border-color: #ddd; 
-	border-width: 1px;
-}	
-
 
 td.before {
 	padding: 3px;
-	background-color: #ddddff;	
+	/* background-color: #d5dff9; */
 	border-style: solid;
-	border-color: #ffffff; 
-	border-top-width: 2px;
+	border-color: #ffffff;
+
+    border-top-width: 2px;
 	border-bottom-width: 2px;
 	border-left-width: 2px;
 	border-right-width: 0px;
@@ -149,9 +166,10 @@ td.before {
 
 td.after {
 	padding: 3px;
-	background-color: #ddddff;	
+	/* background-color: #d5dff9; */
 	border-style: solid;
-	border-color: #ffffff; 
+	border-color: #ffffff;
+
 	border-top-width: 2px;
 	border-bottom-width: 2px;
 	border-left-width: 0px;
@@ -161,9 +179,9 @@ td.after {
 
 td.node {
 	padding: 3px;
-	background-color: #f0f0f0;	
+	background-color: #f0f0f0;
 	border-style: solid;
-	border-color: #ffffff; 
+	border-color: #ffffff;
 	border-top-width: 2px;
 	border-bottom-width: 2px;
 	border-left-width: 0px;
@@ -176,27 +194,30 @@ td.lineview {
 	padding-right: 7px;
 	padding-top: 3px;
 	padding-bottom: 3px;
-	background-color: #ddddff;	
+	background-color: #d5dff9;
 	border-style: solid;
-	border-color: #ffffff; 
+	border-color: #ffffff;
 	border-width: 2px
-}	
+}
 
 td.text_id {
 	padding: 3px;
-	background-color: #ddddff;	
+	background-color: #d5dff9;;
 	border-style: solid;
-	border-color: #ffffff; 
+	border-color: #ffffff;
 	border-width: 2px;
 	text-align: center
+
+    font-family: monospace;
+    font-size: smaller;
 }
 
 td.end_bar {
 	padding: 3px;
-	background-color: #d5d5d5;	
+	background-color: #d5d5d5;
 	font-family: verdana;
 	border-style: solid;
-	border-color: #ffffff; 
+	border-color: #ffffff;
 	border-width: 2px;
 	text-align: center
 }
@@ -207,7 +228,7 @@ td.basicbox {
 	padding-right: 7px;
 	padding-top: 10px;
 	padding-bottom: 10px;
-	background-color: #ddddff;	
+	background-color: #d5dff9;
 	font-family: verdana;
 	font-size: 10pt;
 }
@@ -223,7 +244,7 @@ td.cqpweb_copynote {
 	font-size: 8pt;
 	color: gray;
 	border-style: solid;
-	border-color: #ffffff; 
+	border-color: #ffffff;
 	border-width: 2px
 }
 
@@ -235,7 +256,31 @@ table.menu {
     width: 200px;
 }
 
+
+
+div#showMenu {
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding: 5px 7px;
+
+    background: white;
+    border-radius: 0 0 6px 0;
+    opacity: 80%;
+    font-size: 12pt;
+    text-decoration: none;
+    border-bottom: solid 1px #333;
+    border-right: solid 1px #333;
+    box-shadow: 2px 2px 3px #333;
+}
+
 /* different types of link */
+
+a {
+    color: black;
+}
+
+
 /* first, for left-navigation in the main query screen */
 a.menuItem {
     display: block;
@@ -261,12 +306,13 @@ a.menuItem:hover {
 }
 
 .selected {
-    border: solid 1px #aaa;
-    background: #ddd;
+    border: solid 1px #ddd;
+    border-radius: 6px;
+    background: #eee;
 }
 
-/* next, for the currently selected menu item 
- * will not usually have an href 
+/* next, for the currently selected menu item
+ * will not usually have an href
  * ergo, no visited/hover */
 a.menuCurrentItem {
 	white-space: nowrap;
@@ -277,9 +323,9 @@ a.menuCurrentItem {
 }
 
 
-/* next, for menu bar header text item 
- * will not usually have an href 
- * ergo, no visited/hover 
+/* next, for menu bar header text item
+ * will not usually have an href
+ * ergo, no visited/hover
 a.menuHeaderItem {
 	white-space: nowrap;
 	font-family: verdana;
